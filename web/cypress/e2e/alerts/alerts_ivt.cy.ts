@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { testAlertsRegression } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';

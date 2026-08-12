@@ -5,12 +5,12 @@ echo "--------------------------------"
 
 CMO_FILE="/tmp/cmo_monitoring_csv_$(date +%s%N).yaml"
 
-oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml > "${CMO_FILE}" --kubeconfig "${KUBECONFIG}"
+oc get deployment cluster-monitoring-operator -n openshift-monitoring -o yaml --kubeconfig "${KUBECONFIG}" >"${CMO_FILE}"
 
 sed -i "s#value: .*monitoring-plugin.*#value: ${MP_IMAGE}#g" "${CMO_FILE}"
 sed -i "s#^\([[:space:]]*- -images=monitoring-plugin=\).*#\1${MP_IMAGE}#g" "${CMO_FILE}"
 
-oc patch clusterversion version --type json -p "$(cat ./cypress/fixtures/cmo/disable-monitoring.yaml)"
+oc patch clusterversion version --type json -p "$(cat ./cypress/fixtures/shared/cluster-monitoring-operator/disable-monitoring.yaml)"
 
 oc replace -f "${CMO_FILE}" --kubeconfig "${KUBECONFIG}"
 
