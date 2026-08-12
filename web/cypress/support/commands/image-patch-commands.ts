@@ -40,7 +40,7 @@ export const imagePatchUtils = {
    * Generic function to patch a component image in the COO CSV.
    */
   patchCOOCSVImage(
-    MCP: { namespace: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string },
     config: {
       envVar: string;
       scriptPath: string;
@@ -56,7 +56,7 @@ export const imagePatchUtils = {
         env: {
           [config.envVar]: imageValue,
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MCP_NAMESPACE: `${MCP.namespace}`,
+          MCP_NAMESPACE: `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true,
@@ -70,16 +70,16 @@ export const imagePatchUtils = {
     }
   },
 
-  setupMonitoringConsolePlugin(MCP: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(MCP, {
+  setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'MCP_CONSOLE_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
       componentName: 'Monitoring Console Plugin',
     });
   },
 
-  setupClusterHealthAnalyzer(MCP: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(MCP, {
+  setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'CHA_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
       componentName: 'cluster-health-analyzer',
@@ -91,7 +91,7 @@ export const imagePatchUtils = {
    * expected CI image. If OLM reverted the CSV patch, re-apply it, patch the
    * deployment directly, and wait until the pod rolls out with the correct image.
    */
-  verifyMonitoringConsolePluginImage(MCP: { namespace: string }): void {
+  verifyMonitoringConsolePluginImage(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     const expectedImage = Cypress.env('MCP_CONSOLE_IMAGE');
     if (!expectedImage) {
       return;
@@ -100,7 +100,7 @@ export const imagePatchUtils = {
     cy.log('Verify monitoring-console-plugin pod image matches expected CI image');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
     const maxAttempts = 5;
-    const ns = MCP.namespace;
+    const ns = CLUSTER_OBSERVABILITY_OPERATOR.namespace;
 
     if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(ns)) {
       throw new Error(`Invalid Kubernetes namespace: ${ns}`);

@@ -3,21 +3,14 @@
 import { nav } from 'cypress/views/nav';
 import '../../support/commands/auth-commands';
 import { runBVTCOOPersesTests1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
-
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 
 describe('ACM - Perses', { tags: ['@perses-dashboards', '@acm', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockACM(MCP, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockACM(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     cy.switchPerspective('Core platform');
     cy.cleanupPersesTestDashboardsBeforeTests();
   });

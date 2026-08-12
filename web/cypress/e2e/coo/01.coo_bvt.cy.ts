@@ -1,22 +1,14 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
 describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
   });
 
   it('1. Admin perspective - Observe Menu', () => {

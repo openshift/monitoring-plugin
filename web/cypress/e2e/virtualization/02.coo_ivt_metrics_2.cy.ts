@@ -1,21 +1,13 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
 
 const KBV = {
   namespace: 'openshift-cnv',
@@ -35,7 +27,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {

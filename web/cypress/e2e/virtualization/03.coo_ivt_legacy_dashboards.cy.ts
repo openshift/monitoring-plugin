@@ -1,4 +1,7 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
@@ -6,16 +9,6 @@ import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
 const KBV = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
@@ -34,7 +27,7 @@ describe(
   { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },

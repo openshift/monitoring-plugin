@@ -160,7 +160,7 @@ export function createIncidentMock(
         endpoint: 'metrics',
         instance: '10.128.0.134:8443',
         job: 'health-analyzer',
-        namespace: Cypress.env('COO_NAMESPACE'),
+        namespace: 'openshift-cluster-observability-operator',
         pod: 'health-analyzer-55fc4cbbb6-5gjcv',
         prometheus: 'openshift-monitoring/k8s',
         service: 'health-analyzer',

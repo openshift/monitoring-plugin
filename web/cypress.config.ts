@@ -55,7 +55,7 @@ export default defineConfig({
     LOGIN_PASSWORD6: getLoginCredentials(6).password,
     TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
     MOCK_NEW_METRICS: process.env.CYPRESS_MOCK_NEW_METRICS || 'false',
-    COO_NAMESPACE: process.env.CYPRESS_COO_NAMESPACE || 'openshift-cluster-observability-operator',
+    COO_NAMESPACE: 'openshift-cluster-observability-operator',
     typeDelay: 200,
   },
   fixturesFolder: 'cypress/fixtures',
