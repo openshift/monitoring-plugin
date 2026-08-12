@@ -19,11 +19,11 @@ export interface PerspectiveConfig {
   beforeEach?: () => void;
 }
 
-export function runBVTMonitoringTests(perspective: PerspectiveConfig) {
-  testBVTMonitoring(perspective);
+export function runBVTAlertsTests(perspective: PerspectiveConfig) {
+  testBVTAlerts(perspective);
 }
 
-export function testBVTMonitoring(perspective: PerspectiveConfig) {
+export function testBVTAlerts(perspective: PerspectiveConfig) {
   it(
     `${perspective.name} perspective - ` +
       'Alerting > Alerting Details page > Alerting Rule > Metrics',

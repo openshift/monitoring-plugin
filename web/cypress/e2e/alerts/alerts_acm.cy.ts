@@ -1,6 +1,5 @@
-// 02.acm_alerting_ui.cy.ts
 // E2E test for validating ACM Alerting UI integration with Cluster Observability Operator (COO)
-import '../../support/commands/auth-commands';
+import '../../support/shared/commands/auth-commands';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { acmAlertingPage } from '../../views/acm-alerting-page';
@@ -12,7 +11,7 @@ import { listPage } from 'cypress/views/list-page';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 

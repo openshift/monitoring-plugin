@@ -1,5 +1,4 @@
 import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
-import { Source } from '../fixtures/shared/cluster-monitoring-operator/constants';
 import { listPage } from './list-page';
 
 export const alertingRuleListPage = {

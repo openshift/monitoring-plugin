@@ -1,4 +1,4 @@
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { runBVTAlertsTests } from '../../support/alerts/alerts_bvt.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { nav } from '../../views/nav';
@@ -8,7 +8,7 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 describe(
   'IVT: Monitoring + Virtualization',
@@ -38,8 +38,7 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    // Run tests in Administrator perspective
-    runBVTMonitoringTests({
+    runBVTAlertsTests({
       name: 'Virtualization',
     });
   },
