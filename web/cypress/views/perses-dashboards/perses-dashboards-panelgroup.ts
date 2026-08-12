@@ -1,9 +1,9 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import { IDs, persesAriaLabels, persesMUIDataTestIDs } from '@/shared/constants/data-test';
 import {
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesDashboardsPanelGroup = {
   addPanelGroupShouldBeLoaded: () => {

@@ -1,6 +1,6 @@
-import { persesDashboardsPage } from '../../../views/perses-dashboards';
-import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
-import { persesCreateDashboardsPage } from '../../../views/perses-dashboards-create-dashboard';
+import { persesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesCreateDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-create-dashboard';
 import {
   persesDashboardsAddListVariableSource,
   persesDashboardSampleQueries,
@@ -8,13 +8,13 @@ import {
   persesDashboardsDashboardDropdownPersesDev,
   persesDashboardsEmptyDashboard,
 } from '../../../fixtures/perses/constants';
-import { persesDashboardsEditVariables } from '../../../views/perses-dashboards-edit-variables';
-import { persesDashboardsPanelGroup } from '../../../views/perses-dashboards-panelgroup';
+import { persesDashboardsEditVariables } from '../../../views/perses-dashboards/perses-dashboards-edit-variables';
+import { persesDashboardsPanelGroup } from '../../../views/perses-dashboards/perses-dashboards-panelgroup';
 import { persesAriaLabels } from '@/shared/constants/data-test';
-import { persesDashboardsPanel } from '../../../views/perses-dashboards-panel';
+import { persesDashboardsPanel } from '../../../views/perses-dashboards/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../../fixtures/perses/constants';
-import { persesImportDashboardsPage } from '../../../views/perses-dashboards-import-dashboard';
-import { nav } from '../../../views/nav';
+import { persesImportDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-import-dashboard';
+import { nav } from '../../../views/shared/nav';
 
 export interface PerspectiveConfig {
   name: string;

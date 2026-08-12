@@ -1,12 +1,12 @@
-import { commonPages } from '../../views/common';
-import { detailsPage } from '../../views/details-page';
-import { listPage } from '../../views/list-page';
-import { silenceAlertPage } from '../../views/silence-alert-page';
-import { nav } from '../../views/nav';
-import { silenceDetailsPage } from '../../views/silence-details-page';
-import { silencesListPage } from '../../views/silences-list-page';
-import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
-import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { commonPages } from '../../views/shared/common';
+import { detailsPage } from '../../views/shared/details-page';
+import { alertsListPage } from '../../views/alerts/alerts-list-page';
+import { silenceAlertPage } from '../../views/alerts/silence-alert-page';
+import { nav } from '../../views/shared/nav';
+import { silenceDetailsPage } from '../../views/alerts/silence-details-page';
+import { silencesListPage } from '../../views/alerts/silences-list-page';
+import { alertingRuleListPage } from '../../views/alerts/alerting-rule-list-page';
+import { alertingRuleDetailsPage } from '../../views/alerts/alerting-rule-details-page';
 import {
   AlertingRulesAlertState,
   Cluster,
@@ -18,6 +18,7 @@ import {
   WatchdogAlert,
 } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
+import { listPage } from 'cypress/views/shared/list-page';
 
 export interface PerspectiveConfig {
   name: string;
@@ -376,7 +377,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     nav.tabs.switchTab('Alerting rules');
     listPage.filter.byName(`${alertName}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
-    listPage.filter.clearAllFilters();
+    alertsListPage.filter.clearAllFilters();
 
     cy.log('5.2 Search by Label');
     listPage.filter.byLabel(`namespace=${alertNamespace}`);

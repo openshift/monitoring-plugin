@@ -8,7 +8,7 @@ this test measures incremental re-render cost during a realistic user session.
 Verifies: OBSINTA-1006
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 import { BenchmarkCollector } from '../../../support/shared/commands/benchmark-utils';
 import {
   CLUSTER_MONITORING_OPERATOR,

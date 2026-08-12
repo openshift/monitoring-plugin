@@ -1,14 +1,14 @@
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
 import {
   persesDashboardsAddListPanelType,
   persesDashboardSampleQueries,
   persesDashboardsEmptyDashboard,
 } from '../../fixtures/perses/constants';
-import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
-import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
-import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
-import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-create-dashboard';
+import { persesDashboardsPanelGroup } from '../../views/perses-dashboards/perses-dashboards-panelgroup';
+import { persesDashboardsPanel } from '../../views/perses-dashboards/perses-dashboards-panel';
+import { persesDashboardsEditVariables } from '../../views/perses-dashboards/perses-dashboards-edit-variables';
 import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/constants';
 
 export interface PerspectiveConfig {

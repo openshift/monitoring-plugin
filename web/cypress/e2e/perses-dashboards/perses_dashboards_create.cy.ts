@@ -1,4 +1,4 @@
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import { runCOOCreatePersesTests } from '../../support/perses/perses_create_admin.cy';
 import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
 

@@ -7,11 +7,11 @@ import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
 } from '../../fixtures/perses/constants';
-import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
-import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
+import { commonPages } from '../../views/shared/common';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
+import { persesDashboardsPanelGroup } from '../../views/perses-dashboards/perses-dashboards-panelgroup';
+import { persesDashboardsEditVariables } from '../../views/perses-dashboards/perses-dashboards-edit-variables';
 
 export interface PerspectiveConfig {
   name: string;

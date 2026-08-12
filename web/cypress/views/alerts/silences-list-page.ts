@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
 
 export const silencesListPage = {

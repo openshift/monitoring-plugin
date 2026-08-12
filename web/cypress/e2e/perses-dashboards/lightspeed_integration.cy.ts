@@ -1,9 +1,9 @@
 import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
-import { nav } from '../../views/nav';
-import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { nav } from '../../views/shared/nav';
+import { commonPages } from '../../views/shared/common';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-create-dashboard';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
 import { persesMUIDataTestIDs } from '@/shared/constants/data-test';
 
 const PROMPT = 'visualize CPU consumption in the openshift-monitoring namespace in last 2 hours';

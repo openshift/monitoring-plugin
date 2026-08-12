@@ -1,4 +1,4 @@
-import * as helperfuncs from '../views/utils';
+import * as helperfuncs from './utils';
 
 export const operatorHubPage = {
   installOperator: (operatorName, csName, installNamespace?) => {
