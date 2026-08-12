@@ -4,16 +4,12 @@ import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(MP);
+    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -34,13 +30,13 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     // Run tests in Administrator perspective
@@ -53,7 +49,7 @@ describe(
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(MP);
+    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -74,13 +70,13 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     // Run tests in Administrator perspective

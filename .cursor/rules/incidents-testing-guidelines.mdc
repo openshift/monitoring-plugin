@@ -100,6 +100,7 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
+import { CLUSTER_MONITORING_OPERATOR } from "../../../support/operators";
 
 const MCP = {
   namespace: 'openshift-cluster-observability-operator',
@@ -111,14 +112,9 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('Regression: <Section Name>', () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -140,8 +136,8 @@ describe('Regression: <Section Name>', () => {
 ### Required Elements
 - File header comment with purpose and issue reference (e.g., "Verifies: OU-XXX")
 - Import `incidentsPage` from relative path
-- Standard MCP/MP configuration blocks
-- Use `cy.beforeBlockCOO(MCP, MP)` in `before()` hook
+- Standard MCP/CLUSTER_MONITORING_OPERATOR configuration blocks
+- Use `cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR)` in `before()` hook
 - Use `incidentsPage.goTo()` in `beforeEach()`
 - Use `cy.mockIncidentFixture()` for test data
 

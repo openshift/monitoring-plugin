@@ -7,6 +7,7 @@ is irrelevant for toolbar/filter verification). Tests 4-5 switch mocks
 mid-test for empty state and traversal scenarios.
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 const MCP = {
@@ -19,14 +20,12 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      dashboards: false,
+      troubleshootingPanel: false,
+    });
     incidentsPage.warmUpForPlugin();
     cy.mockIncidentFixture(
       'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',

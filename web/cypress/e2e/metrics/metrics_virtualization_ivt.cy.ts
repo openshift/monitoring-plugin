@@ -6,6 +6,7 @@ import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -16,10 +17,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 const KBV = {
@@ -37,7 +34,7 @@ const KBV = {
 
 describe('Regression: Monitoring - Metrics (Virtualization)', () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
     cy.log('Installation: COO and setting up Monitoring Plugin');
     cy.beforeBlockVirtualization(KBV);
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
@@ -77,7 +74,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
         nav.sidenav.clickNavLink(['Observe', 'Metrics']);
         commonPages.titleShouldHaveText('Metrics');
-        cy.changeNamespace(MP.namespace);
+        cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
         alerts.interceptWatchdogAlert();
       });
 
@@ -121,7 +118,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
         nav.sidenav.clickNavLink(['Observe', 'Metrics']);
         commonPages.titleShouldHaveText('Metrics');
-        cy.changeNamespace(MP.namespace);
+        cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
         alerts.interceptWatchdogAlert();
       });
 
