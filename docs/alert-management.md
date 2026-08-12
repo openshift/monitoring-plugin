@@ -40,6 +40,41 @@ This is a cluster configuration choice and does not change the plugin API shape.
 
 The plugin intentionally reads from only the in-cluster Alertmanager endpoints. Supporting multiple external Alertmanagers would introduce ambiguous alert state and silencing outcomes because each instance can apply different routing, inhibition, and silence configurations.
 
+### Managing alert rules via the Management API
+
+| Operation | Single | Bulk |
+|---|---|---|
+| Create | `POST /api/v1/alerting/rules` | n/a |
+| Update (labels, drop/restore, classification) | `PATCH /api/v1/alerting/rules/{ruleId}` | `PATCH /api/v1/alerting/rules` |
+| Delete | `DELETE /api/v1/alerting/rules/{ruleId}` | `DELETE /api/v1/alerting/rules` |
+
+**Single update** (`PATCH /rules/{ruleId}`):
+- Request body uses `UpdateAlertRuleRequest` (labels and/or classification, or
+  `alertingRuleEnabled` alone for drop/restore).
+- Success: HTTP `200` with `UpdateAlertRuleResult` (`statusCode: 204`). The
+  returned `id` may differ from the path `ruleId` when labels change the stable ID.
+- Failure: standard `ErrorResponse` with the corresponding HTTP status
+  (400/401/403/404/405/409/413/500). Errors include a message so callers can act on them.
+- Non-atomic combined updates: when both `classification` and `labels` are set,
+  classification is applied first, then labels. If the label step fails, the
+  classification change may already be persisted and the request still returns
+  an error. Retry or inspect cluster state before re-applying classification.
+
+**Bulk update** (`PATCH /rules`):
+- Request body includes `ruleIds` (1–100) plus the same mutation fields.
+- Always returns HTTP `200` with per-rule `statusCode`/`message` entries so
+  partial success is visible.
+- Same non-atomic classification-then-labels behavior as single update; a failed
+  label step is reported on that rule's result while classification may remain.
+
+**Single delete** (`DELETE /rules/{ruleId}`):
+- Success: HTTP `204`.
+- Failure: `ErrorResponse` with HTTP status (400/401/403/404/405/409/500).
+
+**Bulk delete** (`DELETE /rules`):
+- Request body includes `ruleIds` (1–100).
+- Always returns HTTP `200` with per-rule results.
+
 ### Managing user-defined alert rules
 
 | Rule ownership | Editable? | Classification? | Drop/Restore? |
