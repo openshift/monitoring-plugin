@@ -68,7 +68,7 @@ describe(
         label: string,
         days: '1 day' | '3 days' | '7 days' | '15 days' = '1 day',
       ) => {
-        cy.mockIncidentFixture(`incident-scenarios/${fixture}`);
+        cy.mockIncidentFixture(`incidents/scenarios/${fixture}`);
 
         collector.markStart(label);
 
@@ -114,7 +114,7 @@ describe(
         label: string,
         days: '1 day' | '3 days' | '7 days' | '15 days' = '1 day',
       ) => {
-        cy.mockIncidentFixture(`incident-scenarios/${fixture}`);
+        cy.mockIncidentFixture(`incidents/scenarios/${fixture}`);
         incidentsPage.clearAllFilters();
         incidentsPage.setDays(days);
         incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
@@ -157,7 +157,7 @@ describe(
     it('6.3 Benchmark: Multi-incident chart render time (20 uniform incidents)', () => {
       cy.wait(10000);
 
-      cy.mockIncidentFixture('incident-scenarios/22-benchmark-20-incidents.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/22-benchmark-20-incidents.yaml');
 
       collector.markStart('Incidents chart - 20 uniform incidents');
 
@@ -174,7 +174,7 @@ describe(
     it('6.4 Benchmark: Mixed-size incidents chart render time (12 heterogeneous incidents)', () => {
       cy.wait(10000);
 
-      cy.mockIncidentFixture('incident-scenarios/23-benchmark-mixed-size-incidents.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/23-benchmark-mixed-size-incidents.yaml');
 
       collector.markStart('Incidents chart - 12 mixed-size incidents (67 alerts)');
 

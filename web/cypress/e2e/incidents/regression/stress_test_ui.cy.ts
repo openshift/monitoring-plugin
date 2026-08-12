@@ -36,7 +36,7 @@ describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '
       maxGap: number,
       label: string,
     ) => {
-      cy.mockIncidentFixture(`incident-scenarios/${fixtureFile}`);
+      cy.mockIncidentFixture(`incidents/scenarios/${fixtureFile}`);
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
 

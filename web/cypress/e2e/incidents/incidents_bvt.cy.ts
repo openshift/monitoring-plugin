@@ -21,7 +21,7 @@ describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, 
     });
     incidentsPage.warmUpForPlugin();
     cy.mockIncidentFixture(
-      'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
+      'incidents/scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
   });
 
@@ -75,12 +75,12 @@ describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, 
 
     cy.log('5.2 Verify traversing incident table works when the alert is not present');
     cy.mockIncidentFixture(
-      'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
+      'incidents/scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
     incidentsPage.findIncidentWithAlert('TargetAlert').should('be.false');
 
     cy.log('5.3 Verify traversing incident table works when the alert is present');
-    cy.mockIncidentFixture('incident-scenarios/6-multi-incident-target-alert-scenario.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/6-multi-incident-target-alert-scenario.yaml');
     incidentsPage.clearAllFilters();
     incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');
   });
@@ -89,7 +89,7 @@ describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, 
     cy.log('6.1 Load multi-incident fixture and verify chart bars are clickable');
     incidentsPage.setDays('7 days');
     cy.mockIncidentFixture(
-      'incident-scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
+      'incidents/scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
     );
     incidentsPage.clearAllFilters();
     incidentsPage.elements.incidentsChartContainer().should('be.visible');
