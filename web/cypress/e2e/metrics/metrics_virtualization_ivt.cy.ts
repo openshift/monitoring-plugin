@@ -9,14 +9,14 @@ import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-  HYPERCONVERGED_CLUSTER_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 
 describe('Regression: Monitoring - Metrics (Virtualization)', () => {
   before(() => {
     cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     cy.log('Installation: COO and setting up Monitoring Plugin');
-    cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
+    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
   });
 

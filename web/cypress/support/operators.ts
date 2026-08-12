@@ -13,7 +13,7 @@ export const CLUSTER_OBSERVABILITY_OPERATOR = {
   },
 };
 
-export const HYPERCONVERGED_CLUSTER_OPERATOR = {
+export const KUBEVIRT_HYPERCONVERGED_OPERATOR = {
   namespace: 'openshift-cnv',
   packageName: 'kubevirt-hyperconverged',
   config: {
@@ -24,4 +24,28 @@ export const HYPERCONVERGED_CLUSTER_OPERATOR = {
     kubevirt: 'kubevirts.kubevirt.io',
     hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
   },
+};
+
+export const OPENTELEMETRY_OPERATOR = {
+  namespace: 'openshift-opentelemetry-operator',
+  packageName: 'opentelemetry-product',
+  operatorName: 'Red Hat build of OpenTelemetry',
+};
+
+export const TEMPO_OPERATOR = {
+  namespace: 'openshift-tempo-operator',
+  packageName: 'tempo-product',
+  operatorName: 'Tempo Operator',
+};
+
+export const LOKI_OPERATOR = {
+  namespace: 'openshift-operators-redhat',
+  packageName: 'loki-operator',
+  operatorName: 'Loki Operator',
+};
+
+export const CLUSTER_LOGGING_OPERATOR = {
+  namespace: 'openshift-logging',
+  packageName: 'cluster-logging',
+  operatorName: 'Logging Operator',
 };
