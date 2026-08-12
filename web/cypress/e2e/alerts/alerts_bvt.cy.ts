@@ -14,10 +14,10 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, ()
   });
 
   beforeEach(() => {
-    alerts.getWatchdogAlert();
+    alerts.interceptWatchdogAlert();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
+    alerts.interceptWatchdogAlert();
     cy.changeNamespace(MP.namespace);
   });
 
