@@ -71,7 +71,7 @@ let allValid = true;
 
 if (args[0] === '--all') {
   // Validate all YAML files in the fixtures directory
-  const fixturesDir = path.join(__dirname, '../../../fixtures/incident-scenarios');
+  const fixturesDir = path.join(__dirname, '../../../fixtures/incidents/scenarios');
 
   if (!fs.existsSync(fixturesDir)) {
     console.log(`ERROR: Fixtures directory not found: ${fixturesDir}`);

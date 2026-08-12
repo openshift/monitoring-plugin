@@ -47,7 +47,7 @@ Generate automated regression tests from test documentation in [`docs/incident_d
 
 ### 3. Check/Create Fixtures
 
-**Fixture location**: `web/cypress/fixtures/incident-scenarios/`
+**Fixture location**: `web/cypress/fixtures/incidents/scenarios/`
 
 **Naming convention**: `XX-descriptive-name.yaml` (e.g., `13-tooltip-positioning-scenarios.yaml`)
 
@@ -108,7 +108,7 @@ describe("Regression: [Section Name]", () => {
     cy.log("Navigate to Observe → Incidents");
     incidentsPage.goTo();
     cy.log("[Brief description of scenario being loaded]");
-    cy.mockIncidentFixture("incident-scenarios/XX-scenario-name.yaml");
+    cy.mockIncidentFixture("incidents/scenarios/XX-scenario-name.yaml");
   });
 
   it("1. [First test case description]", () => {
@@ -355,7 +355,7 @@ incidentsPage.toggleFilter("Critical");
 
 **Scenario A - No fixture exists**:
 
-1. Search for similar fixtures in `web/cypress/fixtures/incident-scenarios/`
+1. Search for similar fixtures in `web/cypress/fixtures/incidents/scenarios/`
 2. Prompt with options:
    ```
    No fixture found. Required: [list requirements]
@@ -549,7 +549,7 @@ describe("Regression: Tooltip Positioning", () => {
     incidentsPage.goTo();
     cy.log("Loading tooltip positioning test scenarios");
     cy.mockIncidentFixture(
-      "incident-scenarios/13-tooltip-positioning-scenarios.yaml",
+      "incidents/scenarios/13-tooltip-positioning-scenarios.yaml",
     );
   });
 
@@ -648,8 +648,8 @@ Provide:
 1. **Test file path and name**: Full path to generated test file
 2. **Test file content**: Complete TypeScript test file
 3. **Fixture status**:
-   - If existing: "Using fixture: incident-scenarios/X-name.yaml"
-   - If new: "Created fixture: incident-scenarios/X-name.yaml" + YAML content
+   - If existing: "Using fixture: incidents/scenarios/X-name.yaml"
+   - If new: "Created fixture: incidents/scenarios/X-name.yaml" + YAML content
 4. **Page object changes**: If any elements/methods need to be added, list them with implementation
 5. **Validation status**: Confirm all checklist items passed
 
