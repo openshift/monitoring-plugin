@@ -1,6 +1,7 @@
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
+  HYPERCONVERGED_CLUSTER_OPERATOR,
 } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
@@ -8,19 +9,6 @@ import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
@@ -41,7 +29,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

@@ -6,22 +6,8 @@ import { commonPages } from '../../views/common';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
+  HYPERCONVERGED_CLUSTER_OPERATOR,
 } from '../../support/operators';
-
-// Set constants for the operators that need to be installed for tests.
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
 
 describe(
   'IVT: Monitoring + Virtualization',
@@ -39,7 +25,7 @@ describe(
 
 describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
   before(() => {
-    cy.beforeBlockVirtualization(KBV);
+    cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
   });
 
   it('1. Virtualization perspective - Observe Menu', () => {
