@@ -6,7 +6,6 @@ description: Generate automated regression test from test documentation
 
 Generate automated regression tests from test documentation in [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/), following the style of existing tests in `@incidents/` and using `@incidents-page.ts` Page Object Model.
 
-
 ## Process
 
 ### 1. Parse Test Documentation
@@ -92,6 +91,7 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from "../../../views/incidents-page";
+import { CLUSTER_MONITORING_OPERATOR } from "../../../support/operators";
 
 const MCP = {
   namespace: "openshift-cluster-observability-operator",
@@ -103,14 +103,9 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: "openshift-monitoring",
-  operatorName: "Cluster Monitoring Operator",
-};
-
 describe("Regression: [Section Name]", () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -491,8 +486,8 @@ Continue? (y/n/specify)
 **Automated checks (AI should verify):**
 
 - [ ] File naming matches `XX.reg_<section-name>.cy.ts`
-- [ ] Standard MCP/MP configuration blocks present
-- [ ] Uses `cy.beforeBlockCOO(MCP, MP)` in `before()` hook
+- [ ] Standard MCP/CLUSTER_MONITORING_OPERATOR configuration blocks present
+- [ ] Uses `cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR)` in `before()` hook
 - [ ] Uses `incidentsPage.goTo()` in `beforeEach()`
 - [ ] Uses `cy.mockIncidentFixture()` with valid fixture path
 - [ ] No emojis in cy.log() statements
@@ -540,6 +535,7 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from "../../../views/incidents-page";
+import { CLUSTER_MONITORING_OPERATOR } from "../../../support/operators";
 
 const MCP = {
   namespace: "openshift-cluster-observability-operator",
@@ -551,14 +547,9 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: "openshift-monitoring",
-  operatorName: "Cluster Monitoring Operator",
-};
-
 describe("Regression: Tooltip Positioning", () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {

@@ -2,6 +2,7 @@
 The test verifies the whole lifecycle of the Incident feature, without any external dependencies.
 The run time can be 15 - 20 minutes. (Waiting untill the incident detection captures the new alert)
 */
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 // Set constants for the operators that need to be installed for tests.
@@ -15,16 +16,14 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('BVT: Incidents - e2e', { tags: ['@cluster-health-analyzer', '@coo', '@slow'] }, () => {
   let currentAlertName: string;
 
   before(() => {
-    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      dashboards: false,
+      troubleshootingPanel: false,
+    });
 
     cy.cleanupIncidentPrometheusRules();
 
