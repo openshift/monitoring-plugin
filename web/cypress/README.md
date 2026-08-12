@@ -105,11 +105,11 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 
 ### Plugin Image Configuration
 
-| Variable                    | Description                            | Use Case                                          |
-| --------------------------- | -------------------------------------- | ------------------------------------------------- |
-| `CYPRESS_MP_IMAGE`          | Custom Monitoring Plugin image         | Testing custom CLUSTER_MONITORING_OPERATOR builds |
-| `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom MCP builds                         |
-| `CYPRESS_CHA_IMAGE`         | Custom cluster-health-analyzer image   | Testing custom CHA builds                         |
+| Variable                    | Description                            | Use Case                                             |
+| --------------------------- | -------------------------------------- | ---------------------------------------------------- |
+| `CYPRESS_MP_IMAGE`          | Custom Monitoring Plugin image         | Testing custom CLUSTER_MONITORING_OPERATOR builds    |
+| `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom CLUSTER_OBSERVABILITY_OPERATOR builds |
+| `CYPRESS_CHA_IMAGE`         | Custom cluster-health-analyzer image   | Testing custom CHA builds                            |
 
 ### Operator Installation Control
 

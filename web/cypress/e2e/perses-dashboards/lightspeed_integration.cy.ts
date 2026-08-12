@@ -11,7 +11,7 @@ const PROMPT = 'visualize CPU consumption in the openshift-monitoring namespace 
 // LLM responses can be slow under CI load or cold-start conditions
 const OLS_RESPONSE_TIMEOUT = 120_000;
 
-const DASHBOARD_PROJECT = Cypress.env('COO_NAMESPACE');
+const DASHBOARD_PROJECT = 'openshift-cluster-observability-operator';
 const DASHBOARD_NAME = 'OLS-test-dashboard-' + Math.random().toString(36).substring(2, 8);
 
 // Selectors prefixed with ols-plugin__ are defined in the OLS plugin repo (openshift-lightspeed)

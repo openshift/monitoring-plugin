@@ -117,15 +117,19 @@ export const operatorAuthUtils = {
   },
 
   generateCOOSessionKey(
-    MCP: { namespace: string; operatorName: string; packageName: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: {
+      namespace: string;
+      operatorName: string;
+      packageName: string;
+    },
     CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
   ): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
-      MCP.namespace,
-      MCP.operatorName,
-      MCP.packageName,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.operatorName,
+      CLUSTER_OBSERVABILITY_OPERATOR.packageName,
       CLUSTER_MONITORING_OPERATOR.namespace,
       CLUSTER_MONITORING_OPERATOR.operatorName,
     ];
