@@ -1,17 +1,9 @@
 import { nav } from '../../../views/nav';
 import { runCOORBACPersesTestsDevUser1 } from '../../../support/perses/99.coo_rbac_perses_user1.cy';
-import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../../support/operators';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
@@ -19,7 +11,7 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
         dashboards: true,
         troubleshootingPanel: false,
       });

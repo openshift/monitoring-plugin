@@ -45,7 +45,7 @@ const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') 
 const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 
 const DTP = {
-  namespace: Cypress.env('COO_NAMESPACE') || 'openshift-cluster-observability-operator',
+  namespace: 'openshift-cluster-observability-operator',
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -55,7 +55,7 @@ const DTP = {
 };
 
 const LOGGING_PLUGIN = {
-  namespace: Cypress.env('COO_NAMESPACE') || 'openshift-cluster-observability-operator',
+  namespace: 'openshift-cluster-observability-operator',
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
