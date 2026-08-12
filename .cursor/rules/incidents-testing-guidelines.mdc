@@ -4,7 +4,7 @@ description: "Development guidelines for Incidents page Cypress tests"
 globs:
   - "web/cypress/e2e/incidents/**/*.cy.ts"
   - "web/cypress/views/incidents-page.ts"
-  - "web/cypress/fixtures/incident-scenarios/**/*.yaml"
+  - "web/cypress/fixtures/incidents/scenarios/**/*.yaml"
 ---
 
 # Incidents Testing Development Guidelines
@@ -111,7 +111,7 @@ describe('Regression: <Section Name>', () => {
     cy.log('Navigate to Observe → Incidents');
     incidentsPage.goTo();
     cy.log('Brief description of scenario');
-    cy.mockIncidentFixture('incident-scenarios/XX-name.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/XX-name.yaml');
   });
 
   it('1. Test case description', () => {
@@ -239,14 +239,14 @@ it('2. Existing test', () => {
 ## Fixture Management
 
 ### Fixture Location and Naming
-- Location: `web/cypress/fixtures/incident-scenarios/`
+- Location: `web/cypress/fixtures/incidents/scenarios/`
 - Pattern: `XX-descriptive-name.yaml`
 - Examples: `13-tooltip-positioning-scenarios.yaml`
 
 ### Fixture Usage in Tests
 ```typescript
 // Preferred: Single scenario per test file
-cy.mockIncidentFixture('incident-scenarios/13-tooltip-positioning-scenarios.yaml');
+cy.mockIncidentFixture('incidents/scenarios/13-tooltip-positioning-scenarios.yaml');
 
 // For empty state
 cy.mockIncidents([]);
