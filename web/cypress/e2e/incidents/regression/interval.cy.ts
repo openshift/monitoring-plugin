@@ -29,7 +29,7 @@ describe(
     });
 
     beforeEach(() => {
-      cy.mockIncidentFixture('incidents/scenarios/21-multi-severity-boundary-times.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/multi-severity-boundary-times.yaml');
     });
 
     const extractTime = (tooltipText: string, field: 'Start' | 'End'): string => {

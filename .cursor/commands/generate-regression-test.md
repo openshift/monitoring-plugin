@@ -634,7 +634,7 @@ describe("Regression: Tooltip Positioning", () => {
 **AI Actions**:
 
 1. Parse Section 1 from testing_flows_ui.md
-2. Note: Fixture `7-comprehensive-filtering-test-scenarios.yaml` already exists
+2. Note: Fixture `comprehensive-filtering-test-scenarios.yaml` already exists
 3. **Design comprehensive flow**: Instead of separate tests for each filter type, create complete filtering workflows
    - Flow 1: User applies multiple filters in sequence, verifies each step, then clears all
    - Flow 2: User changes time range while filters are active, verifies data updates
