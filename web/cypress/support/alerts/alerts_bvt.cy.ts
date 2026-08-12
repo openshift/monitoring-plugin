@@ -15,7 +15,7 @@ import {
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function testBVTMonitoring(perspectiveName: CustomerPerspective) {
+export function testBVTAlerts(perspectiveName: CustomerPerspective) {
   it(
     `${perspectiveName} perspective - ` +
       'Alerting > Alerting Details page > Alerting Rule > Metrics',
