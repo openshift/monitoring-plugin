@@ -3,7 +3,7 @@ PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?= monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-FEATURES    ?= incidents,perses-dashboards,dev-config
+FEATURES    ?= cluster-health-analyzer,perses-dashboards,dev-config
 
 .PHONY: install-frontend
 install-frontend:
@@ -11,7 +11,7 @@ install-frontend:
 
 .PHONY: install-frontend-ci
 install-frontend-ci:
-	cd web && npm ci --omit=optional --ignore-scripts
+	cd web && npm ci --ignore-scripts
 
 .PHONY: install-frontend-ci-clean
 install-frontend-ci-clean: install-frontend-ci
@@ -53,7 +53,7 @@ build-backend:
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist'
 
 .PHONY: build-image
 build-image:
@@ -63,10 +63,6 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
-
-.PHONY: update-plugin-name
-update-plugin-name:
-	./scripts/update-plugin-name.sh
 
 .PHONY: deploy
 deploy:
@@ -82,10 +78,6 @@ deploy-acm:
 .PHONY: build-mcp-image
 build-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
-
-.PHONY: start-feature-console
-start-feature-console:
-	PLUGIN_PORT=9443 ./scripts/start-console.sh
 
 .PHONY: start-feature-backend
 start-feature-backend:
