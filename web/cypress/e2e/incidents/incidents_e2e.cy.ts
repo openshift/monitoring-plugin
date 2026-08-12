@@ -2,7 +2,7 @@
 The test verifies the whole lifecycle of the Incident feature, without any external dependencies.
 The run time can be 15 - 20 minutes. (Waiting untill the incident detection captures the new alert)
 */
-import { incidentsPage } from '../../views/incidents-page';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 
 describe('BVT: Incidents - e2e', { tags: ['@cluster-health-analyzer', '@coo', '@slow'] }, () => {
   let currentAlertName: string;

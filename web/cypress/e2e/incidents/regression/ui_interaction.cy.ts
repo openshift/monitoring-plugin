@@ -13,7 +13,7 @@ Test cases:
    Verifies: OU-1030
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 describe(
   'Regression: Redux State Management',

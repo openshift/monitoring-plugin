@@ -1,5 +1,5 @@
 import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
-import { listPage } from './list-page';
+import { alertsListPage } from './alerts-list-page';
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
@@ -29,7 +29,7 @@ export const alertingRuleListPage = {
     byName: (name: string, ouiaId: string = FilterOUIAIDs.RuleNameFilter) => {
       cy.log('listPage.filter.byName');
       try {
-        listPage.filter.selectAttribute('Name');
+        alertsListPage.filter.selectAttribute('Name');
         cy.byOUIAID(`${ouiaId}-input`)
           .find('input')
           .scrollIntoView()

@@ -1,5 +1,5 @@
-import { commonPages } from './common';
-import { detailsPage } from './details-page';
+import { commonPages } from '../shared/common';
+import { alertAndSilencesDetailsPage } from './alert-and-silence-details-page';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 export const alertingRuleDetailsPage = {
@@ -7,8 +7,8 @@ export const alertingRuleDetailsPage = {
     cy.log('alertingRuleDetailsPage.assertAlertingRuleDetailsPage');
     commonPages.titleShouldHaveText(title);
     cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR').should('be.visible');
-    detailsPage.sectionHeaderShouldExist('Alerting rule details');
-    detailsPage.sectionHeaderShouldExist('Active alerts');
+    alertAndSilencesDetailsPage.sectionHeaderShouldExist('Alerting rule details');
+    alertAndSilencesDetailsPage.sectionHeaderShouldExist('Active alerts');
     cy.byTestID(DataTestIDs.Expression).should('be.visible');
     cy.byTestID(DataTestIDs.MetricHideShowGraphButton).contains('Hide graph').should('be.visible');
     cy.byTestID(DataTestIDs.MetricGraph).scrollIntoView().should('be.visible');

@@ -11,7 +11,7 @@ with no 5-minute gap between End of one segment and Start of the next.
 */
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 describe(
   'Regression: Mixed Severity Interval Boundary Times',

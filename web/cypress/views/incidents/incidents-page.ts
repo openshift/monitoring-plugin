@@ -1,4 +1,4 @@
-import { nav } from './nav';
+import { nav } from '../shared/nav';
 import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 
 // Hard timeout safety net for findIncidentWithAlert retry loops.

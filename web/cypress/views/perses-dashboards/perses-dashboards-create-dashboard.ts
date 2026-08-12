@@ -4,7 +4,10 @@ import {
   persesAriaLabels,
   persesDashboardDataTestIDs,
 } from '@/shared/constants/data-test';
-import { persesCreateDashboard, persesDashboardsModalTitles } from '../fixtures/perses/constants';
+import {
+  persesCreateDashboard,
+  persesDashboardsModalTitles,
+} from '../../fixtures/perses/constants';
 
 export const persesCreateDashboardsPage = {
   createDashboardShouldBeLoaded: () => {

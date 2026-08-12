@@ -7,8 +7,8 @@ import {
   testMetricsRegressionNamespace1,
   testMetricsRegressionNamespace2,
 } from '../../support/metrics/metrics_regressions_namespaced.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 // Test suite for Administrator perspective

@@ -7,7 +7,7 @@ is irrelevant for toolbar/filter verification). Tests 4-5 switch mocks
 mid-test for empty state and traversal scenarios.
 */
 
-import { incidentsPage } from '../../views/incidents-page';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 
 describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
