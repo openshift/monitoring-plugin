@@ -1,4 +1,4 @@
-name: "22 - Performance Benchmark - 20 Incidents"
+name: '22 - Performance Benchmark - 20 Incidents'
 description: >
   20 incidents across various components for benchmarking incidents chart
   rendering performance. Each incident has 2-3 alerts. Uses 1h timeline

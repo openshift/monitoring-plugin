@@ -45,7 +45,7 @@ describe(
     });
 
     it('7.1 Walkthrough: Filter interaction and time range switching with 20 incidents', () => {
-      cy.mockIncidentFixture('incidents/scenarios/22-benchmark-20-incidents.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/benchmark-20-incidents.yaml');
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 20);
@@ -131,7 +131,7 @@ describe(
       // --- Phase 3a: Table expansion with 100 alerts ---
 
       cy.log('7.2.1 Load 100-alert fixture and select incident');
-      cy.mockIncidentFixture('incidents/scenarios/15-stress-test-100-alerts.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/stress-test-100-alerts.yaml');
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
       incidentsPage.selectIncidentById('cluster-wide-failure-100-alerts');
@@ -148,7 +148,7 @@ describe(
       // --- Phase 3b: Table expansion with 500 alerts ---
 
       cy.log('7.2.3 Load 500-alert fixture and select incident');
-      cy.mockIncidentFixture('incidents/scenarios/17-stress-test-500-alerts.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/stress-test-500-alerts.yaml');
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('1 day');
       incidentsPage.selectIncidentById('cluster-wide-failure-500-alerts');

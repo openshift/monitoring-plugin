@@ -38,7 +38,7 @@ describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@
 
   it('2. Mock healthy cluster from fixture', () => {
     cy.log('Setting up healthy cluster scenario from fixture');
-    cy.mockIncidentFixture('incidents/scenarios/0-healthy-cluster.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/healthy-cluster.yaml');
 
     cy.pause();
   });
@@ -46,7 +46,7 @@ describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@
   it('3. Mock single incident with critical and warning alerts', () => {
     cy.log('Setting up single incident with critical and warning alerts from fixture');
     cy.mockIncidentFixture(
-      'incidents/scenarios/1-single-incident-firing-critical-and-warning-alerts.yaml',
+      'incidents/scenarios/single-incident-firing-critical-and-warning-alerts.yaml',
     );
     cy.log('Single incident with mixed severity alerts should be visible');
     cy.pause();
@@ -55,7 +55,7 @@ describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@
   it('4. Mock multi-incidents with resolved and firing alerts', () => {
     cy.log('Setting up multi-incidents with resolved and firing alerts from fixture');
     cy.mockIncidentFixture(
-      'incidents/scenarios/2-multi-incidents-multi-alerts-resolved-and-firing.yaml',
+      'incidents/scenarios/multi-incidents-multi-alerts-resolved-and-firing.yaml',
     );
 
     cy.log('Multiple incidents with mixed alert states should be visible');
@@ -64,7 +64,7 @@ describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@
 
   it('5. Mock multi-severity overlapping incidents', () => {
     cy.log('Setting up multi-severity overlapping incidents from fixture');
-    cy.mockIncidentFixture('incidents/scenarios/3-multi-severity-overlapping-incidents.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/multi-severity-overlapping-incidents.yaml');
 
     cy.log('Overlapping incidents with different severity distributions should be visible');
     cy.pause();
@@ -72,7 +72,7 @@ describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@
 
   it('6. Mock single incident with escalating severity alerts', () => {
     cy.log('Setting up single incident with escalating severity alerts from fixture');
-    cy.mockIncidentFixture('incidents/scenarios/5-escalating-severity-incident.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/escalating-severity-incident.yaml');
 
     cy.log('Single incident with escalating severity alerts should be visible');
     cy.pause();

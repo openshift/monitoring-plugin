@@ -1,4 +1,4 @@
-name: "23 - Performance Benchmark - Mixed Size Incidents"
+name: '23 - Performance Benchmark - Mixed Size Incidents'
 description: >
   12 incidents with heterogeneous alert counts (1 large, 2 medium, 3 small-medium,
   6 small) for benchmarking chart rendering with realistic data distribution.
@@ -156,5 +156,15 @@ incidents:
     timeline:
       start: 8m
     alerts:
-      - { name: TinyVerCrit01, namespace: openshift-cluster-version, severity: critical, firing: true }
-      - { name: TinyVerWarn01, namespace: openshift-cluster-version, severity: warning, firing: true }
+      - {
+          name: TinyVerCrit01,
+          namespace: openshift-cluster-version,
+          severity: critical,
+          firing: true,
+        }
+      - {
+          name: TinyVerWarn01,
+          namespace: openshift-cluster-version,
+          severity: warning,
+          firing: true,
+        }

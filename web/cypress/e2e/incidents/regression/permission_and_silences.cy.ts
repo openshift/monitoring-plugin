@@ -34,7 +34,7 @@ describe(
 
     beforeEach(() => {
       cy.log('Setting up silenced alerts mixed scenario');
-      cy.mockIncidentFixture('incidents/scenarios/9-silenced-alerts-mixed-scenario.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/silenced-alerts-mixed-scenario.yaml');
     });
 
     it('Silence matching verification flow - opacity and tooltip indicators', () => {
