@@ -40,7 +40,7 @@ export const imagePatchUtils = {
    * Generic function to patch a component image in the COO CSV.
    */
   patchCOOCSVImage(
-    MCP: { namespace: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string },
     config: {
       envVar: string;
       scriptPath: string;
@@ -56,7 +56,7 @@ export const imagePatchUtils = {
         env: {
           [config.envVar]: imageValue,
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MCP_NAMESPACE: `${MCP.namespace}`,
+          MCP_NAMESPACE: `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true,
@@ -70,16 +70,16 @@ export const imagePatchUtils = {
     }
   },
 
-  setupMonitoringConsolePlugin(MCP: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(MCP, {
+  setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'MCP_CONSOLE_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
       componentName: 'Monitoring Console Plugin',
     });
   },
 
-  setupClusterHealthAnalyzer(MCP: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(MCP, {
+  setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'CHA_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
       componentName: 'cluster-health-analyzer',

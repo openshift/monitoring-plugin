@@ -25,23 +25,39 @@ declare global {
       beforeBlock(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
       cleanupMP(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
       beforeBlockCOO(
-        MCP: { namespace: string; operatorName: string; packageName: string },
+        CLUSTER_OBSERVABILITY_OPERATOR: {
+          namespace: string;
+          operatorName: string;
+          packageName: string;
+        },
         CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       cleanupCOO(
-        MCP: { namespace: string; operatorName: string; packageName: string },
+        CLUSTER_OBSERVABILITY_OPERATOR: {
+          namespace: string;
+          operatorName: string;
+          packageName: string;
+        },
         CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       RemoveClusterAdminRole();
       setupCOO(
-        MCP: { namespace: string; operatorName: string; packageName: string },
+        CLUSTER_OBSERVABILITY_OPERATOR: {
+          namespace: string;
+          operatorName: string;
+          packageName: string;
+        },
         CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       beforeBlockACM(
-        MCP: { namespace: string; operatorName: string; packageName: string },
+        CLUSTER_OBSERVABILITY_OPERATOR: {
+          namespace: string;
+          operatorName: string;
+          packageName: string;
+        },
         CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
       ): Chainable<void>;
       waitForAcmAlertsFiring(alertNames?: string[]): Chainable<void>;
@@ -69,7 +85,7 @@ function removeClusterAdminRole(): void {
 
 function collectDebugInfo(
   CLUSTER_MONITORING_OPERATOR: { namespace: string },
-  MCP?: { namespace: string },
+  CLUSTER_OBSERVABILITY_OPERATOR?: { namespace: string },
 ): void {
   if (!Cypress.env('DEBUG')) {
     cy.log('DEBUG not set. Skipping operator debug information collection.');
@@ -77,8 +93,8 @@ function collectDebugInfo(
   }
   cy.aboutModal();
   cy.podImage('monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace);
-  if (MCP && MCP.namespace) {
-    cy.podImage('monitoring', MCP.namespace);
+  if (CLUSTER_OBSERVABILITY_OPERATOR && CLUSTER_OBSERVABILITY_OPERATOR.namespace) {
+    cy.podImage('monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace);
   }
 }
 
@@ -153,11 +169,82 @@ function waitForAcmAlertsFiring(alertNames: string[] = ACM_DEFAULT_TEST_ALERTS):
   );
 }
 
+/**
+ * Wait until ACM custom alert rules are evaluated and present in Alertmanager.
+ * oc apply of thanos-ruler-custom-rules only updates the ConfigMap; Thanos Ruler
+ * must reload/evaluate rules and push alerts to Alertmanager before the UI can show them.
+ */
+function waitForAcmAlertsFiring(alertNames: string[] = ACM_DEFAULT_TEST_ALERTS): void {
+  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
+  const ns = ACM_OBSERVABILITY_NS;
+
+  cy.log(`Waiting for ACM alerts to become firing: ${alertNames.join(', ')}`);
+
+  cy.log('Waiting for observability-thanos-rule pods to be Ready');
+  cy.exec(
+    `oc rollout status statefulset/observability-thanos-rule ` +
+      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
+    { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
+  ).then((result) => {
+    if (result.code !== 0) {
+      cy.log(
+        `thanos-rule rollout status not ready yet (${result.stderr || result.stdout}); ` +
+          'continuing to poll Alertmanager',
+      );
+    }
+  });
+
+  cy.log('Waiting for ACM Alertmanager pods to be Ready');
+  cy.exec(
+    `oc wait --for=condition=Ready pod ` +
+      `-l alertmanager=observability,app=multicluster-observability-alertmanager ` +
+      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
+    { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
+  );
+
+  cy.waitUntil(
+    () =>
+      cy
+        .exec(
+          `POD=$(oc get pods -n ${ns} -l alertmanager=observability ` +
+            `--field-selector=status.phase=Running ` +
+            `-o jsonpath='{.items[0].metadata.name}' --kubeconfig "${kubeconfig}") && ` +
+            `test -n "$POD" && ` +
+            `(oc exec -n ${ns} "$POD" -c alertmanager --kubeconfig "${kubeconfig}" -- ` +
+            `amtool alert query --alertmanager.url=http://127.0.0.1:9093 || ` +
+            `oc exec -n ${ns} "$POD" -c alertmanager --kubeconfig "${kubeconfig}" -- ` +
+            `wget -qO- http://127.0.0.1:9093/api/v2/alerts)`,
+          { failOnNonZeroExit: false },
+        )
+        .then((result) => {
+          if (result.code !== 0 || !result.stdout) {
+            return false;
+          }
+          const missing = alertNames.filter((name) => !result.stdout.includes(name));
+          if (missing.length > 0) {
+            // eslint-disable-next-line no-console
+            console.log(`ACM alerts still missing from Alertmanager: ${missing.join(', ')}`);
+            return false;
+          }
+          // eslint-disable-next-line no-console
+          console.log(`All expected ACM alerts found in Alertmanager: ${alertNames.join(', ')}`);
+          return true;
+        }),
+    {
+      timeout: acmAlertReadyTimeoutMilliseconds,
+      interval: 15000,
+      errorMsg:
+        `Timed out waiting for ACM alerts to fire in Alertmanager: ${alertNames.join(', ')}. ` +
+        'ConfigMap may be applied but Thanos Ruler has not evaluated/pushed the alerts yet.',
+    },
+  );
+}
+
 function cleanupUIPlugin(
-  MCP: { namespace: string; config?: { kind: string; name: string } },
+  CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string; config?: { kind: string; name: string } },
   opts: Required<COOSetupOptions>,
 ): void {
-  const config = MCP.config || { kind: 'UIPlugin', name: 'monitoring' };
+  const config = CLUSTER_OBSERVABILITY_OPERATOR.config || { kind: 'UIPlugin', name: 'monitoring' };
 
   cy.adminCLI(
     `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -178,7 +265,7 @@ function cleanupUIPlugin(
   if (opts.dashboards) {
     dashboardsUtils.cleanupDashboards();
   }
-  cooInstallUtils.cleanupCOONamespace(MCP);
+  cooInstallUtils.cleanupCOONamespace(CLUSTER_OBSERVABILITY_OPERATOR);
 }
 
 // ── Cypress commands ───────────────────────────────────────────────
@@ -233,7 +320,11 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'beforeBlockCOO',
   (
-    MCP: { namespace: string; operatorName: string; packageName: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: {
+      namespace: string;
+      operatorName: string;
+      packageName: string;
+    },
     CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
@@ -241,7 +332,10 @@ Cypress.Commands.add(
 
     if (useSession) {
       const sessionKey = [
-        ...operatorAuthUtils.generateCOOSessionKey(MCP, CLUSTER_MONITORING_OPERATOR),
+        ...operatorAuthUtils.generateCOOSessionKey(
+          CLUSTER_OBSERVABILITY_OPERATOR,
+          CLUSTER_MONITORING_OPERATOR,
+        ),
         `dash:${opts.dashboards}`,
         `tp:${opts.troubleshootingPanel}`,
         `cha:${opts.healthAnalyzer}`,
@@ -251,9 +345,9 @@ Cypress.Commands.add(
         sessionKey,
         () => {
           cy.log('Before block COO (session)');
-          cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
+          cy.cleanupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, opts);
           operatorAuthUtils.loginAndAuthNoSession();
-          cy.setupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
+          cy.setupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, opts);
           cy.log('Before block COO (session) completed');
         },
         {
@@ -269,9 +363,9 @@ Cypress.Commands.add(
       );
     } else {
       cy.log('Before block COO (no session)');
-      cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
+      cy.cleanupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, opts);
       operatorAuthUtils.loginAndAuth();
-      cy.setupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
+      cy.setupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, opts);
       cy.log('Before block COO (no session) completed');
     }
   },
@@ -280,7 +374,11 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'cleanupCOO',
   (
-    MCP: { namespace: string; operatorName: string; packageName: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: {
+      namespace: string;
+      operatorName: string;
+      packageName: string;
+    },
     CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
@@ -294,9 +392,9 @@ Cypress.Commands.add(
       return;
     }
     if (opts.troubleshootingPanel) {
-      dashboardsUtils.cleanupTroubleshootingPanel(MCP);
+      dashboardsUtils.cleanupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR);
     }
-    cleanupUIPlugin(MCP, opts);
+    cleanupUIPlugin(CLUSTER_OBSERVABILITY_OPERATOR, opts);
     imagePatchUtils.revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
     cy.log('Cleanup COO completed');
   },
@@ -305,7 +403,11 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'setupCOO',
   (
-    MCP: { namespace: string; operatorName: string; packageName: string },
+    CLUSTER_OBSERVABILITY_OPERATOR: {
+      namespace: string;
+      operatorName: string;
+      packageName: string;
+    },
     CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
@@ -317,24 +419,24 @@ Cypress.Commands.add(
       );
       return;
     }
-    cooInstallUtils.installCOO(MCP);
-    cooInstallUtils.waitForCOOReady(MCP);
-    cooInstallUtils.enableOpenShiftMode(MCP);
-    imagePatchUtils.setupMonitoringConsolePlugin(MCP);
+    cooInstallUtils.installCOO(CLUSTER_OBSERVABILITY_OPERATOR);
+    cooInstallUtils.waitForCOOReady(CLUSTER_OBSERVABILITY_OPERATOR);
+    cooInstallUtils.enableOpenShiftMode(CLUSTER_OBSERVABILITY_OPERATOR);
+    imagePatchUtils.setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR);
     if (opts.healthAnalyzer) {
-      imagePatchUtils.setupClusterHealthAnalyzer(MCP);
+      imagePatchUtils.setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR);
     }
-    dashboardsUtils.setupMonitoringUIPlugin(MCP);
-    imagePatchUtils.verifyMonitoringConsolePluginImage(MCP);
+    dashboardsUtils.setupMonitoringUIPlugin(CLUSTER_OBSERVABILITY_OPERATOR);
+    imagePatchUtils.verifyMonitoringConsolePluginImage(CLUSTER_OBSERVABILITY_OPERATOR);
     if (opts.dashboards) {
-      dashboardsUtils.setupDashboardsAndPlugins(MCP);
+      dashboardsUtils.setupDashboardsAndPlugins(CLUSTER_OBSERVABILITY_OPERATOR);
     }
     if (opts.troubleshootingPanel) {
-      dashboardsUtils.setupTroubleshootingPanel(MCP);
+      dashboardsUtils.setupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR);
     }
     imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
     removeClusterAdminRole();
-    collectDebugInfo(CLUSTER_MONITORING_OPERATOR, MCP);
+    collectDebugInfo(CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR);
   },
 );
 
@@ -348,27 +450,30 @@ Cypress.Commands.add('waitForAcmAlertsFiring', (alertNames?: string[]) => {
   waitForAcmAlertsFiring(alertNames);
 });
 
-Cypress.Commands.add('beforeBlockACM', (MCP, CLUSTER_MONITORING_OPERATOR) => {
-  cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
-  cy.log('=== [Setup] Installing ACM test resources ===');
-  cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
-    env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },
-    failOnNonZeroExit: false,
-    timeout: 1200000,
-  });
-  cy.exec(
-    `oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env(
-      'KUBECONFIG_PATH',
-    )}`,
-  );
-  cy.exec(
-    `oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env(
-      'KUBECONFIG_PATH',
-    )}`,
-  );
-  cy.waitForAcmAlertsFiring(ACM_DEFAULT_TEST_ALERTS);
-  cy.log('ACM environment setup completed');
-});
+Cypress.Commands.add(
+  'beforeBlockACM',
+  (CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR) => {
+    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+    cy.log('=== [Setup] Installing ACM test resources ===');
+    cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
+      env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },
+      failOnNonZeroExit: false,
+      timeout: 1200000,
+    });
+    cy.exec(
+      `oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env(
+        'KUBECONFIG_PATH',
+      )}`,
+    );
+    cy.exec(
+      `oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env(
+        'KUBECONFIG_PATH',
+      )}`,
+    );
+    cy.waitForAcmAlertsFiring(ACM_DEFAULT_TEST_ALERTS);
+    cy.log('ACM environment setup completed');
+  },
+);
 
 Cypress.Commands.add('closeOnboardingModalIfPresent', () => {
   cy.get('body').then(($body) => {

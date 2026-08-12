@@ -7,22 +7,15 @@ is irrelevant for toolbar/filter verification). Tests 4-5 switch mocks
 mid-test for empty state and traversal scenarios.
 */
 
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
-
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
 
 describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
       dashboards: false,
       troubleshootingPanel: false,
     });

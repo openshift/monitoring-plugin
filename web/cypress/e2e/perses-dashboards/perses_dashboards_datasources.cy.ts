@@ -1,17 +1,11 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 import { runCOOCreateImportPersesTests } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
 // Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
 
 const OTEL = {
   namespace: 'openshift-opentelemetry-operator',
@@ -55,7 +49,7 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupExtraDashboards();
 
-      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -80,7 +74,7 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupExtraDashboards();
-      cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      cy.cleanupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
         dashboards: true,
         troubleshootingPanel: false,
       });
