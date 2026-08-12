@@ -10,6 +10,7 @@ This test loads comprehensive test data covering:
 
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const ARROW_HEIGHT = 12;
@@ -95,17 +96,15 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe(
   'Regression: Charts UI - Comprehensive',
   { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
       incidentsPage.warmUpForPlugin();
     });
 

@@ -16,6 +16,7 @@ Verifies: OBSINTA-1006
 
 import { incidentsPage } from '../../../views/incidents-page';
 import { BenchmarkCollector } from '../../../support/benchmark-utils';
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -25,11 +26,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 // Wall-clock thresholds in ms. Includes Cypress overhead (navigation, intercept
@@ -57,7 +53,10 @@ describe(
   { tags: ['@cluster-health-analyzer', '@coo'], numTestsKeptInMemory: 0 },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
     });
 
     afterEach(() => {

@@ -11,6 +11,7 @@ with no 5-minute gap between End of one segment and Start of the next.
 */
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MCP = {
@@ -23,17 +24,15 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe(
   'Regression: Mixed Severity Interval Boundary Times',
   { tags: ['@cluster-health-analyzer', '@coo', '@xfail'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
     });
 
     beforeEach(() => {

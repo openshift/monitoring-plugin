@@ -17,6 +17,7 @@ Both tests require continuously firing alerts and cannot be tested with mocked d
 Verifies: OU-XXX (time-based resolution bugs)
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MCP = {
@@ -29,11 +30,6 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe(
   'Regression: Time-Based Alert Resolution (E2E with Firing Alerts)',
   { tags: ['@cluster-health-analyzer', '@coo', '@slow'] },
@@ -41,7 +37,10 @@ describe(
     let currentAlertName: string;
 
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
       incidentsPage.warmUpForPlugin();
 
       // Reset the search timeout so this spec gets a fresh 35-minute window

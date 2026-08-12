@@ -2,15 +2,11 @@ import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
 import { commonPages } from '../../views/common';
-// Set constants for the operators that need to be installed for tests.
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(MP);
+    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -18,7 +14,7 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, ()
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     alerts.interceptWatchdogAlert();
-    cy.changeNamespace(MP.namespace);
+    cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
   });
 
   // Run tests in Administrator perspective
