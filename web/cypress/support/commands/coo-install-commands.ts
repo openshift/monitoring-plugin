@@ -8,19 +8,22 @@ const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as n
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 export const cooInstallUtils = {
-  installCOO(MCP: { namespace: string; packageName: string }): void {
+  installCOO(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string; packageName: string }): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Cluster Observability Operator installation.');
     } else if (Cypress.env('COO_UI_INSTALL')) {
       cy.log('COO_UI_INSTALL is set. COO will be installed from redhat-operators catalog source');
       cy.log('Install Cluster Observability Operator');
-      operatorHubPage.installOperator(MCP.packageName, 'redhat-operators');
+      operatorHubPage.installOperator(
+        CLUSTER_OBSERVABILITY_OPERATOR.packageName,
+        'redhat-operators',
+      );
       cy.get('.co-clusterserviceversion-install__heading', {
         timeout: installTimeoutMilliseconds,
       }).should('include.text', 'Operator installed successfully');
       cy.exec(
         `oc label namespace ${
-          MCP.namespace
+          CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
         )}"`,
@@ -36,20 +39,21 @@ export const cooInstallUtils = {
         )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
+        `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
+          `"${Cypress.env(
+            'KUBECONFIG_PATH',
+          )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
       );
       cy.exec(
         `oc label namespace ${
-          MCP.namespace
+          CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
         )}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
-          MCP.namespace
+          CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } --security-context-config restricted ${Cypress.env(
           'KONFLUX_COO_BUNDLE_IMAGE',
         )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
@@ -65,23 +69,27 @@ export const cooInstallUtils = {
           'KUBECONFIG_PATH',
         )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
       );
-      cy.log(`Creating namespace ${MCP.namespace}`);
+      cy.log(`Creating namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
       cy.exec(
-        `oc create namespace ${MCP.namespace} --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
+        `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
+          `"${Cypress.env(
+            'KUBECONFIG_PATH',
+          )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
       );
-      cy.log(`Labeling namespace ${MCP.namespace} with openshift.io/cluster-monitoring=true`);
+      cy.log(
+        `Labeling namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} with ` +
+          `openshift.io/cluster-monitoring=true`,
+      );
       cy.exec(
         `oc label namespace ${
-          MCP.namespace
+          CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
           'KUBECONFIG_PATH',
         )}"`,
       );
       cy.exec(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
-          MCP.namespace
+          CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } --security-context-config restricted ${Cypress.env(
           'CUSTOM_COO_BUNDLE_IMAGE',
         )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
@@ -109,31 +117,33 @@ export const cooInstallUtils = {
     }
   },
 
-  waitForCOOReady(MCP: { namespace: string }): void {
+  waitForCOOReady(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
-    cy.exec(`oc project ${MCP.namespace} --kubeconfig ${kubeconfig}`);
+    cy.exec(`oc project ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${kubeconfig}`);
 
     cy.waitUntil(
       () =>
         cy
           .exec(
-            `oc get pods -n ${MCP.namespace} -o name --kubeconfig ${kubeconfig} ` +
-              '| grep observability-operator | grep -v bundle',
+            `oc get pods -n ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} -o name --kubeconfig ` +
+              `${kubeconfig} | grep observability-operator | grep -v bundle`,
             { failOnNonZeroExit: false },
           )
           .then((result) => result.code === 0 && result.stdout.trim().length > 0),
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Observability operator pod not found in namespace ${MCP.namespace}`,
+        errorMsg:
+          `Observability operator pod not found in namespace ` +
+          `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${MCP.namespace} -o name --kubeconfig ${kubeconfig} ` +
-        '| grep observability-operator | grep -v bundle',
+      `oc get pods -n ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} -o name --kubeconfig ` +
+        `${kubeconfig} | grep observability-operator | grep -v bundle`,
     )
       .its('stdout')
       .then((podOutput) => {
@@ -141,12 +151,15 @@ export const cooInstallUtils = {
         cy.log(`Found COO pod: ${podName}`);
 
         cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${MCP.namespace} ` +
-            `--timeout=120s --kubeconfig ${kubeconfig}`,
+          `oc wait --for=condition=Ready ${podName} -n ` +
+            `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --timeout=120s --kubeconfig ${kubeconfig}`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Observability-operator pod is now running in namespace: ${MCP.namespace}`);
+          cy.log(
+            `Observability-operator pod is now running in namespace: ` +
+              `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+          );
         });
       });
 
@@ -166,13 +179,13 @@ export const cooInstallUtils = {
     }
   },
 
-  enableOpenShiftMode(MCP: { namespace: string }): void {
+  enableOpenShiftMode(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     if (!Cypress.env('KONFLUX_COO_BUNDLE_IMAGE') && !Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
       return;
     }
 
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-    const ns = MCP.namespace;
+    const ns = CLUSTER_OBSERVABILITY_OPERATOR.namespace;
     cy.log('Enabling OpenShift mode on bundle-installed COO');
 
     // Patch the CSV so OLM's source of truth includes the flag.
@@ -267,7 +280,7 @@ export const cooInstallUtils = {
     });
   },
 
-  cleanupCOONamespace(MCP: { namespace: string }): void {
+  cleanupCOONamespace(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       return;
     }
@@ -276,12 +289,13 @@ export const cooInstallUtils = {
 
     // For bundle installs, run operator-sdk cleanup first to remove
     // CatalogSource, registry pod, and other bundle-specific resources.
-    // The bundle package name is "observability-operator" (not the MCP.packageName
+    // The bundle package name is "observability-operator"
+    // (not the CLUSTER_OBSERVABILITY_OPERATOR.packageName
     // which is "cluster-observability-operator" used for catalog installs).
     if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE') || Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
       cy.exec(
-        `operator-sdk cleanup observability-operator -n ${MCP.namespace} ` +
-          `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `operator-sdk cleanup observability-operator -n ` +
+          `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
         { failOnNonZeroExit: false, timeout: 60000 },
       ).then((result) => {
         if (result.code === 0) {
@@ -292,21 +306,24 @@ export const cooInstallUtils = {
       });
     }
 
-    cy.exec(`oc get namespace ${MCP.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`, {
-      timeout: readyTimeoutMilliseconds,
-      failOnNonZeroExit: false,
-    }).then((checkResult) => {
+    cy.exec(
+      `oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: false,
+      },
+    ).then((checkResult) => {
       if (checkResult.code === 0) {
         cy.log('Namespace exists, proceeding with deletion');
 
         cy.exec(
           `oc delete csv --all -n ${
-            MCP.namespace
+            CLUSTER_OBSERVABILITY_OPERATOR.namespace
           } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
-            cy.log(`CSV deletion initiated in ${MCP.namespace}`);
+            cy.log(`CSV deletion initiated in ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
           } else {
             cy.log(`CSV deletion failed or not found: ${result.stderr}`);
           }
@@ -314,12 +331,14 @@ export const cooInstallUtils = {
 
         cy.exec(
           `oc delete subscription --all -n ${
-            MCP.namespace
+            CLUSTER_OBSERVABILITY_OPERATOR.namespace
           } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
-            cy.log(`Subscription deletion initiated in ${MCP.namespace}`);
+            cy.log(
+              `Subscription deletion initiated in ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+            );
           } else {
             cy.log(`Subscription deletion failed or not found: ${result.stderr}`);
           }
@@ -327,12 +346,12 @@ export const cooInstallUtils = {
 
         cy.exec(
           `oc delete namespace ${
-            MCP.namespace
+            CLUSTER_OBSERVABILITY_OPERATOR.namespace
           } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
-            cy.log(`Namespace deletion initiated for ${MCP.namespace}`);
+            cy.log(`Namespace deletion initiated for ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
           } else {
             cy.log(`Failed to initiate deletion: ${result.stderr}`);
           }
@@ -348,14 +367,13 @@ export const cooInstallUtils = {
           if (elapsed > maxWaitTimeMs) {
             cy.log(
               `${elapsed}ms - Timeout reached (${maxWaitTimeMs / 60000}m). Namespace ${
-                MCP.namespace
+                CLUSTER_OBSERVABILITY_OPERATOR.namespace
               } still terminating. Attempting force-delete.`,
             );
             return cy
               .exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} "${Cypress.env(
-                  'KUBECONFIG_PATH',
-                )}"`,
+                `./cypress/fixtures/coo/force_delete_ns.sh ` +
+                  `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} "${Cypress.env('KUBECONFIG_PATH')}"`,
                 { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
               )
               .then((result) => {
@@ -367,27 +385,30 @@ export const cooInstallUtils = {
           }
 
           cy.exec(
-            `oc get ns ${MCP.namespace} --kubeconfig "${Cypress.env(
+            `oc get ns ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig "${Cypress.env(
               'KUBECONFIG_PATH',
             )}" -o jsonpath='{.status.phase}'`,
             { failOnNonZeroExit: false },
           ).then((result) => {
             if (result.code !== 0) {
-              cy.log(`${elapsed}ms - ${MCP.namespace} is successfully deleted.`);
+              cy.log(
+                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} is ` +
+                  `successfully deleted.`,
+              );
               return;
             }
             const status = result.stdout.trim();
 
             if (status === 'Terminating') {
               cy.log(
-                `${elapsed}ms - ${MCP.namespace} is still 'Terminating'. Retrying in ${
-                  checkIntervalMs / 1000
-                }s. Elapsed: ${Math.round(elapsed / 1000)}s`,
+                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} is still ` +
+                  `'Terminating'. Retrying in ${
+                    checkIntervalMs / 1000
+                  }s. Elapsed: ${Math.round(elapsed / 1000)}s`,
               );
               cy.exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ${MCP.namespace} "${Cypress.env(
-                  'KUBECONFIG_PATH',
-                )}"`,
+                `./cypress/fixtures/coo/force_delete_ns.sh ` +
+                  `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} "${Cypress.env('KUBECONFIG_PATH')}"`,
                 { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
               ).then((forceResult) => {
                 cy.log(`${elapsed}ms - Force delete output: ${forceResult.stdout}`);
@@ -400,8 +421,8 @@ export const cooInstallUtils = {
               cy.wait(checkIntervalMs).then(checkStatus);
             } else {
               cy.log(
-                `${elapsed}ms - ${MCP.namespace} changed to unexpected state: ${status}. ` +
-                  'Stopping monitoring.',
+                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} changed to ` +
+                  `unexpected state: ${status}. Stopping monitoring.`,
               );
             }
           });
@@ -410,7 +431,7 @@ export const cooInstallUtils = {
         checkStatus();
 
         cy.then(() => {
-          cooInstallUtils.waitForPodsDeleted(MCP.namespace, 300000);
+          cooInstallUtils.waitForPodsDeleted(CLUSTER_OBSERVABILITY_OPERATOR.namespace, 300000);
         });
       } else {
         cy.log('Namespace does not exist, skipping deletion');

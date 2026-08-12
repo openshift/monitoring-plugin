@@ -3,18 +3,10 @@ import { nav } from '../../views/nav';
 import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 
 const KBV = {
   namespace: 'openshift-cnv',
@@ -35,7 +27,7 @@ describe(
 
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
       cy.beforeBlockVirtualization(KBV);
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');

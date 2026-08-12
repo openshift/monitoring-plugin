@@ -91,21 +91,17 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from "../../../views/incidents-page";
-import { CLUSTER_MONITORING_OPERATOR } from "../../../support/operators";
-
-const MCP = {
-  namespace: "openshift-cluster-observability-operator",
-  packageName: "cluster-observability-operator",
-  operatorName: "Cluster Observability Operator",
-  config: {
-    kind: "UIPlugin",
-    name: "monitoring",
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from "../../../support/operators";
 
 describe("Regression: [Section Name]", () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO(
+      CLUSTER_OBSERVABILITY_OPERATOR,
+      CLUSTER_MONITORING_OPERATOR,
+    );
   });
 
   beforeEach(() => {
@@ -486,8 +482,8 @@ Continue? (y/n/specify)
 **Automated checks (AI should verify):**
 
 - [ ] File naming matches `XX.reg_<section-name>.cy.ts`
-- [ ] Standard MCP/CLUSTER_MONITORING_OPERATOR configuration blocks present
-- [ ] Uses `cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR)` in `before()` hook
+- [ ] Standard CLUSTER_OBSERVABILITY_OPERATOR/CLUSTER_MONITORING_OPERATOR configuration blocks present
+- [ ] Uses `cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR)` in `before()` hook
 - [ ] Uses `incidentsPage.goTo()` in `beforeEach()`
 - [ ] Uses `cy.mockIncidentFixture()` with valid fixture path
 - [ ] No emojis in cy.log() statements
@@ -535,21 +531,17 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from "../../../views/incidents-page";
-import { CLUSTER_MONITORING_OPERATOR } from "../../../support/operators";
-
-const MCP = {
-  namespace: "openshift-cluster-observability-operator",
-  packageName: "cluster-observability-operator",
-  operatorName: "Cluster Observability Operator",
-  config: {
-    kind: "UIPlugin",
-    name: "monitoring",
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from "../../../support/operators";
 
 describe("Regression: Tooltip Positioning", () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO(
+      CLUSTER_OBSERVABILITY_OPERATOR,
+      CLUSTER_MONITORING_OPERATOR,
+    );
   });
 
   beforeEach(() => {
