@@ -205,9 +205,11 @@ APIs:
     ```
     - `openshift_io_alert_rule_layer`: `cluster` or `namespace`
     - To remove a classification override, set the field to `null` (e.g. `"openshift_io_alert_rule_layer": null`).
+    - Do not combine `classification` with `alertingRuleEnabled` in the same request.
   - Response:
-    - 200 OK with a status payload (same format as other rule PATCH responses), where `status_code` is 204 on success.
-    - Standard error body on failure (400 validation, 404 not found, etc.)
+    - HTTP `200` with `UpdateAlertRuleResult` (`statusCode` is `204` on success).
+    - Standard `ErrorResponse` body on failure (400 validation, 403 forbidden,
+      404 not found, 405 not allowed for user-defined rules, 409 conflict, etc.).
 - Bulk update:
   - Method: `PATCH /api/v1/alerting/rules`
   - Request body:
@@ -221,7 +223,8 @@ APIs:
     }
     ```
   - Response:
-    - 200 OK with per-rule results (same format as other bulk rule PATCH responses). Clients should handle partial failures.
+    - HTTP `200` with per-rule results (same `UpdateAlertRuleResult` shape).
+      Clients should handle partial failures via per-rule `statusCode`/`message`.
 
 Direct K8s (supported for power users/GitOps):
 - For platform rules: create or update the `AlertRelabelConfig` CR in `openshift-monitoring`
@@ -229,11 +232,16 @@ Direct K8s (supported for power users/GitOps):
 - UI should check update permissions with SelfSubjectAccessReview before showing an editor.
 
 Notes:
-- These endpoints are intended for updating **classification only** (component/layer overrides),
-  with permissions enforced based on the rule's ownership (platform, user workload, operator-managed,
-  GitOps-managed).
-- To update other rule fields (expr/labels/annotations/etc.), use `PATCH /api/v1/alerting/rules/{ruleId}`.
-  Clients that need to update both should issue two requests. The combined operation is not atomic.
+- Classification overrides for platform rules are applied via AlertRelabelConfig.
+  User-defined rules reject ARC-based classification updates (`405`).
+- To update other rule fields (labels/etc.), use the same
+  `PATCH /api/v1/alerting/rules/{ruleId}` endpoint with a `labels` body (or the
+  bulk `PATCH /rules` variant). `alertingRuleEnabled` cannot be combined with
+  `labels` or `classification` in one request; issue separate calls when needed.
+- When a request includes both `classification` and `labels`, classification is
+  applied first, then labels. The two steps are not atomic: if labels fail after
+  classification succeeded, the classification override may already be persisted
+  while the API still returns an error (or a per-rule failure in bulk).
 
 ## Security Notes
 - Classification overrides are stored in AlertRelabelConfig CRs in `openshift-monitoring`,

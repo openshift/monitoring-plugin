@@ -39,7 +39,7 @@ type AlertRuleSpec struct {
 
 // BulkDeleteAlertRulesRequest defines model for BulkDeleteAlertRulesRequest.
 type BulkDeleteAlertRulesRequest struct {
-	// RuleIds List of stable alert rule IDs to delete.
+	// RuleIds List of stable alert rule IDs to delete (at most 100 per request).
 	RuleIds []string `json:"ruleIds"`
 }
 
@@ -51,7 +51,7 @@ type BulkDeleteAlertRulesResponse struct {
 
 // BulkUpdateAlertRulesRequest defines model for BulkUpdateAlertRulesRequest.
 type BulkUpdateAlertRulesRequest struct {
-	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules. Cannot be combined with labels or classification in the same request (returns HTTP 400).
+	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules.
 	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
 
 	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
@@ -60,7 +60,7 @@ type BulkUpdateAlertRulesRequest struct {
 	// Labels Label key/value pairs to set. A null or empty-string value removes the label. Omitting this field leaves existing labels unchanged.
 	Labels *map[string]*string `json:"labels,omitempty"`
 
-	// RuleIds List of stable alert rule IDs to update.
+	// RuleIds List of stable alert rule IDs to update (at most 100 per request).
 	RuleIds []string `json:"ruleIds"`
 }
 
@@ -115,6 +115,18 @@ type PrometheusRuleTarget struct {
 	PrometheusRuleNamespace string `json:"prometheusRuleNamespace"`
 }
 
+// UpdateAlertRuleRequest Partial update for a single alert rule. At least one of labels, alertingRuleEnabled, or classification must be set. alertingRuleEnabled cannot be combined with labels or classification in the same request.
+type UpdateAlertRuleRequest struct {
+	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules.
+	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
+
+	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
+	Classification *AlertRuleClassificationUpdate `json:"classification,omitempty"`
+
+	// Labels Label key/value pairs to set. A null or empty-string value removes the label. Omitting this field leaves existing labels unchanged.
+	Labels *map[string]*string `json:"labels,omitempty"`
+}
+
 // UpdateAlertRuleResult defines model for UpdateAlertRuleResult.
 type UpdateAlertRuleResult struct {
 	// Id The stable alert rule ID that was processed.
@@ -136,6 +148,9 @@ type BulkUpdateAlertRulesJSONRequestBody = BulkUpdateAlertRulesRequest
 // CreateAlertRuleJSONRequestBody defines body for CreateAlertRule for application/json ContentType.
 type CreateAlertRuleJSONRequestBody = CreateAlertRuleRequest
 
+// UpdateAlertRuleJSONRequestBody defines body for UpdateAlertRule for application/json ContentType.
+type UpdateAlertRuleJSONRequestBody = UpdateAlertRuleRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Bulk delete user-defined alert rules
@@ -147,6 +162,12 @@ type ServerInterface interface {
 	// Create an alert rule
 	// (POST /rules)
 	CreateAlertRule(w http.ResponseWriter, r *http.Request)
+	// Delete a single alert rule
+	// (DELETE /rules/{ruleId})
+	DeleteAlertRule(w http.ResponseWriter, r *http.Request, ruleId string)
+	// Update a single alert rule
+	// (PATCH /rules/{ruleId})
+	UpdateAlertRule(w http.ResponseWriter, r *http.Request, ruleId string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -160,7 +181,6 @@ type MiddlewareFunc func(http.Handler) http.Handler
 
 // BulkDeleteUserDefinedAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request) {
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkDeleteUserDefinedAlertRules(w, r)
 	}))
@@ -174,7 +194,6 @@ func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.Respon
 
 // BulkUpdateAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request) {
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkUpdateAlertRules(w, r)
 	}))
@@ -188,9 +207,38 @@ func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r
 
 // CreateAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) CreateAlertRule(w http.ResponseWriter, r *http.Request) {
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateAlertRule(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteAlertRule operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAlertRule(w http.ResponseWriter, r *http.Request) {
+	ruleId := mux.Vars(r)["ruleId"]
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAlertRule(w, r, ruleId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateAlertRule operation middleware
+func (siw *ServerInterfaceWrapper) UpdateAlertRule(w http.ResponseWriter, r *http.Request) {
+	ruleId := mux.Vars(r)["ruleId"]
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateAlertRule(w, r, ruleId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -318,6 +366,10 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkUpdateAlertRules).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.CreateAlertRule).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/rules/{ruleId}", wrapper.DeleteAlertRule).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/rules/{ruleId}", wrapper.UpdateAlertRule).Methods("PATCH")
 
 	return r
 }

@@ -576,18 +576,36 @@ func TestUpdatePlatformAlertRule_IgnoresProtectedLabels(t *testing.T) {
 	}
 }
 
-func TestUpdatePlatformAlertRule_RejectsAlertNameChange(t *testing.T) {
+func TestUpdatePlatformAlertRule_IgnoresAlertNameChange(t *testing.T) {
 	client, mockK8s := newUpdatePlatformClient(t)
+
+	var createdARC *osmv1.AlertRelabelConfig
 	setupPlatformWithARC(t, mockK8s, func() k8s.AlertRelabelConfigInterface {
-		return &testutils.MockAlertRelabelConfigInterface{}
+		return &testutils.MockAlertRelabelConfigInterface{
+			GetFunc: func(_ context.Context, _, _ string) (*osmv1.AlertRelabelConfig, bool, error) {
+				return nil, false, nil
+			},
+			CreateFunc: func(_ context.Context, arc osmv1.AlertRelabelConfig) (*osmv1.AlertRelabelConfig, error) {
+				createdARC = &arc
+				return &arc, nil
+			},
+		}
 	})
 
 	updatedRule := copyRule(upOriginalPlatformRule)
-	updatedRule.Labels = map[string]string{"alertname": "NewName"}
+	updatedRule.Labels[managementlabels.AlertNameLabel] = "NewName"
+	updatedRule.Labels["new_label"] = "new_value"
 
 	err := client.UpdatePlatformAlertRule(context.Background(), upPlatformRuleId, updatedRule)
-	if err == nil || !strings.Contains(err.Error(), "immutable") {
-		t.Errorf("expected immutable alertname error, got: %v", err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if createdARC != nil {
+		for _, cfg := range createdARC.Spec.Configs {
+			if string(cfg.TargetLabel) == managementlabels.AlertNameLabel {
+				t.Errorf("protected label %q must not be overridden by the request", managementlabels.AlertNameLabel)
+			}
+		}
 	}
 }
 
