@@ -1,5 +1,5 @@
-import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import { nav } from '../../../views/nav';
+import { runCOORBACPersesTestsDevUser1 } from '../../../support/perses/99.coo_rbac_perses_user1.cy';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {

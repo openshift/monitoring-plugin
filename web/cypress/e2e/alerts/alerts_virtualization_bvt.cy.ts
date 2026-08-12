@@ -3,6 +3,7 @@ import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
+import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -39,36 +40,19 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
+      cy.beforeBlockVirtualization(KBV);
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
-
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
       guidedTour.close();
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
+      troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');

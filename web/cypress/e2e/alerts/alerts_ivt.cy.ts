@@ -39,34 +39,13 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe(
-  'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
-  () => {
-    before(() => {
       cy.beforeBlockVirtualization(KBV);
-    });
-
-    it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
-  },
-);
 
-describe(
-  'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
