@@ -5,7 +5,7 @@ import { testBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt
 import { commonPages } from '../../views/common';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
-describe('BVT: Monitoring - Namespaced', { tags: ['@alerting'] }, () => {
+describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, () => {
   before(() => {
     cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
   });

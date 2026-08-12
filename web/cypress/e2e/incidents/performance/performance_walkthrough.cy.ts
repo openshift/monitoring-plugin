@@ -2,7 +2,7 @@
 Performance walkthrough: measures rendering cost of interactive operations
 (filter toggling, time range switching, table row expansion) under load.
 
-Unlike 01.performance_benchmark which measures initial chart render time,
+Unlike performance_benchmark which measures initial chart render time,
 this test measures incremental re-render cost during a realistic user session.
 
 Verifies: OBSINTA-1006

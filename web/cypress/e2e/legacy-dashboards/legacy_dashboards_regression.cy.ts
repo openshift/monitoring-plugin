@@ -1,9 +1,9 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
-import { testLegacyDashboardsRegression } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { testLegacyDashboardsRegressionNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
-import { commonPages } from '../../../views/common';
-import { nav } from '../../../views/nav';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
 
 // Test suite for Administrator perspective
 describe(
@@ -34,7 +34,7 @@ describe(
 // Test suite for Administrator perspective
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)',
-  { tags: ['@legacy-dashboards'] },
+  { tags: ['@legacy-dashboards', '@metrics'] },
   () => {
     before(() => {
       cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
