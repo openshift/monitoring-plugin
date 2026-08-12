@@ -1,13 +1,13 @@
 // Not finished
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
+import { runBVTCOOPersesTests1 } from '../../support/perses/perses_bvt_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',

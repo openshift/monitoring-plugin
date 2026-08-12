@@ -2,12 +2,12 @@ import { nav } from '../../views/nav';
 import {
   runCOOListPersesDuplicateDashboardTests,
   runCOOListPersesTests,
-} from '../../support/perses/01.coo_list_perses_admin.cy';
-import { runCOOListPersesTestsNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
+} from '../../support/perses/perses_list_admin.cy';
+import { runCOOListPersesTestsNamespace } from '../../support/perses/perses_list_admin_namespace.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(

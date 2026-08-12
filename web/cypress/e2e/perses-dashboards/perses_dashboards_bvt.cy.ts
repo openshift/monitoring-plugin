@@ -1,10 +1,10 @@
 import { nav } from '../../views/nav';
 //TODO: rename after customizable-dashboards gets merged
-import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
+import { runBVTCOOPersesTests1 } from '../../support/perses/perses_bvt_admin.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 describe(
   'BVT: COO - Dashboards (Perses) - Core platform perspective',
