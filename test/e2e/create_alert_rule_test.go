@@ -80,7 +80,7 @@ func TestCreateUserDefinedAlertRule(t *testing.T) {
 		require.NotEmpty(t, id)
 		t.Logf("Created rule with ID: %s", id)
 
-		err = poll(time.Second, time.Minute, func() error {
+		err = framework.Poll(time.Second, time.Minute, func() error {
 			promRule, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(nsY).Get(
 				ctx, "e2e-create-pr", metav1.GetOptions{},
 			)

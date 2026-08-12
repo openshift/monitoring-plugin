@@ -16,14 +16,9 @@ import (
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
-// poll is a thin wrapper around framework.Poll for e2e package call sites.
-func poll(interval, timeout time.Duration, f func() error) error {
-	return framework.Poll(interval, timeout, f)
-}
-
 func createRuleViaAPIWithRetry(ctx context.Context, f *framework.Framework, createAlertRuleRequest managementrouter.CreateAlertRuleRequest) (string, error) {
 	var id string
-	err := poll(time.Second, 20*time.Second, func() error {
+	err := framework.Poll(time.Second, 20*time.Second, func() error {
 		var err error
 		id, err = createRuleViaAPI(ctx, f, createAlertRuleRequest)
 		if err != nil {

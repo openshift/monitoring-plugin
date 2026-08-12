@@ -93,7 +93,7 @@ func TestDeleteAlertRule(t *testing.T) {
 			t.Fatalf("Failed to marshal delete request: %v", err)
 		}
 
-		err = poll(time.Second, time.Minute, func() error {
+		err = framework.Poll(time.Second, time.Minute, func() error {
 			deleteURL := f.PluginURL + "/api/v1/alerting/rules"
 			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, deleteURL, bytes.NewBuffer(reqBody))
 			if err != nil {
@@ -137,7 +137,7 @@ func TestDeleteAlertRule(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = poll(time.Second, 20*time.Second, func() error {
+		err = framework.Poll(time.Second, 20*time.Second, func() error {
 			promRule, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(nsY).Get(
 				ctx, "e2e-delete-pr", metav1.GetOptions{},
 			)
@@ -252,7 +252,7 @@ func TestDeleteAlertRule(t *testing.T) {
 // RBAC was evaluated without mutating the rule.
 func waitForCacheSync(ctx context.Context, t *testing.T, f *framework.Framework, token, ruleID string) {
 	t.Helper()
-	err := poll(time.Second, 30*time.Second, func() error {
+	err := framework.Poll(time.Second, 30*time.Second, func() error {
 		status, err := tryDeleteAlertRule(ctx, f, token, ruleID)
 		if err != nil {
 			return err
