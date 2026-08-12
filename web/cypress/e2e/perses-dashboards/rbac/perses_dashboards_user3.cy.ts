@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../../views/nav';
-import { testCOORBACPersesTestsDevUser3 } from '../../../support/perses/99.coo_rbac_perses_user3.cy';
 import { operatorAuthUtils } from '../../../support/commands/auth-commands';
+import { testCOORBACPersesTestsDevUser3 } from '../../../support/perses/rbac/perses_user3.cy';
 
 describe(
   'RBAC User3: COO - Dashboards (Perses) - Administrator perspective',

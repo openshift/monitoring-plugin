@@ -1,9 +1,9 @@
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../../views/perses-dashboards';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
 import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
-} from '../../fixtures/perses/constants';
+} from '../../../fixtures/perses/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**
