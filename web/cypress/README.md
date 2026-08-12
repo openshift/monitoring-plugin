@@ -74,7 +74,7 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Released Version**               | `CYPRESS_COO_UI_INSTALL=true`                                                                           | Install operators from redhat-operators catalog. Production-like testing.                                     |
 | **Pre-provisioned COO**            | `CYPRESS_SKIP_COO_INSTALL=true`, optionally `CYPRESS_COO_NAMESPACE=<ns>`                                | COO already installed. Tests still enable the monitoring plugin. Specify namespace if non-default.            |
-| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_KBV_INSTALL=true`                                                                         | OpenShift Virtualization already installed.                                                                   |
+| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_CNV_INSTALL=true`                                                                         | OpenShift Virtualization already installed.                                                                   |
 | **Local Dev / PR Testing**         | `CYPRESS_SKIP_ALL_INSTALL=true`                                                                         | Run UI locally via `make start-feature-frontend` ([details](../../README.md#development)). Skips all setup.   |
 | **Custom Images**                  | `CYPRESS_MP_IMAGE`, `CYPRESS_MCP_CONSOLE_IMAGE`, `CYPRESS_CHA_IMAGE`, `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Patch component images in the CSV, or replace the operator bundle. Combine with an installation method above. |
 | **FBC Image**                      | `CYPRESS_FBC_STAGE_COO_IMAGE`                                                                           | Install COO from File-Based Catalog image. For release validation.                                            |
@@ -116,10 +116,10 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | Variable                   | Default | Description                                                    |
 | -------------------------- | ------- | -------------------------------------------------------------- |
 | `CYPRESS_SKIP_COO_INSTALL` | `false` | Skip Cluster Observability Operator installation               |
-| `CYPRESS_SKIP_KBV_INSTALL` | `false` | Skip OpenShift Virtualization installation                     |
+| `CYPRESS_SKIP_CNV_INSTALL` | `false` | Skip OpenShift Virtualization installation                     |
 | `CYPRESS_SKIP_ALL_INSTALL` | `false` | Skip all operator installations (for pre-provisioned clusters) |
 | `CYPRESS_COO_UI_INSTALL`   | `false` | Install COO from redhat-operators catalog                      |
-| `CYPRESS_KBV_UI_INSTALL`   | `false` | Install Virtualization from redhat-operators catalog           |
+| `CYPRESS_CNV_UI_INSTALL`   | `false` | Install Virtualization from redhat-operators catalog           |
 
 ### Bundle Images
 
@@ -127,15 +127,15 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | ---------------------------------- | ---------------------------------------- |
 | `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` | COO bundle image from Konflux            |
 | `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE`  | Custom COO bundle image                  |
-| `CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE` | Virtualization bundle image from Konflux |
-| `CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE`  | Custom Virtualization bundle image       |
+| `CYPRESS_KONFLUX_CNV_BUNDLE_IMAGE` | Virtualization bundle image from Konflux |
+| `CYPRESS_CUSTOM_CNV_BUNDLE_IMAGE`  | Custom Virtualization bundle image       |
 
 ### FBC images
 
 | Variable                      | Description                              |
 | ----------------------------- | ---------------------------------------- |
 | `CYPRESS_FBC_STAGE_COO_IMAGE` | Cluster Observability Operator FBC image |
-| `CYPRESS_FBC_STAGE_KBV_IMAGE` | Virtualization FBC image                 |
+| `CYPRESS_FBC_STAGE_CNV_IMAGE` | Virtualization FBC image                 |
 
 ### Testing Configuration
 
