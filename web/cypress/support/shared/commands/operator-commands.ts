@@ -1,8 +1,8 @@
 import 'cypress-wait-until';
 import { operatorAuthUtils } from './auth-commands';
-import { cooInstallUtils } from './coo-install-commands';
+import { cooInstallUtils } from '../cluster-observability-operator/coo-install-commands';
 import { imagePatchUtils } from './image-patch-commands';
-import { dashboardsUtils } from './dashboards-commands';
+import { dashboardsUtils } from '../../perses/commands/dashboards-commands';
 
 export {};
 

@@ -1,7 +1,7 @@
 import 'cypress-wait-until';
-import { operatorHubPage } from '../../views/operator-hub-page';
-import { nav } from '../../views/nav';
-import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
+import { operatorHubPage } from '../../../views/operator-hub-page';
+import { nav } from '../../../views/nav';
+import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../../timeouts';
 
 export {};
 
