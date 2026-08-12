@@ -11,6 +11,10 @@ func TestBuildUserScopedConfig(t *testing.T) {
 		Host:            "https://api.example.com:6443",
 		BearerToken:     "sa-token",
 		BearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
+		Impersonate: rest.ImpersonationConfig{
+			UserName: "system:admin",
+			Groups:   []string{"system:masters"},
+		},
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true,
 			CertData: []byte("admin-cert"),
@@ -40,6 +44,9 @@ func TestBuildUserScopedConfig(t *testing.T) {
 	}
 	if cfg.KeyFile != "" {
 		t.Errorf("derived KeyFile = %q, want empty", cfg.KeyFile)
+	}
+	if cfg.Impersonate.UserName != "" || len(cfg.Impersonate.Groups) != 0 {
+		t.Errorf("derived Impersonate = %+v, want empty", cfg.Impersonate)
 	}
 	if !cfg.Insecure {
 		t.Error("derived Insecure should be preserved as true")

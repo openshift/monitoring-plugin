@@ -239,7 +239,7 @@ func (f *Framework) requestServiceAccountToken(ctx context.Context, namespace, n
 		Spec: authv1.TokenRequestSpec{ExpirationSeconds: &expSeconds},
 	}
 	var token string
-	err := retry(3, func() error {
+	err := Poll(time.Second, 3*time.Second, func() error {
 		tokenResp, err := f.Clientset.CoreV1().ServiceAccounts(namespace).CreateToken(ctx, name, treq, metav1.CreateOptions{})
 		if err != nil {
 			return err
@@ -251,21 +251,6 @@ func (f *Framework) requestServiceAccountToken(ctx context.Context, namespace, n
 		return "", fmt.Errorf("requesting token for %s/%s: %w", namespace, name, err)
 	}
 	return token, nil
-}
-
-// retry calls fn up to maxAttempts times with a 1-second pause between attempts.
-// It returns nil on the first successful call or the last error after exhaustion.
-func retry(maxAttempts int, fn func() error) error {
-	var err error
-	for i := range maxAttempts {
-		if err = fn(); err == nil {
-			return nil
-		}
-		if i < maxAttempts-1 {
-			time.Sleep(time.Second)
-		}
-	}
-	return err
 }
 
 // CreateScopedUser creates a ServiceAccount in the given namespace with a Role
@@ -282,7 +267,7 @@ func (f *Framework) CreateScopedUser(ctx context.Context, name, namespace, apiGr
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
 	}
-	err := retry(3, func() error {
+	err := Poll(time.Second, 3*time.Second, func() error {
 		_, err := f.Clientset.CoreV1().ServiceAccounts(namespace).Create(ctx, sa, metav1.CreateOptions{})
 		if apierrors.IsAlreadyExists(err) {
 			return nil
@@ -301,7 +286,7 @@ func (f *Framework) CreateScopedUser(ctx context.Context, name, namespace, apiGr
 			Verbs:     verbs,
 		}},
 	}
-	err = retry(3, func() error {
+	err = Poll(time.Second, 3*time.Second, func() error {
 		_, err := f.Clientset.RbacV1().Roles(namespace).Create(ctx, role, metav1.CreateOptions{})
 		if apierrors.IsAlreadyExists(err) {
 			return nil
@@ -326,7 +311,7 @@ func (f *Framework) CreateScopedUser(ctx context.Context, name, namespace, apiGr
 			Name:     name,
 		},
 	}
-	err = retry(3, func() error {
+	err = Poll(time.Second, 3*time.Second, func() error {
 		_, err := f.Clientset.RbacV1().RoleBindings(namespace).Create(ctx, rb, metav1.CreateOptions{})
 		if apierrors.IsAlreadyExists(err) {
 			return nil
@@ -351,7 +336,7 @@ func (f *Framework) CreateScopedUser(ctx context.Context, name, namespace, apiGr
 // The whole setup is retried to tolerate transient API failures.
 func (f *Framework) CreateAnonymousUser(ctx context.Context, name, namespace string) (*ScopedUser, error) {
 	var user *ScopedUser
-	err := retry(3, func() error {
+	err := Poll(time.Second, 3*time.Second, func() error {
 		sa := &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{Name: name},
 		}

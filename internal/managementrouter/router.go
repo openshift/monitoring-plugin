@@ -87,18 +87,24 @@ func handleError(w http.ResponseWriter, err error) {
 // Kubernetes auth errors are checked first to prevent information leakage;
 // domain errors are then mapped to 4xx codes.
 func parseError(err error) (int, string) {
+	var (
+		notFound   *management.NotFoundError
+		validation *management.ValidationError
+		notAllowed *management.NotAllowedError
+		conflict   *management.ConflictError
+	)
 	switch {
 	case apierrors.IsUnauthorized(err):
 		return http.StatusUnauthorized, "authentication failed"
 	case apierrors.IsForbidden(err):
 		return http.StatusForbidden, "insufficient permissions"
-	case errors.As(err, new(*management.NotFoundError)):
+	case errors.As(err, &notFound):
 		return http.StatusNotFound, err.Error()
-	case errors.As(err, new(*management.ValidationError)):
+	case errors.As(err, &validation):
 		return http.StatusBadRequest, err.Error()
-	case errors.As(err, new(*management.NotAllowedError)):
+	case errors.As(err, &notAllowed):
 		return http.StatusMethodNotAllowed, err.Error()
-	case errors.As(err, new(*management.ConflictError)):
+	case errors.As(err, &conflict):
 		return http.StatusConflict, err.Error()
 	default:
 		log.WithError(err).Error("unexpected management API error")
