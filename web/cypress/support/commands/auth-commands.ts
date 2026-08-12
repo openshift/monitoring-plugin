@@ -118,7 +118,7 @@ export const operatorAuthUtils = {
 
   generateCOOSessionKey(
     MCP: { namespace: string; operatorName: string; packageName: string },
-    MP: { namespace: string; operatorName: string },
+    CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
   ): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
@@ -126,8 +126,8 @@ export const operatorAuthUtils = {
       MCP.namespace,
       MCP.operatorName,
       MCP.packageName,
-      MP.namespace,
-      MP.operatorName,
+      CLUSTER_MONITORING_OPERATOR.namespace,
+      CLUSTER_MONITORING_OPERATOR.operatorName,
     ];
     const envVars = [
       Cypress.env('SKIP_ALL_INSTALL'),
@@ -143,12 +143,15 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
-  generateMPSessionKey(MP: { namespace: string; operatorName: string }): string[] {
+  generateMPSessionKey(CLUSTER_MONITORING_OPERATOR: {
+    namespace: string;
+    operatorName: string;
+  }): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
-      MP.namespace,
-      MP.operatorName,
+      CLUSTER_MONITORING_OPERATOR.namespace,
+      CLUSTER_MONITORING_OPERATOR.operatorName,
     ];
     const envVars = [Cypress.env('SKIP_ALL_INSTALL'), Cypress.env('MP_IMAGE')];
     return [...baseKey, ...envVars.map((v) => v || '')];

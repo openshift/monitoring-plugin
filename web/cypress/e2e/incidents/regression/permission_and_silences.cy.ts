@@ -13,6 +13,7 @@ Tests:
 Verifies: OU-1020, OU-706, OU-1213
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 import { nav } from '../../../views/nav';
 
@@ -26,17 +27,15 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe(
   'Regression: Silences Not Applied Correctly',
   { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
       incidentsPage.warmUpForPlugin();
     });
 
@@ -146,7 +145,10 @@ describe(
   { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
     });
 
     beforeEach(() => {

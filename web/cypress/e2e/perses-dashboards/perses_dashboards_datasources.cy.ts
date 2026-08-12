@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { runCOOCreateImportPersesTests } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
@@ -10,11 +11,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 const OTEL = {
@@ -59,7 +55,10 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupExtraDashboards();
 
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesExtraDashboards();
       cy.installDistributeTracingUIPlugin();
@@ -81,7 +80,10 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupExtraDashboards();
-      cy.cleanupCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.cleanupLoggingLoki();
       cy.cleanupLogging(CLO);
       cy.cleanupLoki(LOKI);

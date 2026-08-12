@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
@@ -13,11 +14,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 const KBV = {
@@ -38,7 +34,7 @@ describe(
   { tags: ['@alerting', '@slow', '@virtualization', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
       cy.beforeBlockVirtualization(KBV);
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
