@@ -24,6 +24,11 @@ func TestParseError(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
+			name:           "NotFoundError wrapped",
+			err:            fmt.Errorf("lookup failed: %w", &management.NotFoundError{Resource: "AlertRule", Id: "abc"}),
+			expectedStatus: http.StatusNotFound,
+		},
+		{
 			name:           "ValidationError",
 			err:            &management.ValidationError{Message: "bad input"},
 			expectedStatus: http.StatusBadRequest,
