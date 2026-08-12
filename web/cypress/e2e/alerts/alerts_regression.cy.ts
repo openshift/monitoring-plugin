@@ -5,9 +5,9 @@ import {
 } from '../../support/alerts/alerts_regressions.cy';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { testAlertsRegressionNamespace } from '../../support/alerts/alerts_regressions_namespaced.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 // Test suite for Core platform perspective
 describe(

@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import {
   testCOOListPerses,
   testCOOListPersesDuplicateDashboard,
@@ -8,7 +8,7 @@ import { testCOOListPersesNamespace } from '../../support/perses/perses_list_adm
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(

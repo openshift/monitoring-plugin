@@ -1,7 +1,7 @@
 import { IncidentDefinition, IncidentScenarioFixture, PrometheusResponse } from './types';
 import { createAlertDetailsMock, createIncidentMock } from './mock-generators';
 import { convertFixtureToIncidents, parseYamlFixture } from './schema/fixture-converter';
-import { incidentsPage } from '../../views/incidents-page';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

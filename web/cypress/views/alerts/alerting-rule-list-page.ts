@@ -1,9 +1,11 @@
 import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
-import { listPage } from './list-page';
+import { Source } from '../../fixtures/shared/cluster-monitoring-operator/constants';
+import { alertsListPage } from './alerts-list-page';
 
 export const alertingRuleListPage = {
   shouldBeLoaded: () => {
     cy.log('alertingRuleListPage.shouldBeLoaded');
+    alertsListPage.filter.removeIndividualTag(Source.PLATFORM);
     cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR');
     cy.get(Classes.TableHeaderColumn).contains('Name').should('be.visible');
     cy.get(Classes.TableHeaderColumn).contains('Severity').should('be.visible');
@@ -29,7 +31,7 @@ export const alertingRuleListPage = {
     byName: (name: string, ouiaId: string = FilterOUIAIDs.RuleNameFilter) => {
       cy.log('listPage.filter.byName');
       try {
-        listPage.filter.selectAttribute('Name');
+        alertsListPage.filter.selectAttribute('Name');
         cy.byOUIAID(`${ouiaId}-input`)
           .find('input')
           .scrollIntoView()

@@ -2,11 +2,11 @@ import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
 } from '../../fixtures/perses/constants';
-import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { commonPages } from '../../views/shared/common';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
+import { nav } from '../../views/shared/nav';
 
 export function testCOOListPersesNamespace(
   perspectiveName: CustomerPerspective,

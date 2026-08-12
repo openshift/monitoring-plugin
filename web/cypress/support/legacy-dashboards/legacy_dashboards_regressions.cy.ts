@@ -1,17 +1,17 @@
-import { nav } from '../../views/nav';
-import { legacyDashboardsPage } from '../../views/legacy-dashboards';
+import { nav } from '../../views/shared/nav';
+import { legacyDashboardsPage } from '../../views/legacy-dashboards/legacy-dashboards';
 import {
   LegacyDashboardsDashboardDropdown,
   MetricsPageQueryInput,
   WatchdogAlert,
 } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { Classes, DataTestIDs, LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
-import { metricsPage } from '../../views/metrics';
-import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { metricsPage } from '../../views/metrics/metrics';
+import { alertingRuleDetailsPage } from '../../views/alerts/alerting-rule-details-page';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
-import { listPage } from '../../views/list-page';
-import { commonPages } from '../../views/common';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { alertsListPage } from '../../views/alerts/alerts-list-page';
+import { commonPages } from '../../views/shared/common';
 
 export function testLegacyDashboardsRegression(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Dashboards (legacy)`, () => {
@@ -95,9 +95,9 @@ export function testLegacyDashboardsRegression(perspectiveName: CustomerPerspect
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
       alerts.interceptWatchdogAlert();
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.countShouldBe(1);
-      listPage.ARRows.clickAlertingRule();
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.countShouldBe(1);
+      alertsListPage.ARRows.clickAlertingRule();
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
       alertingRuleDetailsPage.clickHideGraphButton();
       cy.byTestID(DataTestIDs.MetricGraph).should('not.exist');
