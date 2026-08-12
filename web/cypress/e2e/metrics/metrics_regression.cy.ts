@@ -1,10 +1,14 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { testMetricsRegression2 } from '../../support/monitoring/02.reg_metrics_2.cy';
-import { testMetricsRegression1 } from '../../support/monitoring/02.reg_metrics_1.cy';
-import { testMetricsRegressionNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
+import {
+  testMetricsRegression1,
+  testMetricsRegression2,
+} from '../../support/metrics/metrics_regressions.cy';
+import {
+  testMetricsRegressionNamespace1,
+  testMetricsRegressionNamespace2,
+} from '../../support/metrics/metrics_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
-import { testMetricsRegressionNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 // Test suite for Administrator perspective
