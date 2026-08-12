@@ -65,7 +65,7 @@ describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '
 
     cy.log('5.1.1 Verify no excessive padding with 100 alerts');
     verifyAlertBarPadding(
-      '15-stress-test-100-alerts.yaml',
+      'stress-test-100-alerts.yaml',
       'cluster-wide-failure-100-alerts',
       MAX_GAP_STANDARD,
       '100 alerts',
@@ -73,7 +73,7 @@ describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '
 
     cy.log('5.1.2 Verify no excessive padding with 200 alerts');
     verifyAlertBarPadding(
-      '16-stress-test-200-alerts.yaml',
+      'stress-test-200-alerts.yaml',
       'cluster-wide-failure-200-alerts',
       MAX_GAP_STANDARD,
       '200 alerts',
@@ -81,7 +81,7 @@ describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '
 
     cy.log('5.1.3 Verify accepted limitation with 500 alerts (relaxed threshold)');
     verifyAlertBarPadding(
-      '17-stress-test-500-alerts.yaml',
+      'stress-test-500-alerts.yaml',
       'cluster-wide-failure-500-alerts',
       MAX_GAP_RELAXED,
       '500 alerts',
