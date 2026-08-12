@@ -3,7 +3,7 @@ alwaysApply: true
 description: "Development guidelines for Incidents page Cypress tests"
 globs:
   - "web/cypress/e2e/incidents/**/*.cy.ts"
-  - "web/cypress/views/incidents-page.ts"
+  - "web/cypress/views/incidents/incidents-page.ts"
   - "web/cypress/fixtures/incidents/scenarios/**/*.yaml"
 ---
 
@@ -99,7 +99,7 @@ Additional context about the bug or behavior.
 Verifies: OU-XXX
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from "../../../support/operators";
 
 describe('Regression: <Section Name>', () => {
@@ -296,7 +296,7 @@ cy.mockIncidents([]);
 ### Imports
 ```typescript
 // Always import from relative path
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 // Import types when needed
 import { IncidentDefinition } from '../../support/incidents';

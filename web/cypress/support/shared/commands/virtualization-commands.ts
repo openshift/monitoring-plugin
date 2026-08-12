@@ -1,9 +1,9 @@
 import 'cypress-wait-until';
-import { operatorHubPage } from '../../../views/operator-hub-page';
-import { nav } from '../../../views/nav';
+import { operatorHubPage } from '../../../views/shared/operator-hub-page';
+import { nav } from '../../../views/shared/nav';
 import { operatorAuthUtils } from './auth-commands';
-import { guidedTour } from '../../../views/tour';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../../timeouts';
+import { guidedTour } from '../../../views/shared/tour';
 
 export {};
 

@@ -6,9 +6,9 @@ import {
   LOKI_OPERATOR,
   OPENTELEMETRY_OPERATOR,
   TEMPO_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 import { testCOOCreateImportPerses } from '../../support/perses/perses_create_import_admin.cy';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 
 describe(
   'COO - Dashboards (Perses) - Perses Global Datasources with Tempo and Loki',

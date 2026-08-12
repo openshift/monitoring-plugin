@@ -17,8 +17,8 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
 } from '../../../support/shared/operators';
-import { incidentsPage } from '../../../views/incidents-page';
-import { nav } from '../../../views/nav';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
+import { nav } from '../../../views/shared/nav';
 
 describe(
   'Regression: Silences Not Applied Correctly',

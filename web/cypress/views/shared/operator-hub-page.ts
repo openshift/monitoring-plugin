@@ -1,5 +1,5 @@
-import * as helperfuncs from '../views/utils';
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import * as helperfuncs from './utils';
 
 export const operatorHubPage = {
   installOperator: (operatorName, csName, installNamespace?) => {

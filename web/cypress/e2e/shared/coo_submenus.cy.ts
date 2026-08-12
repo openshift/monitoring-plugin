@@ -2,9 +2,9 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
 } from '../../support/shared/operators';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { troubleshootingPanelPage } from '../../views/shared/troubleshooting-panel';
 
 describe(
   'BVT: COO',

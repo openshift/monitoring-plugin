@@ -1,12 +1,12 @@
-import { commonPages } from '../../views/common';
-import { detailsPage } from '../../views/details-page';
-import { listPage } from '../../views/list-page';
-import { silenceAlertPage } from '../../views/silence-alert-page';
-import { nav } from '../../views/nav';
-import { silenceDetailsPage } from '../../views/silence-details-page';
-import { silencesListPage } from '../../views/silences-list-page';
-import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
-import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
+import { commonPages } from '../../views/shared/common';
+import { alertAndSilencesDetailsPage } from '../../views/alerts/alert-and-silence-details-page';
+import { alertsListPage } from '../../views/alerts/alerts-list-page';
+import { silenceAlertPage } from '../../views/alerts/silence-alert-page';
+import { nav } from '../../views/shared/nav';
+import { silenceDetailsPage } from '../../views/alerts/silence-details-page';
+import { silencesListPage } from '../../views/alerts/silences-list-page';
+import { alertingRuleListPage } from '../../views/alerts/alerting-rule-list-page';
+import { alertingRuleDetailsPage } from '../../views/alerts/alerting-rule-details-page';
 import {
   AlertingRulesAlertState,
   MainTagState,
@@ -22,28 +22,28 @@ import type { CustomerPerspective } from '@/shared/constants/perspective';
 export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
     // Verify Source filter does not exist in namespace view
     cy.byOUIAID('DataViewFilters').find('.pf-v6-c-menu-toggle').first().click();
     cy.get('.pf-v6-c-menu__item').should('not.contain', 'Source');
     cy.byOUIAID('DataViewFilters').find('.pf-v6-c-menu-toggle').first().click();
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
-    listPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
-    listPage.filter.selectFilterOption('Severity', Severity.WARNING);
-    listPage.filter.selectFilterOption('Severity', Severity.INFO);
-    listPage.filter.selectFilterOption('Severity', Severity.NONE);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.WARNING);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.INFO);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.NONE);
 
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
-    listPage.filter.clearAllFilters();
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
+    alertsListPage.filter.clearAllFilters();
 
-    listPage.exportAsCSV(true, /openshift.csv/);
+    alertsListPage.exportAsCSV(true, /openshift.csv/);
 
-    listPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.filter.byLabel('alertname=' + `${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
   });
 
   it(`${perspectiveName} perspective - Alerting > Silences page > Create silence`, () => {
@@ -75,12 +75,12 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
       cy.log('3.1 use sidebar nav to go to Observe > Alerting');
 
       cy.log('3.2 filter to Watchdog alert');
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.countShouldBe(1);
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.countShouldBe(1);
 
       cy.log('3.3 silence alert');
-      listPage.ARRows.expandRow();
-      listPage.ARRows.silenceAlert();
+      alertsListPage.ARRows.expandRow();
+      alertsListPage.ARRows.silenceAlert();
       silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
       silenceAlertPage.clickSubmit();
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
@@ -88,22 +88,22 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
       cy.log('3.4 Assert Kebab on Alert Details page');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      listPage.filter.clearAllFilters();
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.expandRow();
-      listPage.ARRows.assertNoKebab();
-      listPage.ARRows.clickAlert();
+      alertsListPage.filter.clearAllFilters();
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.expandRow();
+      alertsListPage.ARRows.assertNoKebab();
+      alertsListPage.ARRows.clickAlert();
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-      detailsPage.assertSilencedAlert();
+      alertAndSilencesDetailsPage.assertSilencedAlert();
 
       cy.log('3.5 Assert Kebab on Silence List page for Silenced alert');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       nav.tabs.switchTab('Silences');
       silencesListPage.shouldBeLoaded();
-      listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
-      listPage.filter.removeIndividualTag(SilenceState.PENDING);
+      alertsListPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+      alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+      alertsListPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
       silencesListPage.rows.assertSilencedAlertKebab();
 
       cy.log('3.6 Click on Silenced alert and Assert Actions button');
@@ -121,11 +121,11 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
       cy.log('3.8 Assert Kebab on Silence List page for Expired alert');
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
       silencesListPage.emptyState();
-      listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
-      listPage.filter.removeIndividualTag(SilenceState.PENDING);
-      listPage.filter.selectFilterOption('Silence State', SilenceState.EXPIRED);
-      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
-      listPage.filter.selectFilterOption('Silence State', SilenceState.PENDING);
+      alertsListPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+      alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
+      alertsListPage.filter.selectFilterOption('Silence State', SilenceState.EXPIRED);
+      alertsListPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+      alertsListPage.filter.selectFilterOption('Silence State', SilenceState.PENDING);
       silencesListPage.rows.assertExpiredAlertKebab('0');
 
       cy.log('3.9 Click on Expired alert and Assert Actions button');
@@ -168,7 +168,7 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       nav.tabs.switchTab('Silences');
       silencesListPage.shouldBeLoaded();
-      listPage.filter.removeIndividualTag(SilenceState.PENDING);
+      alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
       silencesListPage.rows.editSilence();
       commonPages.titleShouldHaveText('Edit silence');
@@ -205,26 +205,26 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       nav.tabs.switchTab('Silences');
       silencesListPage.shouldBeLoaded();
-      listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
-      listPage.filter.removeIndividualTag(SilenceState.PENDING);
+      alertsListPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+      alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
       silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+      alertsListPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
       silencesListPage.rows.expireSilence(true);
 
       cy.log('3.13 Alert Details > Silence alert button > Cancel');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.countShouldBe(1);
-      listPage.ARRows.expandRow();
-      listPage.ARRows.clickAlert();
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.countShouldBe(1);
+      alertsListPage.ARRows.expandRow();
+      alertsListPage.ARRows.clickAlert();
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-      detailsPage.clickSilenceAlertButton();
+      alertAndSilencesDetailsPage.clickSilenceAlertButton();
       silenceAlertPage.addComment(SilenceComment.SILENCE_COMMENT);
       silenceAlertPage.clickCancelButton();
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.countShouldBe(1);
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.countShouldBe(1);
     },
   );
 
@@ -235,51 +235,51 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
     listPage.filter.removeIndividualTag(Source.PLATFORM);
 
     cy.log('4.2 clear all filters, verify filters and tags');
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.FIRING);
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
-    listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.NOT_FIRING);
-    listPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
-    listPage.filter.selectFilterOption('Severity', Severity.WARNING);
-    listPage.filter.selectFilterOption('Severity', Severity.INFO);
-    listPage.filter.selectFilterOption('Severity', Severity.NONE);
-    listPage.filter.selectFilterOption('Source', Source.PLATFORM);
-    listPage.filter.selectFilterOption('Source', Source.USER);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.FIRING);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
+    alertsListPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.NOT_FIRING);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.CRITICAL);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.WARNING);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.INFO);
+    alertsListPage.filter.selectFilterOption('Severity', Severity.NONE);
+    alertsListPage.filter.selectFilterOption('Source', Source.PLATFORM);
+    alertsListPage.filter.selectFilterOption('Source', Source.USER);
 
-    listPage.filter.clickOn1more(MainTagState.ALERT_STATE);
-    listPage.filter.clickOn1more(MainTagState.SEVERITY);
+    alertsListPage.filter.clickOn1more(MainTagState.ALERT_STATE);
+    alertsListPage.filter.clickOn1more(MainTagState.SEVERITY);
 
-    listPage.filter.clickOnShowLess(MainTagState.ALERT_STATE);
-    listPage.filter.clickOnShowLess(MainTagState.SEVERITY);
+    alertsListPage.filter.clickOnShowLess(MainTagState.ALERT_STATE);
+    alertsListPage.filter.clickOnShowLess(MainTagState.SEVERITY);
 
-    listPage.filter.clickOn1more(MainTagState.ALERT_STATE);
-    listPage.filter.clickOn1more(MainTagState.SEVERITY);
+    alertsListPage.filter.clickOn1more(MainTagState.ALERT_STATE);
+    alertsListPage.filter.clickOn1more(MainTagState.SEVERITY);
 
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
-    listPage.filter.removeIndividualTag(AlertingRulesAlertState.NOT_FIRING);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.FIRING);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.PENDING);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.SILENCED);
+    alertsListPage.filter.removeIndividualTag(AlertingRulesAlertState.NOT_FIRING);
 
-    listPage.filter.removeIndividualTag(Severity.CRITICAL);
-    listPage.filter.removeIndividualTag(Severity.WARNING);
-    listPage.filter.removeIndividualTag(Severity.INFO);
-    listPage.filter.removeIndividualTag(Severity.NONE);
-    listPage.filter.removeIndividualTag(Source.PLATFORM);
-    listPage.filter.removeIndividualTag(Source.USER);
+    alertsListPage.filter.removeIndividualTag(Severity.CRITICAL);
+    alertsListPage.filter.removeIndividualTag(Severity.WARNING);
+    alertsListPage.filter.removeIndividualTag(Severity.INFO);
+    alertsListPage.filter.removeIndividualTag(Severity.NONE);
+    alertsListPage.filter.removeIndividualTag(Source.PLATFORM);
+    alertsListPage.filter.removeIndividualTag(Source.USER);
 
     alertingRuleListPage.filter.assertNoClearAllFilters();
 
     cy.log('4.3 Search by Name');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
-    listPage.filter.clearAllFilters();
+    alertsListPage.filter.clearAllFilters();
 
     cy.log('4.4 Search by Label');
-    listPage.filter.byLabel(`namespace=${WatchdogAlert.NAMESPACE}`);
-    listPage.filter.clearAllFilters();
+    alertsListPage.filter.byLabel(`namespace=${WatchdogAlert.NAMESPACE}`);
+    alertsListPage.filter.clearAllFilters();
 
     cy.log('4.5 Search by Name and see details');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.countShouldBe(1);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertAlertingRuleDetailsPage(`${WatchdogAlert.ALERTNAME}`);
@@ -293,8 +293,8 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
     cy.log('4.7 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
-    listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
+    alertsListPage.filter.clearAllFilters();
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`, FilterOUIAIDs.RuleNameFilter);
     alertingRuleListPage.clickAlertingRule(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleDetailsPage.assertNoKebab();
 
@@ -302,17 +302,17 @@ export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspecti
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
-    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    alertsListPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+    alertsListPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
     silencesListPage.rows.expireSilence(true);
   });
 
   it(`${perspectiveName} perspective - Alerting > Empty state`, () => {
     cy.log('5.1 Empty state');
     cy.changeNamespace('default');
-    listPage.emptyState();
+    alertsListPage.emptyState();
     nav.tabs.switchTab('Silences');
     silencesListPage.firstTimeEmptyState();
   });

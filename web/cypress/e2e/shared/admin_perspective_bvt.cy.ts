@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { testBVTAlerts } from '../../support/alerts/alerts_bvt.cy';
-import { commonPages } from '../../views/common';
-import { overviewPage } from '../../views/overview-page';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { commonPages } from '../../views/shared/common';
+import { overviewPage } from '../../views/shared/overview-page';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 describe(
   'BVT: Monitoring',

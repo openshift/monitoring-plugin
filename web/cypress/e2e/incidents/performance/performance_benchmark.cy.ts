@@ -14,7 +14,7 @@ median observed time.
 Verifies: OBSINTA-1006
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 import { BenchmarkCollector } from '../../../support/shared/commands/benchmark-utils';
 import {
   CLUSTER_MONITORING_OPERATOR,
