@@ -1,3 +1,4 @@
+// Not finished
 import { nav } from '../../views/nav';
 import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
@@ -39,31 +40,12 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-      cy.cleanupPersesTestDashboardsBeforeTests();
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
+      cy.beforeBlockVirtualization(KBV);
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@slow', '@virtualization'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
-
-  it('1. Installation: Virtualization', () => {
-    cy.log('Installation: Virtualization');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@perses-dashboards', '@coo', '@slow', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
       guidedTour.close();

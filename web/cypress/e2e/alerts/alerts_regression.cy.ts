@@ -1,0 +1,60 @@
+import { runAllRegressionCorePlatformAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
+import { alerts } from '../../fixtures/monitoring/alert';
+import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
+import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
+
+const MP = {
+  namespace: 'openshift-monitoring',
+  operatorName: 'Cluster Monitoring Operator',
+};
+
+// Test suite for Core platform perspective
+describe(
+  'Regression: Monitoring - Alerts (Core platform)',
+  { tags: ['@alerting', '@metrics'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+      cy.switchPerspective('Core platform');
+    });
+
+    beforeEach(() => {
+      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      alerts.getWatchdogAlert();
+    });
+
+    // Run tests in Core platform perspective
+    runAllRegressionCorePlatformAlertsTests({
+      name: 'Administrator',
+    });
+  },
+);
+
+describe(
+  'Regression: Monitoring - Alerts Namespaced (Administrator)',
+  { tags: ['@alerting'] },
+  () => {
+    before(() => {
+      cy.beforeBlock(MP);
+    });
+
+    beforeEach(() => {
+      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      alerts.getWatchdogAlert();
+      cy.changeNamespace(MP.namespace);
+    });
+
+    // Run tests in Administrator perspective
+    runAllRegressionAlertsTestsNamespace({
+      name: 'Administrator',
+    });
+  },
+);

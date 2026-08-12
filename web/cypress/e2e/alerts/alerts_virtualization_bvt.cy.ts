@@ -1,8 +1,9 @@
-import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
+import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { guidedTour } from '../../views/tour';
+import { alerts } from '../../fixtures/monitoring/alert';
+import { nav } from '../../views/nav';
+import { commonPages } from '../../views/common';
+import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -34,44 +35,24 @@ const KBV = {
 };
 
 describe(
-  'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@coo', '@slow', '@virtualization'] },
+  'IVT: Monitoring + Virtualization',
+  { tags: ['@alerting', '@metrics', '@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe(
-  'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@alerting', '@coo', '@slow', '@virtualization'] },
-  () => {
-    before(() => {
       cy.beforeBlockVirtualization(KBV);
-    });
-
-    it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe(
-  'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@coo', '@slow', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
+      guidedTour.close();
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
+      troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
@@ -80,8 +61,9 @@ describe(
       commonPages.titleShouldHaveText('Alerting');
       alerts.getWatchdogAlert();
     });
-    // Run tests in Virtualization perspective
-    runAllRegressionAlertsTests({
+
+    // Run tests in Administrator perspective
+    runBVTMonitoringTests({
       name: 'Virtualization',
     });
   },

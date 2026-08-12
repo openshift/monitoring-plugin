@@ -1,8 +1,8 @@
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
-import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { nav } from '../../views/nav';
+import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -34,38 +34,20 @@ const KBV = {
 };
 
 describe(
-  'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@slow', '@virtualization'] },
+  'Regression: Monitoring - Alerts (Virtualization)',
+  { tags: ['@alerting', '@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
+      cy.beforeBlockVirtualization(KBV);
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
     });
-  },
-);
 
-describe('Installation: Virtualization', { tags: ['@coo', '@slow', '@virtualization'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
-
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
-      guidedTour.close();
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
@@ -77,9 +59,8 @@ describe(
       commonPages.titleShouldHaveText('Alerting');
       alerts.getWatchdogAlert();
     });
-
-    // Run tests in Administrator perspective
-    runBVTMonitoringTests({
+    // Run tests in Virtualization perspective
+    runAllRegressionAlertsTests({
       name: 'Virtualization',
     });
   },

@@ -1,6 +1,6 @@
-import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser4 } from '../../support/perses/99.coo_rbac_perses_user4.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { nav } from '../../../views/nav';
+import { runCOORBACPersesTestsDevUser2 } from '../../../support/perses/99.coo_rbac_perses_user2.cy';
+import { operatorAuthUtils } from '../../../support/commands/auth-commands';
 
 // Set constants for the operators that need to be installed for tests.
 // const MCP = {
@@ -19,7 +19,7 @@ import { operatorAuthUtils } from '../../support/commands/auth-commands';
 // };
 
 describe(
-  'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC User2: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -62,8 +62,8 @@ describe(
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
-        Cypress.env('LOGIN_USERNAME4'),
-        Cypress.env('LOGIN_PASSWORD4'),
+        Cypress.env('LOGIN_USERNAME2'),
+        Cypress.env('LOGIN_PASSWORD2'),
       );
       cy.validateLogin();
       cy.closeOnboardingModalIfPresent();
@@ -83,7 +83,7 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runCOORBACPersesTestsDevUser4({
+    runCOORBACPersesTestsDevUser2({
       name: 'Core platform',
     });
   },
