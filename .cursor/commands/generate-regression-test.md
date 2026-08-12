@@ -2,6 +2,8 @@
 description: Generate automated regression test from test documentation
 ---
 
+TODO: UPDATE THIS WITH NEW STRUCTURE
+
 # Generate Regression Test
 
 Generate automated regression tests from test documentation in [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/), following the style of existing tests in `@incidents/` and using `@incidents-page.ts` Page Object Model.
@@ -94,7 +96,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from "../../../support/operators";
+} from "../../../support/shared/operators";
 
 describe("Regression: [Section Name]", () => {
   before(() => {
@@ -402,7 +404,7 @@ Which to follow?
 
 **Actions**:
 
-1. Search likely locations: `web/cypress/views/`, `web/cypress/support/page-objects/`
+1. Search likely locations: `web/cypress/views/`
 2. If different structure, attempt to adapt
 3. If not found:
    ```
@@ -534,7 +536,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from "../../../support/operators";
+} from "../../../support/shared/operators";
 
 describe("Regression: Tooltip Positioning", () => {
   before(() => {
