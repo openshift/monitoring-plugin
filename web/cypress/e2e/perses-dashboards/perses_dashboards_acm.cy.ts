@@ -2,7 +2,7 @@
 // E2E test for validating ACM Perses integration with Cluster Observability Operator (COO)
 import { nav } from 'cypress/views/nav';
 import '../../support/commands/auth-commands';
-import { testBVTCOOPerses1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
+import { testBVTCOOPerses1 } from 'cypress/support/perses/perses_bvt_admin.cy';
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 describe('ACM - Perses', { tags: ['@perses-dashboards', '@acm', '@coo'] }, () => {

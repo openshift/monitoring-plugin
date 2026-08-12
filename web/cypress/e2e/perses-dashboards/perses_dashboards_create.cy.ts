@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { testCOOCreatePerses } from '../../support/perses/03.coo_create_perses_admin.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { testCOOCreatePerses } from '../../support/perses/perses_create_admin.cy';
 
 describe(
   'COO - Dashboards (Perses) - Create perses dashboard',
