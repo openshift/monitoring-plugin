@@ -61,9 +61,9 @@ Changes to the store must be completed in the `openshift/console` codebase and a
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
 
 1. Install the frontend dependencies running `make install-frontend`.
-2. Start the frontend `make start-feature-frontend`.
-4. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
-5. In a different terminal start the devspace sync `devspace dev`.
+2. Start the frontend `make start-frontend`.
+3. Select the namespace the monitoring-plugin is located in `devspace use namespace openshift-monitoring`.
+4. In a different terminal start the devspace sync `devspace dev`.
 
 When running the `devspace dev` command, the pipeline will run the `scale_down_cmo` function to prevent CMO from fighting over control of the pod. After CMO has been scaled down, devspace will "take over" the monitoring-plugin pod, grabbing all of the certificates and backend binary and configuration to run in the devspace pod. The backend will stay the same as what is built in the Dockerfile.devspace file, only the frontend changes will be reflected live in cluster.
 
@@ -109,12 +109,13 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 ## monitoring-console-plugin (mcp)
 
 ### Dependencies
+
 1. [Local Development Dependencies](README#Dependencies)
 2. [yq](https://github.com/mikefarah/yq) for acm deployment
 3. sed ([gnu-sed](https://formulae.brew.sh/formula/gnu-sed) for mac, with sed being aliased to that gnu-sed)
 
-
 ### Building an image
+
 Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
 
 ```bash
@@ -125,12 +126,12 @@ make build-dev-mcp-image
 
 Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
 
-| Feature           | OCP Version |
-|-------------------|-------------|
-| acm-alerting      | 4.14+       |
-| perses-dashboards | 4.14+       |
-| incidents         | 4.17+       |
-| dev-config        |             |
+| Feature                 | OCP Version |
+| ----------------------- | ----------- |
+| acm-alerting            | 4.14+       |
+| perses-dashboards       | 4.14+       |
+| cluster-health-analyzer | 4.19+       |
+| dev-config              |             |
 
 #### ACM
 
@@ -152,26 +153,26 @@ Since the store for the `monitoring-plugin` is stored in the `openshift/console`
 # Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker) - Linux machines can skip this part 
+# Start podman (or Docker)
 $ podman machine init
 $ podman machine start
 
 # Install dependencies
 $ make install
 
-# Run the application
+# Run the frontend
 $ make start-frontend
-
 # In a separate terminal
-$ make start-feature-console
-
+# Run the backend
+$ make start-backend
 # In a separate terminal
-$ make start-feature-backend
+$ make start-console
 ```
 
 `make start-feature-backend` will inject the `perses-dashboards`, `incidents`, and `dev-config` features by default. Features such as `acm-alerting` which take in extra parameters will need to run the `make start-feature-backend` command with the appropriate environment variables, such as `MONITORING_PLUGIN_ALERTMANAGER`.
 
 #### Local Development with Perses Proxy
+
 The bridge script `start-console.sh` is configured to proxy to a local Perses instance running at port `:8080`. To run the local Perses instance you will need to clone the [perses/perses](https://github.com/perses/perses) repository and follow the start up instructions in [ui/README.md](https://github.com/perses/perses/blob/63601751674403f626d1dea3dec168bdad0ef1c7/ui/README.md) :
 
 ```
@@ -188,16 +189,18 @@ $ ./scripts/api_backend_dev.sh
 # Lastly navigate to http://localhost:8080/ to see Perses app running
 ```
 
-##### Install COO && Perses Datasource && Perses Sample Dashboard 
-1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator 
-2. Install UIPlugin > monitoring 
-3. oc apply -f <PERSES_DATASOURCE_YAML>
-   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml) 
-4. oc apply -f <PERSES_DASHBOARD_YAML>
-   - See sample yaml  [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+##### Install COO && Perses Datasource && Perses Sample Dashboard
 
-##### Port forward Perses Datasource 
-To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance. 
+1. Install COO through the OpenShift UI > OperatorHub > Cluster Observability Operator
+2. Install UIPlugin > monitoring
+3. oc apply -f <PERSES_DATASOURCE_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/thanos-querier-datasource.yaml)
+4. oc apply -f <PERSES_DASHBOARD_YAML>
+   - See sample yaml [here](https://github.com/observability-ui/development-tools/blob/main/monitoring-plugin/monitoring-console-plugin/perses/perses-dashboard.yaml)
+
+##### Port forward Perses Datasource
+
+To use the PERSES_DATASOURCE you deployed above, you'll need to forward it to your local machine then proxy it using the local Perses Instance.
 
 ```
 # Forward cluster Prometheus Instance to localhost:9090
