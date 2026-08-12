@@ -1,5 +1,5 @@
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
 import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
 import { commonPages } from '../../views/common';

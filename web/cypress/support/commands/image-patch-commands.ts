@@ -8,15 +8,18 @@ export const imagePatchUtils = {
   setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
-      cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
-        env: {
-          MP_IMAGE: Cypress.env('MP_IMAGE'),
-          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+      cy.exec(
+        './cypress/fixtures/shared/cluster-monitoring-operator/update-monitoring-plugin-image.sh',
+        {
+          env: {
+            MP_IMAGE: Cypress.env('MP_IMAGE'),
+            KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+            MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+          },
+          timeout: readyTimeoutMilliseconds,
+          failOnNonZeroExit: true,
         },
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      }).then((result) => {
+      ).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
       });
@@ -283,7 +286,7 @@ export const imagePatchUtils = {
   revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec('./cypress/fixtures/cmo/reenable-monitoring.sh', {
+      cy.exec('./cypress/fixtures/shared/cluster-monitoring-operator/reenable-monitoring.sh', {
         env: {
           MP_IMAGE: Cypress.env('MP_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),

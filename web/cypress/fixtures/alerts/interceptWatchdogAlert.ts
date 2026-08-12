@@ -1,4 +1,4 @@
-import { WatchdogAlert } from './constants';
+import { WatchdogAlert } from '../shared/cluster-monitoring-operator/constants';
 
 export const alerts = {
   interceptWatchdogAlert: () => {
