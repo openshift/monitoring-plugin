@@ -638,7 +638,7 @@ describe("Regression: Tooltip Positioning", () => {
 3. **Design comprehensive flow**: Instead of separate tests for each filter type, create complete filtering workflows
    - Flow 1: User applies multiple filters in sequence, verifies each step, then clears all
    - Flow 2: User changes time range while filters are active, verifies data updates
-4. Generate `01.reg_filtering.cy.ts` with **comprehensive multi-step tests**
+4. Generate `filtering.cy.ts` with **comprehensive multi-step tests**
 5. Each test should have 5-8 steps covering realistic filter combinations and transitions
 
 ## Output Format
