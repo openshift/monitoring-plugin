@@ -20,7 +20,7 @@ describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer',
 
   beforeEach(() => {
     cy.log('Setting up comprehensive filtering test scenarios');
-    cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/7-comprehensive-filtering-test-scenarios.yaml');
   });
 
   it('1. Severity filtering - Critical, Warning, Info', () => {
@@ -119,7 +119,7 @@ describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer',
       incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
 
       cy.log('2.5 Filter-based traversal finds a known alert');
-      cy.mockIncidentFixture('incident-scenarios/6-multi-incident-target-alert-scenario.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/6-multi-incident-target-alert-scenario.yaml');
       incidentsPage.clearAllFilters();
       incidentsPage.setDays('7 days');
       incidentsPage.findIncidentWithAlert('TargetAlert').should('be.true');
@@ -129,7 +129,7 @@ describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer',
     });
 
     cy.log('2.7 Select incident by ID filter and verify matching alerts are present');
-    cy.mockIncidentFixture('incident-scenarios/7-comprehensive-filtering-test-scenarios.yaml');
+    cy.mockIncidentFixture('incidents/scenarios/7-comprehensive-filtering-test-scenarios.yaml');
     incidentsPage.clearAllFilters();
     incidentsPage.selectIncidentIdFilter('etcd-critical-warning-001');
     incidentsPage.elements.incidentsTable().scrollIntoView().should('be.visible');
