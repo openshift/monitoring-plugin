@@ -1,13 +1,13 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
-import { alerts } from '../../../fixtures/monitoring/alert';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   testAlertsCorePlatformHeaderRegression,
   testAlertsRegression,
-} from '../../../support/monitoring/01.reg_alerts.cy';
-import { testAlertsRegressionNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
-import { commonPages } from '../../../views/common';
-import { nav } from '../../../views/nav';
-import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+} from '../../support/monitoring/01.reg_alerts.cy';
+import { alerts } from '../../fixtures/monitoring/alert';
+import { testAlertsRegressionNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
+import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 // Test suite for Core platform perspective
 describe(

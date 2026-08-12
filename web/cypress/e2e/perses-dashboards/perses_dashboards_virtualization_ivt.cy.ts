@@ -16,30 +16,12 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
-  });
-
-  it('1. Installation: Virtualization', () => {
-    cy.log('Installation: Virtualization');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@perses-dashboards', '@coo', '@virtualization', '@slow'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
       guidedTour.close();
