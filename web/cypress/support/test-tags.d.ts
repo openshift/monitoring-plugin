@@ -6,7 +6,7 @@ type HighLevelComponentTag =
   | '@virtualization'
   | '@alerts'
   | '@metrics'
-  | '@dashboards';
+  | '@dashboards'
   | '@cluster-health-analyzer';
 
 type SpecificFeatureTag = `@${string}-${string}`;
