@@ -6,20 +6,8 @@ import { commonPages } from '../../views/common';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
+  HYPERCONVERGED_CLUSTER_OPERATOR,
 } from '../../support/operators';
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
@@ -29,7 +17,7 @@ describe(
     before(() => {
       cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(HYPERCONVERGED_CLUSTER_OPERATOR);
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();

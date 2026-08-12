@@ -12,3 +12,16 @@ export const CLUSTER_OBSERVABILITY_OPERATOR = {
     name: 'monitoring',
   },
 };
+
+export const HYPERCONVERGED_CLUSTER_OPERATOR = {
+  namespace: 'openshift-cnv',
+  packageName: 'kubevirt-hyperconverged',
+  config: {
+    kind: 'HyperConverged',
+    name: 'kubevirt-hyperconverged',
+  },
+  crd: {
+    kubevirt: 'kubevirts.kubevirt.io',
+    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
+  },
+};
