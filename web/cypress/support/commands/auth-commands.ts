@@ -161,14 +161,14 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
-  generateKBVSessionKey(KBV: { namespace: string; packageName: string }): string[] {
+  generateKNVSessionKey(CNV: { namespace: string; packageName: string }): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
-      KBV.namespace,
-      KBV.packageName,
+      CNV.namespace,
+      CNV.packageName,
     ];
-    const envVars = [Cypress.env('SKIP_KBV_INSTALL'), Cypress.env('KBV_UI_INSTALL')];
+    const envVars = [Cypress.env('SKIP_CNV_INSTALL'), Cypress.env('CNV_UI_INSTALL')];
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
