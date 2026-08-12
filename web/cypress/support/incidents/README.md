@@ -99,8 +99,8 @@ Validate fixtures using the CLI tool:
 
 ```bash
 cd web
-npm run ts-node cypress/support/incidents_prometheus_query_mocks/schema/validate-fixtures.ts -- --all
-npm run ts-node cypress/support/incidents_prometheus_query_mocks/schema/validate-fixtures.ts -- specific-file.yaml
+npm run ts-node cypress/support/incidents/schema/validate-fixtures.ts -- --all
+npm run ts-node cypress/support/incidents/schema/validate-fixtures.ts -- specific-file.yaml
 ```
 
 ## Configuration

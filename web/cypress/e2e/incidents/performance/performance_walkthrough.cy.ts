@@ -9,7 +9,7 @@ Verifies: OBSINTA-1006
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
-import { BenchmarkCollector } from '../../../support/benchmark-utils';
+import { BenchmarkCollector } from '../../../support/shared/commands/benchmark-utils';
 
 const THRESHOLDS = {
   FILTER_APPLY: 3_000,
@@ -19,7 +19,7 @@ const THRESHOLDS = {
   TABLE_EXPAND_500: 20_000,
 };
 
-const collector = new BenchmarkCollector('02.performance_walkthrough.cy.ts');
+const collector = new BenchmarkCollector('performance_walkthrough.cy.ts');
 
 describe(
   'Performance: Interactive Walkthrough',

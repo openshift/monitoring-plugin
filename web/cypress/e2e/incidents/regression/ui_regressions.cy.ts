@@ -99,7 +99,7 @@ describe(
     });
 
     beforeEach(() => {
-      cy.mockIncidentFixture('incident/scenarios/12-charts-ui-comprehensive.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/charts-ui-comprehensive.yaml');
     });
 
     describe('Section 2.1: Tooltip Positioning', () => {
