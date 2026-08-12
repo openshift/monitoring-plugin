@@ -5,6 +5,7 @@
 ---
 
 ## Table of Contents
+
 - [Quick Start](#quick-start)
 - [Test Architecture](#test-architecture)
 - [Creating Tests](#creating-tests)
@@ -16,11 +17,13 @@
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js >= 18
 - OpenShift cluster with kubeconfig
 - Environment variables configured
 
 ### 30-Second Setup
+
 ```bash
 cd web/cypress
 source ./configure-env.sh  # Interactive configuration
@@ -48,7 +51,7 @@ The Monitoring Plugin uses a 3-layer architecture for test organization:
                  │ imports
 ┌────────────────▼────────────────────────────────┐
 │ Layer 2: Support Scenarios                     │
-│ (cypress/support/monitoring or perses          │
+│ (cypress/support/*                             │
 │ - Reusable test scenarios                      │
 │ - Work across multiple perspectives            │
 │ - Export functions with perspective parameter  │
@@ -67,28 +70,41 @@ The Monitoring Plugin uses a 3-layer architecture for test organization:
 
 ```
 cypress/
-├── component/                # Component tests (isolated, no cluster needed)
+├── component/                    # Component tests (isolated, no cluster needed)
 ├── e2e/
-│   ├── monitoring/           # Core monitoring tests (Administrator)
-│   │   ├── 00.bvt_admin.cy.ts
+│   ├── alerts/                   # Alerts tests
+│   │   ├── alerts_acm.cy.ts
+│   │   └── alerts_regression.cy.ts
+│   ├── incidents/                # Incidents tests
+│   │   ├── incidents_bvt.cy.ts
 │   │   └── regression/
-│   ├── coo/                  # COO-specific tests
-│   │   ├── 01.coo_bvt.cy.ts
-│   │   └── 02.acm_alerting_ui.cy.ts
-│   └── virtualization/       # Integration tests (Virtualization)
+│   ├── legacy-dashboards/        # Legacy dashboards tests
+│   │   ├── legacy_dashboards_regression.cy.ts
+│   │   └── legacy_dashboards_virtualization_regression.cy.ts
+│   └── shared/                   # Shared test runs
+│       ├── admin_perspective_bvt.cy.ts
+│       └── coo_submenus.cy.ts
 ├── support/
-│   ├── monitoring/           # Reusable test scenarios
-│   │   ├── 01.reg_alerts.cy.ts
-│   │   ├── 02.reg_metrics.cy.ts
-│   │   └── 03.reg_legacy_dashboards.cy.ts
-│   ├── perses/               # COO/Perses scenarios
-│   ├── commands/             # Custom Cypress commands
-│   ├── component.ts          # Component test support (mount command)
-│   └── component-index.html  # HTML template for component mounting
-└── views/                    # Page object models (reusable actions)
+│   ├── alerts/           # Reusable test scenarios
+│   │   ├── alerts_bvt.cy.ts
+│   │   └── alerts_regressions.cy.ts
+│   ├── incidents/           # Incidents test scenarios
+│   ├── legacy-dashboards/   # Legacy Dashboards test scenarios
+│   ├── metrics/             # Metrics test scenarios
+│   ├── perses/              # Perses Dashboards test scenarios
+│   ├── shared/              # Shared testing utils
+│   │   ├── cluster-observability-operator
+│   │   │   └── coo-install-commands.ts      # coo and related operator install utils
+│   │   ├── commands
+│   │   │   └── benchmark-utils.ts           # various cypress commands
+│   │   └── operator.ts                      # Operator definitions
+│   ├── component.ts                         # Component test support (mount command)
+│   └── component-index.html                 # HTML template for component mounting
+└── views/                                   # Page object models (reusable actions)
 ```
 
 **Benefits**:
+
 - Test scenarios reusable across Administrator, Virtualization, and Fleet Management perspectives
 - Page actions separated from test logic for better maintainability
 - UI changes only require updating views, not individual tests
@@ -101,12 +117,12 @@ Component tests mount individual React components in isolation using Cypress, wi
 
 ### When to Use Component Tests vs E2E Tests
 
-| Use Component Tests When | Use E2E Tests When |
-|---|---|
-| Testing rendering and visual output | Testing full user workflows |
-| Verifying props and conditional display | Testing navigation between pages |
-| Validating empty/error states | Testing API integration |
-| Fast feedback during development | Testing cross-component interactions |
+| Use Component Tests When                | Use E2E Tests When                   |
+| --------------------------------------- | ------------------------------------ |
+| Testing rendering and visual output     | Testing full user workflows          |
+| Verifying props and conditional display | Testing navigation between pages     |
+| Validating empty/error states           | Testing API integration              |
+| Fast feedback during development        | Testing cross-component interactions |
 
 ### Writing Component Tests
 
@@ -159,12 +175,10 @@ npx cypress run --component --spec cypress/component/labels.cy.tsx
 1. **Layer 1 - Views**: Check/add page actions in `cypress/views/`
    - Under `views/` folder, find pre-defined actions per page
    - If none fits your needs, add new ones
-   
-2. **Layer 2 - Support**: Add test scenarios to `cypress/support/monitoring/`
+2. **Layer 2 - Support**: Add test scenarios to `cypress/support/*`
    - Add test scenarios to cypress files under `support/` folder
    - Make scenarios reusable across perspectives (Administrator, Virtualization, Fleet Management)
    - If it is not applicable, in some cases for Incidents or Fleet Management, test scenarios will be written directly into Layer 3
-   
 3. **Layer 3 - E2E**: Verify e2e files call your scenario (usually pre-configured)
    - Administrator: `e2e/monitoring/`
    - Virtualization: `e2e/virtualization/`
@@ -173,13 +187,12 @@ npx cypress run --component --spec cypress/component/labels.cy.tsx
 ### Example: Support Scenario Structure
 
 ```typescript
-// In support/monitoring/01.reg_alerts.cy.ts
+// In support/monitoring/alerts_regression.cy.ts
 import { nav } from '../../views/nav';
 import { silencesListPage } from '../../views/silences-list-page';
 
 export const runAlertTests = (perspective: string) => {
   describe(`${perspective} perspective - Alerting > Alerts page`, () => {
-
     it('should filter alerts by severity', () => {
       // Use page object actions from views/
       silencesListPage.filter.byName('test-alert');
@@ -191,14 +204,14 @@ export const runAlertTests = (perspective: string) => {
 
 ### When to Create New Tests
 
-| Scenario | Action |
-|----------|--------|
-| New UI feature | Create new E2E test scenario in support/ |
-| Bug fix | Add test case to existing support file |
-| Component update | Update existing test scenarios |
-| New Perses feature | Create new E2E test scenario in support/ |
-| ACM integration | Add E2E test in e2e/coo/ |
-| Isolated component logic | Add component test in component/ |
+| Scenario                 | Action                                   |
+| ------------------------ | ---------------------------------------- |
+| New UI feature           | Create new E2E test scenario in support/ |
+| Bug fix                  | Add test case to existing support file   |
+| Component update         | Update existing test scenarios           |
+| New Perses feature       | Create new E2E test scenario in support/ |
+| ACM integration          | Add E2E test in e2e/coo/                 |
+| Isolated component logic | Add component test in component/         |
 
 ### Best Practices
 
@@ -217,22 +230,9 @@ export const runAlertTests = (perspective: string) => {
 ```bash
 cd web/cypress
 
-# Run all regression tests
-npm run cypress:run -- --spec "cypress/e2e/**/regression/**"
-
-# Run specific feature regression
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/01.reg_alerts_admin.cy.ts"
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/02.reg_metrics_admin.cy.ts"
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/03.reg_legacy_dashboards_admin.cy.ts"
-
-# Run BVT (Build Verification Tests)
-npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
-
-# Run COO tests
-npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
-
-# Run ACM Alerting tests
-npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
+# Run specific tests
+npm run cypress:run -- --spec "cypress/e2e/alerts/alerts_regression.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/metrics/metrics_regression.cy.ts"
 
 # Interactive mode (GUI)
 npm run cypress:open
@@ -241,6 +241,7 @@ npm run cypress:open
 ### Environment Setup
 
 **Interactive** (Recommended):
+
 ```bash
 cd web/cypress
 source ./configure-env.sh
@@ -250,12 +251,12 @@ source ./configure-env.sh
 
 ### Regression Testing Strategy
 
-| Change Type | Required Tests |
-|-------------|---------------|
-| **UI Component Change** | Feature-specific regression + BVT |
-| **API Integration Change** | Full regression suite |
-| **Console Extension Change** | BVT + Navigation tests |
-| **Bug Fix** | New test + Related regression |
+| Change Type                  | Required Tests                    |
+| ---------------------------- | --------------------------------- |
+| **UI Component Change**      | Feature-specific regression + BVT |
+| **API Integration Change**   | Full regression suite             |
+| **Console Extension Change** | BVT + Navigation tests            |
+| **Bug Fix**                  | New test + Related regression     |
 
 ### Pre-PR Checklist
 
@@ -286,12 +287,12 @@ source ./configure-env.sh
 
 ### Common Test Issues
 
-| Issue | Solution |
-|-------|----------|
-| Test fails intermittently | Check for timing issues, add proper waits |
-| Element not found | Verify data-test attributes exist, check page object |
-| Assertion fails | Review expected vs actual values, update test |
-| Test hangs | Check for infinite loops or missing assertions |
+| Issue                     | Solution                                             |
+| ------------------------- | ---------------------------------------------------- |
+| Test fails intermittently | Check for timing issues, add proper waits            |
+| Element not found         | Verify data-test attributes exist, check page object |
+| Assertion fails           | Review expected vs actual values, update test        |
+| Test hangs                | Check for infinite loops or missing assertions       |
 
 ### Setup & Configuration Issues
 
@@ -300,6 +301,7 @@ For environment variable issues, login problems, kubeconfig errors, and installa
 ### CI/CD Integration
 
 Cypress tests run automatically in the CI pipeline:
+
 - **Pre-merge**: BVT tests run on every PR
 - **Post-merge**: Full regression suite runs on main branch
 - **Konflux Pipeline**: Automated testing for release candidates
