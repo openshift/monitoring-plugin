@@ -448,7 +448,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -488,7 +488,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -518,7 +518,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('empty-namespace3');

@@ -394,7 +394,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -428,7 +428,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -454,7 +454,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-monitoring');

@@ -105,7 +105,7 @@ export function testCOOCreateImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`2.3 Upload Perses dashboard JSON file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/tempo_loki_thanos.json',
+      './cypress/fixtures/perses/dashboards/import/tempo_loki_thanos.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -135,7 +135,7 @@ export function testCOOCreateImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`3.3 Upload Perses dashboard YAML file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/tempo_loki_thanos.yaml',
+      './cypress/fixtures/perses/dashboards/import/tempo_loki_thanos.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 

@@ -76,7 +76,7 @@ export const imagePatchUtils = {
   setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'MCP_CONSOLE_IMAGE',
-      scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
+      scriptPath: './cypress/fixtures/shared/cluster-observability-operator/update-mcp-image.sh',
       componentName: 'Monitoring Console Plugin',
     });
   },
@@ -84,7 +84,7 @@ export const imagePatchUtils = {
   setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'CHA_IMAGE',
-      scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
+      scriptPath: './cypress/fixtures/shared/cluster-observability-operator/update-cha-image.sh',
       componentName: 'cluster-health-analyzer',
     });
   },
