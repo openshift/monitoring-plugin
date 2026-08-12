@@ -1,8 +1,8 @@
 import 'cypress-wait-until';
 import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
-import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
-import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
-import { PERSES_E2E_DASHBOARDS_DIR, PERSES_E2E_DATASOURCES_DIR } from '../perses/constants';
+import { waitForPodsReady, waitForResourceCondition } from '../../commands/wait-utils';
+import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../../timeouts';
+import { PERSES_E2E_DASHBOARDS_DIR, PERSES_E2E_DATASOURCES_DIR } from '../constants';
 
 export {};
 
