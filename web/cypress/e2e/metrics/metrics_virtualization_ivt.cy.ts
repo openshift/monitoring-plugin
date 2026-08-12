@@ -1,16 +1,20 @@
-import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
-import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
-import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
+import {
+  runAllRegressionMetricsTests1,
+  runAllRegressionMetricsTests2,
+} from '../../support/metrics/metrics_regressions.cy';
+import {
+  runAllRegressionMetricsTestsNamespace1,
+  runAllRegressionMetricsTestsNamespace2,
+} from '../../support/metrics/metrics_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
