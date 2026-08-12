@@ -1,12 +1,8 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
 import { runAllRegressionCorePlatformAlertsTests } from '../../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 // Test suite for Core platform perspective
 describe(
@@ -14,7 +10,7 @@ describe(
   { tags: ['@alerting', '@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
       cy.switchPerspective('Core platform');
     });
 

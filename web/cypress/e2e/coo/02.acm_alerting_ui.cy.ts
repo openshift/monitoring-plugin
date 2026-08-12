@@ -8,6 +8,7 @@ import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 import { incidentsPage } from 'cypress/views/incidents-page';
 import { runAllRegressionFleetManagementAlertsTests } from 'cypress/support/monitoring/01.reg_alerts.cy';
 import { listPage } from 'cypress/views/list-page';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -18,15 +19,12 @@ const MCP = {
     name: 'monitoring',
   },
 };
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 
 describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockACM(MCP, MP);
+    cy.beforeBlockACM(MCP, CLUSTER_MONITORING_OPERATOR);
   });
 
   it('Navigate to Fleet Management > Observe > Alerting', () => {
@@ -74,6 +72,6 @@ describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
   runAllRegressionFleetManagementAlertsTests({
     name: 'Fleet management',
     alertName: 'Watchdog-spoke',
-    alertNamespace: `${MP.namespace}`,
+    alertNamespace: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
   });
 });

@@ -3,6 +3,7 @@
 import { nav } from 'cypress/views/nav';
 import '../../support/commands/auth-commands';
 import { runBVTCOOPersesTests1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 const MCP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -13,14 +14,10 @@ const MCP = {
     name: 'monitoring',
   },
 };
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 describe('ACM - Perses', { tags: ['@perses-dashboards', '@acm', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockACM(MCP, MP);
+    cy.beforeBlockACM(MCP, CLUSTER_MONITORING_OPERATOR);
     cy.switchPerspective('Core platform');
     cy.cleanupPersesTestDashboardsBeforeTests();
   });

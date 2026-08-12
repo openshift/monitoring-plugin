@@ -22,27 +22,27 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlock(MP: { namespace: string; operatorName: string });
-      cleanupMP(MP: { namespace: string; operatorName: string });
+      beforeBlock(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
+      cleanupMP(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
       beforeBlockCOO(
         MCP: { namespace: string; operatorName: string; packageName: string },
-        MP: { namespace: string; operatorName: string },
+        CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       cleanupCOO(
         MCP: { namespace: string; operatorName: string; packageName: string },
-        MP: { namespace: string; operatorName: string },
+        CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       RemoveClusterAdminRole();
       setupCOO(
         MCP: { namespace: string; operatorName: string; packageName: string },
-        MP: { namespace: string; operatorName: string },
+        CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
         options?: COOSetupOptions,
       );
       beforeBlockACM(
         MCP: { namespace: string; operatorName: string; packageName: string },
-        MP: { namespace: string; operatorName: string },
+        CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
       ): Chainable<void>;
       waitForAcmAlertsFiring(alertNames?: string[]): Chainable<void>;
       closeOnboardingModalIfPresent(): Chainable<void>;
@@ -67,13 +67,16 @@ function removeClusterAdminRole(): void {
   );
 }
 
-function collectDebugInfo(MP: { namespace: string }, MCP?: { namespace: string }): void {
+function collectDebugInfo(
+  CLUSTER_MONITORING_OPERATOR: { namespace: string },
+  MCP?: { namespace: string },
+): void {
   if (!Cypress.env('DEBUG')) {
     cy.log('DEBUG not set. Skipping operator debug information collection.');
     return;
   }
   cy.aboutModal();
-  cy.podImage('monitoring-plugin', MP.namespace);
+  cy.podImage('monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace);
   if (MCP && MCP.namespace) {
     cy.podImage('monitoring', MCP.namespace);
   }
@@ -180,59 +183,65 @@ function cleanupUIPlugin(
 
 // ── Cypress commands ───────────────────────────────────────────────
 
-Cypress.Commands.add('beforeBlock', (MP: { namespace: string; operatorName: string }) => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateMPSessionKey(MP);
+Cypress.Commands.add(
+  'beforeBlock',
+  (CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string }) => {
+    if (useSession) {
+      const sessionKey = operatorAuthUtils.generateMPSessionKey(CLUSTER_MONITORING_OPERATOR);
 
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block (session)');
-        cy.cleanupMP(MP);
-        operatorAuthUtils.loginAndAuthNoSession();
-        imagePatchUtils.setupMonitoringPluginImage(MP);
-        collectDebugInfo(MP);
-        cy.task('clearDownloads');
-        cy.log('Before block (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
+      cy.session(
+        sessionKey,
+        () => {
+          cy.log('Before block (session)');
+          cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
+          operatorAuthUtils.loginAndAuthNoSession();
+          imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
+          collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
+          cy.task('clearDownloads');
+          cy.log('Before block (session) completed');
         },
-      },
-    );
-  } else {
-    cy.log('Before block (no session)');
-    cy.cleanupMP(MP);
-    operatorAuthUtils.loginAndAuth();
-    imagePatchUtils.setupMonitoringPluginImage(MP);
-    collectDebugInfo(MP);
-    cy.task('clearDownloads');
-    cy.log('Before block (no session) completed');
-  }
-});
+        {
+          cacheAcrossSpecs: true,
+          validate() {
+            cy.validateLogin();
+          },
+        },
+      );
+    } else {
+      cy.log('Before block (no session)');
+      cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
+      operatorAuthUtils.loginAndAuth();
+      imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
+      collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
+      cy.task('clearDownloads');
+      cy.log('Before block (no session) completed');
+    }
+  },
+);
 
-Cypress.Commands.add('cleanupMP', (MP: { namespace: string; operatorName: string }) => {
-  if (useSession) {
-    cy.log('cleanupMP (session)');
-    imagePatchUtils.revertMonitoringPluginImage(MP);
-    cy.log('cleanupMP (session) completed');
-  }
-});
+Cypress.Commands.add(
+  'cleanupMP',
+  (CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string }) => {
+    if (useSession) {
+      cy.log('cleanupMP (session)');
+      imagePatchUtils.revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
+      cy.log('cleanupMP (session) completed');
+    }
+  },
+);
 
 Cypress.Commands.add(
   'beforeBlockCOO',
   (
     MCP: { namespace: string; operatorName: string; packageName: string },
-    MP: { namespace: string; operatorName: string },
+    CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
     const opts = { ...DEFAULT_COO_OPTIONS, ...options };
 
     if (useSession) {
       const sessionKey = [
-        ...operatorAuthUtils.generateCOOSessionKey(MCP, MP),
+        ...operatorAuthUtils.generateCOOSessionKey(MCP, CLUSTER_MONITORING_OPERATOR),
         `dash:${opts.dashboards}`,
         `tp:${opts.troubleshootingPanel}`,
         `cha:${opts.healthAnalyzer}`,
@@ -242,9 +251,9 @@ Cypress.Commands.add(
         sessionKey,
         () => {
           cy.log('Before block COO (session)');
-          cy.cleanupCOO(MCP, MP, opts);
+          cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
           operatorAuthUtils.loginAndAuthNoSession();
-          cy.setupCOO(MCP, MP, opts);
+          cy.setupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
           cy.log('Before block COO (session) completed');
         },
         {
@@ -260,9 +269,9 @@ Cypress.Commands.add(
       );
     } else {
       cy.log('Before block COO (no session)');
-      cy.cleanupCOO(MCP, MP, opts);
+      cy.cleanupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
       operatorAuthUtils.loginAndAuth();
-      cy.setupCOO(MCP, MP, opts);
+      cy.setupCOO(MCP, CLUSTER_MONITORING_OPERATOR, opts);
       cy.log('Before block COO (no session) completed');
     }
   },
@@ -272,7 +281,7 @@ Cypress.Commands.add(
   'cleanupCOO',
   (
     MCP: { namespace: string; operatorName: string; packageName: string },
-    MP: { namespace: string; operatorName: string },
+    CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
     const opts = { ...DEFAULT_COO_OPTIONS, ...options };
@@ -288,7 +297,7 @@ Cypress.Commands.add(
       dashboardsUtils.cleanupTroubleshootingPanel(MCP);
     }
     cleanupUIPlugin(MCP, opts);
-    imagePatchUtils.revertMonitoringPluginImage(MP);
+    imagePatchUtils.revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
     cy.log('Cleanup COO completed');
   },
 );
@@ -297,7 +306,7 @@ Cypress.Commands.add(
   'setupCOO',
   (
     MCP: { namespace: string; operatorName: string; packageName: string },
-    MP: { namespace: string; operatorName: string },
+    CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
     options?: COOSetupOptions,
   ) => {
     const opts = { ...DEFAULT_COO_OPTIONS, ...options };
@@ -323,9 +332,9 @@ Cypress.Commands.add(
     if (opts.troubleshootingPanel) {
       dashboardsUtils.setupTroubleshootingPanel(MCP);
     }
-    imagePatchUtils.setupMonitoringPluginImage(MP);
+    imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
     removeClusterAdminRole();
-    collectDebugInfo(MP, MCP);
+    collectDebugInfo(CLUSTER_MONITORING_OPERATOR, MCP);
   },
 );
 
@@ -339,8 +348,8 @@ Cypress.Commands.add('waitForAcmAlertsFiring', (alertNames?: string[]) => {
   waitForAcmAlertsFiring(alertNames);
 });
 
-Cypress.Commands.add('beforeBlockACM', (MCP, MP) => {
-  cy.beforeBlockCOO(MCP, MP);
+Cypress.Commands.add('beforeBlockACM', (MCP, CLUSTER_MONITORING_OPERATOR) => {
+  cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
   cy.log('=== [Setup] Installing ACM test resources ===');
   cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
     env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },

@@ -7,6 +7,7 @@ This test showcases different mocking approaches:
 3. Demonstrating empty state handling
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 const MCP = {
@@ -19,14 +20,12 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      dashboards: false,
+      troubleshootingPanel: false,
+    });
   });
 
   beforeEach(() => {

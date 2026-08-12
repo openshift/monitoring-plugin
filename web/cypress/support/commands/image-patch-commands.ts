@@ -5,14 +5,14 @@ export {};
 const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 
 export const imagePatchUtils = {
-  setupMonitoringPluginImage(MP: { namespace: string }): void {
+  setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
       cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
         env: {
           MP_IMAGE: Cypress.env('MP_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${MP.namespace}`,
+          MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true,
@@ -23,10 +23,13 @@ export const imagePatchUtils = {
 
       waitForPodsReady(
         'app.kubernetes.io/name=monitoring-plugin',
-        MP.namespace,
+        CLUSTER_MONITORING_OPERATOR.namespace,
         readyTimeoutMilliseconds,
       );
-      cy.log(`Monitoring plugin pod is now running in namespace: ${MP.namespace}`);
+      cy.log(
+        `Monitoring plugin pod is now running in namespace: ` +
+          `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+      );
       cy.reload(true);
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
@@ -180,14 +183,14 @@ export const imagePatchUtils = {
     checkAndFix(1);
   },
 
-  revertMonitoringPluginImage(MP: { namespace: string }): void {
+  revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
       cy.exec('./cypress/fixtures/cmo/reenable-monitoring.sh', {
         env: {
           MP_IMAGE: Cypress.env('MP_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${MP.namespace}`,
+          MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
         failOnNonZeroExit: true,
@@ -197,10 +200,12 @@ export const imagePatchUtils = {
 
         waitForPodsReadyOrAbsent(
           'app.kubernetes.io/name=monitoring-plugin',
-          MP.namespace,
+          CLUSTER_MONITORING_OPERATOR.namespace,
           readyTimeoutMilliseconds,
         );
-        cy.log(`Monitoring plugin pods verified in namespace: ${MP.namespace}`);
+        cy.log(
+          `Monitoring plugin pods verified in namespace: ${CLUSTER_MONITORING_OPERATOR.namespace}`,
+        );
 
         cy.reload(true);
       });

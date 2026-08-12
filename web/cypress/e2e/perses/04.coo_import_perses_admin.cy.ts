@@ -13,18 +13,12 @@ import { operatorAuthUtils } from '../../support/commands/auth-commands';
 //   },
 // };
 
-// const MP = {
-//   namespace: 'openshift-monitoring',
-//   operatorName: 'Cluster Monitoring Operator',
-// };
-
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - Import perses dashboard',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
       operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();

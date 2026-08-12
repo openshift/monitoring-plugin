@@ -8,6 +8,7 @@ Uses elements defined in incidents-page.ts for all interactions.
 Verifies: OU-727
 */
 
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MCP = {
@@ -20,14 +21,12 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+      dashboards: false,
+      troubleshootingPanel: false,
+    });
   });
 
   beforeEach(() => {

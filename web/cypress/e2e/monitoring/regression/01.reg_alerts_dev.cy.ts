@@ -1,19 +1,15 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTestsNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 describe(
   'Regression: Monitoring - Alerts Namespaced (Administrator)',
   { tags: ['@alerting'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
@@ -21,7 +17,7 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
       alerts.interceptWatchdogAlert();
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     // Run tests in Administrator perspective

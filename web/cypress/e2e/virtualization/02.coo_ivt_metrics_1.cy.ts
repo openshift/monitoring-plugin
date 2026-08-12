@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
 import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
@@ -14,10 +15,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 const KBV = {
@@ -38,7 +35,7 @@ describe(
   { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {
@@ -97,7 +94,7 @@ describe(
       alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
       alerts.interceptWatchdogAlert();
     });
 

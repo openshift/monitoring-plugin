@@ -4,6 +4,7 @@ import {
   runCOOListPersesTests,
 } from '../../support/perses/01.coo_list_perses_admin.cy';
 import { runCOOListPersesTestsNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
@@ -16,18 +17,16 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - List perses dashboards',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
@@ -54,7 +53,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });

@@ -1,17 +1,13 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { runAllRegressionMetricsTests1 } from '../../../support/monitoring/02.reg_metrics_1.cy';
 import { runAllRegressionMetricsTestsNamespace1 } from '../../../support/monitoring/05.reg_metrics_namespace_1.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(MP);
+    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -32,13 +28,13 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     // Run tests in Administrator perspective

@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
@@ -13,14 +14,9 @@ const MCP = {
   },
 };
 
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
 describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(MCP, MP);
+    cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
   });
 
   it('1. Admin perspective - Observe Menu', () => {

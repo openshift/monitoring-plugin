@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
@@ -13,10 +14,6 @@ const MCP = {
     kind: 'UIPlugin',
     name: 'monitoring',
   },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
 };
 
 const KBV = {
@@ -37,10 +34,7 @@ describe(
   { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.beforeBlockCOO(MCP, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },
@@ -93,7 +87,7 @@ describe(
       guidedTour.closeKubevirtTour();
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       commonPages.titleShouldHaveText('Dashboards');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     runAllRegressionLegacyDashboardsTestsNamespace({
