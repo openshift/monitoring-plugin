@@ -93,15 +93,15 @@ describe('COO-LightSpeed: show_timeseries', { tags: ['@ols'] }, () => {
       .should('exist');
 
     cy.get(SEL.persesPanel, { timeout: OLS_RESPONSE_TIMEOUT })
-      .should('exist')
+      .first()
       .scrollIntoView()
       .should('be.visible');
 
-    cy.get(SEL.persesPanel).find(SEL.persesSvg).should('exist');
+    cy.get(SEL.persesPanel).first().find(SEL.persesSvg).should('exist');
 
-    cy.get(SEL.persesPanel).should('contain.text', 'CPU');
-    cy.get(SEL.persesPanel).should('contain.text', 'openshift-monitoring');
-    cy.get(SEL.persesPanel).find('svg path[d]').should('have.length.greaterThan', 0);
+    cy.get(SEL.persesPanel).first().should('contain.text', 'CPU');
+    cy.get(SEL.persesPanel).first().should('contain.text', 'openshift-monitoring');
+    cy.get(SEL.persesPanel).first().find('svg path[d]').should('have.length.greaterThan', 0);
   });
 
   it('adds the rendered chart to a new Perses dashboard via Add to Dashboard button', () => {
@@ -121,7 +121,12 @@ describe('COO-LightSpeed: show_timeseries', { tags: ['@ols'] }, () => {
     persesCreateDashboardsPage.selectProject(DASHBOARD_PROJECT);
     persesCreateDashboardsPage.enterDashboardName(DASHBOARD_NAME);
     persesCreateDashboardsPage.createDashboardDialogCreateButton();
-    persesDashboardsPage.shouldBeLoadedEditionMode(DASHBOARD_NAME);
+    commonPages.titleShouldHaveText('Dashboards');
+    cy.byTestID('perses-dashboards-breadcrumb-dashboard-name-item')
+      .scrollIntoView()
+      .should('contain', DASHBOARD_NAME)
+      .should('be.visible');
+    persesDashboardsPage.assertEditModeButtons();
     persesDashboardsPage.shouldBeLoadedEditionModeFromCreateDashboard();
 
     // Save the empty dashboard first so it exits edit mode
@@ -149,20 +154,22 @@ describe('COO-LightSpeed: show_timeseries', { tags: ['@ols'] }, () => {
 
     cy.get(SEL.persesPanel, { timeout: OLS_RESPONSE_TIMEOUT }).should('exist');
 
-    // Wait for the streaming response to stabilize before interacting
-    cy.wait(5000);
-
-    // The "Add to dashboard" button should be visible because a dashboard is open.
+    // Wait for the "Add to dashboard" button to appear once the streaming response stabilizes.
     // The AI may return multiple show_timeseries tool calls, so pick the first one.
     // The button may be inside a collapsed tool-call accordion in the OLS chat,
     // so use force:true to click it regardless of visibility.
-    cy.get(SEL.aiResponse).last().find(SEL.addToDashboard).first().click({ force: true });
+    cy.get(SEL.aiResponse, { timeout: OLS_RESPONSE_TIMEOUT })
+      .last()
+      .find(SEL.addToDashboard, { timeout: OLS_RESPONSE_TIMEOUT })
+      .first()
+      .click({ force: true });
 
     // Close the chat panel to see the dashboard
     cy.get(SEL.chatButton).click();
+    cy.get(SEL.chatPanel).should('not.exist');
 
     // The dashboard should have entered edit mode and the panel should be added
-    cy.wait(5000);
+    persesDashboardsPage.assertEditModeButtons();
 
     // Verify a panel was added to the dashboard
     cy.byDataTestID(persesMUIDataTestIDs.panelHeader).find('h6').should('be.visible');
