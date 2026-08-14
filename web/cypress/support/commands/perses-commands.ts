@@ -34,6 +34,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       setupPersesRBACandExtraDashboards(): Chainable<void>;
+      setupPersesExtraDashboards(): Chainable<void>;
       cleanupExtraDashboards(): Chainable<void>;
       /** Delete test Perses dashboards via UI (list page). Call before Perses tests. */
       cleanupPersesTestDashboardsBeforeTests(): Chainable<void>;
@@ -56,42 +57,59 @@ Cypress.Commands.add('setupPersesRBACandExtraDashboards', () => {
         USER6: `${Cypress.env('LOGIN_USERNAME6')}`,
       },
     });
-
-    const kc = Cypress.env('KUBECONFIG_PATH');
-
-    cy.log('Create openshift-cluster-sample-dashboard instance.');
-    cy.exec(
-      `${SED_OCP_NS_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-        `openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${kc}`,
-    );
-
-    cy.log('Create perses-dashboard-sample instance.');
-    cy.exec(
-      `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-        `perses-dashboard-sample.yaml | oc apply -f - --kubeconfig ${kc}`,
-    );
-
-    cy.log('Create prometheus-overview-variables instance.');
-    cy.exec(
-      `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-        `prometheus-overview-variables.yaml | oc apply -f - --kubeconfig ${kc}`,
-    );
-
-    cy.log('Create thanos-compact-overview-1var instance.');
-    cy.exec(
-      `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-        `thanos-compact-overview-1var.yaml | oc apply -f - --kubeconfig ${kc}`,
-    );
-
-    cy.log('Create Thanos Querier instance.');
-    cy.exec(
-      `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-        `thanos-querier-datasource.yaml | oc apply -f - --kubeconfig ${kc}`,
-    );
+    cy.setupPersesExtraDashboards();
   }
 });
 
+Cypress.Commands.add('setupPersesExtraDashboards', () => {
+  cy.log('Setup perses extra dashboards.');
+  const kc = Cypress.env('KUBECONFIG_PATH');
+
+  cy.log('Create perses-dev namespace.');
+  cy.exec(`oc create namespace perses-dev --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+
+  cy.log('Create observ-test namespace.');
+  cy.exec(`oc create namespace observ-test --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+
+  cy.log('Create empty-namespace3 namespace.');
+  cy.exec(`oc create namespace empty-namespace3 --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+
+  cy.log('Create empty-namespace4 namespace.');
+  cy.exec(`oc create namespace empty-namespace4 --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+
+  cy.log('Create openshift-cluster-sample-dashboard instance.');
+  cy.exec(
+    `${SED_OCP_NS_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create perses-dashboard-sample instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `perses-dashboard-sample.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create prometheus-overview-variables instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `prometheus-overview-variables.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create thanos-compact-overview-1var instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-compact-overview-1var.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create Thanos Querier instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-querier-datasource.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+});
+
 Cypress.Commands.add('cleanupExtraDashboards', () => {
+  cy.log('Cleanup perses extra dashboards.');
   const kc = Cypress.env('KUBECONFIG_PATH');
 
   cy.log('Remove openshift-cluster-sample-dashboard instance.');

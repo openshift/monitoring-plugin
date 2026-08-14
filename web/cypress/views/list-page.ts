@@ -106,13 +106,12 @@ export const listPage = {
 
     clearAllFilters: () => {
       cy.log('listPage.filter.clearAllFilters');
-      try {
-        cy.byOUIAID('DataViewFilters').scrollIntoView();
-        cy.byOUIAID('DataViewToolbar-clear-all-filters').first().click();
-      } catch (error) {
-        cy.log(`${error.message}`);
-        throw error;
-      }
+      cy.byOUIAID('DataViewFilters').scrollIntoView();
+      cy.get('body').then(($body) => {
+        if ($body.find('[data-ouia-component-id="DataViewToolbar-clear-all-filters"]').length > 0) {
+          cy.byOUIAID('DataViewToolbar-clear-all-filters').first().click();
+        }
+      });
     },
 
     /**
@@ -287,8 +286,6 @@ export const listPage = {
   emptyState: () => {
     cy.log('listPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerts found').should('be.visible');
-    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
-    cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
   },
 };

@@ -146,7 +146,8 @@ export const persesDashboardsEditVariables = {
       .eq(0)
       .find('input[role="combobox"]')
       .click()
-      .type(value + '{enter}');
+      .type(value, { delay: 100 })
+      .type('{enter}');
     cy.wait(2000);
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
     cy.wait(2000);

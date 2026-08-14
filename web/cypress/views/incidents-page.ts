@@ -1,5 +1,5 @@
 import { nav } from './nav';
-import { DataTestIDs } from '@/shared/constants/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 
 // Hard timeout safety net for findIncidentWithAlert retry loops.
 // Prevents infinite loops if cy.waitUntil's timeout mechanism fails.
@@ -1073,5 +1073,13 @@ export const incidentsPage = {
         return cy.wrap(alerts);
       });
     });
+  },
+  /**
+   * Checks if the Incidents page is not visible, such as Fleet management,
+   * Developer perspective, etc.
+   */
+  incidentsPageShouldNotBeVisible: () => {
+    cy.log('incidentsPage.incidentsPageShouldNotBeVisible');
+    cy.get(Classes.HorizontalNav).contains('Incidents').should('not.exist');
   },
 };

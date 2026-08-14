@@ -14,6 +14,7 @@ import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/con
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOOCreatePersesTests(perspective: PerspectiveConfig) {
@@ -26,7 +27,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
     const randomSuffix = Math.random().toString(5);
     dashboardName += randomSuffix;
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`1.2. Click on Create button`);
     listPersesDashboardsPage.clickCreateButton();
@@ -61,7 +62,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
       const randomSuffix = Math.random().toString(5);
       dashboardName += randomSuffix;
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
       cy.log(`2.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -115,7 +116,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
       const randomSuffix = Math.random().toString(5);
       dashboardName += randomSuffix;
       cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
       cy.log(`3.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -251,7 +252,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
   // but all namespaces you have access to, independently of having perses object
   // (that creates a perses project)`, () => {
   // cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-  // listPersesDashboardsPage.shouldBeLoaded();
+  // listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
   // cy.log(`4.2. Click on Create button`);
   // listPersesDashboardsPage.clickCreateButton();

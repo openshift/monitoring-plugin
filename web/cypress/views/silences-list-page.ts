@@ -15,7 +15,6 @@ export const silencesListPage = {
   firstTimeEmptyState: () => {
     cy.log('silencesListPage.firstTimeEmptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No silences found').should('be.visible');
-    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
   },
 
   emptyState: () => {

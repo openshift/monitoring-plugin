@@ -57,7 +57,7 @@ describe(
 
     it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
   },
@@ -65,12 +65,12 @@ describe(
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
-  { tags: ['@virtualization', '@metrics'] },
+  { tags: ['@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
       alerts.getWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
@@ -87,12 +87,12 @@ describe(
 
 describe(
   'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-  { tags: ['@virtualization', '@metrics'] },
+  { tags: ['@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
       alerts.getWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);

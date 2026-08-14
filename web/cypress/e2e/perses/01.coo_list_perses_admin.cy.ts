@@ -28,6 +28,7 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
 
@@ -38,11 +39,11 @@ describe(
     });
 
     runCOOListPersesTests({
-      name: 'Administrator',
+      name: 'Core platform',
     });
 
     runCOOListPersesDuplicateDashboardTests({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );
@@ -53,7 +54,8 @@ describe(
   { tags: ['@perses', '@dashboards'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
 
@@ -64,7 +66,7 @@ describe(
     });
 
     runCOOListPersesTestsNamespace({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );

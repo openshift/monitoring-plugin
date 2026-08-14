@@ -1,5 +1,5 @@
 import { alerts } from '../../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../../support/monitoring/01.reg_alerts.cy';
+import { runAllRegressionCorePlatformAlertsTests } from '../../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
 
@@ -8,13 +8,14 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-// Test suite for Administrator perspective
+// Test suite for Core platform perspective
 describe(
-  'Regression: Monitoring - Alerts (Administrator)',
+  'Regression: Monitoring - Alerts (Core platform)',
   { tags: ['@monitoring', '@alerts'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);
+      cy.switchPerspective('Core platform');
     });
 
     beforeEach(() => {
@@ -27,9 +28,9 @@ describe(
       alerts.getWatchdogAlert();
     });
 
-    // Run tests in Administrator perspective
-    runAllRegressionAlertsTests({
-      name: 'Administrator',
+    // Run tests in Core platform perspective
+    runAllRegressionCorePlatformAlertsTests({
+      name: 'Core platform',
     });
   },
 );
