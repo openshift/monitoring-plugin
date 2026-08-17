@@ -78,8 +78,11 @@ $ podman machine start
 # Install dependencies
 $ make install
 
-# Run the application
+# Run the frontend
 $ make start-frontend
+# In a separate terminal
+# Run the backend
+$ make start-backend
 # In a separate terminal
 $ make start-console
 ```
@@ -94,12 +97,13 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 ## monitoring-console-plugin (mcp)
 
 ### Dependencies
+
 1. [Local Development Dependencies](README#Dependencies)
 2. [yq](https://github.com/mikefarah/yq) for acm deployment
 3. sed ([gnu-sed](https://formulae.brew.sh/formula/gnu-sed) for mac, with sed being aliased to that gnu-sed)
 
-
 ### Building an image
+
 Images for the mcp can be built by running the following command. Due to the limitation of linux/amd64 image builds on Apple Silicon Macs's, some of the changes are run locally and not just in the Dockerfiles. If you are on a Mac, it is not suggested to cancel the exection of this scipt part way through
 
 ```bash
@@ -111,10 +115,9 @@ make build-mcp-image
 Feature flags are used by the mcp mode to dictate the specific features which are enabled when the server starts up. Feature flags should be added to the Feature enum [here](pkg/server.go) and to the useFeature hook [here](web/src/components/hooks/useFeatures.ts). When any feature flag is enabled the default extension points are overridden, including a new monitoring-console-plugin exclusive redux store and all extension points for the flags. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply.
 
 | Feature           | OCP Version |
-|-------------------|-------------|
+| ----------------- | ----------- |
 | acm-alerting      | 4.14+       |
 | perses-dashboards | 4.14+       |
-| incidents         | 4.19+       |
 | dev-config        |             |
 
 #### ACM
@@ -137,7 +140,7 @@ Since the store for the `monitoring-plugin` is stored in the `openshift/console`
 # Login to an OpenShift cluster
 $ oc login <clusterAddress> -u <username> -p <password>
 
-# Start podman (or Docker)
+# Start podman (or Docker) - Linux machines can skip this part
 $ podman machine init
 $ podman machine start
 
