@@ -31,7 +31,7 @@ const MP = {
 const MAX_GAP_STANDARD = 250;
 const MAX_GAP_RELAXED = 500;
 
-describe('Regression: Stress Testing UI', { tags: ['@incidents'] }, () => {
+describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     incidentsPage.warmUpForPlugin();

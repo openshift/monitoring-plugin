@@ -2,12 +2,12 @@ type BasicTag = '@smoke' | '@demo' | '@flaky' | '@xfail' | '@slow';
 
 type HighLevelComponentTag =
   | '@monitoring'
-  | '@incidents'
   | '@coo'
   | '@virtualization'
   | '@alerts'
   | '@metrics'
-  | '@dashboards';
+  | '@dashboards'
+  | '@cluster-health-analyzer';
 
 type SpecificFeatureTag = `@${string}-${string}`;
 

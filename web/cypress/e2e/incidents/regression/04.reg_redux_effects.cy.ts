@@ -30,7 +30,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Redux State Management', { tags: ['@incidents', '@incidents-redux'] }, () => {
+describe('Regression: Redux State Management', { tags: ['@cluster-health-analyzer'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     incidentsPage.warmUpForPlugin();

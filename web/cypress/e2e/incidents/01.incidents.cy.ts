@@ -24,7 +24,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Incidents - UI', { tags: ['@smoke', '@incidents'] }, () => {
+describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     incidentsPage.warmUpForPlugin();

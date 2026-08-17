@@ -42,9 +42,9 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		{"metrics.patch.json", features[Metrics]},
 		{"legacy-dashboards.patch.json", features[LegacyDashboards]},
 		{"targets.patch.json", features[Targets]},
-		{"monitoring-console-plugin.patch.json", features[Incidents] || features[ClusterHealthAnalyzer] || features[PersesDashboards] || features[AcmAlerting]},
+		{"monitoring-console-plugin.patch.json", features[ClusterHealthAnalyzer] || features[PersesDashboards] || features[AcmAlerting]},
 		{"acm-alerting.patch.json", features[AcmAlerting]},
-		{"cluster-health-analyzer.patch.json", features[Incidents] || features[ClusterHealthAnalyzer]},
+		{"cluster-health-analyzer.patch.json", features[ClusterHealthAnalyzer]},
 		{"perses-dashboards.patch.json", features[PersesDashboards]},
 	}
 

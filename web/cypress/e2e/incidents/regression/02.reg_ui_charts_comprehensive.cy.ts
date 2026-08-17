@@ -3,7 +3,7 @@ Regression test for Charts UI bugs and Data Loading bugs (Sections 2 & 3.1 of TE
 
 This test loads comprehensive test data covering:
 - 2.1: Tooltip Positioning Issues
-- 2.2: Bar Sorting & Visibility Issues  
+- 2.2: Bar Sorting & Visibility Issues
 - 2.3: Date/Time Display Issues
 - 3.1: Short Duration Incidents Visibility (< 5 min)
 
@@ -100,7 +100,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Charts UI - Comprehensive', { tags: ['@incidents'] }, () => {
+describe('Regression: Charts UI - Comprehensive', { tags: ['@cluster-health-analyzer'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
     incidentsPage.warmUpForPlugin();

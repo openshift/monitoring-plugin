@@ -323,7 +323,7 @@ Use these tags with `--env grepTags`:
 - `@coo` - Observability Operator tests
 - `@acm` - Advanced Cluster Management tests
 - `@virtualization` - OpenShift Virtualization tests
-- `@incidents` - Incidents feature tests
+- `@cluster-health-analyzer` - Incidents feature tests
 
 **Modifier Tags:**
 - `@smoke` - Quick smoke tests
