@@ -277,9 +277,15 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
+  cy.log('switchPerspective - ' + perspectives.join(', '));
   /* If side bar is collapsed then expand it
   before switching perspecting */
-  cy.wait(2000);
+  cy.waitUntil(
+    () => {
+      return cy.byTestID('username', { timeout: 120000 }).should('be.visible');
+    },
+    { timeout: 120000 },
+  );
   cy.get('body').then((body) => {
     if (body.find('.pf-m-collapsed').length > 0) {
       cy.get('#nav-toggle').click();

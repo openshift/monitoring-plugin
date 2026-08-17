@@ -131,16 +131,41 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
   cy.log('Namespace changed to: ' + namespace);
 });
 
+/**
+ * Clicks an element, retrying if it detaches from the DOM mid-click.
+ *
+ * Right after installing/patching operators, the console masthead/nav can
+ * re-render while dynamic plugins finish registering. Cypress may locate the
+ * element and then have it disappear before the click completes, producing
+ * "...but while waiting for them to become actionable, they disappeared from
+ * the page". `{ force: true }` skips visibility/coverage checks but can't
+ * protect against this race, so retry instead of failing outright.
+ */
+function clickResilient(getElement: () => Cypress.Chainable, attemptsLeft = 3): void {
+  cy.once('fail', (err) => {
+    if (attemptsLeft > 0 && /disappeared from the page/.test(err.message)) {
+      cy.log(`Click target detached before click completed, retrying (${attemptsLeft} left)...`);
+      cy.wait(1000);
+      clickResilient(getElement, attemptsLeft - 1);
+    } else {
+      throw err;
+    }
+  });
+  getElement().click({ force: true });
+}
+
 Cypress.Commands.add('aboutModal', () => {
   cy.log('Getting OCP version');
   if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
     cy.visit('/');
     cy.wait(10000);
+    cy.switchPerspective('Core platform');
     cy.waitUntil(() => cy.byTestID('Operators', { timeout: 10000 }).should('be.visible'));
-    cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
-    cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({ force: true });
+    clickResilient(() => cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible'));
     cy.wait(3000);
-    cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible').click();
+    clickResilient(() =>
+      cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible'),
+    );
     cy.byAriaLabel('About modal')
       .find('div[class*="co-select-to-copy"]')
       .eq(0)
@@ -171,15 +196,19 @@ Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
   cy.switchPerspective('Core platform', 'Administrator');
   cy.clickNavLink(['Workloads', 'Pods']);
   cy.byTestID('page-heading').contains('Pods').should('be.visible');
-  // Wait for the pod table to load to not compromise the namespace change
-  cy.get('table tbody tr, [data-ouia-component-id="DataViewTable"] tbody tr', {
-    timeout: 30000,
-  }).should('have.length.greaterThan', 0);
+  cy.get(
+    'table tbody tr, [data-ouia-component-id="DataViewTableBasic"], [data-test="empty-box-body"]',
+    { timeout: 30000 },
+  ).should('have.length.greaterThan', 0);
   cy.changeNamespace(namespace);
   // Wait for the pod table to load after namespace change so the page stabilizes
-  cy.get('table tbody tr, [data-ouia-component-id="DataViewTable"] tbody tr', {
+  cy.get('table tbody tr, [data-ouia-component-id="DataViewTableBasic"] tbody tr', {
     timeout: 30000,
   }).should('have.length.greaterThan', 0);
+  cy.get('[data-ouia-component-id="DataViewFilters"]', {
+    timeout: 30000,
+  }).should('have.length.greaterThan', 0);
+  cy.wait(10000);
   // Re-check for DataViewFilters after the table has stabilized
   cy.get('body').then(($body) => {
     const hasDataViewFilters = $body.find('[data-ouia-component-id="DataViewFilters"]').length > 0;

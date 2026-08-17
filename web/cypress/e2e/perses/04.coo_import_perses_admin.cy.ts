@@ -26,8 +26,9 @@ describe(
     before(() => {
       // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
       operatorAuthUtils.loginAndAuth();
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesExtraDashboards();
     });
 
     beforeEach(() => {
@@ -43,7 +44,7 @@ describe(
     });
 
     runCOOImportPersesTests({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );

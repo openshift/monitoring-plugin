@@ -116,9 +116,15 @@ export const dashboardsUtils = {
     cy.checkForAlertRecursively();
     cy.dynamicPluginWorkConsoleAround();
     cy.reload(true);
+    cy.closeOnboardingModalIfPresent();
 
     // Dynamic plugins may take time to register after reload.
     // Retry by closing/re-opening the launcher until the item appears.
+    // Note: the "found" check below must never throw (e.g. via a plain
+    // `cy.get(selector)`, which asserts existence and fails hard on a miss) -
+    // cy.waitUntil() only retries on a falsy return value, not on thrown
+    // command failures, so a throwing check would bypass this retry loop
+    // entirely and fail the test on the very first miss.
     cy.waitUntil(
       () =>
         cy
@@ -126,15 +132,16 @@ export const dashboardsUtils = {
           .should('be.visible')
           .click()
           .then(() =>
-            cy
-              .get(`[data-test="${DataTestIDs.MastHeadApplicationItem}"]`, { timeout: 5000 })
-              .then(($items) => $items.filter(':contains("Signal correlation")').length > 0)
-              .then((found) => {
-                if (!found) {
-                  cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).click();
-                }
-                return found;
-              }),
+            cy.get('body').then(($body) => {
+              const found =
+                $body
+                  .find(`[data-test="${DataTestIDs.MastHeadApplicationItem}"]`)
+                  .filter(':contains("Signal correlation")').length > 0;
+              if (!found) {
+                cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).click();
+              }
+              return found;
+            }),
           ),
       {
         timeout: 60000,

@@ -25,8 +25,9 @@ describe(
   { tags: ['@perses', '@dashboards'] },
   () => {
     before(() => {
-      operatorAuthUtils.loginAndAuth();
       // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      operatorAuthUtils.loginAndAuth();
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
 
@@ -37,11 +38,11 @@ describe(
     });
 
     runCOOEditPersesTests({
-      name: 'Administrator',
+      name: 'Core platform',
     });
 
     runCOOEditPersesTests1({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );

@@ -56,7 +56,7 @@ describe(
 
     it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
   },
@@ -64,12 +64,12 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards (Virtualization)',
-  { tags: ['@virtualization', '@dashboards'] },
+  { tags: ['@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       commonPages.titleShouldHaveText('Dashboards');
@@ -84,12 +84,12 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
-  { tags: ['@virtualization', '@dashboards'] },
+  { tags: ['@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       commonPages.titleShouldHaveText('Dashboards');

@@ -54,7 +54,7 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 
   it('1. Virtualization perspective - Observe Menu', () => {
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
+    cy.switchPerspective('Virtualization', 'Fleet virtualization');
     guidedTour.closeKubevirtTour();
   });
 });
@@ -64,7 +64,7 @@ describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization
     cy.visit('/');
     guidedTour.close();
     cy.validateLogin();
-    cy.switchPerspective('Virtualization');
+    cy.switchPerspective('Virtualization', 'Fleet virtualization');
     guidedTour.closeKubevirtTour();
     nav.sidenav.clickNavLink(['Observe', 'Metrics']);
     commonPages.titleShouldHaveText('Metrics');

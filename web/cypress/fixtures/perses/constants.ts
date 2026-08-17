@@ -166,7 +166,7 @@ export const persesDashboardsRenameDashboard = {
 };
 
 export const persesDashboardsDuplicateDashboard = {
-  DIALOG_DUPLICATED_NAME_VALIDATION: 'Could not duplicate dashboard. e: document already exists', //use contains
+  DIALOG_DUPLICATED_NAME_VALIDATION: 'document already exists', //use contains
   DIALOG_DUPLICATED_NAME_FED_VALIDATION_1: 'Dashboard name "',
   DIALOG_DUPLICATED_NAME_FED_VALIDATION_2: '" already exists in this project: error status;',
 };
