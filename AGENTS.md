@@ -302,16 +302,13 @@ You should create new Cypress tests when:
 #### Quick Test Commands
 
 ```bash
-cd web/cypress
+cd web
 
-# Run all regression tests
-npm run cypress:run --spec "cypress/e2e/**/regression/**"
-
-# Run BVT (Build Verification Tests)
-npm run cypress:run --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+# Run monitoring tests (changed files only)
+npm run test-cypress-monitoring
 
 # Run COO tests
-npm run cypress:run --spec "cypress/e2e/coo/*.cy.ts"
+npx cypress run --env grepTags='@acm-alerting @perses-dashboards @cluster-health-analyzer --@flaky --@xfail'
 
 # Interactive mode
 npm run cypress:open
