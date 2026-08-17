@@ -69,28 +69,29 @@ The `web/src/` directory is organized into two top-level areas:
 - **`web/src/features/`** — Feature-specific code, one subdirectory per feature. Each feature directory contains sub-folders as needed: `components/`, `pages/`, `hooks/`, `utils/`, `types/`, `assets/`.
 - **`web/src/shared/`** — Code used by more than one feature, organized by kind.
 
-| Feature | Directory |
-| ------- | --------- |
-| Alerting (alerts, silences, alert rules) | `features/alerts/` |
-| Incidents | `features/incidents/` |
-| Legacy Dashboards | `features/legacy-dashboards/` |
-| Metrics / PromQL | `features/metrics/` |
-| Perses Dashboards | `features/perses-dashboards/` |
-| Targets | `features/targets/` |
+| Feature                                  | Directory                     |
+| ---------------------------------------- | ----------------------------- |
+| Alerting (alerts, silences, alert rules) | `features/alerts/`            |
+| Incidents                                | `features/incidents/`         |
+| Legacy Dashboards                        | `features/legacy-dashboards/` |
+| Metrics / PromQL                         | `features/metrics/`           |
+| Perses Dashboards                        | `features/perses-dashboards/` |
+| Targets                                  | `features/targets/`           |
 
-| Shared Directory | Contents |
-| ---------------- | -------- |
+| Shared Directory     | Contents                                                              |
+| -------------------- | --------------------------------------------------------------------- |
 | `shared/components/` | Reusable UI components (`labels.tsx`, `format.tsx`, `query-browser/`) |
-| `shared/hooks/` | Shared React hooks (`useAlerts.ts`, `usePerspective.tsx`) |
-| `shared/store/` | Redux store, actions, reducers, thunks, alert fetching |
-| `shared/contexts/` | React contexts (`MonitoringContext.tsx`) |
-| `shared/constants/` | Shared constants (`data-test.ts`, `query-params.ts`) |
-| `shared/types/` | Shared TypeScript types (`types.ts`) |
-| `shared/utils/` | Shared pure utility functions (`utils.ts`) |
-| `shared/assets/` | Static assets such as fonts (`codicon.ttf`) |
-| `shared/console/` | Vendored/adapted OpenShift Console internals |
+| `shared/hooks/`      | Shared React hooks (`useAlerts.ts`, `usePerspective.tsx`)             |
+| `shared/store/`      | Redux store, actions, reducers, thunks, alert fetching                |
+| `shared/contexts/`   | React contexts (`MonitoringContext.tsx`)                              |
+| `shared/constants/`  | Shared constants (`data-test.ts`, `query-params.ts`)                  |
+| `shared/types/`      | Shared TypeScript types (`types.ts`)                                  |
+| `shared/utils/`      | Shared pure utility functions (`utils.ts`)                            |
+| `shared/assets/`     | Static assets such as fonts (`codicon.ttf`)                           |
+| `shared/console/`    | Vendored/adapted OpenShift Console internals                          |
 
 **Placement rules:**
+
 - If a file is only used within one feature, it belongs in that feature's directory.
 - If a component or utility is only used by a single page, co-locate it inside that page's own subdirectory (e.g. `features/alerts/pages/alerts-page/AggregateAlertTableRow.tsx`).
 - If a file is used across multiple features, it belongs in `shared/`.
@@ -136,7 +137,7 @@ spec:
         url: "https://rbac-query-proxy.open-cluster-management-observability.svc:8443"
     perses:
       enabled: true
-    incidents:
+    clusterHealthAnalyzer:
       enabled: true
 ```
 

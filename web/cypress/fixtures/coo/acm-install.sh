@@ -54,9 +54,9 @@ spec:
 EOF
 tries=30
 while [[ $tries -gt 0 ]] &&
-	! oc -n open-cluster-management rollout status deploy/multiclusterhub-operator; do
-	sleep 10
-	((tries--))
+    ! oc -n open-cluster-management rollout status deploy/multiclusterhub-operator; do
+    sleep 10
+    ((tries--))
 done
 oc wait -n open-cluster-management --for=condition=Available deploy/multiclusterhub-operator --timeout=300s
 # install mch
@@ -75,12 +75,12 @@ oc wait -n open-cluster-management --for=condition=Available deploy/search-index
 oc -n open-cluster-management get pod
 # create mco
 if ! oc get ns open-cluster-management-observability >/dev/null 2>&1; then
-  echo "[INFO] Creating namespace open-cluster-management-observability"
-  oc create ns open-cluster-management-observability
+    echo "[INFO] Creating namespace open-cluster-management-observability"
+    oc create ns open-cluster-management-observability
 else
-  echo "[INFO] Namespace open-cluster-management-observability already exists"
+    echo "[INFO] Namespace open-cluster-management-observability already exists"
 fi
-oc apply -f -<<EOF
+oc apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -155,7 +155,7 @@ metadata:
   namespace: open-cluster-management-observability
 type: Opaque
 EOF
-oc apply -f -<<EOF
+oc apply -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -181,7 +181,7 @@ spec:
   storageConfig:
     metricObjectStorage:
       name: thanos-object-storage
-      key: thanos.yaml 
+      key: thanos.yaml
 EOF
 sleep 1m
 oc wait --for=condition=Ready pod -l alertmanager=observability,app=multicluster-observability-alertmanager -n open-cluster-management-observability --timeout=300s
@@ -193,11 +193,11 @@ metadata:
   name: monitoring
 spec:
   monitoring:
-    incidents:
+    clusterHealthAnalyzer:
       enabled: true
     perses:
       enabled: true
-    acm:    
+    acm:
       enabled: true
       alertmanager:
         url: 'https://alertmanager.open-cluster-management-observability.svc:9095'
