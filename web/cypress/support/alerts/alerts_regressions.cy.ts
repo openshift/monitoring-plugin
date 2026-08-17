@@ -19,7 +19,7 @@ import {
 } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
-import { listPage } from 'cypress/views/shared/list-page';
+import { listPage } from '../../views/shared/list-page';
 
 export function testAlertsFleetManagementRegression(
   perspectiveName: CustomerPerspective,
