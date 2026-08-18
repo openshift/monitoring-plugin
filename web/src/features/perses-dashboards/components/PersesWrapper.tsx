@@ -11,6 +11,7 @@ import {
   t_global_background_color_100,
   t_global_background_color_400,
 } from '@patternfly/react-tokens';
+import { DashboardResource, Kind } from '@perses-dev/client';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -19,13 +20,6 @@ import {
   SnackbarProvider,
   typography,
 } from '@perses-dev/components';
-import {
-  BuiltinVariableDefinition,
-  DashboardResource,
-  Definition,
-  DurationString,
-  UnknownSpec,
-} from '@perses-dev/core';
 import {
   DashboardProvider,
   DatasourceStoreProvider,
@@ -36,6 +30,7 @@ import {
   DataQueriesProvider,
   PluginLoader,
   PluginRegistry,
+  remotePluginLoader,
   RouterProvider,
   TimeRangeProviderWithQueryParams,
   useInitialRefreshInterval,
@@ -43,7 +38,12 @@ import {
   usePluginBuiltinVariableDefinitions,
   ValidationProvider,
 } from '@perses-dev/plugin-system';
-import { remotePluginLoader } from '@perses-dev/plugin-system';
+import {
+  BuiltinVariableDefinition,
+  DurationString,
+  QueryDefinition,
+  UnknownSpec,
+} from '@perses-dev/spec';
 import { ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
@@ -507,7 +507,7 @@ function InnerWrapper({ children, project }: InnerWrapperProps) {
 }
 
 interface PersesPrometheusDatasourceWrapperProps {
-  queries: Definition<UnknownSpec>[];
+  queries: Array<QueryDefinition<Kind, UnknownSpec>>;
   dashboardResource?: DashboardResource;
   duration?: DurationString;
   children?: ReactNode;
