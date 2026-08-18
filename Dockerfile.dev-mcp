@@ -7,6 +7,7 @@ USER 0
 WORKDIR /opt/app-root
 
 ENV HUSKY=0
+ENV CYPRESS_INSTALL_BINARY=0
 
 COPY Makefile Makefile
 COPY web/ web/
