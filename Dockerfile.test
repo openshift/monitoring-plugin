@@ -2,6 +2,8 @@ FROM registry.redhat.io/ubi9/nodejs-22:9.6-1755075210 AS web-builder
 
 USER 0
 
+ENV HUSKY=0
+
 WORKDIR /usr/src/app
 
 COPY web/package*.json web/

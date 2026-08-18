@@ -5,6 +5,7 @@ WORKDIR /opt/app-root
 USER 0
 
 ENV HUSKY=0
+ENV CYPRESS_INSTALL_BINARY=0
 
 COPY web/package.json web/package-lock.json web/
 COPY Makefile Makefile
