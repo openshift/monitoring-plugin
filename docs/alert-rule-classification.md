@@ -5,7 +5,7 @@ The backend classifies Prometheus alerting rules into a "component" and an "impa
 - Computes an `openshift_io_alert_rule_id` per alerting rule.
 - Determines component/layer based on matcher logic and rule labels.
 - Allows operator-managed classification overrides via AlertRelabelConfigs (ARCs) for platform
-  rules. Operator-managed classification overrides of user-defined workload rules require the `ENABLE_USER_WORKLOAD_ARCS` feature flag.
+  rules.
 - Enriches the Alerts API response with `openshift_io_alert_rule_id`, `openshift_io_alert_component`, and `openshift_io_alert_layer`.
 
 This document explains how it works, how to override, and how to test it.
@@ -111,19 +111,22 @@ management status — this endpoint never writes directly to `AlertingRule` CRs.
 (Other management endpoints, such as severity updates, may write to unmanaged
 `AlertingRule` CRs directly, but classification is ARC-only.)
 
-### User-defined workload rules → blocked by default, ARC when enabled
+### User-defined workload rules
 
-Classification updates for operator-managed user-defined workload rules are **not
-allowed by default**. The API returns a `NotAllowedError` when the feature flag is
-disabled.
+For **user-owned** rules, classification labels can be set directly on the rule
+(via `UpdateAlertRuleLabels` or `UpdateUserDefinedAlertRule`) — the same way any
+other label is updated. This mutates the PrometheusRule directly without needing
+ARCs.
 
-### Feature flag: `ENABLE_USER_WORKLOAD_ARCS`
+The ARC-based `UpdateAlertRuleClassification` endpoint returns `NotAllowedError`
+for user-defined rules because CMO does not process AlertRelabelConfigs in the
+user workload stack.
 
-Setting the environment variable `ENABLE_USER_WORKLOAD_ARCS=true` enables full
-alert management for operator-managed user-defined workload rules, including
-classification overrides, label updates, and rule disable/enable (Drop/Restore).
-When enabled, these rules use the same ARC-based path as platform rules, with
-ARCs stored in the `openshift-user-workload-monitoring` namespace.
+**Operator-managed** user-defined rules cannot be edited at all (the operator
+would reconcile the change). Those alerts can only be **silenced** via
+Alertmanager silences. If ARC-based management for these rules is needed, please
+open an RFE against CMO to add AlertRelabelConfig support in the user workload
+stack.
 
 ### Dynamic classification (`_from` labels)
 
@@ -202,9 +205,11 @@ APIs:
     ```
     - `openshift_io_alert_rule_layer`: `cluster` or `namespace`
     - To remove a classification override, set the field to `null` (e.g. `"openshift_io_alert_rule_layer": null`).
+    - Do not combine `classification` with `alertingRuleEnabled` in the same request.
   - Response:
-    - 200 OK with a status payload (same format as other rule PATCH responses), where `status_code` is 204 on success.
-    - Standard error body on failure (400 validation, 404 not found, etc.)
+    - HTTP `200` with `UpdateAlertRuleResult` (`statusCode` is `204` on success).
+    - Standard `ErrorResponse` body on failure (400 validation, 403 forbidden,
+      404 not found, 405 not allowed for user-defined rules, 409 conflict, etc.).
 - Bulk update:
   - Method: `PATCH /api/v1/alerting/rules`
   - Request body:
@@ -218,33 +223,36 @@ APIs:
     }
     ```
   - Response:
-    - 200 OK with per-rule results (same format as other bulk rule PATCH responses). Clients should handle partial failures.
+    - HTTP `200` with per-rule results (same `UpdateAlertRuleResult` shape).
+      Clients should handle partial failures via per-rule `statusCode`/`message`.
 
 Direct K8s (supported for power users/GitOps):
 - For platform rules: create or update the `AlertRelabelConfig` CR in `openshift-monitoring`
   with the appropriate relabel configs (respect `resourceVersion` for optimistic concurrency).
-- For user-defined rules (requires `ENABLE_USER_WORKLOAD_ARCS=true`): create or update the
-  `AlertRelabelConfig` CR in `openshift-user-workload-monitoring`.
 - UI should check update permissions with SelfSubjectAccessReview before showing an editor.
 
 Notes:
-- These endpoints are intended for updating **classification only** (component/layer overrides),
-  with permissions enforced based on the rule's ownership (platform, user workload, operator-managed,
-  GitOps-managed).
-- To update other rule fields (expr/labels/annotations/etc.), use `PATCH /api/v1/alerting/rules/{ruleId}`.
-  Clients that need to update both should issue two requests. The combined operation is not atomic.
+- Classification overrides for platform rules are applied via AlertRelabelConfig.
+  User-defined rules reject ARC-based classification updates (`405`).
+- To update other rule fields (labels/etc.), use the same
+  `PATCH /api/v1/alerting/rules/{ruleId}` endpoint with a `labels` body (or the
+  bulk `PATCH /rules` variant). `alertingRuleEnabled` cannot be combined with
+  `labels` or `classification` in one request; issue separate calls when needed.
+- When a request includes both `classification` and `labels`, classification is
+  applied first, then labels. The two steps are not atomic: if labels fail after
+  classification succeeded, the classification override may already be persisted
+  while the API still returns an error (or a per-rule failure in bulk).
 
 ## Security Notes
-- Classification overrides are stored in AlertRelabelConfig CRs (`openshift-monitoring`
-  for platform rules, `openshift-user-workload-monitoring` for user-defined rules when
-  enabled), subject to standard Kubernetes RBAC.
+- Classification overrides are stored in AlertRelabelConfig CRs in `openshift-monitoring`,
+  subject to standard Kubernetes RBAC.
 - No secrets or sensitive data are persisted in classification metadata.
 
 ## Testing and Ops
 Unit tests:
 - `pkg/management/update_classification_test.go`
-  - ARC-based classification for platform rules, blocked-by-default for user-defined
-    rules, ARC in user-workload namespace when flag enabled, dynamic `_from` label resolution.
+  - ARC-based classification for platform rules, not-allowed for user-defined
+    rules, dynamic `_from` label resolution.
 - `pkg/management/get_alerts_test.go`
   - Alert enrichment with classification labels, `_from` label behavior, fallback behavior.
 
