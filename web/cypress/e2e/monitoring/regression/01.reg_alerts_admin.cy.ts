@@ -11,7 +11,7 @@ const MP = {
 // Test suite for Core platform perspective
 describe(
   'Regression: Monitoring - Alerts (Core platform)',
-  { tags: ['@monitoring', '@alerts'] },
+  { tags: ['@alerting', '@metrics'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);

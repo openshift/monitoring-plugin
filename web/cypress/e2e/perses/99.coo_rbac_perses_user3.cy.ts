@@ -18,10 +18,9 @@ import { operatorAuthUtils } from '../../support/commands/auth-commands';
 //   operatorName: 'Cluster Monitoring Operator',
 // };
 
-//TODO: change tag to @smoke, @dashboards, @perses when customizable-dashboards gets merged
 describe(
   'RBAC User3: COO - Dashboards (Perses) - Administrator perspective',
-  { tags: ['@perses-dev'] },
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user

@@ -24,7 +24,7 @@ const MP = {
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - List perses dashboards',
-  { tags: ['@perses', '@dashboards'] },
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
@@ -51,7 +51,7 @@ describe(
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - List perses dashboards - Namespace',
-  { tags: ['@perses', '@dashboards'] },
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });

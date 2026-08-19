@@ -20,7 +20,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('BVT: Incidents - e2e', { tags: ['@slow', '@cluster-health-analyzer'] }, () => {
+describe('BVT: Incidents - e2e', { tags: ['@slow', '@cluster-health-analyzer', '@coo'] }, () => {
   let currentAlertName: string;
 
   before(() => {
