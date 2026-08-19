@@ -9,31 +9,27 @@ const MP = {
 };
 
 // Test suite for Administrator perspective
-describe(
-  'Regression: Monitoring - Metrics (Administrator)',
-  { tags: ['@monitoring', '@metrics'] },
-  () => {
-    before(() => {
-      cy.beforeBlock(MP);
-    });
+describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
+  before(() => {
+    cy.beforeBlock(MP);
+  });
 
-    beforeEach(() => {
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace('All Projects');
-    });
+  beforeEach(() => {
+    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+    commonPages.titleShouldHaveText('Metrics');
+    cy.changeNamespace('All Projects');
+  });
 
-    // Run tests in Administrator perspective
-    runAllRegressionMetricsTests1({
-      name: 'Administrator',
-    });
-  },
-);
+  // Run tests in Administrator perspective
+  runAllRegressionMetricsTests1({
+    name: 'Administrator',
+  });
+});
 
 // Test suite for Administrator perspective
 describe(
   'Regression: Monitoring - Metrics Namespaced (Administrator)',
-  { tags: ['@monitoring', '@metrics'] },
+  { tags: ['@metrics'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);

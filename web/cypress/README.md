@@ -49,14 +49,17 @@ source ./configure-env.sh
 ```
 
 **Features**:
-- Automatic prompting for all CYPRESS_ variables
+
+- Automatic prompting for all CYPRESS\_ variables
 - Automatic discovery and numbered selection of `*kubeconfig*` files in `$HOME/Downloads`
 - Validates required variables
 
 **Alternative - Generate Export File**:
+
 ```bash
 ./configure-env.sh
 ```
+
 Creates `export-env.sh` that you can source later: `source export-env.sh`
 
 ---
@@ -67,24 +70,24 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 
 ### General Scenarios
 
-| Scenario | Key Variables | Description |
-|----------|---------------|-------------|
-| **Released Version** | `CYPRESS_COO_UI_INSTALL=true` | Install operators from redhat-operators catalog. Production-like testing. |
-| **Pre-provisioned COO** | `CYPRESS_SKIP_COO_INSTALL=true`, optionally `CYPRESS_COO_NAMESPACE=<ns>` | COO already installed. Tests still enable the monitoring plugin. Specify namespace if non-default. |
-| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_KBV_INSTALL=true` | OpenShift Virtualization already installed. |
-| **Local Dev / PR Testing** | `CYPRESS_SKIP_ALL_INSTALL=true` | Run UI locally via `make start-feature-frontend` ([details](../../README.md#development)). Skips all setup. |
-| **Custom Images** | `CYPRESS_MP_IMAGE`, `CYPRESS_MCP_CONSOLE_IMAGE`, `CYPRESS_CHA_IMAGE`, `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Patch component images in the CSV, or replace the operator bundle. Combine with an installation method above. |
-| **FBC Image** | `CYPRESS_FBC_STAGE_COO_IMAGE` | Install COO from File-Based Catalog image. For release validation. |
-| **Konflux CI Bundle** | `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=<image>` | Install COO from Konflux CI bundle. For PR/CI testing. |
+| Scenario                           | Key Variables                                                                                           | Description                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Released Version**               | `CYPRESS_COO_UI_INSTALL=true`                                                                           | Install operators from redhat-operators catalog. Production-like testing.                                     |
+| **Pre-provisioned COO**            | `CYPRESS_SKIP_COO_INSTALL=true`, optionally `CYPRESS_COO_NAMESPACE=<ns>`                                | COO already installed. Tests still enable the monitoring plugin. Specify namespace if non-default.            |
+| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_KBV_INSTALL=true`                                                                         | OpenShift Virtualization already installed.                                                                   |
+| **Local Dev / PR Testing**         | `CYPRESS_SKIP_ALL_INSTALL=true`                                                                         | Run UI locally via `make start-feature-frontend` ([details](../../README.md#development)). Skips all setup.   |
+| **Custom Images**                  | `CYPRESS_MP_IMAGE`, `CYPRESS_MCP_CONSOLE_IMAGE`, `CYPRESS_CHA_IMAGE`, `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Patch component images in the CSV, or replace the operator bundle. Combine with an installation method above. |
+| **FBC Image**                      | `CYPRESS_FBC_STAGE_COO_IMAGE`                                                                           | Install COO from File-Based Catalog image. For release validation.                                            |
+| **Konflux CI Bundle**              | `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE=<image>`                                                              | Install COO from Konflux CI bundle. For PR/CI testing.                                                        |
 
 ### Test Areas
 
-| Area | Description | Run Command |
-|------|-------------|-------------|
-| **Monitoring (CMO)** | Core monitoring tests against CMO stack. No additional operator installation needed. | `npm run test-cypress-monitoring` |
-| **COO (Perses, Dashboards, Incidents)** | Requires COO installation. | `npm run test-cypress-coo` |
-| **Incidents** | COO subset. Set `CYPRESS_TIMEZONE` to match cluster timezone. | `npm run test-cypress-incidents` |
-| **Virtualization** | Requires OpenShift Virtualization (KubeVirt) installation. | `npm run test-cypress-virtualization` |
+| Area                                    | Description                                                                          | Run Command                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------- |
+| **Monitoring (CMO)**                    | Core monitoring tests against CMO stack. No additional operator installation needed. | `npm run test-cypress-monitoring`     |
+| **COO (Perses, Dashboards, Incidents)** | Requires COO installation.                                                           | `npm run test-cypress-coo`            |
+| **Incidents**                           | COO subset. Set `CYPRESS_TIMEZONE` to match cluster timezone.                        | `npm run test-cypress-incidents`      |
+| **Virtualization**                      | Requires OpenShift Virtualization (KubeVirt) installation.                           | `npm run test-cypress-virtualization` |
 
 ---
 
@@ -92,65 +95,66 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 
 ### Required Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `CYPRESS_BASE_URL` | OpenShift Console URL | `https://console-openshift-console.apps...` |
-| `CYPRESS_LOGIN_IDP` | Identity provider name | `flexy-htpasswd-provider` or `kube:admin` |
-| `CYPRESS_LOGIN_IDP_DEV_USER`| Identity provider name for devuser |  `flexy-htpasswd-provider` or `my_htpasswd_provider`|
-| `CYPRESS_LOGIN_USERS` | Login credentials | `username:password` or `kubeadmin:password` or `kubeadmin:password,user1:password,user2:password` |
-| `CYPRESS_KUBECONFIG_PATH` | Path to kubeconfig file | `~/Downloads/kubeconfig` |
+| Variable                     | Description                        | Example                                                                                           |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `CYPRESS_BASE_URL`           | OpenShift Console URL              | `https://console-openshift-console.apps...`                                                       |
+| `CYPRESS_LOGIN_IDP`          | Identity provider name             | `flexy-htpasswd-provider` or `kube:admin`                                                         |
+| `CYPRESS_LOGIN_IDP_DEV_USER` | Identity provider name for devuser | `flexy-htpasswd-provider` or `my_htpasswd_provider`                                               |
+| `CYPRESS_LOGIN_USERS`        | Login credentials                  | `username:password` or `kubeadmin:password` or `kubeadmin:password,user1:password,user2:password` |
+| `CYPRESS_KUBECONFIG_PATH`    | Path to kubeconfig file            | `~/Downloads/kubeconfig`                                                                          |
 
 ### Plugin Image Configuration
 
-| Variable | Description | Use Case |
-|----------|-------------|----------|
-| `CYPRESS_MP_IMAGE` | Custom Monitoring Plugin image | Testing custom MP builds |
+| Variable                    | Description                            | Use Case                  |
+| --------------------------- | -------------------------------------- | ------------------------- |
+| `CYPRESS_MP_IMAGE`          | Custom Monitoring Plugin image         | Testing custom MP builds  |
 | `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom MCP builds |
-| `CYPRESS_CHA_IMAGE` | Custom cluster-health-analyzer image | Testing custom CHA builds |
+| `CYPRESS_CHA_IMAGE`         | Custom cluster-health-analyzer image   | Testing custom CHA builds |
 
 ### Operator Installation Control
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CYPRESS_SKIP_COO_INSTALL` | `false` | Skip Cluster Observability Operator installation |
-| `CYPRESS_SKIP_KBV_INSTALL` | `false` | Skip OpenShift Virtualization installation |
+| Variable                   | Default | Description                                                    |
+| -------------------------- | ------- | -------------------------------------------------------------- |
+| `CYPRESS_SKIP_COO_INSTALL` | `false` | Skip Cluster Observability Operator installation               |
+| `CYPRESS_SKIP_KBV_INSTALL` | `false` | Skip OpenShift Virtualization installation                     |
 | `CYPRESS_SKIP_ALL_INSTALL` | `false` | Skip all operator installations (for pre-provisioned clusters) |
-| `CYPRESS_COO_UI_INSTALL` | `false` | Install COO from redhat-operators catalog |
-| `CYPRESS_KBV_UI_INSTALL` | `false` | Install Virtualization from redhat-operators catalog |
+| `CYPRESS_COO_UI_INSTALL`   | `false` | Install COO from redhat-operators catalog                      |
+| `CYPRESS_KBV_UI_INSTALL`   | `false` | Install Virtualization from redhat-operators catalog           |
 
 ### Bundle Images
 
-| Variable | Description |
-|----------|-------------|
-| `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` | COO bundle image from Konflux |
-| `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Custom COO bundle image |
+| Variable                           | Description                              |
+| ---------------------------------- | ---------------------------------------- |
+| `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` | COO bundle image from Konflux            |
+| `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE`  | Custom COO bundle image                  |
 | `CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE` | Virtualization bundle image from Konflux |
-| `CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE` | Custom Virtualization bundle image |
+| `CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE`  | Custom Virtualization bundle image       |
 
 ### FBC images
 
-| Variable | Description |
-|----------|-------------|
+| Variable                      | Description                              |
+| ----------------------------- | ---------------------------------------- |
 | `CYPRESS_FBC_STAGE_COO_IMAGE` | Cluster Observability Operator FBC image |
-| `CYPRESS_FBC_STAGE_KBV_IMAGE` | Virtualization FBC image |
+| `CYPRESS_FBC_STAGE_KBV_IMAGE` | Virtualization FBC image                 |
 
 ### Testing Configuration
 
-| Variable | Default | Description |
-|----------|---------|-------------|
+| Variable          | Default | Description                                    |
+| ----------------- | ------- | ---------------------------------------------- |
 | `CYPRESS_SESSION` | `false` | Enable session management for faster execution |
-| `CYPRESS_DEBUG` | `false` | Enable debug mode logging in headless mode |
+| `CYPRESS_DEBUG`   | `false` | Enable debug mode logging in headless mode     |
 
 ### Incidents Testing Configuration
 
 **Used primarily for Incidents feature testing:**
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CYPRESS_TIMEZONE` | `UTC` | Cluster timezone for incident timeline calculations |
+| Variable                   | Default | Description                                                                                                          |
+| -------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
+| `CYPRESS_TIMEZONE`         | `UTC`   | Cluster timezone for incident timeline calculations                                                                  |
 | `CYPRESS_MOCK_NEW_METRICS` | `false` | Transform old metric names to new format in mocks (temporary workaround for testing against locally built instances) |
 
 **Example:**
+
 ```bash
 export CYPRESS_TIMEZONE="America/New_York"
 export CYPRESS_MOCK_NEW_METRICS=true
@@ -211,44 +215,35 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 #### Tag Categories
 
 **1. Basic Tags:**
-- `@smoke` - Fast BVT tests
-- `@demo` - Interactive demo tests (no assertions, skipped in CI)
+
 - `@flaky` - Tests that don't pass reliably
 - `@xfail` - Tests for known bugs expected to fail
 - `@slow` - Long-running e2e tests (15+ minutes)
 
 **2. High-Level Component Tags:**
-- `@monitoring` - Monitoring plugin tests
+
 - `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
 - `@virtualization` - Virtualization integration tests
-- `@alerts` - Alert-related tests
-- `@metrics` - Metrics-related tests
-- `@dashboards` - Dashboard-related tests (includes Perses)
 
-**3. Specific Feature Tags** (format: `@{component}-{label}`):
-- Example: `@incidents-redux`
-- Add specific feature tags as needed
+**3. Specific Feature Tags** (format: `@{component}`):
+
+- `@acm-alerting` - Alert-related tests in ACM perspective
+- `@alerting` - Alert-related tests
+- `@legacy-dashboards` - Legacy dashboard tests
+- `@metrics` - Metrics explorer tests
+- `@targets` - Targets tests
+- `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
 
 **4. JIRA Tags** (format: `@JIRA-{ID}`):
+
 - Example: `@JIRA-OU-1033`
 - Link tests to specific JIRA issues
 
 #### Running Tests by Tags
 
-**Run smoke tests (BVT):**
-```bash
-npx cypress run --env grepTags=@smoke
-# or
-npm run test-cypress-smoke
-```
-
-**Run regression tests (all non-smoke tests):**
-```bash
-npx cypress run --env grepTags="--@smoke --@flaky --@demo"
-```
-
 **Run component-specific tests:**
+
 ```bash
 npm run test-cypress-monitoring       # All monitoring tests
 npm run test-cypress-incidents        # All incidents tests
@@ -259,40 +254,45 @@ npm run test-cypress-metrics          # All metrics tests
 npm run test-cypress-dashboards       # All dashboards tests (includes Perses)
 ```
 
-**Run smoke tests for specific component:**
+**Run tests for specific component:**
+
 ```bash
-npm run test-cypress-monitoring-bvt  # Monitoring smoke tests
-npm run test-cypress-coo-bvt         # COO smoke tests
+npm run test-cypress-monitoring-bvt  # Monitoring tests
+npm run test-cypress-coo-bvt         # COO tests
 ```
 
 **Run regression for specific component:**
+
 ```bash
-npm run test-cypress-monitoring-regression  # All monitoring except smoke
+npm run test-cypress-monitoring-regression  # All monitoring
 ```
 
 **Run tests with multiple tags (OR logic):**
+
 ```bash
-npx cypress run --env grepTags="@smoke @slow"
+npx cypress run --env grepTags="@alerting @cluster-health-analyzer"
 ```
 
 **Run tests with BOTH tags (AND logic):**
+
 ```bash
-npx cypress run --env grepTags="@smoke+@cluster-health-analyzer"
+npx cypress run --env grepTags="@alerting+@cluster-health-analyzer"
 ```
 
 **Complex filtering:**
+
 ```bash
 npx cypress run --env grepTags="@cluster-health-analyzer --@slow --@flaky"
 ```
 
 ---
 
-
 ## Test Results
 
 ### Videos
 
 Test recordings are saved automatically:
+
 - **Location**: `web/cypress/videos/`
 - **Format**: `.mp4`
 - **Generated**: For all test runs (pass or fail)
@@ -300,6 +300,7 @@ Test recordings are saved automatically:
 ### Screenshots
 
 Screenshots captured on test failures:
+
 - **Location**: `web/cypress/screenshots/`
 - **Format**: `.png`
 - **Generated**: Only on failures
@@ -311,6 +312,7 @@ Screenshots captured on test failures:
 ### Issue: Cypress Cannot Find Chrome/Browser
 
 **Solution**: Install Chrome or specify browser
+
 ```bash
 npm run cypress:open --browser firefox
 ```
@@ -319,7 +321,8 @@ npm run cypress:open --browser firefox
 
 **Symptoms**: Tests fail with "BASE_URL is not defined"
 
-**Solution**: 
+**Solution**:
+
 1. Verify variables are exported: `echo $CYPRESS_BASE_URL`
 2. Re-run configuration: `source ./configure-env.sh`
 3. Ensure you're in the correct shell session
@@ -329,6 +332,7 @@ npm run cypress:open --browser firefox
 **Symptoms**: "ENOENT: no such file or directory"
 
 **Solution**:
+
 ```bash
 # Check file exists
 ls -la $CYPRESS_KUBECONFIG_PATH
@@ -342,6 +346,7 @@ export CYPRESS_KUBECONFIG_PATH=/correct/path/to/kubeconfig
 **Symptoms**: "User authentication failed"
 
 **Solution**:
+
 1. Verify IDP name: Check OpenShift OAuth configuration
 2. Verify credentials are correct
 3. For kubeadmin, use `kube:admin` as IDP
@@ -349,6 +354,7 @@ export CYPRESS_KUBECONFIG_PATH=/correct/path/to/kubeconfig
 ### Issue: Tests Are Slow
 
 **Solution**: Enable session management
+
 ```bash
 export CYPRESS_SESSION=true
 ```
@@ -416,10 +422,10 @@ For configuration scenarios, see [COO Tests](#test-configuration-scenarios) abov
 
 ### Incidents-Specific Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CYPRESS_TIMEZONE` | `UTC` | Cluster timezone for incident timeline calculations |
-| `CYPRESS_MOCK_NEW_METRICS` | `false` | Transform old metric names to new format in mocks |
+| Variable                   | Default | Description                                         |
+| -------------------------- | ------- | --------------------------------------------------- |
+| `CYPRESS_TIMEZONE`         | `UTC`   | Cluster timezone for incident timeline calculations |
+| `CYPRESS_MOCK_NEW_METRICS` | `false` | Transform old metric names to new format in mocks   |
 
 ### Test Case Documentation
 
@@ -427,4 +433,4 @@ Detailed test documentation: [`docs/incident_detection/tests/`](../../docs/incid
 
 ---
 
-*For questions about test architecture, creating tests, or testing workflows, refer to [CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)*
+_For questions about test architecture, creating tests, or testing workflows, refer to [CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)_

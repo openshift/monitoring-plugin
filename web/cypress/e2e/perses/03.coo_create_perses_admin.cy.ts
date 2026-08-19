@@ -21,7 +21,7 @@ import { operatorAuthUtils } from '../../support/commands/auth-commands';
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - Create perses dashboard',
-  { tags: ['@perses', '@dashboards'] },
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });

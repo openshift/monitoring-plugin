@@ -35,7 +35,7 @@ const KBV = {
 
 describe(
   'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@virtualization', '@slow', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -49,7 +49,7 @@ describe(
 
 describe(
   'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@virtualization', '@slow', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockVirtualization(KBV);
@@ -65,7 +65,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@metrics', '@slow', '@virtualization', '@coo'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
@@ -87,7 +87,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@metrics', '@slow', '@virtualization', '@coo'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
