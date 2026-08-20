@@ -34,7 +34,7 @@ export const ExternalLink: FC<ExternalLinkProps> = ({
 
 // Open links in a new window and set noopener/noreferrer.
 export const LinkifyExternal: FC<{ children: ReactNode }> = ({ children }) => (
-  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
+  <Linkify options={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
 );
 LinkifyExternal.displayName = 'LinkifyExternal';
 
