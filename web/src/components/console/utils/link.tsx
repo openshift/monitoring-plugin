@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react';
-import Linkify from 'react-linkify';
+import Linkify from 'linkify-react';
 import { Button, Icon } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 
