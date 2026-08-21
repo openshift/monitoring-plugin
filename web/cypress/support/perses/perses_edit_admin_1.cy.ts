@@ -20,7 +20,7 @@ export function runCOOEditPersesTests1(perspective: PerspectiveConfig) {
   testCOOEditPerses1(perspective);
 }
 
-export function testCOOEditPerses1(perspective: PerspectiveConfig) {
+function testCOOEditPerses1(perspective: PerspectiveConfig) {
   it(`10.${perspective.name} perspective - Edit Toolbar - Add Panel`, () => {
     cy.log(`10.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');

@@ -1,6 +1,6 @@
 import { nav } from '../../../views/nav';
-import { runCOORBACPersesTestsDevUser3 } from '../../../support/perses/99.coo_rbac_perses_user3.cy';
-import { operatorAuthUtils } from '../../../support/commands/auth-commands';
+import { runCOORBACPersesTestsDevUser3 } from '../../../support/perses/rbac/perses_user3.cy';
+import { operatorAuthUtils } from '../../../support/shared/commands/auth-commands';
 
 describe(
   'RBAC User3: COO - Dashboards (Perses) - Administrator perspective',

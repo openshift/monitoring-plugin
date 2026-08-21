@@ -1,6 +1,6 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
-import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
+import { runAllRegressionLegacyDashboardsTests } from '../../support/legacy-dashboards/legacy_dashboards_regressions.cy';
+import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/legacy-dashboards/legacy_dashboards_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 

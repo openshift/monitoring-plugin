@@ -1,7 +1,7 @@
 import { nav } from '../../views/nav';
-import { runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
-import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { runCOOEditPersesTests1 } from '../../support/perses/perses_edit_admin_1.cy';
+import { runCOOEditPersesTests } from '../../support/perses/perses_edit_admin.cy';
+import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
 
 describe(
   'COO - Dashboards (Perses) - Edit perses dashboard',

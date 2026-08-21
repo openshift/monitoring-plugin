@@ -1,5 +1,5 @@
-import { nav } from '../../views/nav';
-import { guidedTour } from '../../views/tour';
+import { nav } from '../../../views/nav';
+import { guidedTour } from '../../../views/tour';
 
 export {};
 declare global {

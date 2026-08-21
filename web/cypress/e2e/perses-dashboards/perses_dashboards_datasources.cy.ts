@@ -5,8 +5,8 @@ import {
   LOKI_OPERATOR,
   OPENTELEMETRY_OPERATOR,
   TEMPO_OPERATOR,
-} from '../../support/operators';
-import { runCOOCreateImportPersesTests } from '../../support/perses/05.coo_create_import_perses_admin.cy';
+} from '../../support/shared/operators';
+import { runCOOCreateImportPersesTests } from '../../support/perses/perses_create_import_admin.cy';
 import { nav } from '../../views/nav';
 
 describe(

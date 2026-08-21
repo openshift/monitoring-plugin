@@ -1,6 +1,6 @@
 import { nav } from '../../views/nav';
-import { runCOOImportPersesTests } from '../../support/perses/04.coo_import_perses_admin.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { runCOOImportPersesTests } from '../../support/perses/perses_import_admin.cy';
+import { operatorAuthUtils } from '../../support/shared/commands/auth-commands';
 
 describe(
   'COO - Dashboards (Perses) - Import perses dashboard',

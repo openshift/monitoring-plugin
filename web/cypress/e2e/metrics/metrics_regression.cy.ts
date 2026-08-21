@@ -1,10 +1,14 @@
-import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
-import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
-import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
+import {
+  runAllRegressionMetricsTests1,
+  runAllRegressionMetricsTests2,
+} from '../../support/metrics/metrics_regressions.cy';
+import {
+  runAllRegressionMetricsTestsNamespace1,
+  runAllRegressionMetricsTestsNamespace2,
+} from '../../support/metrics/metrics_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
-import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {

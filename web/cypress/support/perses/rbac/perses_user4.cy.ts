@@ -1,4 +1,4 @@
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
 
 export interface PerspectiveConfig {
   name: string;
