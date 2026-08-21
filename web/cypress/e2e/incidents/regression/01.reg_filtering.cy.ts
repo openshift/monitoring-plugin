@@ -25,7 +25,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer'] }, () => {
+describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
     cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
   });

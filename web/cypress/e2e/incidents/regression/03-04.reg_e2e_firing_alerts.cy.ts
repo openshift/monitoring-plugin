@@ -36,7 +36,7 @@ const MP = {
 
 describe(
   'Regression: Time-Based Alert Resolution (E2E with Firing Alerts)',
-  { tags: ['@cluster-health-analyzer', '@slow'] },
+  { tags: ['@cluster-health-analyzer', '@slow', '@coo'] },
   () => {
     let currentAlertName: string;
 

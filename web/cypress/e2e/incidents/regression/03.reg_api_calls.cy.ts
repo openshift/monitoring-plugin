@@ -33,7 +33,7 @@ const MP = {
 
 describe(
   'Regression: Silences Not Applied Correctly',
-  { tags: ['@cluster-health-analyzer'] },
+  { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
@@ -141,47 +141,51 @@ describe(
   },
 );
 
-describe('Regression: Permission Denied Handling', { tags: ['@cluster-health-analyzer'] }, () => {
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
-  });
+describe(
+  'Regression: Permission Denied Handling',
+  { tags: ['@cluster-health-analyzer', '@coo'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+    });
 
-  beforeEach(() => {
-    cy.log('Mock all API endpoints as 403 Forbidden');
-    cy.mockPermissionDenied();
-    cy.log('Navigate to Observe -> Incidents');
-    // Using custom navigation commands to avoid waiting for the page
-    // to load which never happens in this test
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    nav.tabs.switchTab('Incidents');
-  });
+    beforeEach(() => {
+      cy.log('Mock all API endpoints as 403 Forbidden');
+      cy.mockPermissionDenied();
+      cy.log('Navigate to Observe -> Incidents');
+      // Using custom navigation commands to avoid waiting for the page
+      // to load which never happens in this test
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      nav.tabs.switchTab('Incidents');
+    });
 
-  it('Page displays access denied state when all API endpoints return 403 Forbidden', () => {
-    cy.log('1.1 Verify 403 requests were intercepted');
-    const waitTimeout = { timeout: 120000 };
-    cy.wait('@rulesPermissionDenied', waitTimeout)
-      .its('response')
-      .should('exist')
-      .its('statusCode')
-      .should('eq', 403);
-    cy.wait('@silencesPermissionDenied', waitTimeout)
-      .its('response')
-      .should('exist')
-      .its('statusCode')
-      .should('eq', 403);
-    cy.wait('@prometheusQueryRangePermissionDenied', waitTimeout)
-      .its('response')
-      .should('exist')
-      .its('statusCode')
-      .should('eq', 403);
+    it('Page displays access denied state when all API endpoints return 403 Forbidden', () => {
+      cy.log('1.1 Verify 403 requests were intercepted');
+      const waitTimeout = { timeout: 120000 };
+      cy.wait('@rulesPermissionDenied', waitTimeout)
+        .its('response')
+        .should('exist')
+        .its('statusCode')
+        .should('eq', 403);
+      cy.wait('@silencesPermissionDenied', waitTimeout)
+        .its('response')
+        .should('exist')
+        .its('statusCode')
+        .should('eq', 403);
+      cy.wait('@prometheusQueryRangePermissionDenied', waitTimeout)
+        .its('response')
+        .should('exist')
+        .its('statusCode')
+        .should('eq', 403);
 
-    cy.log('1.2 Verify access denied empty state is displayed');
-    cy.byTestID('access-denied').should('be.visible');
-    cy.byTestID('access-denied').should(
-      'contain.text',
-      "You don't have access to this section due to cluster policy",
-    );
+      cy.log('1.2 Verify access denied empty state is displayed');
+      cy.byTestID('access-denied').should('be.visible');
+      cy.byTestID('access-denied').should(
+        'contain.text',
+        "You don't have access to this section due to cluster policy",
+      );
 
-    cy.log('Verified: Page displays restricted access state for permission denied');
-  });
-});
+      cy.log('Verified: Page displays restricted access state for permission denied');
+    });
+  },
+);

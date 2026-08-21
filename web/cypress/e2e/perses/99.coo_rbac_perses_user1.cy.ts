@@ -19,7 +19,7 @@ const MP = {
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
-  { tags: ['@perses-dev'] },
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)

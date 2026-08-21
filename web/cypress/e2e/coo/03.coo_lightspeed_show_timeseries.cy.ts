@@ -30,13 +30,12 @@ const SEL = {
 /**
  * Non-deterministic test: relies on a live LLM (OLS) to produce a show_timeseries
  * tool call. The AI response is not guaranteed to be identical across runs.
- * This test is tagged @ols and must NOT gate CI. It validates the end-to-end
- * integration path: prompt -> tool call -> Perses chart rendering.
+ * It validates the end-to-end integration path: prompt -> tool call -> Perses chart rendering.
  *
  * Prerequisites: COO and OLS operators must be pre-installed.
  * Only authentication is needed — operator lifecycle is not managed here.
  */
-describe('COO-LightSpeed: show_timeseries', { tags: ['@ols'] }, () => {
+describe('COO-LightSpeed: show_timeseries', { tags: ['@perses-dashboards', '@coo'] }, () => {
   before(() => {
     operatorAuthUtils.loginAndAuth();
     cy.visit('/');
@@ -58,7 +57,9 @@ describe('COO-LightSpeed: show_timeseries', { tags: ['@ols'] }, () => {
     ).then(() => {
       // Fallback: delete any dashboard whose CR name matches the display name pattern
       cy.exec(
-        `oc get persesdashboard -n ${DASHBOARD_PROJECT} -o name --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc get persesdashboard -n ${DASHBOARD_PROJECT} -o name --kubeconfig ${Cypress.env(
+          'KUBECONFIG_PATH',
+        )}`,
         { failOnNonZeroExit: false },
       ).then((result) => {
         if (result.stdout) {
