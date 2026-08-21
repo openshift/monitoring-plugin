@@ -1,6 +1,6 @@
 import 'cypress-wait-until';
-import { operatorHubPage } from '../../../views/operator-hub-page';
-import { nav } from '../../../views/nav';
+import { operatorHubPage } from '../../../views/shared/operator-hub-page';
+import { nav } from '../../../views/shared/nav';
 
 export {};
 

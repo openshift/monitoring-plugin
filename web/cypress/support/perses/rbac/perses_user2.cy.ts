@@ -1,5 +1,5 @@
-import { persesDashboardsPage } from '../../../views/perses-dashboards';
-import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-list-dashboards';
 import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,

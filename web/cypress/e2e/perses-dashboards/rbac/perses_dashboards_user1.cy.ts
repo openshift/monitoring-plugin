@@ -1,4 +1,4 @@
-import { nav } from '../../../views/nav';
+import { nav } from '../../../views/shared/nav';
 import { runCOORBACPersesTestsDevUser1 } from '../../../support/perses/rbac/perses_user1.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,

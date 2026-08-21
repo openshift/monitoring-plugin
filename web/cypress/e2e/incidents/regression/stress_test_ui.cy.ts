@@ -15,7 +15,7 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
 } from '../../../support/shared/operators';
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 const MAX_GAP_STANDARD = 250;
 const MAX_GAP_RELAXED = 500;

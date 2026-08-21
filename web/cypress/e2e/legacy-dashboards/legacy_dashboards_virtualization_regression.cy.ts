@@ -5,9 +5,9 @@ import {
 } from '../../support/shared/operators';
 import { runAllRegressionLegacyDashboardsTests } from '../../support/legacy-dashboards/legacy_dashboards_regressions.cy';
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/legacy-dashboards/legacy_dashboards_regressions_namespaced.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { guidedTour } from '../../views/tour';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { guidedTour } from '../../views/shared/tour';
 
 describe(
   'Regression: Monitoring - Legacy Dashboards (Virtualization)',

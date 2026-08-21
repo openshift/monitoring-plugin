@@ -1,8 +1,8 @@
 // Not finished
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import { runBVTCOOPersesTests1 } from '../../support/perses/perses_bvt_admin.cy';
-import { guidedTour } from '../../views/tour';
-import { commonPages } from '../../views/common';
+import { guidedTour } from '../../views/shared/tour';
+import { commonPages } from '../../views/shared/common';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

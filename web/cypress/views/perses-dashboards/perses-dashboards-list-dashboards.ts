@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import {
   Classes,
   DataTestIDs,
@@ -14,8 +14,8 @@ import {
   listPersesDashboardsPageSubtitle,
   persesDashboardsDuplicateDashboard,
   persesDashboardsRenameDashboard,
-} from '../fixtures/perses/constants';
-import { MonitoringPageTitles } from '../fixtures/shared/cluster-monitoring-operator/constants';
+} from '../../fixtures/perses/constants';
+import { MonitoringPageTitles } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 
 export const listPersesDashboardsPage = {
   emptyState: () => {

@@ -1,8 +1,8 @@
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { runBVTAlertsTests } from '../../support/alerts/alerts_bvt.cy';
-import { commonPages } from '../../views/common';
-import { overviewPage } from '../../views/overview-page';
+import { commonPages } from '../../views/shared/common';
+import { overviewPage } from '../../views/shared/overview-page';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 describe(

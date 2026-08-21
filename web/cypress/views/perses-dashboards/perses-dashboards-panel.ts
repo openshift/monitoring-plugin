@@ -1,10 +1,10 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import { editPersesDashboardsAddPanel, IDs, persesAriaLabels } from '@/shared/constants/data-test';
 import {
   persesDashboardsAddListPanelType,
   persesDashboardsAddPanelAddQueryType,
   persesDashboardsModalTitles,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesDashboardsPanel = {
   addPanelShouldBeLoaded: () => {

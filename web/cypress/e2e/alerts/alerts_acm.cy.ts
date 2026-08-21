@@ -1,17 +1,16 @@
 // E2E test for validating ACM Alerting UI integration with Cluster Observability Operator (COO)
 import '../../support/shared/commands/auth-commands';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { acmAlertingPage } from '../../views/acm-alerting-page';
-
-import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
-import { incidentsPage } from 'cypress/views/incidents-page';
-import { runAllRegressionFleetManagementAlertsTests } from 'cypress/support/monitoring/01.reg_alerts.cy';
-import { listPage } from 'cypress/views/list-page';
+import { troubleshootingPanelPage } from '../../views/shared/troubleshooting-panel';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
 } from '../../support/shared/operators';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { acmAlertingPage } from '../../views/alerts/acm-alerting-page';
+import { runAllRegressionFleetManagementAlertsTests } from '../../support/alerts/alerts_regressions.cy';
+import { listPage } from '../../views/shared/list-page';
 
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 
@@ -65,6 +64,6 @@ describe('ACM Alerting UI', { tags: ['@alerting', '@acm-alerting', '@coo'] }, ()
   runAllRegressionFleetManagementAlertsTests({
     name: 'Fleet management',
     alertName: 'Watchdog-spoke',
-    alertNamespace: `${MP.namespace}`,
+    alertNamespace: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
   });
 });

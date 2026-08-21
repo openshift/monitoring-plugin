@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import {
   Classes,
   DataTestIDs,
@@ -10,19 +10,19 @@ import {
   persesDashboardDataTestIDs,
   persesMUIDataTestIDs,
 } from '@/shared/constants/data-test';
-import { MonitoringPageTitles } from '../fixtures/shared/cluster-monitoring-operator/constants';
+import { MonitoringPageTitles } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import {
   listPersesDashboardsPageSubtitle,
   persesDashboardsEmptyDashboard,
   persesDashboardsModalTitles,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 import {
   persesDashboardsAcceleratorsCommonMetricsPanels,
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
   persesDashboardsRefreshInterval,
   persesDashboardsTimeRange,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesDashboardsPage = {
   shouldBeLoaded: () => {

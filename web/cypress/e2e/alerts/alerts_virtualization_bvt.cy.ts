@@ -1,9 +1,9 @@
 import { runBVTAlertsTests } from '../../support/alerts/alerts_bvt.cy';
-import { guidedTour } from '../../views/tour';
+import { guidedTour } from '../../views/shared/tour';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
-import { nav } from '../../views/nav';
-import { commonPages } from '../../views/common';
-import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
+import { nav } from '../../views/shared/nav';
+import { commonPages } from '../../views/shared/common';
+import { troubleshootingPanelPage } from 'cypress/views/shared/troubleshooting-panel';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

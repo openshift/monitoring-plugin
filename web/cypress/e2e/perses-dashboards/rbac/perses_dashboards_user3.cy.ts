@@ -1,4 +1,4 @@
-import { nav } from '../../../views/nav';
+import { nav } from '../../../views/shared/nav';
 import { runCOORBACPersesTestsDevUser3 } from '../../../support/perses/rbac/perses_user3.cy';
 import { operatorAuthUtils } from '../../../support/shared/commands/auth-commands';
 

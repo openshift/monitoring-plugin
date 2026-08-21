@@ -1,18 +1,18 @@
-import { commonPages } from '../../views/common';
-import { detailsPage } from '../../views/details-page';
-import { listPage } from '../../views/list-page';
-import { silenceAlertPage } from '../../views/silence-alert-page';
-import { nav } from '../../views/nav';
-import { silenceDetailsPage } from '../../views/silence-details-page';
-import { silencesListPage } from '../../views/silences-list-page';
-import { getValFromElement } from '../../views/utils';
+import { commonPages } from '../../views/shared/common';
+import { alertAndSilencesDetailsPage } from '../../views/alerts/alert-and-silence-details-page';
+import { alertsListPage } from '../../views/alerts/alerts-list-page';
+import { silenceAlertPage } from '../../views/alerts/silence-alert-page';
+import { nav } from '../../views/shared/nav';
+import { silenceDetailsPage } from '../../views/alerts/silence-details-page';
+import { silencesListPage } from '../../views/alerts/silences-list-page';
+import { getValFromElement } from '../../views/shared/utils';
 import {
   AlertsAlertState,
   SilenceComment,
   SilenceState,
   WatchdogAlert,
 } from '../../fixtures/shared/cluster-monitoring-operator/constants';
-import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
+import { alertingRuleListPage } from '../../views/alerts/alerting-rule-list-page';
 
 export interface PerspectiveConfig {
   name: string;
@@ -30,29 +30,29 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
     () => {
       cy.log('5.1. use sidebar nav to go to Observe > Alerting');
       commonPages.titleShouldHaveText('Alerting');
-      listPage.tabShouldHaveText('Alerts');
-      listPage.tabShouldHaveText('Silences');
-      listPage.tabShouldHaveText('Alerting rules');
+      alertsListPage.tabShouldHaveText('Alerts');
+      alertsListPage.tabShouldHaveText('Silences');
+      alertsListPage.tabShouldHaveText('Alerting rules');
       commonPages.linkShouldExist('Export as CSV');
       commonPages.linkShouldExist('Clear all filters');
-      listPage.ARRows.shouldBeLoaded();
+      alertsListPage.ARRows.shouldBeLoaded();
 
       cy.log('5.2. filter Alerts and click on Alert');
-      listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-      listPage.ARRows.countShouldBe(1);
-      listPage.ARRows.ARShouldBe(
+      alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+      alertsListPage.ARRows.countShouldBe(1);
+      alertsListPage.ARRows.ARShouldBe(
         `${WatchdogAlert.ALERTNAME}`,
         `${WatchdogAlert.SEVERITY}`,
         1,
         'Firing',
       );
-      listPage.ARRows.expandRow();
-      listPage.ARRows.AShouldBe(
+      alertsListPage.ARRows.expandRow();
+      alertsListPage.ARRows.AShouldBe(
         `${WatchdogAlert.ALERTNAME}`,
         `${WatchdogAlert.SEVERITY}`,
         `${WatchdogAlert.NAMESPACE}`,
       );
-      listPage.ARRows.clickAlert();
+      alertsListPage.ARRows.clickAlert();
 
       cy.log('5.3. click on Alert Details Page');
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
@@ -68,7 +68,7 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
       });
 
       cy.log('5.4. click on Alert Rule link');
-      detailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
+      alertAndSilencesDetailsPage.clickAlertRule(`${WatchdogAlert.ALERTNAME}`);
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
       commonPages.detailsPage.alertRule();
       commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`);
@@ -80,13 +80,13 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
         });
 
       cy.log('5.5. click on Alert Details Page');
-      detailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
+      alertAndSilencesDetailsPage.clickAlertDesc(`${WatchdogAlert.ALERT_DESC}`);
       commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
       commonPages.detailsPage.common(`${WatchdogAlert.ALERTNAME}`);
       commonPages.detailsPage.alert(`${WatchdogAlert.ALERTNAME}`);
 
       cy.log('5.6. click on Inspect on Alert Details Page');
-      detailsPage.clickInspectAlertPage();
+      alertAndSilencesDetailsPage.clickInspectAlertPage();
 
       cy.log('5.7. Metrics page is loaded');
       commonPages.titleShouldHaveText('Metrics');
@@ -103,13 +103,13 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
   it(`${perspective.name} perspective - Creates and expires a Silence`, () => {
     cy.log('6.1 filter to Watchdog alert');
     nav.tabs.switchTab('Alerts');
-    listPage.ARRows.shouldBeLoaded();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.countShouldBe(1);
+    alertsListPage.ARRows.shouldBeLoaded();
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.ARRows.countShouldBe(1);
 
     cy.log('6.2 silence alert');
-    listPage.ARRows.expandRow();
-    listPage.ARRows.silenceAlert();
+    alertsListPage.ARRows.expandRow();
+    alertsListPage.ARRows.silenceAlert();
 
     cy.log('6.3 silence alert page');
     commonPages.titleShouldHaveText('Silence alert');
@@ -165,23 +165,23 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
     cy.log('6.5 Click on Firing alerts');
     silenceDetailsPage.clickOnFiringAlerts(`${WatchdogAlert.ALERTNAME}`);
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    detailsPage.sectionHeaderShouldExist('Alert details');
-    detailsPage.labelShouldExist('alertname=Watchdog');
+    alertAndSilencesDetailsPage.sectionHeaderShouldExist('Alert details');
+    alertAndSilencesDetailsPage.labelShouldExist('alertname=Watchdog');
 
     cy.log('6.6 Click on Silenced by');
-    detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
+    alertAndSilencesDetailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
     commonPages.titleShouldHaveText(`${WatchdogAlert.ALERTNAME}`);
-    detailsPage.sectionHeaderShouldExist('Silence details');
-    detailsPage.labelShouldExist('alertname=Watchdog');
+    alertAndSilencesDetailsPage.sectionHeaderShouldExist('Silence details');
+    alertAndSilencesDetailsPage.labelShouldExist('alertname=Watchdog');
 
     cy.log('6.7 shows the silenced Alert in the Silenced Alerts list');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Silences');
     silencesListPage.shouldBeLoaded();
-    listPage.filter.removeIndividualTag(SilenceState.ACTIVE);
-    listPage.filter.removeIndividualTag(SilenceState.PENDING);
+    alertsListPage.filter.removeIndividualTag(SilenceState.ACTIVE);
+    alertsListPage.filter.removeIndividualTag(SilenceState.PENDING);
     silencesListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
+    alertsListPage.filter.selectFilterOption('Silence State', SilenceState.ACTIVE);
     silencesListPage.rows.shouldBe(`${WatchdogAlert.ALERTNAME}`, SilenceState.ACTIVE);
 
     cy.log('6.8 verify on Alerting Rules list page again');
@@ -197,10 +197,10 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
 
     cy.log('6.9 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    listPage.filter.clearAllFilters();
-    listPage.filter.selectFilterOption('Alert State', AlertsAlertState.SILENCED);
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(
+    alertsListPage.filter.clearAllFilters();
+    alertsListPage.filter.selectFilterOption('Alert State', AlertsAlertState.SILENCED);
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.ARRows.ARShouldBe(
       `${WatchdogAlert.ALERTNAME}`,
       `${WatchdogAlert.SEVERITY}`,
       1,
@@ -208,16 +208,16 @@ export function testBVTAlerts(perspective: PerspectiveConfig) {
     );
 
     cy.log('6.10 expires the Silence');
-    listPage.ARRows.expandRow();
-    listPage.ARRows.clickAlert();
-    detailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.ARRows.expandRow();
+    alertsListPage.ARRows.clickAlert();
+    alertAndSilencesDetailsPage.clickOnSilencedBy(`${WatchdogAlert.ALERTNAME}`);
     silenceDetailsPage.expireSilence(true, true);
 
     cy.log('6.11 verify on Alerts list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    listPage.filter.clearAllFilters();
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
-    listPage.ARRows.ARShouldBe(
+    alertsListPage.filter.clearAllFilters();
+    alertsListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertsListPage.ARRows.ARShouldBe(
       `${WatchdogAlert.ALERTNAME}`,
       `${WatchdogAlert.SEVERITY}`,
       1,

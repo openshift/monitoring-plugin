@@ -1,7 +1,7 @@
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
-import { nav } from '../../views/nav';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-import-dashboard';
+import { nav } from '../../views/shared/nav';
 
 export interface PerspectiveConfig {
   name: string;
