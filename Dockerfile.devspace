@@ -1,4 +1,4 @@
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.24 AS web-builder
+FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.26 AS web-builder
 
 WORKDIR /opt/app-root
 
@@ -10,6 +10,7 @@ RUN chgrp -R 0 /.devspace
 RUN chmod -R g+rw /.devspace
 
 ENV HUSKY=0
+ENV CYPRESS_INSTALL_BINARY=0
 
 COPY Makefile Makefile
 COPY go.mod go.mod
