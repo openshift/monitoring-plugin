@@ -18,7 +18,7 @@ import {
   WatchdogAlert,
 } from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
-import { listPage } from 'cypress/views/shared/list-page';
+import { listPage } from '../../views/shared/list-page';
 
 export interface PerspectiveConfig {
   name: string;

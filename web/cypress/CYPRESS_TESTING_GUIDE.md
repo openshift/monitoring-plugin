@@ -228,11 +228,14 @@ export const runAlertTests = (perspective: string) => {
 ### Common Commands
 
 ```bash
-cd web/cypress
+cd web
+
+# Run all monitoring tests (changed files only)
+npm run test-cypress-monitoring
 
 # Run specific tests
-npm run cypress:run -- --spec "cypress/e2e/alerts/alerts_regression.cy.ts"
-npm run cypress:run -- --spec "cypress/e2e/metrics/metrics_regression.cy.ts"
+npx cypress run --spec "cypress/e2e/alerts/alerts_regression.cy.ts"
+npx cypress run --spec "cypress/e2e/metrics/metrics_regression.cy.ts"
 
 # Interactive mode (GUI)
 npm run cypress:open
@@ -278,7 +281,7 @@ source ./configure-env.sh
 3. **Run with debug**:
    ```bash
    export CYPRESS_DEBUG=true
-   npm run cypress:run
+   npm run test-cypress-monitoring
    ```
 4. **Run interactively**:
    ```bash
