@@ -4,6 +4,7 @@ ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?= monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 FEATURES    ?= cluster-health-analyzer,perses-dashboards,dev-config
+MCP_DEVSPACE_FEATURES ?= perses-dashboards,acm-alerting,incidents
 
 export NODE_OPTIONS?=--max_old_space_size=4096
 
@@ -26,6 +27,10 @@ build-frontend:
 .PHONY: start-frontend
 start-frontend:
 	cd web && npm run start
+
+.PHONY: start-mcp-frontend
+start-mcp-frontend:
+	cd web && CONSOLE_PLUGIN_NAME=monitoring-console-plugin npm run start
 
 .PHONY: start-console
 start-console:
@@ -104,6 +109,10 @@ start-feature-backend:
 .PHONY: start-devspace-backend
 start-devspace-backend:
 	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'
+
+.PHONY: start-devspace-mcp-backend
+start-devspace-mcp-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
 
 .PHONY: podman-cross-build
 podman-cross-build:
