@@ -1,6 +1,6 @@
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { guidedTour } from '../../views/tour';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
 import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';

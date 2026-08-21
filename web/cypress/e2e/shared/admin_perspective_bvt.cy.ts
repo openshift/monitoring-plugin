@@ -1,5 +1,5 @@
 import { nav } from '../../views/nav';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';

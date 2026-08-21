@@ -24,7 +24,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.3 Upload wrong format file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/accelerators-dashboard-cr-v1alpha1.yaml',
+      './cypress/fixtures/perses/dashboards/import/accelerators-dashboard-cr-v1alpha1.yaml',
     );
     persesImportDashboardsPage.assertUnableToDetectDashboardFormat();
 
@@ -33,7 +33,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.5 Upload another wrong format file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/accelerators-dashboard-cr-v1alpha2.yaml',
+      './cypress/fixtures/perses/dashboards/import/accelerators-dashboard-cr-v1alpha2.yaml',
     );
     persesImportDashboardsPage.assertUnableToDetectDashboardFormat();
 
@@ -42,7 +42,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.7 Upload Grafana dashboard file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/grafana_to_check_errors.json',
+      './cypress/fixtures/perses/dashboards/import/grafana_to_check_errors.json',
     );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
 
@@ -69,7 +69,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`2.3 Upload Grafana dashboard file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/acm-vm-status.json',
+      './cypress/fixtures/perses/dashboards/import/acm-vm-status.json',
     );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
 
@@ -99,7 +99,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/acm-vm-status.json',
+      './cypress/fixtures/perses/dashboards/import/acm-vm-status.json',
     );
     persesImportDashboardsPage.assertGrafanaDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
@@ -118,7 +118,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`3.3 Upload Perses dashboard JSON file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -145,7 +145,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');
@@ -164,7 +164,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
 
     cy.log(`4.3 Upload Perses dashboard YAML file`);
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -191,7 +191,7 @@ export function testCOOImportPerses(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');

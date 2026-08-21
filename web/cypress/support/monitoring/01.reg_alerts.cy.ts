@@ -16,7 +16,7 @@ import {
   SilenceState,
   Source,
   WatchdogAlert,
-} from '../../fixtures/monitoring/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
 
 export interface PerspectiveConfig {

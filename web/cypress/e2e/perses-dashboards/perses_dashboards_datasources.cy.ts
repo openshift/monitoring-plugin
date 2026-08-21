@@ -38,7 +38,7 @@ describe(
       cy.waitForDistributeTracingUIPluginReady();
       cy.waitForLoggingUIPluginReady();
 
-      cy.createTempoLokiThanosPersesGlobalDatasource();
+      cy.createGlobalDatasources();
     });
 
     beforeEach(() => {
@@ -48,7 +48,7 @@ describe(
     });
 
     after(() => {
-      cy.cleanupTempoLokiThanosPersesGlobalDatasource();
+      cy.cleanupGlobalDatasources();
       cy.cleanupLoggingUIPlugin();
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupExtraDashboards();

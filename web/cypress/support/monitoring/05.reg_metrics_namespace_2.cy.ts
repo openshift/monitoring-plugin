@@ -5,7 +5,7 @@ import {
   MetricsPageQueryInput,
   MetricsPageQueryInputByNamespace,
   MetricsPageQueryKebabDropdown,
-} from '../../fixtures/monitoring/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 
 export interface PerspectiveConfig {
   name: string;
