@@ -101,7 +101,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
 
       cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
       listPage.ARRows.countShouldBe(1);
       listPage.ARRows.clickAlertingRule();

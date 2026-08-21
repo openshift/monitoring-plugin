@@ -1,29 +1,20 @@
 import { nav } from '../../views/nav';
 //TODO: rename after customizable-dashboards gets merged
 import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 
 describe(
   'BVT: COO - Dashboards (Perses) - Core platform perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });

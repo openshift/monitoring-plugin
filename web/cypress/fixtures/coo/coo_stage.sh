@@ -1,29 +1,26 @@
 #!/bin/bash
 echo COO install through FBC
 
-COO_NAMESPACE="${CYPRESS_COO_NAMESPACE:-openshift-cluster-observability-operator}"
-
 oc apply -f - <<EOF
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
     openshift.io/cluster-monitoring: "true"
-  name: ${COO_NAMESPACE}
+  name: openshift-cluster-observability-operator
 EOF
 
 oc apply -f - <<EOF
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  namespace: ${COO_NAMESPACE}
+  namespace: openshift-cluster-observability-operator
   name: og-global
   labels:
-    og_label: ${COO_NAMESPACE}
+    og_label: openshift-cluster-observability-operator
 spec:
   upgradeStrategy: Default
 EOF
-
 
 oc apply -f - <<EOF
 ---
@@ -67,7 +64,7 @@ metadata:
   labels:
     operators.coreos.com/observability-operator.openshift-operators: ""
   name: cluster-observability-operator
-  namespace: ${COO_NAMESPACE}
+  namespace: openshift-cluster-observability-operator
 spec:
   channel: stable
   installPlanApproval: Automatic

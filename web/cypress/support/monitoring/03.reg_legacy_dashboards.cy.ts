@@ -99,10 +99,10 @@ export function testLegacyDashboardsRegression(perspective: PerspectiveConfig) {
       cy.byTestID(DataTestIDs.MetricGraph).should('be.visible');
 
       cy.log('4.3 Observe > Alerting rule details - Verify graph is visible');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
       listPage.ARRows.countShouldBe(1);
       listPage.ARRows.clickAlertingRule();

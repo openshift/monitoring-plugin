@@ -8,7 +8,7 @@ const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as n
 const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 export const dashboardsUtils = {
-  setupMonitoringUIPlugin(MCP: { namespace: string }): void {
+  setupMonitoringUIPlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     cy.log('Create Monitoring UI Plugin instance.');
     cy.exec(
       `oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env(
@@ -17,15 +17,18 @@ export const dashboardsUtils = {
     );
     waitForPodsReady(
       'app.kubernetes.io/instance=monitoring',
-      MCP.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
       readyTimeoutMilliseconds,
     );
-    cy.log(`Monitoring plugin pod is now running in namespace: ${MCP.namespace}`);
+    cy.log(
+      `Monitoring plugin pod is now running in namespace: ` +
+        `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+    );
     cy.checkForAlertRecursively();
     cy.dynamicPluginWorkConsoleAround();
   },
 
-  setupDashboardsAndPlugins(MCP: { namespace: string }): void {
+  setupDashboardsAndPlugins(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     cy.log('Create perses-dev namespace.');
     cy.exec(`oc new-project perses-dev --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`, {
       failOnNonZeroExit: false,
@@ -67,32 +70,35 @@ export const dashboardsUtils = {
     );
 
     cy.exec(
-      `oc label namespace ${MCP.namespace} ` +
+      `oc label namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} ` +
         `openshift.io/cluster-monitoring=true --overwrite=true ` +
         `--kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
     );
 
     waitForPodsReady(
       'app.kubernetes.io/instance=perses',
-      MCP.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
       installTimeoutMilliseconds,
     );
-    cy.log(`Perses-0 pod is now running in namespace: ${MCP.namespace}`);
+    cy.log(`Perses-0 pod is now running in namespace: ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
 
     waitForResourceCondition(
       'servicemonitor/health-analyzer',
       "jsonpath='{.metadata.name}'=health-analyzer",
-      MCP.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
       readyTimeoutMilliseconds,
     );
-    cy.log(`Health-analyzer service monitor is now running in namespace: ${MCP.namespace}`);
+    cy.log(
+      `Health-analyzer service monitor is now running in namespace: ` +
+        `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+    );
 
     cy.reload(true);
     cy.visit('/monitoring/v2/dashboards');
     cy.url().should('include', '/monitoring/v2/dashboards');
   },
 
-  setupTroubleshootingPanel(MCP: { namespace: string }): void {
+  setupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     cy.log('Create troubleshooting panel instance.');
     cy.exec(
       `oc apply -f ./cypress/fixtures/coo/troubleshooting-panel-ui-plugin.yaml ` +
@@ -102,17 +108,20 @@ export const dashboardsUtils = {
     cy.log('Troubleshooting panel instance created. Waiting for pods to be ready.');
     waitForPodsReady(
       'app.kubernetes.io/instance=troubleshooting-panel',
-      MCP.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
       readyTimeoutMilliseconds,
     );
-    cy.log(`Troubleshooting panel pod is now running in namespace: ${MCP.namespace}`);
+    cy.log(
+      `Troubleshooting panel pod is now running in namespace: ` +
+        `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+    );
 
     waitForPodsReady(
       'app.kubernetes.io/instance=korrel8r',
-      MCP.namespace,
+      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
       installTimeoutMilliseconds,
     );
-    cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
+    cy.log(`Korrel8r pod is now running in namespace: ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
     cy.checkForAlertRecursively();
     cy.dynamicPluginWorkConsoleAround();
     cy.reload(true);
@@ -151,11 +160,14 @@ export const dashboardsUtils = {
     );
   },
 
-  cleanupTroubleshootingPanel(MCP: {
+  cleanupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR: {
     namespace: string;
     config1?: { kind: string; name: string };
   }): void {
-    const config1 = MCP.config1 || { kind: 'UIPlugin', name: 'troubleshooting-panel' };
+    const config1 = CLUSTER_OBSERVABILITY_OPERATOR.config1 || {
+      kind: 'UIPlugin',
+      name: 'troubleshooting-panel',
+    };
 
     if (Cypress.env('SKIP_ALL_INSTALL')) {
       cy.log('SKIP_ALL_INSTALL is set. Skipping Troubleshooting Panel instance deletion.');

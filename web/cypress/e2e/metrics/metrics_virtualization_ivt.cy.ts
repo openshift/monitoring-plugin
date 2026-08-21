@@ -6,43 +6,20 @@ import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../../support/operators';
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
   { tags: ['@metrics', '@slow', '@virtualization', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization');
       guidedTour.closeKubevirtTour();
@@ -52,11 +29,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTests1({
@@ -74,11 +51,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTestsNamespace1({
@@ -92,9 +69,9 @@ describe(
   { tags: ['@metrics', '@slow', '@virtualization'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
@@ -104,11 +81,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTests2({
@@ -126,11 +103,11 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
+      alerts.interceptWatchdogAlert();
     });
 
     runAllRegressionMetricsTestsNamespace2({
