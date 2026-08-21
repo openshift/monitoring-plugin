@@ -1,6 +1,6 @@
-import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser5 } from '../../support/perses/99.coo_rbac_perses_user5.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { nav } from '../../../views/nav';
+import { runCOORBACPersesTestsDevUser3 } from '../../../support/perses/99.coo_rbac_perses_user3.cy';
+import { operatorAuthUtils } from '../../../support/commands/auth-commands';
 
 // Set constants for the operators that need to be installed for tests.
 // const MCP = {
@@ -19,7 +19,7 @@ import { operatorAuthUtils } from '../../support/commands/auth-commands';
 // };
 
 describe(
-  'RBAC User5: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC User3: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -62,8 +62,8 @@ describe(
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
-        Cypress.env('LOGIN_USERNAME5'),
-        Cypress.env('LOGIN_PASSWORD5'),
+        Cypress.env('LOGIN_USERNAME3'),
+        Cypress.env('LOGIN_PASSWORD3'),
       );
       cy.validateLogin();
       cy.closeOnboardingModalIfPresent();
@@ -71,6 +71,7 @@ describe(
 
     beforeEach(() => {
       cy.switchPerspective('Core platform');
+      // Why do we check Dashboards first?
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
@@ -83,7 +84,7 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runCOORBACPersesTestsDevUser5({
+    runCOORBACPersesTestsDevUser3({
       name: 'Core platform',
     });
   },

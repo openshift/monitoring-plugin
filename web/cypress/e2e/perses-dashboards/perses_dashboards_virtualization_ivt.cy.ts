@@ -1,12 +1,12 @@
-import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
-import { commonPages } from '../../views/common';
+// Not finished
 import { nav } from '../../views/nav';
+import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
+import { commonPages } from '../../views/common';
 
 // Set constants for the operators that need to be installed for tests.
 const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -34,54 +34,29 @@ const KBV = {
 };
 
 describe(
-  'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@alerting', '@virtualization', '@slow', '@coo'] },
+  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
+  { tags: ['@perses-dashboards', '@slow', '@virtualization', '@coo'] },
+
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe(
-  'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@alerting', '@virtualization', '@slow', '@coo'] },
-  () => {
-    before(() => {
       cy.beforeBlockVirtualization(KBV);
-    });
-
-    it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe(
-  'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@slow', '@virtualization', '@coo'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
+      guidedTour.close();
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      commonPages.titleShouldHaveText('Dashboards');
     });
-    // Run tests in Virtualization perspective
-    runAllRegressionAlertsTests({
+
+    runBVTCOOPersesTests1({
       name: 'Virtualization',
     });
   },

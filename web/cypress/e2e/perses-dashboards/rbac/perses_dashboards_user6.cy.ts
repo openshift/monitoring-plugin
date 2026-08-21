@@ -1,6 +1,6 @@
-import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser6 } from '../../support/perses/99.coo_rbac_perses_user6.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { nav } from '../../../views/nav';
+import { runCOORBACPersesTestsDevUser6 } from '../../../support/perses/99.coo_rbac_perses_user6.cy';
+import { operatorAuthUtils } from '../../../support/commands/auth-commands';
 
 // Set constants for the operators that need to be installed for tests.
 // const MCP = {
