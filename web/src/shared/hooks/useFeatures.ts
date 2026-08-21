@@ -1,7 +1,7 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
-type features = {
+type Features = {
   alerting: boolean;
   'acm-alerting': boolean;
   'perses-dashboards': boolean;
@@ -9,21 +9,11 @@ type features = {
   metrics: boolean;
   targets: boolean;
   'cluster-health-analyzer': boolean;
-  incidents: boolean;
 };
 
-type FeaturesResponse = {
-  alerting?: boolean;
-  'acm-alerting'?: boolean;
-  'perses-dashboards'?: boolean;
-  'legacy-dashboards'?: boolean;
-  metrics?: boolean;
-  targets?: boolean;
-  'cluster-health-analyzer'?: boolean;
-  incidents?: boolean;
-};
+type FeaturesResponse = Partial<Features>;
 
-const noFeatures: features = {
+const defaultMonitoringConsolePluginFeatures: Features = {
   alerting: false,
   'acm-alerting': false,
   'perses-dashboards': false,
@@ -31,36 +21,49 @@ const noFeatures: features = {
   metrics: false,
   targets: false,
   'cluster-health-analyzer': false,
-  incidents: false,
 };
-// monitoring-console-plugin proxy via. cluster observability operator
-// https://github.com/rhobs/observability-operator/blob/28ac1ba9e179d25cae60e8223bcf61816e23a311/pkg/controllers/uiplugin/monitoring.go#L44
-const MCP_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/backend';
-const featuresEndpoint = `${MCP_PROXY_PATH}/features`;
+
+const defaultMonitoringPluginFeatures: Features = {
+  alerting: true,
+  'acm-alerting': false,
+  'perses-dashboards': false,
+  'legacy-dashboards': true,
+  metrics: true,
+  targets: true,
+  'cluster-health-analyzer': false,
+};
+
+const MP_PROXY_PATH = '/api/plugins/monitoring-plugin';
+const MCP_PROXY_PATH = '/api/plugins/monitoring-console-plugin';
+
+const fetchFeatures = async (proxyPath: string, defaults: Features): Promise<Features> => {
+  try {
+    const response: FeaturesResponse = await consoleFetchJSON(`${proxyPath}/features`);
+    return { ...defaults, ...response };
+  } catch {
+    return defaults;
+  }
+};
 
 export const useFeatures = () => {
-  const [features, setFeatures] = useState<features>(noFeatures);
-  const dashboardsAbort = useRef<() => void | undefined>();
-  const getFeatures = useCallback(async () => {
-    try {
-      if (dashboardsAbort.current) {
-        dashboardsAbort.current();
-      }
+  const { data: monitoringPluginFeatures } = useQuery({
+    queryKey: ['features', 'monitoring-plugin'],
+    queryFn: () => fetchFeatures(MP_PROXY_PATH, defaultMonitoringPluginFeatures),
+    placeholderData: defaultMonitoringPluginFeatures,
+    staleTime: Infinity,
+  });
 
-      const response: FeaturesResponse = await consoleFetchJSON(featuresEndpoint);
-      setFeatures({ ...noFeatures, ...response });
-    } catch {
-      setFeatures(noFeatures);
-    }
-  }, []);
-
-  // Use useEffect to call getFeatures only once after the component mounts
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    getFeatures();
-  }, [getFeatures]);
+  const { data: monitoringConsolePluginFeatures } = useQuery({
+    queryKey: ['features', 'monitoring-console-plugin'],
+    queryFn: () => fetchFeatures(MCP_PROXY_PATH, defaultMonitoringConsolePluginFeatures),
+    placeholderData: defaultMonitoringConsolePluginFeatures,
+    staleTime: Infinity,
+  });
 
   return {
-    features,
+    features: {
+      'monitoring-plugin': monitoringPluginFeatures,
+      'monitoring-console-plugin': monitoringConsolePluginFeatures,
+    },
   };
 };
