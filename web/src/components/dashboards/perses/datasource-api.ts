@@ -85,6 +85,6 @@ export class OcpDatasourceApi implements DatasourceApi {
   }
 
   listGlobalDatasources(pluginKind?: string): Promise<GlobalDatasourceResource[]> {
-    return fetchGlobalDatasourceList(pluginKind);
+    return fetchGlobalDatasourceList(pluginKind).catch(() => []);
   }
 }
