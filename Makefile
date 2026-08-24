@@ -50,7 +50,7 @@ build-backend:
 
 .PHONY: start-backend
 start-backend:
-	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist'
 
 .PHONY: test-backend
 test-backend:
@@ -71,10 +71,6 @@ build-image:
 .PHONY: install
 install:
 	make install-frontend && make install-backend
-
-.PHONY: update-plugin-name
-update-plugin-name:
-	./scripts/update-plugin-name.sh
 
 .PHONY: deploy
 deploy: lint-backend
@@ -108,10 +104,6 @@ build-mcp-image:
 .PHONY: build-dev-mcp-image
 build-dev-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.dev-mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
-
-.PHONY: start-feature-console
-start-feature-console:
-	PLUGIN_PORT=9443 ./scripts/start-console.sh
 
 .PHONY: start-feature-backend
 start-feature-backend:
