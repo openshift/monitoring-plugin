@@ -26,7 +26,6 @@ Examples:
     $(basename "$0")                                    # Open terminal and source export-env.sh
     $(basename "$0") --configure                        # Run configure-env.sh interactively
     $(basename "$0") --run "npm run cypress:open"       # Run a cypress command
-    $(basename "$0") --run "npm run test-cypress-smoke" # Run smoke tests
 EOF
 }
 
@@ -84,10 +83,10 @@ open_terminal() {
     echo "Using terminal: $terminal"
 
     case "$terminal" in
-        gnome-terminal) open_gnome_terminal "$cmd" ;;
-        konsole) open_konsole "$cmd" ;;
-        xfce4-terminal) open_xfce4_terminal "$cmd" ;;
-        xterm) open_xterm "$cmd" ;;
+    gnome-terminal) open_gnome_terminal "$cmd" ;;
+    konsole) open_konsole "$cmd" ;;
+    xfce4-terminal) open_xfce4_terminal "$cmd" ;;
+    xterm) open_xterm "$cmd" ;;
     esac
 }
 
@@ -98,48 +97,47 @@ main() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --configure)
-                mode="configure"
-                shift
-                ;;
-            --run)
-                mode="run"
-                cmd="${2:-}"
-                if [[ -z "$cmd" ]]; then
-                    echo "Error: --run requires a command argument" >&2
-                    exit 1
-                fi
-                shift 2
-                ;;
-            --help|-h)
-                show_usage
-                exit 0
-                ;;
-            *)
-                echo "Unknown option: $1" >&2
-                show_usage
+        --configure)
+            mode="configure"
+            shift
+            ;;
+        --run)
+            mode="run"
+            cmd="${2:-}"
+            if [[ -z "$cmd" ]]; then
+                echo "Error: --run requires a command argument" >&2
                 exit 1
-                ;;
+            fi
+            shift 2
+            ;;
+        --help | -h)
+            show_usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            show_usage
+            exit 1
+            ;;
         esac
     done
 
     case "$mode" in
-        source)
-            echo "Opening '$TERMINAL_NAME' terminal..."
-            open_terminal "source ./export-env.sh && echo '✅ Environment loaded from export-env.sh' && echo 'You can now run Cypress tests.'"
-            ;;
-        configure)
-            echo "Opening '$TERMINAL_NAME' terminal with configuration..."
-            open_terminal "./configure-env.sh && source ./export-env.sh && echo '' && echo '✅ Environment configured and loaded.'"
-            ;;
-        run)
-            echo "Opening '$TERMINAL_NAME' terminal and running: $cmd"
-            open_terminal "source ./export-env.sh && $cmd"
-            ;;
+    source)
+        echo "Opening '$TERMINAL_NAME' terminal..."
+        open_terminal "source ./export-env.sh && echo '✅ Environment loaded from export-env.sh' && echo 'You can now run Cypress tests.'"
+        ;;
+    configure)
+        echo "Opening '$TERMINAL_NAME' terminal with configuration..."
+        open_terminal "./configure-env.sh && source ./export-env.sh && echo '' && echo '✅ Environment configured and loaded.'"
+        ;;
+    run)
+        echo "Opening '$TERMINAL_NAME' terminal and running: $cmd"
+        open_terminal "source ./export-env.sh && $cmd"
+        ;;
     esac
 
     echo "Done."
 }
 
 main "$@"
-

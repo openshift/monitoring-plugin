@@ -43,7 +43,7 @@ const CLO = {
 
 describe(
   'COO - Dashboards (Perses) - Perses Global Datasources with Tempo and Loki',
-  { tags: ['@perses-ivt', '@dashboards', '@xfail'] },
+  { tags: ['@perses-dashboards', '@xfail', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockTempo(TEMPO);

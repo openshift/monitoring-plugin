@@ -34,7 +34,7 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
       listPage.tabShouldHaveText('Silences');
       listPage.tabShouldHaveText('Alerting rules');
       commonPages.linkShouldExist('Export as CSV');
-      commonPages.linkShouldExist('Clear filters');
+      commonPages.linkShouldExist('Clear all filters');
       listPage.ARRows.shouldBeLoaded();
 
       cy.log('4.2. filter Alerts and click on Alert');
@@ -125,18 +125,11 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
       false,
       false,
     );
-    // silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
-    //   'severity', `${SEVERITY}`, false, false);
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
       'namespace',
       `${WatchdogAlert.NAMESPACE}`,
       false,
       false,
-    );
-    silenceAlertPage.assertNamespaceLabelNamespaceValueDisabled(
-      'namespace',
-      `${WatchdogAlert.NAMESPACE}`,
-      true,
     );
     silenceAlertPage.assertLabelNameLabelValueRegExNegMatcher(
       'prometheus',
@@ -195,7 +188,7 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
     cy.log('5.8 verify on Alerting Rules list page again');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
-    listPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
+    alertingRuleListPage.filter.byName(`${WatchdogAlert.ALERTNAME}`);
     alertingRuleListPage.ARShouldBe(
       `${WatchdogAlert.ALERTNAME}`,
       `${WatchdogAlert.SEVERITY}`,

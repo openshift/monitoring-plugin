@@ -10,7 +10,7 @@ const MP = {
 
 describe(
   'Regression: Monitoring - Alerts Namespaced (Administrator)',
-  { tags: ['@monitoring-dev', '@alerts-dev'] },
+  { tags: ['@alerting'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);
