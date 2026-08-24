@@ -22,7 +22,10 @@ var log = logrus.WithField("module", "managementrouter")
 // maxRequestBodyBytes limits incoming request bodies to 1 MB across all handlers.
 const maxRequestBodyBytes = 1 << 20 // 1 MB
 
-const maxBulkDeleteRuleIds = 100
+const (
+	maxBulkDeleteRuleIds = 100
+	maxBulkUpdateRuleIds = 100
+)
 
 type httpRouter struct {
 	managementClient management.Client
