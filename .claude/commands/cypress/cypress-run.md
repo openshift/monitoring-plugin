@@ -349,6 +349,7 @@ Use these tags with `--env grepTags`:
 - `@metrics` - Metrics explorer tests
 - `@perses-dashboards` - Perses dashboard tests
 - `@coo` - Observability Operator tests
+- `@ols` - OpenShift Lightspeed integration tests
 - `@virtualization` - OpenShift Virtualization tests
 - `@cluster-health-analyzer` - Incidents feature tests
 - `@targets` - Targets page tests

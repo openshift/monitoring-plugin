@@ -43,9 +43,10 @@
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
     "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@flaky --@xfail'",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}'",
-    "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@xfail'",
-    "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@flaky --@xfail'",
-    "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-ivt --@flaky --@xfail'"
+    "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@xfail'",
+    "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@flaky --@xfail'",
+    "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@flaky --@xfail'",
+    "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@flaky --@xfail'"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.4",

@@ -3,6 +3,7 @@ type BasicTag = '@flaky' | '@xfail' | '@slow';
 type HighLevelComponentTag =
   | '@coo'
   | '@virtualization'
+  | '@ols'
   | '@acm-alerting'
   | '@alerting'
   | '@legacy-dashboards'

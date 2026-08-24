@@ -224,6 +224,7 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 
 - `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
 - `@virtualization` - Virtualization integration tests
+- `@ols` - OpenShift Lightspeed. Requires external installation of OLS and setup of LLM accounts through CI configuration
 
 **3. Specific Feature Tags** (format: `@{component}`):
 
