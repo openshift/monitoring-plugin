@@ -115,6 +115,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "overrides": {
+    "linkify-it": "^5.0.1",
     "webpack": "^5.76.0",
     "tough-cookie": "^4.1.3",
     "sanitize-html": "^2.12.1",
