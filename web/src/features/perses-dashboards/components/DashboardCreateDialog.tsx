@@ -16,7 +16,7 @@ import {
   TextInput,
   ValidatedOptions,
 } from '@patternfly/react-core';
-import { DashboardResource } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/client';
 import { FC, useEffect } from 'react';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

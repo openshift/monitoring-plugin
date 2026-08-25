@@ -1,7 +1,7 @@
 import { TimeZoneProvider } from '@perses-dev/components';
-import type { DurationString, TimeRangeValue } from '@perses-dev/core';
 import { VariableProvider } from '@perses-dev/dashboards';
 import { TimeRangeProviderBasic } from '@perses-dev/plugin-system';
+import type { DurationString, TimeRangeValue } from '@perses-dev/spec';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC, ReactNode } from 'react';
 

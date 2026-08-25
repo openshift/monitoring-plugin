@@ -331,6 +331,7 @@ export const listPersesDashboardsDataTestIDs = {
   PersesBreadcrumbDashboardNameItem: 'perses-dashboards-breadcrumb-dashboard-name-item',
   NameFilter: 'name-filter',
   ProjectFilter: 'project-filter',
+  TagsFilter: 'tags-filter',
   EmptyStateTitle: 'empty-state-title',
   EmptyStateBody: 'empty-state-body',
   DashboardLinkPrefix: 'perseslistpage-',

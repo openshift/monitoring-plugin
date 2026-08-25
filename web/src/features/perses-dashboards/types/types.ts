@@ -1,4 +1,4 @@
-import type { DashboardResource } from '@perses-dev/core';
+import type { DashboardResource } from '@perses-dev/client';
 
 export type DashboardMetadata = {
   name: string;

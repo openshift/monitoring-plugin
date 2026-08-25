@@ -71,11 +71,12 @@
     "@patternfly/react-icons": "^6.4.0",
     "@patternfly/react-table": "^6.4.1",
     "@patternfly/react-templates": "^6.4.1",
-    "@perses-dev/components": "0.54.0-beta.1",
-    "@perses-dev/core": "0.53.0",
-    "@perses-dev/dashboards": "0.54.0-beta.1",
-    "@perses-dev/explore": "0.54.0-beta.1",
-    "@perses-dev/plugin-system": "0.54.0-beta.1",
+    "@perses-dev/components": "0.54.0",
+    "@perses-dev/spec": "v0.2.0",
+    "@perses-dev/dashboards": "0.54.0",
+    "@perses-dev/explore": "0.54.0",
+    "@perses-dev/plugin-system": "0.54.0",
+    "@perses-dev/client": "0.54.0",
     "@prometheus-io/codemirror-promql": "^0.37.0",
     "@tanstack/react-query": "^4.36.1",
     "classnames": "2.x",
@@ -161,6 +162,14 @@
   },
   "peerDependencies": {
     "react-router-dom": "^7"
+  },
+  "optionalDependencies": {
+    "@esbuild/darwin-arm64": "0.25.12",
+    "@esbuild/linux-arm64": "0.25.12",
+    "@esbuild/linux-x64": "0.25.12",
+    "@unrs/resolver-binding-darwin-arm64": "1.12.2",
+    "@unrs/resolver-binding-linux-arm64-gnu": "1.12.2",
+    "@unrs/resolver-binding-linux-x64-gnu": "1.12.2"
   },
   "overrides": {
     "echarts": "^5.6.0",

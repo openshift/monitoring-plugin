@@ -1,10 +1,12 @@
 import { Box } from '@mui/material';
-import { ChartsProvider, ErrorAlert, ErrorBoundary, useChartsTheme } from '@perses-dev/components';
+import { DashboardResource, EphemeralDashboardResource } from '@perses-dev/client';
 import {
-  DashboardResource,
-  EphemeralDashboardResource,
+  ChartsProvider,
+  ErrorAlert,
+  ErrorBoundary,
   getResourceExtendedDisplayName,
-} from '@perses-dev/core';
+  useChartsTheme,
+} from '@perses-dev/components';
 import {
   Dashboard,
   DashboardDiscardChangesConfirmationDialog,
@@ -16,8 +18,6 @@ import {
   PanelDrawer,
   PanelGroupDialog,
   SaveChangesConfirmationDialog,
-} from '@perses-dev/dashboards';
-import {
   useDashboard,
   useDiscardChangesConfirmationDialog,
   useEditMode,

@@ -1,4 +1,4 @@
-import { DurationString } from '@perses-dev/core';
+import { DurationString } from '@perses-dev/spec';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
 import { QueryParams } from '@/shared/constants/query-params';

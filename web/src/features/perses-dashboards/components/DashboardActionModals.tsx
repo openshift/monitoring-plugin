@@ -21,7 +21,8 @@ import {
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { TypeaheadSelect, TypeaheadSelectOption } from '@patternfly/react-templates';
 import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
-import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/client';
+import { getResourceExtendedDisplayName } from '@perses-dev/components';
 import { CSSProperties, useEffect, useMemo } from 'react';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

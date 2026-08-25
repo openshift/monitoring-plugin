@@ -7,7 +7,7 @@ import {
   Spinner,
 } from '@patternfly/react-core';
 import { TypeaheadSelect } from '@patternfly/react-templates';
-import { DashboardResource } from '@perses-dev/core';
+import { DashboardResource } from '@perses-dev/client';
 import { FC, ReactNode, useMemo } from 'react';
 import { Control, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

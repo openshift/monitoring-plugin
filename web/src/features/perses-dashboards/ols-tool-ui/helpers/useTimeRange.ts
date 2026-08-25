@@ -1,5 +1,5 @@
-import type { AbsoluteTimeRange, RelativeTimeRange, TimeRangeValue } from '@perses-dev/core';
-import { isDurationString, parseDurationString } from '@perses-dev/core';
+import type { AbsoluteTimeRange, RelativeTimeRange, TimeRangeValue } from '@perses-dev/spec';
+import { isDurationString, parseDurationString } from '@perses-dev/spec';
 import { sub } from 'date-fns';
 import { useMemo } from 'react';
 
