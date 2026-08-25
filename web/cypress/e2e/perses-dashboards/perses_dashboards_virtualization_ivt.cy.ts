@@ -35,7 +35,7 @@ const KBV = {
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@perses-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@perses-dashboards', '@coo', '@slow', '@virtualization'] },
 
   () => {
     before(() => {

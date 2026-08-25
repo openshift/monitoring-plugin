@@ -24,8 +24,8 @@ describe(
     tags: [
       '@alerting',
       '@cluster-health-analyzer',
-      '@perses-dashboards',
       '@legacy-dashboards',
+      '@perses-dashboards',
       '@coo',
     ],
   },

@@ -34,7 +34,7 @@ const KBV = {
 
 describe(
   'Regression: Monitoring - Legacy Dashboards (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -62,7 +62,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     beforeEach(() => {
       cy.visit('/');

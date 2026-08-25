@@ -18,7 +18,7 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-describe('ACM - Perses', { tags: ['@coo', '@perses-dashboards'] }, () => {
+describe('ACM - Perses', { tags: ['@perses-dashboards', '@coo'] }, () => {
   before(() => {
     cy.beforeBlockACM(MCP, MP);
     cy.switchPerspective('Core platform');

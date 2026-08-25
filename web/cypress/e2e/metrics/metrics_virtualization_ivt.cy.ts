@@ -37,7 +37,7 @@ const KBV = {
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
-  { tags: ['@metrics', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@metrics', '@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -67,7 +67,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-  { tags: ['@metrics', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@metrics', '@coo', '@slow', '@virtualization'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
