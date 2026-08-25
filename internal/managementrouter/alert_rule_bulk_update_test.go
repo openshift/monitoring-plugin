@@ -399,6 +399,22 @@ func TestBulkUpdateAlertRules_MissingAllUpdateFields(t *testing.T) {
 	}
 }
 
+func TestBulkUpdateAlertRules_RejectsEmptyClassification(t *testing.T) {
+	user1Id, _, _ := buFixtureIDs()
+	f := newBUFixture(t)
+	w := f.do(t, map[string]any{
+		"ruleIds":        []string{user1Id},
+		"classification": map[string]any{},
+	})
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", w.Code)
+	}
+	if !strings.Contains(w.Body.String(), "classification must set at least one field") {
+		t.Errorf("unexpected body: %s", w.Body.String())
+	}
+}
+
 func TestBulkUpdateAlertRules_EnabledToggle(t *testing.T) {
 	user1Id, _, platformId := buFixtureIDs()
 	f := newBUFixture(t)

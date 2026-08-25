@@ -58,12 +58,6 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 		return err
 	}
 
-	if v, ok := alertRule.Labels[managementlabels.AlertNameLabel]; ok {
-		if v != originalRule.Alert {
-			return &ValidationError{Message: fmt.Sprintf("label %q is immutable", managementlabels.AlertNameLabel)}
-		}
-	}
-
 	arName := rule.Labels[managementlabels.AlertingRuleLabelName]
 	if arName == "" {
 		arName = defaultAlertingRuleName

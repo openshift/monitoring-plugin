@@ -74,6 +74,9 @@ func (c *client) updateUserRuleLabels(ctx context.Context, alertRuleId string, r
 
 	userLabels := copyStringMap(sourceRule.Labels)
 	for k, pv := range labels {
+		if isProtectedLabel(k) {
+			continue
+		}
 		if pv == nil || *pv == "" {
 			delete(userLabels, k)
 		} else {
