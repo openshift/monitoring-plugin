@@ -30,7 +30,7 @@ const MP = {
 
 describe(
   'Regression: Mixed Severity Interval Boundary Times',
-  { tags: ['@cluster-health-analyzer', '@xfail', '@coo'] },
+  { tags: ['@cluster-health-analyzer', '@coo', '@xfail'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
