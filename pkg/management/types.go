@@ -46,6 +46,12 @@ type Client interface {
 	UpdateAlertRuleClassification(ctx context.Context, req UpdateRuleClassificationRequest) error
 	// BulkUpdateAlertRuleClassification updates classification for multiple rule ids
 	BulkUpdateAlertRuleClassification(ctx context.Context, items []UpdateRuleClassificationRequest) []error
+
+	// PreviewAlertRuleCreate previews creating one alert rule without persisting.
+	PreviewAlertRuleCreate(ctx context.Context, req PreviewCreateRequest) (*RuleChangePlan, error)
+
+	// PreviewAlertRuleUpdate previews updating one alert rule without persisting.
+	PreviewAlertRuleUpdate(ctx context.Context, req PreviewUpdateRequest) (*RuleChangePlan, error)
 }
 
 // PrometheusRuleOptions specifies options for selecting PrometheusRule resources and groups

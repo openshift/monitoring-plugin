@@ -56,6 +56,26 @@ func (c *client) updatePlatformRuleLabels(ctx context.Context, alertRuleId strin
 // updateUserRuleLabels merges label changes onto the source rule (from the
 // PrometheusRule, not the relabeled cache) and updates the PrometheusRule directly.
 func (c *client) updateUserRuleLabels(ctx context.Context, alertRuleId string, relabeled monitoringv1.Rule, labels map[string]*string) (string, error) {
+	userLabels := make(map[string]string, len(labels))
+	for k, pv := range labels {
+		if pv == nil || *pv == "" {
+			userLabels[k] = ""
+		} else {
+			userLabels[k] = *pv
+		}
+	}
+
+	plan, err := c.planUserDefinedLabelUpdate(ctx, alertRuleId, relabeled, userLabels)
+	if err != nil {
+		return "", err
+	}
+	if err := enforceUserDefinedUpdateWritable(plan); err != nil {
+		return "", err
+	}
+	if !hasResourceChanges(plan) {
+		return alertRuleId, nil
+	}
+
 	namespace := relabeled.Labels[k8s.PrometheusRuleLabelNamespace]
 	name := relabeled.Labels[k8s.PrometheusRuleLabelName]
 
@@ -72,19 +92,12 @@ func (c *client) updateUserRuleLabels(ctx context.Context, alertRuleId string, r
 		return "", err
 	}
 
-	userLabels := copyStringMap(sourceRule.Labels)
-	for k, pv := range labels {
-		if isProtectedLabel(k) {
-			continue
-		}
-		if pv == nil || *pv == "" {
-			delete(userLabels, k)
-		} else {
-			userLabels[k] = *pv
-		}
+	mergedLabels := copyStringMap(sourceRule.Labels)
+	if err := applyUserDefinedLabelMap(mergedLabels, userLabels); err != nil {
+		return "", err
 	}
 
 	updatedRule := *sourceRule
-	updatedRule.Labels = userLabels
+	updatedRule.Labels = mergedLabels
 	return c.UpdateUserDefinedAlertRule(ctx, alertRuleId, updatedRule)
 }
