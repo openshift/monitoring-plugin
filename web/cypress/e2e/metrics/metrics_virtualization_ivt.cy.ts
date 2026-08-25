@@ -35,106 +35,99 @@ const KBV = {
   },
 };
 
-describe(
-  'Regression: Monitoring - Metrics (Virtualization)',
-  { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
-  () => {
-    before(() => {
-      cy.beforeBlockCOO(MCP, MP);
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-      cy.beforeBlockVirtualization(KBV);
-      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization');
-      guidedTour.closeKubevirtTour();
-    });
-    beforeEach(() => {
-      cy.visit('/');
-      cy.validateLogin();
-      cy.switchPerspective('Virtualization');
-      guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
-    });
+describe('Regression: Monitoring - Metrics (Virtualization)', () => {
+  before(() => {
+    cy.beforeBlockCOO(MCP, MP);
+    cy.log('Installation: COO and setting up Monitoring Plugin');
+    cy.beforeBlockVirtualization(KBV);
+    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+  });
 
-    runAllRegressionMetricsTests1({
-      name: 'Virtualization',
-    });
-  },
-);
+  describe(
+    'Regression: Monitoring - Metrics (Virtualization)',
+    { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
+    () => {
+      beforeEach(() => {
+        cy.visit('/');
+        cy.validateLogin();
+        cy.switchPerspective('Virtualization');
+        guidedTour.closeKubevirtTour();
+        alerts.getWatchdogAlert();
+        nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+        commonPages.titleShouldHaveText('Metrics');
+        cy.changeNamespace('All Projects');
+        alerts.getWatchdogAlert();
+      });
 
-describe(
-  'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-  { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
-  () => {
-    beforeEach(() => {
-      cy.visit('/');
-      cy.validateLogin();
-      cy.switchPerspective('Virtualization');
-      guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
-    });
+      runAllRegressionMetricsTests1({
+        name: 'Virtualization',
+      });
+    },
+  );
 
-    runAllRegressionMetricsTestsNamespace1({
-      name: 'Virtualization',
-    });
-  },
-);
+  describe(
+    'Regression: Monitoring - Metrics Namespaced (Virtualization)',
+    { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
+    () => {
+      beforeEach(() => {
+        cy.visit('/');
+        cy.validateLogin();
+        cy.switchPerspective('Virtualization');
+        guidedTour.closeKubevirtTour();
+        alerts.getWatchdogAlert();
+        nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+        commonPages.titleShouldHaveText('Metrics');
+        cy.changeNamespace(MP.namespace);
+        alerts.getWatchdogAlert();
+      });
 
-describe(
-  'Regression: Monitoring - Metrics (Virtualization)',
-  { tags: ['@metrics', '@virtualization', '@slow'] },
-  () => {
-    before(() => {
-      cy.beforeBlockCOO(MCP, MP);
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-      cy.beforeBlockVirtualization(KBV);
-      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization', 'Fleet virtualization');
-      guidedTour.closeKubevirtTour();
-    });
-    beforeEach(() => {
-      cy.visit('/');
-      cy.validateLogin();
-      cy.switchPerspective('Virtualization', 'Fleet virtualization');
-      guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
-    });
+      runAllRegressionMetricsTestsNamespace1({
+        name: 'Virtualization',
+      });
+    },
+  );
 
-    runAllRegressionMetricsTests2({
-      name: 'Virtualization',
-    });
-  },
-);
+  describe(
+    'Regression: Monitoring - Metrics (Virtualization)',
+    { tags: ['@metrics', '@virtualization', '@slow'] },
+    () => {
+      beforeEach(() => {
+        cy.visit('/');
+        cy.validateLogin();
+        cy.switchPerspective('Virtualization', 'Fleet virtualization');
+        guidedTour.closeKubevirtTour();
+        alerts.getWatchdogAlert();
+        nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+        commonPages.titleShouldHaveText('Metrics');
+        cy.changeNamespace('All Projects');
+        alerts.getWatchdogAlert();
+      });
 
-describe(
-  'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-  { tags: ['@metrics', '@virtualization', '@slow'] },
-  () => {
-    beforeEach(() => {
-      cy.visit('/');
-      cy.validateLogin();
-      cy.switchPerspective('Virtualization', 'Fleet virtualization');
-      guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
-      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-      commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
-    });
+      runAllRegressionMetricsTests2({
+        name: 'Virtualization',
+      });
+    },
+  );
 
-    runAllRegressionMetricsTestsNamespace2({
-      name: 'Virtualization',
-    });
-  },
-);
+  describe(
+    'Regression: Monitoring - Metrics Namespaced (Virtualization)',
+    { tags: ['@metrics', '@virtualization', '@slow'] },
+    () => {
+      beforeEach(() => {
+        cy.visit('/');
+        cy.validateLogin();
+        cy.switchPerspective('Virtualization', 'Fleet virtualization');
+        guidedTour.closeKubevirtTour();
+        alerts.getWatchdogAlert();
+        nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+        commonPages.titleShouldHaveText('Metrics');
+        cy.changeNamespace(MP.namespace);
+        alerts.getWatchdogAlert();
+      });
+
+      runAllRegressionMetricsTestsNamespace2({
+        name: 'Virtualization',
+      });
+    },
+  );
+});
