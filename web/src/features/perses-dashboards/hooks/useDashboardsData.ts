@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 import { useActiveProject } from '@/features/perses-dashboards/components/project/useActiveProject';
+import { useOcpProjects } from '@/features/perses-dashboards/hooks//useOcpProjects';
 import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
 import type { DashboardMetadata } from '@/features/perses-dashboards/types/types';
 import { QueryParams } from '@/shared/constants/query-params';
@@ -12,12 +13,13 @@ import { useBoolean } from '@/shared/hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
-// This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
+// This hook syncs with multiple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
 export const useDashboardsData = () => {
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
+  const { ocpProjectsLoaded } = useOcpProjects();
   const [queryParams] = useSearchParams();
 
   // track initial page load to prevent a full page loading state when swapping dashboards
@@ -25,9 +27,7 @@ export const useDashboardsData = () => {
   const [initialPageLoad, , , setInitialPageLoadFalse] = useBoolean(true);
 
   // Retrieve perses dashboard information
-  const { persesProjects, persesProjectsLoading, persesDashboards, persesDashboardsLoading } =
-    usePerses();
-  const persesAvailable = !persesProjectsLoading && persesProjects;
+  const { persesDashboards, persesDashboardsLoading, persesProjectsLoading } = usePerses();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
@@ -35,12 +35,18 @@ export const useDashboardsData = () => {
     if (!initialPageLoad) {
       return false;
     }
-    if (!(persesProjectsLoading || persesDashboardsLoading)) {
+    if (ocpProjectsLoaded && !persesDashboardsLoading && !persesProjectsLoading) {
       setInitialPageLoadFalse();
       return false;
     }
     return true;
-  }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
+  }, [
+    ocpProjectsLoaded,
+    persesDashboardsLoading,
+    initialPageLoad,
+    setInitialPageLoadFalse,
+    persesProjectsLoading,
+  ]);
 
   const prevDashboardsRef = useRef<DashboardResource[]>([]);
   const prevMetadataRef = useRef<DashboardMetadata[]>([]);
@@ -133,8 +139,6 @@ export const useDashboardsData = () => {
   );
 
   return {
-    persesAvailable,
-    persesProjectsLoading,
     persesDashboards,
     dashboardName,
     changeBoard,

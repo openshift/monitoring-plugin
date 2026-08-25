@@ -1,17 +1,26 @@
-import { FC, ReactNode } from 'react';
+import { NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
+import type { FC, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 
 import { DashboardListHeader } from '@/features/perses-dashboards/components/DashboardHeader';
-import { ProjectBar } from '@/features/perses-dashboards/components/project/ProjectBar';
+import { getDashboardsListUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 interface DashboardListFrameProps {
-  activeProject: string | null;
   children: ReactNode;
 }
 
-export const DashboardListFrame: FC<DashboardListFrameProps> = ({ activeProject, children }) => {
+export const DashboardListFrame: FC<DashboardListFrameProps> = ({ children }) => {
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
+
   return (
     <>
-      <ProjectBar activeProject={activeProject} />
+      <NamespaceBar
+        onNamespaceChange={() => {
+          const url = `${getDashboardsListUrl(perspective)}`;
+          navigate(url);
+        }}
+      />
       <DashboardListHeader>{children}</DashboardListHeader>
     </>
   );

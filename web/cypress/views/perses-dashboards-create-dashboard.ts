@@ -1,4 +1,9 @@
-import { Classes, IDs, persesAriaLabels } from '@/shared/constants/data-test';
+import {
+  Classes,
+  IDs,
+  persesAriaLabels,
+  persesDashboardDataTestIDs,
+} from '@/shared/constants/data-test';
 import { persesCreateDashboard, persesDashboardsModalTitles } from '../fixtures/perses/constants';
 
 export const persesCreateDashboardsPage = {
@@ -44,6 +49,23 @@ export const persesCreateDashboardsPage = {
     cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
   },
 
+  /**
+   * Selects a project the user can view but cannot create dashboards in and asserts the create
+   * access-denied helper text is shown and the Create button is disabled.
+   */
+  assertCreateAccessDenied: (project: string) => {
+    cy.log('persesCreateDashboardsPage.assertCreateAccessDenied');
+    cy.get('#' + IDs.persesDashboardCreateDashboardName)
+      .should('be.visible')
+      .clear()
+      .type('access-denied-check');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
+    cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find('button').contains('Create').should('be.disabled');
+  },
+
   enterDashboardName: (name: string) => {
     cy.log('persesCreateDashboardsPage.enterDashboardName');
     cy.get('#' + IDs.persesDashboardCreateDashboardName)
@@ -72,9 +94,9 @@ export const persesCreateDashboardsPage = {
 
   assertDuplicatedNameValidation: () => {
     cy.log('persesCreateDashboardsPage.assertDuplicatedNameValidation');
-    cy.byPFRole('list')
-      .find('h4')
-      .should('contain.text', persesCreateDashboard.DIALOG_CREATE_NAME_BKD_VALIDATION)
+    cy.byPFRole('dialog')
+      .find('.pf-m-error')
+      .should('contain.text', persesCreateDashboard.DIALOG_DUPLICATED_NAME_PF_VALIDATION_SUFFIX)
       .should('be.visible');
   },
 

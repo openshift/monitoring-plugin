@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DashboardDropdown } from '@/features/perses-dashboards/components/DashboardDropdown';
 import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
-import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
+import { usePersesDashboardAccess } from '@/features/perses-dashboards/hooks/usePersesDashboardAccess';
 import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 
 export interface DashboardToolbarProps {
@@ -38,41 +38,13 @@ export interface DashboardToolbarProps {
 }
 
 export interface EditButtonProps {
-  /**
-   * The label used inside the button.
-   */
-  label?: string;
-
-  /**
-   * Handler that puts the dashboard into editing mode.
-   */
   onClick: () => void;
-
-  /**
-   * Whether the button is disabled.
-   */
-  disabled?: boolean;
-
-  /**
-   * Tooltip text to show when button is disabled.
-   */
-  disabledTooltip?: string;
-
-  /**
-   * Whether permissions are still loading.
-   */
-  loading?: boolean;
-
-  /**
-   * The active project/namespace for permissions check.
-   */
   activeProject?: string | null;
 }
 
 export const EditButton = ({ onClick, activeProject }: EditButtonProps): ReactElement => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { canEdit, loading } = usePersesEditPermissions(activeProject);
-  const disabled = !canEdit;
+  const [canUpdate, updateLoading] = usePersesDashboardAccess('update', activeProject);
 
   const button = (
     <Button
@@ -80,17 +52,17 @@ export const EditButton = ({ onClick, activeProject }: EditButtonProps): ReactEl
       startIcon={<PencilIcon />}
       variant="outlined"
       color="secondary"
-      disabled={disabled || loading}
+      disabled={updateLoading || !canUpdate}
       sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
       data-test={persesDashboardDataTestIDs.editDashboardButtonToolbar}
     >
-      {loading ? t('Loading...') : t('Edit')}
+      {updateLoading ? t('Loading...') : t('Edit')}
     </Button>
   );
 
-  if (disabled && !loading) {
+  if (!updateLoading && !canUpdate) {
     return (
-      <Tooltip title={t("You don't have permission to edit this dashboard")} arrow>
+      <Tooltip title={t('You do not have permission to edit dashboards in this project.')} arrow>
         <span>{button}</span>
       </Tooltip>
     );
