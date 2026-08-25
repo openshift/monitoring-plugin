@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react';
-import Linkify from 'react-linkify';
+import Linkify from 'linkify-react';
 import { Button, Icon } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 
@@ -34,7 +34,7 @@ export const ExternalLink: FC<ExternalLinkProps> = ({
 
 // Open links in a new window and set noopener/noreferrer.
 export const LinkifyExternal: FC<{ children: ReactNode }> = ({ children }) => (
-  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
+  <Linkify options={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
 );
 LinkifyExternal.displayName = 'LinkifyExternal';
 
