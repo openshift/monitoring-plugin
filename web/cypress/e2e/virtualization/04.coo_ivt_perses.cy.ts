@@ -33,8 +33,9 @@ const KBV = {
 };
 
 describe(
-  'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow'] },
+  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
+  { tags: ['@perses-dashboards', '@coo', '@slow', '@virtualization'] },
+
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -47,7 +48,7 @@ describe(
   },
 );
 
-describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
+describe('Installation: Virtualization', { tags: ['@slow', '@virtualization'] }, () => {
   before(() => {
     cy.beforeBlockVirtualization(KBV);
   });
@@ -61,7 +62,7 @@ describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] },
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@perses-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@perses-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     beforeEach(() => {
       cy.visit('/');

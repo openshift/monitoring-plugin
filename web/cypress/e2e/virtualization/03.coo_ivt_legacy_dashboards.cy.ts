@@ -33,8 +33,8 @@ const KBV = {
 };
 
 describe(
-  'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow', '@coo'] },
+  'Regression: Monitoring - Legacy Dashboards (Virtualization)',
+  { tags: ['@legacy-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -48,7 +48,7 @@ describe(
 
 describe(
   'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@virtualization', '@slow', '@coo'] },
+  { tags: ['@coo', '@slow', '@virtualization'] },
   () => {
     before(() => {
       cy.beforeBlockVirtualization(KBV);
@@ -64,7 +64,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
@@ -84,7 +84,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@slow', '@virtualization'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
