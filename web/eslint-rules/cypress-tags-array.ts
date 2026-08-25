@@ -1,16 +1,6 @@
 import type { Rule } from 'eslint';
 import type { Property } from 'estree';
-
-function isTagsProperty(node: Property): boolean {
-  const key = node.key;
-  if (key.type === 'Identifier') {
-    return key.name === 'tags';
-  }
-  if (key.type === 'Literal') {
-    return key.value === 'tags';
-  }
-  return false;
-}
+import { isTagsInCallOptions, isTagsProperty } from './cypress-tags-helper';
 
 export const cypressTagsArray: Rule.RuleModule = {
   meta: {
@@ -29,7 +19,11 @@ export const cypressTagsArray: Rule.RuleModule = {
 
     return {
       Property(node: Property) {
-        if (!isTagsProperty(node) || node.value.type === 'ArrayExpression') {
+        if (
+          !isTagsProperty(node) ||
+          !isTagsInCallOptions(node) ||
+          node.value.type === 'ArrayExpression'
+        ) {
           return;
         }
         const valueText = sourceCode.getText(node.value);

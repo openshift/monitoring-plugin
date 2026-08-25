@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import type { ArrayExpression, Property } from 'estree';
 import { HIGH_LEVEL_COMPONENT_TAGS, MODIFIER_TAGS } from '../cypress/support/test-tags';
+import { isTagsInCallOptions, isTagsProperty } from './cypress-tags-helper';
 
 const MODIFIER_SET: ReadonlySet<string> = new Set(MODIFIER_TAGS);
 const FEATURE_SET: ReadonlySet<string> = new Set(HIGH_LEVEL_COMPONENT_TAGS);
@@ -25,17 +26,6 @@ export function sortTags(tags: string[]): string[] {
   return [...features, ...modifiers, ...unknowns];
 }
 
-function isTagsProperty(node: Property): boolean {
-  const key = node.key;
-  if (key.type === 'Identifier') {
-    return key.name === 'tags';
-  }
-  if (key.type === 'Literal') {
-    return key.value === 'tags';
-  }
-  return false;
-}
-
 export const cypressTagOrder: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -57,7 +47,11 @@ export const cypressTagOrder: Rule.RuleModule = {
 
     return {
       Property(node: Property) {
-        if (!isTagsProperty(node) || node.value.type !== 'ArrayExpression') {
+        if (
+          !isTagsProperty(node) ||
+          !isTagsInCallOptions(node) ||
+          node.value.type !== 'ArrayExpression'
+        ) {
           return;
         }
         const array = node.value as ArrayExpression;

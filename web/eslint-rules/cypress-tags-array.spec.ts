@@ -9,6 +9,7 @@ ruleTester.run('cypress-tags-array', cypressTagsArray, {
   valid: [
     { code: "describe('x', { tags: ['@monitoring'] }, () => {})" },
     { code: "describe('x', { tags: ['@alerts', '@slow'] }, () => {})" },
+    { code: "const config = { tags: '@internal' };" },
   ],
   invalid: [
     {
