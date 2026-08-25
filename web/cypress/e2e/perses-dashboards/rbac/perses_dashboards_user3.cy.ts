@@ -71,7 +71,6 @@ describe(
 
     beforeEach(() => {
       cy.switchPerspective('Core platform');
-      // Why do we check Dashboards first?
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
