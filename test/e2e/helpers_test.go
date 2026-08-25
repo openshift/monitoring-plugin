@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -107,6 +108,95 @@ func createRuleViaAPI(ctx context.Context, f *framework.Framework, payload manag
 		return "", fmt.Errorf("got empty ID")
 	}
 	return createResp.Id, nil
+}
+
+func tryPreviewAlertRule(
+	ctx context.Context,
+	f *framework.Framework,
+	token string,
+	payload managementrouter.PreviewAlertRuleRequest,
+) (int, *managementrouter.PreviewAlertRuleResponse, error) {
+	reqBody, err := json.Marshal(payload)
+	if err != nil {
+		return 0, nil, fmt.Errorf("marshal preview request: %w", err)
+	}
+
+	previewURL, err := url.JoinPath(f.PluginURL, "api/v1/alerting/rules/preview")
+	if err != nil {
+		return 0, nil, fmt.Errorf("build preview URL: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, previewURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return 0, nil, fmt.Errorf("create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := f.HTTPClient().Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("make preview request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return resp.StatusCode, nil, fmt.Errorf("preview HTTP %d: read body: %w", resp.StatusCode, readErr)
+		}
+		msg := strings.TrimSpace(string(body))
+		if msg == "" {
+			return resp.StatusCode, nil, fmt.Errorf("preview HTTP %d", resp.StatusCode)
+		}
+		return resp.StatusCode, nil, fmt.Errorf("preview HTTP %d: %s", resp.StatusCode, msg)
+	}
+
+	var previewResp managementrouter.PreviewAlertRuleResponse
+	if err := json.NewDecoder(resp.Body).Decode(&previewResp); err != nil {
+		return resp.StatusCode, nil, fmt.Errorf("decode preview response: %w", err)
+	}
+	return resp.StatusCode, &previewResp, nil
+}
+
+func previewCreatePayload(namespace, alertName, prName string) managementrouter.PreviewAlertRuleRequest {
+	expr := fmt.Sprintf("absent(nonexistent{e2e_preview_create=%q})", alertName)
+	return managementrouter.PreviewAlertRuleRequest{
+		AlertingRule: &managementrouter.AlertRuleSpec{
+			Alert: &alertName,
+			Expr:  &expr,
+			Labels: &map[string]string{
+				"severity": "info",
+			},
+		},
+		PrometheusRule: &managementrouter.PrometheusRuleTarget{
+			PrometheusRuleName:      prName,
+			PrometheusRuleNamespace: namespace,
+		},
+	}
+}
+
+func previewUpdateProbeRequest(ruleID string) managementrouter.PreviewAlertRuleRequest {
+	labelVal := "true"
+	return managementrouter.PreviewAlertRuleRequest{
+		RuleId: &ruleID,
+		Labels: &map[string]*string{"e2e_preview_probe": &labelVal},
+	}
+}
+
+func alertNamesInPrometheusRule(ctx context.Context, f *framework.Framework, namespace, prName string) ([]string, error) {
+	pr, err := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(namespace).Get(ctx, prName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, group := range pr.Spec.Groups {
+		for _, rule := range group.Rules {
+			if rule.Alert != "" {
+				names = append(names, rule.Alert)
+			}
+		}
+	}
+	return names, nil
 }
 
 // mustCreateRule is a test convenience wrapper around createRuleViaAPI that

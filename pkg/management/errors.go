@@ -20,7 +20,8 @@ func (r *NotFoundError) Error() string {
 }
 
 type NotAllowedError struct {
-	Message string
+	Message   string
+	ManagedBy ManagementSource
 }
 
 func (r *NotAllowedError) Error() string {
