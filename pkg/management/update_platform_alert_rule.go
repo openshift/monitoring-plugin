@@ -66,11 +66,12 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 	if arErr != nil {
 		return arErr
 	}
-	if arFound && ar != nil {
-		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(ar); gitOpsManaged {
-			return notAllowedGitOpsEdit()
-		} else if operatorManaged {
-			return c.applyLabelChangesViaAlertRelabelConfig(ctx, arcNamespace, alertRuleId, *originalRule, alertRule.Labels)
+	if resolvePlatformLabelRoute(ar, arFound) == platformLabelRouteAlertingRule {
+		if allowance := evaluatePlatformUpdateAllowed(
+			rule, prMeta, ar, arFound, nil,
+			PlatformUpdateTargetAlertingRule, platformMutationLabel,
+		); allowance.Err != nil {
+			return allowance.Err
 		}
 		return c.updateAlertingRuleLabels(ctx, ar, originalRule.Alert, alertRuleId, alertRule.Labels, arName)
 	}
@@ -81,7 +82,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 func filterAndValidatePlatformLabelChanges(labels map[string]string) (map[string]string, error) {
 	filtered := make(map[string]string)
 	for k, v := range labels {
-		if !isProtectedLabel(k) {
+		if !isProtectedLabel(k) && !isPreviewProvenanceLabel(k) {
 			filtered[k] = v
 		}
 	}
@@ -174,8 +175,11 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 	if err != nil {
 		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", namespace, arcName, err)
 	}
-	if err := validatePlatformUpdatePreconditions(relabeled, nil, relabelConfigIfFound(found, existingArc)); err != nil {
-		return err
+	if allowance := evaluatePlatformUpdateAllowed(
+		relabeled, nil, nil, false, relabelConfigIfFound(found, existingArc),
+		PlatformUpdateTargetAlertRelabelConfig, platformMutationLabel,
+	); allowance.Err != nil {
+		return allowance.Err
 	}
 
 	original := copyStringMap(originalRule.Labels)

@@ -600,12 +600,20 @@ func TestUpdatePlatformAlertRule_IgnoresAlertNameChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if createdARC != nil {
-		for _, cfg := range createdARC.Spec.Configs {
-			if string(cfg.TargetLabel) == managementlabels.AlertNameLabel {
-				t.Errorf("protected label %q must not be overridden by the request", managementlabels.AlertNameLabel)
-			}
+	if createdARC == nil {
+		t.Fatal("expected ARC to be created for label change")
+	}
+	hasNewLabel := false
+	for _, cfg := range createdARC.Spec.Configs {
+		if string(cfg.TargetLabel) == managementlabels.AlertNameLabel {
+			t.Errorf("protected label %q must not be overridden by the request", managementlabels.AlertNameLabel)
 		}
+		if string(cfg.TargetLabel) == "new_label" && cfg.Replacement == "new_value" {
+			hasNewLabel = true
+		}
+	}
+	if !hasNewLabel {
+		t.Error("expected new_label override in ARC configs")
 	}
 }
 
