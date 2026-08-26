@@ -17,6 +17,7 @@ export const HeaderIconButton: StyledComponent<IconButtonProps & { theme?: Theme
 )(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
   padding: '4px',
+  flexShrink: 0,
 }));
 
 function createPanelDefinition(query: string, name: string, description: string): PanelDefinition {
