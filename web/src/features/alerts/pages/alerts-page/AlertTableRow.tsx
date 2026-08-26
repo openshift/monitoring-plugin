@@ -6,7 +6,16 @@ import {
   ResourceIcon,
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { DropdownItem, Flex, FlexItem, Spinner } from '@patternfly/react-core';
+import {
+  Content,
+  ContentVariants,
+  Divider,
+  DropdownItem,
+  Flex,
+  FlexItem,
+  Spinner,
+} from '@patternfly/react-core';
+import { InfoCircleIcon } from '@patternfly/react-icons';
 import { Td, Tr } from '@patternfly/react-table';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -64,11 +73,22 @@ const AlertTableRow: FC<{ alert: Alert }> = ({ alert }) => {
     if (runName) {
       const runUrl = getAgenticRunUrl(run.metadata.namespace, runName);
       dropdownItems.push(
+        <Divider component="li" key="separator" />,
         <DropdownItem
           key="view-ai-investigation"
           icon={<CustomIcon name="ai-experience" />}
           onClick={() => navigate(runUrl)}
           data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
+          description={
+            <Content component={ContentVariants.small}>
+              <Flex spaceItems={{ default: 'spaceItemsXs' }}>
+                <FlexItem>
+                  <InfoCircleIcon color="var(--pf-t--global--icon--color--status--info--default)" />
+                </FlexItem>
+                <FlexItem>{t('Always review AI-generated content prior to use.')}</FlexItem>
+              </Flex>
+            </Content>
+          }
         >
           {t('View AI Investigation')}
         </DropdownItem>,
