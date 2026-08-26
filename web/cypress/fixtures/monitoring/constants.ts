@@ -165,6 +165,7 @@ export enum MetricsPageQueryKebabDropdown {
   DELETE_QUERY = 'Delete query',
   DUPLICATE_QUERY = 'Duplicate query',
   EXPORT_AS_CSV = 'Export as CSV',
+  CREATE_ALERT = 'Create alert',
 }
 
 export enum LegacyDashboardsTimeRange {

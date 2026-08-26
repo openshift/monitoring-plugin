@@ -553,6 +553,9 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem)
       .contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY)
       .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
 
     cy.byTestID(DataTestIDs.KebabDropdownButton)
@@ -579,10 +582,24 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem)
       .contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV)
       .should('be.visible');
+    cy.byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
+      .should('be.visible');
     cy.byTestID(DataTestIDs.KebabDropdownButton)
       .eq(0)
       .should('have.attr', 'aria-expanded', 'true')
       .click();
+  },
+
+  createAlertKebabItemAssertion: (index: number) => {
+    cy.log('metricsPage.createAlertKebabItemAssertion');
+    metricsPage.clickKebabDropdown(index);
+    cy.byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
+      .should('be.visible')
+      .and('not.have.attr', 'aria-disabled', 'true')
+      .click();
+    cy.url().should('include', '/v2/alertrule/create?query=');
   },
 
   clickKebabDropdownItem: (option: MetricsPageQueryKebabDropdown, index: number) => {

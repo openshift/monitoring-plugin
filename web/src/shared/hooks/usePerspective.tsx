@@ -319,3 +319,21 @@ export const getDashboardsListUrl = (perspective: Perspective) => {
       return '';
   }
 };
+
+// TODO: The dev and acm routes below are best-guesses based on the existing perspective URL
+// conventions. Confirm them with the new alert management UI once its routing is finalized.
+export const getCreateAlertRuleUrl = (perspective: Perspective, query = '', namespace?: string) => {
+  const params = new URLSearchParams({ [QueryParams.Query]: query });
+
+  switch (perspective) {
+    case 'acm':
+      return `/multicloud/monitoring/v2/alertrule/create?${params.toString()}`;
+    case 'dev':
+      return `/dev-monitoring/ns/${namespace}/v2/alertrule/create?${params.toString()}`;
+    case 'virtualization-perspective':
+      return `/virt-monitoring/v2/alertrule/create?${params.toString()}`;
+    case 'admin':
+    default:
+      return `/monitoring/v2/alertrule/create?${params.toString()}`;
+  }
+};

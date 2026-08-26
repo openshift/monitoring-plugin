@@ -153,6 +153,15 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.shouldBeLoaded();
   });
 
+  it(`${perspective.name} perspective - Metrics > Kebab > Create alert`, () => {
+    cy.log('3b.1 Load a predefined query');
+    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
+    metricsPage.shouldBeLoadedWithGraph();
+
+    cy.log('3b.2 Create alert kebab item renders and is clickable');
+    metricsPage.createAlertKebabItemAssertion(0);
+  });
+
   it(`${perspective.name} perspective - Metrics > Insert Example Query`, () => {
     cy.log('4.1 Insert Example Query');
     metricsPage.clickInsertExampleQuery();

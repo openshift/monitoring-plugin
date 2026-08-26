@@ -76,7 +76,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 import { DropDownPollInterval } from '@/shared/components/DropdownPollInterval';
@@ -97,7 +97,11 @@ import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
-import { getObserveState } from '@/shared/hooks/usePerspective';
+import {
+  getCreateAlertRuleUrl,
+  getObserveState,
+  usePerspective,
+} from '@/shared/hooks/usePerspective';
 import {
   queryBrowserAddQuery,
   queryBrowserDeleteAllQueries,
@@ -385,6 +389,9 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
 const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
+  const [activeNamespace] = useActiveNamespace();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(getObserveState(plugin, state).queryBrowser?.queries[index]?.disabledSeries),
@@ -426,6 +433,10 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const doClone = useCallback(() => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
+
+  const doCreateAlert = useCallback(() => {
+    navigate(getCreateAlertRuleUrl(perspective, query ?? '', activeNamespace));
+  }, [navigate, perspective, query, activeNamespace]);
 
   const isSpan = (item) => item?.title?.props?.children;
   const getSpanText = (item) => item.title.props.children;
@@ -548,6 +559,14 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
       data-test={DataTestIDs.MetricsPageDuplicateQueryDropdownItem}
     >
       {t('Duplicate query')}
+    </DropdownItem>,
+    <DropdownItem
+      key="create-alert"
+      component="button"
+      onClick={doCreateAlert}
+      data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
+    >
+      {t('Create alert')}
     </DropdownItem>,
   ];
 

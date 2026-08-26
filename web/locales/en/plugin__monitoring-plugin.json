@@ -355,6 +355,7 @@
   "{{count}} day_one": "{{count}} day",
   "{{count}} day_other": "{{count}} days",
   "No labels": "No labels",
+  "Create alert": "Create alert",
   "graph timespan": "graph timespan",
   "Reset zoom": "Reset zoom",
   "Displaying with reduced resolution due to large dataset.": "Displaying with reduced resolution due to large dataset.",
