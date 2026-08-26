@@ -46,7 +46,7 @@
     "test-cypress-perses-dev": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@xfail'",
     "test-cypress-perses": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@flaky --@xfail'",
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@ols --@flaky --@xfail'",
-    "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@flaky --@xfail'"
+    "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@ols --@xfail'"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.4",
