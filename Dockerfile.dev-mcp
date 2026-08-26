@@ -17,7 +17,7 @@ ENV CONSOLE_PLUGIN_NAME="monitoring-console-plugin"
 RUN make install-frontend-ci
 RUN make build-frontend
 
-FROM registry.access.redhat.com/ubi9/go-toolset:1.25 AS go-builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.26 AS go-builder
 
 WORKDIR /opt/app-root
 
