@@ -332,6 +332,64 @@ func (f *Framework) CreateScopedUser(ctx context.Context, name, namespace, apiGr
 	return &ScopedUser{Token: token, Cleanup: func() error { rollback(); return nil }}, nil
 }
 
+// CreateUserWithClusterRole creates a ServiceAccount in the given namespace and
+// binds an existing ClusterRole to it via a namespaced RoleBinding. Use this
+// for OpenShift built-in roles such as monitoring-rules-view (Thanos tenancy
+// on port 9093). API calls are retried to tolerate transient failures.
+func (f *Framework) CreateUserWithClusterRole(ctx context.Context, name, namespace, clusterRoleName string) (*ScopedUser, error) {
+	rollback := func() {
+		_ = f.Clientset.RbacV1().RoleBindings(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+		_ = f.Clientset.CoreV1().ServiceAccounts(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	}
+
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
+	}
+	err := retry(3, func() error {
+		_, err := f.Clientset.CoreV1().ServiceAccounts(namespace).Create(ctx, sa, metav1.CreateOptions{})
+		if apierrors.IsAlreadyExists(err) {
+			return nil
+		}
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating service account %s/%s: %w", namespace, name, err)
+	}
+
+	rb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
+		Subjects: []rbacv1.Subject{{
+			Kind:      rbacv1.ServiceAccountKind,
+			Name:      name,
+			Namespace: namespace,
+		}},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "ClusterRole",
+			Name:     clusterRoleName,
+		},
+	}
+	err = retry(3, func() error {
+		_, err := f.Clientset.RbacV1().RoleBindings(namespace).Create(ctx, rb, metav1.CreateOptions{})
+		if apierrors.IsAlreadyExists(err) {
+			return nil
+		}
+		return err
+	})
+	if err != nil {
+		rollback()
+		return nil, fmt.Errorf("creating role binding %s/%s for cluster role %s: %w", namespace, name, clusterRoleName, err)
+	}
+
+	token, err := f.requestServiceAccountToken(ctx, namespace, name)
+	if err != nil {
+		rollback()
+		return nil, err
+	}
+
+	return &ScopedUser{Token: token, Cleanup: func() error { rollback(); return nil }}, nil
+}
+
 // CreateAnonymousUser creates a ServiceAccount with no RBAC permissions.
 // The whole setup is retried to tolerate transient API failures.
 func (f *Framework) CreateAnonymousUser(ctx context.Context, name, namespace string) (*ScopedUser, error) {
