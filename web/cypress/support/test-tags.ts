@@ -1,14 +1,8 @@
-export const MODIFIER_TAGS = [
-  '@flaky',
-  '@xfail',
-  '@slow',
-  '@coo',
-  '@virtualization',
-  '@ols',
-] as const;
+export const MODIFIER_TAGS = ['@flaky', '@xfail', '@slow'] as const;
 
-export const HIGH_LEVEL_COMPONENT_TAGS = [
-  '@acm-alerting',
+export const INFRASTRUCTURE_TAGS = ['@coo', '@virtualization', '@ols', '@acm'] as const;
+
+export const FEATURE_TAGS = [
   '@alerting',
   '@legacy-dashboards',
   '@metrics',
@@ -17,11 +11,13 @@ export const HIGH_LEVEL_COMPONENT_TAGS = [
   '@cluster-health-analyzer',
 ] as const;
 
-export type BasicTag = (typeof MODIFIER_TAGS)[number];
+export type ModifierTag = (typeof MODIFIER_TAGS)[number];
 
-export type HighLevelComponentTag = (typeof HIGH_LEVEL_COMPONENT_TAGS)[number];
+export type InfrastructureTag = (typeof INFRASTRUCTURE_TAGS)[number];
+
+export type FeatureTag = (typeof FEATURE_TAGS)[number];
 
 export type SpecificFeatureTag = `@${string}-${string}`;
 
-export type AllowedTag = BasicTag | HighLevelComponentTag | SpecificFeatureTag;
+export type AllowedTag = ModifierTag | InfrastructureTag | FeatureTag | SpecificFeatureTag;
 export type TestTags = AllowedTag | AllowedTag[];
