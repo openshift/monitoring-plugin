@@ -2,8 +2,12 @@ package management
 
 import (
 	"context"
+	"net/http"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/client-go/rest"
+
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 // Client is the interface for managing alert rules
@@ -46,6 +50,21 @@ type Client interface {
 	UpdateAlertRuleClassification(ctx context.Context, req UpdateRuleClassificationRequest) error
 	// BulkUpdateAlertRuleClassification updates classification for multiple rule ids
 	BulkUpdateAlertRuleClassification(ctx context.Context, items []UpdateRuleClassificationRequest) []error
+
+	// ListRules lists alert rules, optionally paginated via cursor-based pagination
+	ListRules(ctx context.Context, prOptions PrometheusRuleOptions, arOptions AlertRuleOptions, pgOptions PaginationOptions) (ListRulesResult, error)
+
+	// GetAlerts retrieves Prometheus alerts
+	GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error)
+	// GetRules retrieves Prometheus alerting rules and active alerts
+	GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
+
+	// GetAlertingHealth retrieves alerting health details
+	GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error)
+
+	// MetricsHandler returns an HTTP handler that exposes alert management metrics.
+	// It handles leader election internally using the provided kubeConfig.
+	MetricsHandler(ctx context.Context, kubeConfig *rest.Config) (http.Handler, error)
 }
 
 // PrometheusRuleOptions specifies options for selecting PrometheusRule resources and groups
@@ -58,4 +77,31 @@ type PrometheusRuleOptions struct {
 
 	// GroupName of the RuleGroup within the PrometheusRule resource
 	GroupName string `json:"groupName"`
+}
+
+type AlertRuleOptions struct {
+	// Name filters alert rules by alert name
+	Name string `json:"name,omitempty"`
+
+	// Source filters alert rules by source type (platform or user-defined)
+	Source string `json:"source,omitempty"`
+
+	// Labels filters alert rules by arbitrary label key-value pairs
+	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// PaginationOptions controls cursor-based pagination for list endpoints.
+type PaginationOptions struct {
+	// Limit is the maximum number of results to return. Zero means no limit.
+	Limit int
+
+	// NextToken is an opaque cursor returned by a previous call; results will
+	// start after the rule identified by this token.
+	NextToken string
+}
+
+// ListRulesResult holds a page of rules and an optional cursor for the next page.
+type ListRulesResult struct {
+	Rules     []monitoringv1.Rule `json:"rules"`
+	NextToken string              `json:"nextToken,omitempty"`
 }

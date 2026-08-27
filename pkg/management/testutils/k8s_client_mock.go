@@ -17,6 +17,8 @@ import (
 // by AlertingRules().Get) hit the same store.
 type MockClient struct {
 	TestConnectionFunc      func(ctx context.Context) error
+	AlertingHealthFunc      func(ctx context.Context) (k8s.AlertingHealth, error)
+	PrometheusAlertsFunc    func() k8s.PrometheusAlertsInterface
 	PrometheusRulesFunc     func() k8s.PrometheusRuleInterface
 	AlertRelabelConfigsFunc func() k8s.AlertRelabelConfigInterface
 	AlertingRulesFunc       func() k8s.AlertingRuleInterface
@@ -36,6 +38,20 @@ func (m *MockClient) TestConnection(ctx context.Context) error {
 		return m.TestConnectionFunc(ctx)
 	}
 	return nil
+}
+
+func (m *MockClient) AlertingHealth(ctx context.Context) (k8s.AlertingHealth, error) {
+	if m.AlertingHealthFunc != nil {
+		return m.AlertingHealthFunc(ctx)
+	}
+	return k8s.AlertingHealth{}, nil
+}
+
+func (m *MockClient) PrometheusAlerts() k8s.PrometheusAlertsInterface {
+	if m.PrometheusAlertsFunc != nil {
+		return m.PrometheusAlertsFunc()
+	}
+	return &MockPrometheusAlertsInterface{}
 }
 
 func (m *MockClient) PrometheusRules() k8s.PrometheusRuleInterface {
@@ -88,7 +104,42 @@ func (m *MockClient) Namespace() k8s.NamespaceInterface {
 	return m.namespace
 }
 
-// MockPrometheusRuleInterface is a mock implementation of k8s.PrometheusRuleInterface
+type MockPrometheusAlertsInterface struct {
+	GetAlertsFunc func(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error)
+	GetRulesFunc  func(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error)
+
+	ActiveAlerts []k8s.PrometheusAlert
+	RuleGroups   []k8s.PrometheusRuleGroup
+}
+
+func (m *MockPrometheusAlertsInterface) SetActiveAlerts(alerts []k8s.PrometheusAlert) {
+	m.ActiveAlerts = alerts
+}
+
+func (m *MockPrometheusAlertsInterface) SetRuleGroups(groups []k8s.PrometheusRuleGroup) {
+	m.RuleGroups = groups
+}
+
+func (m *MockPrometheusAlertsInterface) GetAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, error) {
+	if m.GetAlertsFunc != nil {
+		return m.GetAlertsFunc(ctx, req)
+	}
+	if m.ActiveAlerts != nil {
+		return m.ActiveAlerts, nil
+	}
+	return []k8s.PrometheusAlert{}, nil
+}
+
+func (m *MockPrometheusAlertsInterface) GetRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, error) {
+	if m.GetRulesFunc != nil {
+		return m.GetRulesFunc(ctx, req)
+	}
+	if m.RuleGroups != nil {
+		return m.RuleGroups, nil
+	}
+	return []k8s.PrometheusRuleGroup{}, nil
+}
+
 type MockPrometheusRuleInterface struct {
 	ListFunc    func() ([]monitoringv1.PrometheusRule, error)
 	GetFunc     func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error)
