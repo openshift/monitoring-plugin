@@ -1,6 +1,4 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
-  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
-}));
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({}));
 
 import { getCreateAlertRuleUrl } from '@/shared/hooks/usePerspective';
 
@@ -20,26 +18,16 @@ describe('getCreateAlertRuleUrl', () => {
     );
   });
 
-  it('builds the acm url', () => {
-    expect(getCreateAlertRuleUrl('acm', query)).toBe(
-      `/multicloud/monitoring/v2/alertrule/create?${encodedQuery}`,
-    );
+  it('returns empty string for the acm perspective', () => {
+    expect(getCreateAlertRuleUrl('acm', query)).toBe('');
   });
 
-  it('builds the dev url with the namespace in the path', () => {
-    expect(getCreateAlertRuleUrl('dev', query, 'my-project')).toBe(
-      `/dev-monitoring/ns/my-project/v2/alertrule/create?${encodedQuery}`,
-    );
+  it('returns empty string for the dev perspective', () => {
+    expect(getCreateAlertRuleUrl('dev', query)).toBe('');
   });
 
-  it('falls back to the admin url for an unknown perspective', () => {
-    expect(getCreateAlertRuleUrl('unknown' as never, query)).toBe(
-      `/monitoring/v2/alertrule/create?${encodedQuery}`,
-    );
-  });
-
-  it('defaults to an empty query when none is provided', () => {
-    expect(getCreateAlertRuleUrl('admin')).toBe('/monitoring/v2/alertrule/create?query=');
+  it('returns empty string for an unknown perspective', () => {
+    expect(getCreateAlertRuleUrl('unknown' as never, query)).toBe('');
   });
 
   it('url-encodes the query parameter', () => {

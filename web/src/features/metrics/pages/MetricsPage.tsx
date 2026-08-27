@@ -386,12 +386,11 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 };
 
-const QueryKebab: FC<{ index: number }> = ({ index }) => {
+const QueryKebab: FC<{ index: number; hasError?: boolean }> = ({ index, hasError }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const { perspective } = usePerspective();
   const navigate = useNavigate();
-  const [activeNamespace] = useActiveNamespace();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(getObserveState(plugin, state).queryBrowser?.queries[index]?.disabledSeries),
@@ -404,6 +403,15 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const query = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.query,
   );
+
+  const text = useSelector(
+    (state: MonitoringState) =>
+      getObserveState(plugin, state).queryBrowser?.queries[index]?.text ?? '',
+  );
+
+  const isQueryStale = text.trim() !== (query ?? '');
+  const isQueryEmpty = !query?.trim();
+  const canCreateAlert = perspective === 'admin' || perspective === 'virtualization-perspective';
 
   const queryTableData = useSelector(
     (state: MonitoringState) =>
@@ -435,8 +443,8 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   }, [dispatch, index]);
 
   const doCreateAlert = useCallback(() => {
-    navigate(getCreateAlertRuleUrl(perspective, query ?? '', activeNamespace));
-  }, [navigate, perspective, query, activeNamespace]);
+    navigate(getCreateAlertRuleUrl(perspective, query ?? ''));
+  }, [navigate, perspective, query]);
 
   const isSpan = (item) => item?.title?.props?.children;
   const getSpanText = (item) => item.title.props.children;
@@ -512,6 +520,35 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     </DropdownItem>
   );
 
+  const createAlertDisabledReason = isQueryEmpty
+    ? t('Enter a query first')
+    : isQueryStale
+      ? t('Run the query first')
+      : hasError
+        ? t('Fix the query error first')
+        : null;
+
+  const createAlertItem = createAlertDisabledReason ? (
+    <Tooltip key="create-alert-disabled" position="left" content={createAlertDisabledReason}>
+      <DropdownItem
+        isAriaDisabled={true}
+        component="button"
+        data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
+      >
+        {t('Create alert')}
+      </DropdownItem>
+    </Tooltip>
+  ) : (
+    <DropdownItem
+      key="create-alert"
+      component="button"
+      onClick={doCreateAlert}
+      data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
+    >
+      {t('Create alert')}
+    </DropdownItem>
+  );
+
   const defaultDropdownItems = [
     <DropdownItem
       key="toggle-query"
@@ -560,14 +597,6 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     >
       {t('Duplicate query')}
     </DropdownItem>,
-    <DropdownItem
-      key="create-alert"
-      component="button"
-      onClick={doCreateAlert}
-      data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
-    >
-      {t('Create alert')}
-    </DropdownItem>,
   ];
 
   const hasQueryTableData = () => {
@@ -577,14 +606,21 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     return true;
   };
 
-  const dropdownItems = hasQueryTableData()
-    ? [...defaultDropdownItems, exportDropdownItem]
+  let dropdownItems = canCreateAlert
+    ? [...defaultDropdownItems, createAlertItem]
     : defaultDropdownItems;
+  dropdownItems = hasQueryTableData() ? [...dropdownItems, exportDropdownItem] : dropdownItems;
 
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
+const QueryTable: FC<QueryTableProps> = ({
+  index,
+  namespace,
+  customDatasource,
+  units,
+  onErrorChange,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
@@ -655,11 +691,13 @@ const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, u
         .then((response) => {
           setData(_.get(response, 'data'));
           setError(undefined);
+          onErrorChange?.(false);
         })
         .catch((err) => {
           if (err.name !== 'AbortError') {
             setData(undefined);
             setError(err);
+            onErrorChange?.(true);
           }
         });
     }
@@ -681,10 +719,17 @@ const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, u
     setError(undefined);
     setPage(1);
     setSortBy({});
-  }, [namespace, query]);
+    onErrorChange?.(false);
+  }, [namespace, query, onErrorChange]);
 
   const isUnused = !isEnabled || !isExpanded || !query;
   const isError = !!error;
+
+  useEffect(() => {
+    if (isUnused) {
+      onErrorChange?.(false);
+    }
+  }, [isUnused, onErrorChange]);
   const isLoading = !data;
   const result = useMemo(() => {
     if (isUnused || isError || isLoading) {
@@ -983,8 +1028,9 @@ const Query: FC<{
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   const [activeNamespace] = useActiveNamespace();
+  const [hasError, setHasError] = useState(false);
 
-  const queryKebab = <QueryKebab index={index} />;
+  const queryKebab = <QueryKebab index={index} hasError={hasError} />;
   const querySwitch = (
     <div title={switchLabel} style={{ marginTop: t_global_spacer_sm.var }}>
       <Switch
@@ -1052,6 +1098,7 @@ const Query: FC<{
           customDatasource={customDatasource}
           namespace={activeNamespace}
           units={units}
+          onErrorChange={setHasError}
         />
       </DataListContent>
     </DataListItem>
@@ -1500,6 +1547,7 @@ type QueryTableProps = {
   namespace?: string;
   customDatasource?: CustomDataSource;
   units: GraphUnits;
+  onErrorChange?: (hasError: boolean) => void;
 };
 
 type SeriesButtonProps = {
