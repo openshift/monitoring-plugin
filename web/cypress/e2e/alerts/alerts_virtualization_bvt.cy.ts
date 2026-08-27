@@ -36,7 +36,7 @@ const KBV = {
 
 describe(
   'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@slow', '@virtualization'] },
+  { tags: ['@alerting', '@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);

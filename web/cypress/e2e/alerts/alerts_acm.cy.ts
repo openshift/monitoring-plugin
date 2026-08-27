@@ -24,7 +24,7 @@ const MP = {
 };
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 
-describe('ACM Alerting UI', { tags: ['@acm-alerting', '@alerting', '@coo'] }, () => {
+describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
   before(() => {
     cy.beforeBlockACM(MCP, MP);
   });

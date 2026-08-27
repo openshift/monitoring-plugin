@@ -1,17 +1,21 @@
 import type { Rule } from 'eslint';
 import type { ArrayExpression, Property } from 'estree';
-import { HIGH_LEVEL_COMPONENT_TAGS, MODIFIER_TAGS } from '../cypress/support/test-tags';
+import { FEATURE_TAGS, INFRASTRUCTURE_TAGS, MODIFIER_TAGS } from '../cypress/support/test-tags';
 import { isTagsInCallOptions, isTagsProperty } from './cypress-tags-helper';
 
 const MODIFIER_SET: ReadonlySet<string> = new Set(MODIFIER_TAGS);
-const FEATURE_SET: ReadonlySet<string> = new Set(HIGH_LEVEL_COMPONENT_TAGS);
+const INFRASTRUCTURE_SET: ReadonlySet<string> = new Set(INFRASTRUCTURE_TAGS);
+const FEATURE_SET: ReadonlySet<string> = new Set(FEATURE_TAGS);
 const SPECIFIC_FEATURE_RE = /^@[^\s-]+-[^\s]+$/;
 
-export type TagKind = 'feature' | 'modifier' | 'unknown';
+export type TagKind = 'feature' | 'infrastructure' | 'modifier' | 'unknown';
 
 export function classifyTag(tag: string): TagKind {
   if (MODIFIER_SET.has(tag)) {
     return 'modifier';
+  }
+  if (INFRASTRUCTURE_SET.has(tag)) {
+    return 'infrastructure';
   }
   if (FEATURE_SET.has(tag) || SPECIFIC_FEATURE_RE.test(tag)) {
     return 'feature';
@@ -21,9 +25,10 @@ export function classifyTag(tag: string): TagKind {
 
 export function sortTags(tags: string[]): string[] {
   const features = tags.filter((t) => classifyTag(t) === 'feature').sort();
+  const infrastructure = tags.filter((t) => classifyTag(t) === 'infrastructure').sort();
   const modifiers = tags.filter((t) => classifyTag(t) === 'modifier').sort();
   const unknowns = tags.filter((t) => classifyTag(t) === 'unknown');
-  return [...features, ...modifiers, ...unknowns];
+  return [...features, ...infrastructure, ...modifiers, ...unknowns];
 }
 
 export const cypressTagOrder: Rule.RuleModule = {
@@ -31,14 +36,13 @@ export const cypressTagOrder: Rule.RuleModule = {
     type: 'suggestion',
     fixable: 'code',
     docs: {
-      description:
-        'Sort Cypress tags: feature tags alphabetically, then modifier tags alphabetically',
+      description: 'Sort Cypress tags: feature, infrastructure, then modifier tags alphabetically',
     },
     schema: [],
     messages: {
       unknownTag: "Tag '{{tag}}' is not a recognized tag. See cypress/support/test-tags.ts.",
       tagsNotSorted:
-        'Cypress tags must be sorted: feature tags alphabetically, then modifier tags ' +
+        'Cypress tags must be sorted: feature, infrastructure, then modifier tags ' +
         'alphabetically. Expected: [{{expected}}].',
     },
   },

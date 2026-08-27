@@ -35,7 +35,7 @@ const KBV = {
 
 describe(
   'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@coo', '@slow', '@virtualization'] },
+  { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);

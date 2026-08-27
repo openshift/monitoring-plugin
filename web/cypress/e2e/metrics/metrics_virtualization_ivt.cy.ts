@@ -45,7 +45,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
 
   describe(
     'Regression: Monitoring - Metrics (Virtualization)',
-    { tags: ['@metrics', '@coo', '@slow', '@virtualization'] },
+    { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
     () => {
       beforeEach(() => {
         cy.visit('/');
@@ -67,7 +67,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
 
   describe(
     'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-    { tags: ['@metrics', '@coo', '@slow', '@virtualization'] },
+    { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
     () => {
       beforeEach(() => {
         cy.visit('/');
@@ -89,7 +89,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
 
   describe(
     'Regression: Monitoring - Metrics (Virtualization)',
-    { tags: ['@metrics', '@slow', '@virtualization'] },
+    { tags: ['@metrics', '@virtualization', '@slow'] },
     () => {
       beforeEach(() => {
         cy.visit('/');
@@ -111,7 +111,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
 
   describe(
     'Regression: Monitoring - Metrics Namespaced (Virtualization)',
-    { tags: ['@metrics', '@slow', '@virtualization'] },
+    { tags: ['@metrics', '@virtualization', '@slow'] },
     () => {
       beforeEach(() => {
         cy.visit('/');

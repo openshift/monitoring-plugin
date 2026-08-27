@@ -4,9 +4,13 @@ import { classifyTag, cypressTagOrder, sortTags } from './cypress-tag-order';
 describe('classifyTag', () => {
   it('classifies modifier tags', () => {
     expect(classifyTag('@slow')).toBe('modifier');
-    expect(classifyTag('@coo')).toBe('modifier');
-    expect(classifyTag('@virtualization')).toBe('modifier');
-    expect(classifyTag('@ols')).toBe('modifier');
+  });
+
+  it('classifies infrastructure tags', () => {
+    expect(classifyTag('@acm')).toBe('infrastructure');
+    expect(classifyTag('@coo')).toBe('infrastructure');
+    expect(classifyTag('@virtualization')).toBe('infrastructure');
+    expect(classifyTag('@ols')).toBe('infrastructure');
   });
 
   it('classifies high level component tags as features', () => {
@@ -21,16 +25,16 @@ describe('classifyTag', () => {
 
   it('classifies unrecognized tags as unknown', () => {
     expect(classifyTag('@perses')).toBe('unknown');
-    expect(classifyTag('@acm')).toBe('unknown');
     expect(classifyTag('@monitoring')).toBe('unknown');
   });
 });
 
 describe('sortTags', () => {
-  it('sorts features alphabetically before modifiers alphabetically', () => {
-    expect(sortTags(['@slow', '@metrics', '@coo', '@alerting'])).toEqual([
+  it('sorts features, infrastructure, and modifiers alphabetically', () => {
+    expect(sortTags(['@slow', '@metrics', '@coo', '@alerting', '@acm'])).toEqual([
       '@alerting',
       '@metrics',
+      '@acm',
       '@coo',
       '@slow',
     ]);
@@ -47,7 +51,9 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('cypress-tag-order', cypressTagOrder, {
   valid: [
-    { code: "describe('x', { tags: ['@alerting', '@metrics', '@coo', '@slow'] }, () => {})" },
+    {
+      code: "describe('x', { tags: ['@alerting', '@metrics', '@acm', '@coo', '@slow'] }, () => {})",
+    },
     { code: "describe('x', { tags: ['@alerting'] }, () => {})" },
     { code: "describe('x', { tags: ['@slow'] }, () => {})" },
     { code: "it('x', { tags: ['@perses-dev', '@slow'] }, () => {})" },
@@ -63,6 +69,11 @@ ruleTester.run('cypress-tag-order', cypressTagOrder, {
     {
       code: "describe('x', { tags: ['@virtualization', '@alerting'] }, () => {})",
       output: "describe('x', { tags: ['@alerting', '@virtualization'] }, () => {})",
+      errors: [{ messageId: 'tagsNotSorted' }],
+    },
+    {
+      code: "describe('x', { tags: ['@slow', '@coo'] }, () => {})",
+      output: "describe('x', { tags: ['@coo', '@slow'] }, () => {})",
       errors: [{ messageId: 'tagsNotSorted' }],
     },
     {
