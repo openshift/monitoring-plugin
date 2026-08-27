@@ -386,7 +386,7 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 };
 
-const QueryKebab: FC<{ index: number; hasError?: boolean }> = ({ index, hasError }) => {
+const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
   const { perspective } = usePerspective();
@@ -404,13 +404,6 @@ const QueryKebab: FC<{ index: number; hasError?: boolean }> = ({ index, hasError
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.query,
   );
 
-  const text = useSelector(
-    (state: MonitoringState) =>
-      getObserveState(plugin, state).queryBrowser?.queries[index]?.text ?? '',
-  );
-
-  const isQueryStale = text.trim() !== (query ?? '');
-  const isQueryEmpty = !query?.trim();
   const canCreateAlert = perspective === 'admin' || perspective === 'virtualization-perspective';
 
   const queryTableData = useSelector(
@@ -520,25 +513,7 @@ const QueryKebab: FC<{ index: number; hasError?: boolean }> = ({ index, hasError
     </DropdownItem>
   );
 
-  const createAlertDisabledReason = isQueryEmpty
-    ? t('Enter a query first')
-    : isQueryStale
-      ? t('Run the query first')
-      : hasError
-        ? t('Fix the query error first')
-        : null;
-
-  const createAlertItem = createAlertDisabledReason ? (
-    <Tooltip key="create-alert-disabled" position="left" content={createAlertDisabledReason}>
-      <DropdownItem
-        isAriaDisabled={true}
-        component="button"
-        data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
-      >
-        {t('Create alert')}
-      </DropdownItem>
-    </Tooltip>
-  ) : (
+  const createAlertItem = (
     <DropdownItem
       key="create-alert"
       component="button"
@@ -614,13 +589,7 @@ const QueryKebab: FC<{ index: number; hasError?: boolean }> = ({ index, hasError
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
-const QueryTable: FC<QueryTableProps> = ({
-  index,
-  namespace,
-  customDatasource,
-  units,
-  onErrorChange,
-}) => {
+const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin, accessCheckLoading, useMetricsTenancy } = useMonitoring();
 
@@ -691,13 +660,11 @@ const QueryTable: FC<QueryTableProps> = ({
         .then((response) => {
           setData(_.get(response, 'data'));
           setError(undefined);
-          onErrorChange?.(false);
         })
         .catch((err) => {
           if (err.name !== 'AbortError') {
             setData(undefined);
             setError(err);
-            onErrorChange?.(true);
           }
         });
     }
@@ -719,17 +686,10 @@ const QueryTable: FC<QueryTableProps> = ({
     setError(undefined);
     setPage(1);
     setSortBy({});
-    onErrorChange?.(false);
-  }, [namespace, query, onErrorChange]);
+  }, [namespace, query]);
 
   const isUnused = !isEnabled || !isExpanded || !query;
   const isError = !!error;
-
-  useEffect(() => {
-    if (isUnused) {
-      onErrorChange?.(false);
-    }
-  }, [isUnused, onErrorChange]);
   const isLoading = !data;
   const result = useMemo(() => {
     if (isUnused || isError || isLoading) {
@@ -1028,9 +988,8 @@ const Query: FC<{
   const switchLabel = isEnabled ? t('Disable query') : t('Enable query');
 
   const [activeNamespace] = useActiveNamespace();
-  const [hasError, setHasError] = useState(false);
 
-  const queryKebab = <QueryKebab index={index} hasError={hasError} />;
+  const queryKebab = <QueryKebab index={index} />;
   const querySwitch = (
     <div title={switchLabel} style={{ marginTop: t_global_spacer_sm.var }}>
       <Switch
@@ -1098,7 +1057,6 @@ const Query: FC<{
           customDatasource={customDatasource}
           namespace={activeNamespace}
           units={units}
-          onErrorChange={setHasError}
         />
       </DataListContent>
     </DataListItem>
@@ -1547,7 +1505,6 @@ type QueryTableProps = {
   namespace?: string;
   customDatasource?: CustomDataSource;
   units: GraphUnits;
-  onErrorChange?: (hasError: boolean) => void;
 };
 
 type SeriesButtonProps = {
