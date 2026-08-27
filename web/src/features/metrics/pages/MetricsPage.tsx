@@ -404,6 +404,10 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.query,
   );
 
+  const text = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.text,
+  );
+
   const canCreateAlert = perspective === 'admin' || perspective === 'virtualization-perspective';
 
   const queryTableData = useSelector(
@@ -436,8 +440,8 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   }, [dispatch, index]);
 
   const doCreateAlert = useCallback(() => {
-    navigate(getCreateAlertRuleUrl(perspective, query ?? ''));
-  }, [navigate, perspective, query]);
+    navigate(getCreateAlertRuleUrl(perspective, text));
+  }, [navigate, perspective, text]);
 
   const isSpan = (item) => item?.title?.props?.children;
   const getSpanText = (item) => item.title.props.children;
@@ -513,7 +517,19 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     </DropdownItem>
   );
 
-  const createAlertItem = (
+  const isTextEmpty = !text || text.trim() === '';
+
+  const createAlertItem = isTextEmpty ? (
+    <Tooltip key="create-alert-disabled" position="left" content={t('Enter a query first')}>
+      <DropdownItem
+        isAriaDisabled={true} // need to receive focus for tooltip to work
+        component="button"
+        data-test={DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}
+      >
+        {t('Create alert')}
+      </DropdownItem>
+    </Tooltip>
+  ) : (
     <DropdownItem
       key="create-alert"
       component="button"
