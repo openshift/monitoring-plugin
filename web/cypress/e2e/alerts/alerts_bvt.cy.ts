@@ -7,7 +7,7 @@ import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+    cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
