@@ -1,11 +1,9 @@
 import 'cypress-wait-until';
 import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
 import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
+import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
 
 export {};
-
-const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
-const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 export const dashboardsUtils = {
   setupMonitoringUIPlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
