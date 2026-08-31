@@ -1,8 +1,7 @@
 import { waitForPodsReady, waitForPodsReadyOrAbsent } from './wait-utils';
+import { readyTimeoutMilliseconds } from '../timeouts';
 
 export {};
-
-const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
 
 export const imagePatchUtils = {
   setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
