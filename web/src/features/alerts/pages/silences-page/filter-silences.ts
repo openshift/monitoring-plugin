@@ -4,7 +4,7 @@ import {
   SilenceFilterOptions,
   SilenceFilters,
 } from '@/features/alerts/pages/silences-page/SilencesPage';
-import { Perspective } from '@/shared/store/actions';
+import type { Perspective } from '@/shared/hooks/usePerspective';
 import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, silenceState } from '@/shared/utils/utils';
 
 export const filterSilences = (
