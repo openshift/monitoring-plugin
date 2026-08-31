@@ -1,4 +1,5 @@
 import 'cypress-wait-until';
+import { readyTimeoutMilliseconds } from '../timeouts';
 
 /**
  * Poll until pods matching a label selector reach the Ready condition.
@@ -15,7 +16,7 @@ export function waitForPodsReady(
   intervalMs: number = 5000,
 ): void {
   const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-  const timeout = timeoutMs ?? (Cypress.config('readyTimeoutMilliseconds') as number);
+  const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>
@@ -47,7 +48,7 @@ export function waitForPodsReadyOrAbsent(
   intervalMs: number = 5000,
 ): void {
   const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-  const timeout = timeoutMs ?? (Cypress.config('readyTimeoutMilliseconds') as number);
+  const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>
@@ -82,7 +83,7 @@ export function waitForResourceCondition(
   intervalMs: number = 5000,
 ): void {
   const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-  const timeout = timeoutMs ?? (Cypress.config('readyTimeoutMilliseconds') as number);
+  const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>

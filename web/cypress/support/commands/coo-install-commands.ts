@@ -1,11 +1,9 @@
 import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
+import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
 
 export {};
-
-const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
-const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 export const cooInstallUtils = {
   installCOO(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string; packageName: string }): void {

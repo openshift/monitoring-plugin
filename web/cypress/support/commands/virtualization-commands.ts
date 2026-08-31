@@ -3,6 +3,7 @@ import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
 import { guidedTour } from '../../views/tour';
+import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
 
 export {};
 
@@ -17,9 +18,6 @@ declare global {
     }
   }
 }
-
-const readyTimeoutMilliseconds = Cypress.config('readyTimeoutMilliseconds') as number;
-const installTimeoutMilliseconds = Cypress.config('installTimeoutMilliseconds') as number;
 
 const useSession = Cypress.env('SESSION');
 
