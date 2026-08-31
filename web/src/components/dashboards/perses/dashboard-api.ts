@@ -92,7 +92,7 @@ export function useDeleteDashboardMutation(): UseMutationResult<
 
 export const getDashboards = async (
   project?: string,
-  metadataOnly: boolean = false,
+  metadataOnly = false,
 ): Promise<DashboardResource[]> => {
   const queryParams = new URLSearchParams();
   if (metadataOnly) {

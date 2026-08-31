@@ -294,6 +294,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     () => [
       {
         title: t("You don't have permissions for dashboard actions"),
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         onClick: () => {},
       },
     ],
