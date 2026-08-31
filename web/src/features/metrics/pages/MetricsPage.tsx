@@ -590,17 +590,13 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     </DropdownItem>,
   ];
 
-  const hasQueryTableData = () => {
-    if (!query || !queryTableData?.rows || !queryTableData?.columns) {
-      return false;
-    }
-    return true;
-  };
+  const hasQueryTableData = Boolean(query && queryTableData?.rows && queryTableData?.columns);
 
-  let dropdownItems = canCreateAlert
-    ? [...defaultDropdownItems, createAlertItem]
-    : defaultDropdownItems;
-  dropdownItems = hasQueryTableData() ? [...dropdownItems, exportDropdownItem] : dropdownItems;
+  const dropdownItems = [
+    ...defaultDropdownItems,
+    ...(canCreateAlert ? [createAlertItem] : []),
+    ...(hasQueryTableData ? [exportDropdownItem] : []),
+  ];
 
   return <KebabDropdown dropdownItems={dropdownItems} />;
 };
