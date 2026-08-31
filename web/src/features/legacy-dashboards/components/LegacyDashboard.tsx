@@ -50,9 +50,9 @@ import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getMutlipleQueryBrowserUrl,
   getObserveState,
+  type Perspective,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { Perspective } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import { GraphUnits } from '@/shared/utils/units';
 

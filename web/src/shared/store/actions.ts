@@ -48,8 +48,6 @@ export enum ActionType {
   SetIncidentsLastRefreshTime = 'setIncidentsLastRefreshTime',
 }
 
-export type Perspective = 'admin' | 'dev' | 'acm' | 'virtualization-perspective';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const dashboardsPatchVariable = (dashboardName: string, key: string, patch: any) =>
   action(ActionType.DashboardsPatchVariable, { dashboardName, key, patch });
