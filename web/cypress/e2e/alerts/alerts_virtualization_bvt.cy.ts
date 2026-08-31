@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
@@ -40,6 +40,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runBVTMonitoringTests(CustomerPerspectiveName.Virtualization);
+    testBVTMonitoring(CustomerPerspectiveName.Virtualization);
   },
 );

@@ -7,13 +7,6 @@ import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
 
-export function runCOOCreateImportPersesTests(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOCreateImportPerses(perspectiveName, dashboardsPageName);
-}
-
 export function testCOOCreateImportPerses(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,
