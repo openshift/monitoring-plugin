@@ -7,7 +7,10 @@ import { acmAlertingPage } from '../../views/acm-alerting-page';
 
 import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 import { incidentsPage } from 'cypress/views/incidents-page';
-import { runAllRegressionFleetManagementAlertsTests } from 'cypress/support/monitoring/01.reg_alerts.cy';
+import {
+  testAlertsFleetManagementRegression,
+  testAlertsRegression,
+} from 'cypress/support/monitoring/01.reg_alerts.cy';
 import { listPage } from 'cypress/views/list-page';
 import {
   CLUSTER_MONITORING_OPERATOR,
@@ -64,7 +67,8 @@ describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
     troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
   });
 
-  runAllRegressionFleetManagementAlertsTests(
+  testAlertsFleetManagementRegression(CustomerPerspectiveName.FleetManagement, 'Watchdog-spoke');
+  testAlertsRegression(
     CustomerPerspectiveName.FleetManagement,
     'Watchdog-spoke',
     CLUSTER_MONITORING_OPERATOR.namespace,
