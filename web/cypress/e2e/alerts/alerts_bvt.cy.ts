@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
@@ -18,7 +19,5 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, ()
   });
 
   // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace({
-    name: 'Administrator',
-  });
+  runBVTMonitoringTestsNamespace(CustomerPerspectiveName.CorePlatform);
 });
