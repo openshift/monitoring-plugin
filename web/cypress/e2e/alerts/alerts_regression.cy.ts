@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { runAllRegressionCorePlatformAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionAlertsTestsNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
@@ -26,9 +27,7 @@ describe(
     });
 
     // Run tests in Core platform perspective
-    runAllRegressionCorePlatformAlertsTests({
-      name: 'Administrator',
-    });
+    runAllRegressionCorePlatformAlertsTests(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -49,8 +48,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionAlertsTestsNamespace({
-      name: 'Administrator',
-    });
+    runAllRegressionAlertsTestsNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

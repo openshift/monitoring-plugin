@@ -1,44 +1,22 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../../support/operators';
 
 describe(
   'Installation: COO and setting up Monitoring Plugin',
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {
@@ -52,7 +30,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {
@@ -72,16 +50,14 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTests2({
-      name: 'Virtualization',
-    });
+    runAllRegressionMetricsTests2(CustomerPerspectiveName.Virtualization);
   },
 );
 
@@ -94,15 +70,13 @@ describe(
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
-      cy.changeNamespace(MP.namespace);
-      alerts.getWatchdogAlert();
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
+      alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTestsNamespace2({
-      name: 'Virtualization',
-    });
+    runAllRegressionMetricsTestsNamespace2(CustomerPerspectiveName.Virtualization);
   },
 );

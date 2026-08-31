@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { nav } from '../../views/nav';
 import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
@@ -31,8 +32,6 @@ describe(
       commonPages.titleShouldHaveText('Dashboards');
     });
 
-    runBVTCOOPersesTests1({
-      name: 'Virtualization',
-    });
+    runBVTCOOPersesTests1(CustomerPerspectiveName.Virtualization);
   },
 );

@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
 import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
@@ -19,9 +20,7 @@ describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'
   });
 
   // Run tests in Administrator perspective
-  runAllRegressionMetricsTests1({
-    name: 'Administrator',
-  });
+  runAllRegressionMetricsTests1(CustomerPerspectiveName.CorePlatform);
 });
 
 // Test suite for Administrator perspective
@@ -40,9 +39,7 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionMetricsTestsNamespace1({
-      name: 'Administrator',
-    });
+    runAllRegressionMetricsTestsNamespace1(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -59,9 +56,7 @@ describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'
   });
 
   // Run tests in Administrator perspective
-  runAllRegressionMetricsTests2({
-    name: 'Administrator',
-  });
+  runAllRegressionMetricsTests2(CustomerPerspectiveName.CorePlatform);
 });
 
 // Test suite for Administrator perspective
@@ -80,8 +75,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionMetricsTestsNamespace2({
-      name: 'Administrator',
-    });
+    runAllRegressionMetricsTestsNamespace2(CustomerPerspectiveName.CorePlatform);
   },
 );

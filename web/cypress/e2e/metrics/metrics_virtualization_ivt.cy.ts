@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
 import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
@@ -36,9 +37,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
       });
 
-      runAllRegressionMetricsTests1({
-        name: 'Virtualization',
-      });
+      runAllRegressionMetricsTests1(CustomerPerspectiveName.Virtualization);
     },
   );
 
@@ -58,9 +57,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
       });
 
-      runAllRegressionMetricsTestsNamespace1({
-        name: 'Virtualization',
-      });
+      runAllRegressionMetricsTestsNamespace1(CustomerPerspectiveName.Virtualization);
     },
   );
 
@@ -80,9 +77,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
       });
 
-      runAllRegressionMetricsTests2({
-        name: 'Virtualization',
-      });
+      runAllRegressionMetricsTests2(CustomerPerspectiveName.Virtualization);
     },
   );
 
@@ -102,9 +97,7 @@ describe('Regression: Monitoring - Metrics (Virtualization)', () => {
         alerts.interceptWatchdogAlert();
       });
 
-      runAllRegressionMetricsTestsNamespace2({
-        name: 'Virtualization',
-      });
+      runAllRegressionMetricsTestsNamespace2(CustomerPerspectiveName.Virtualization);
     },
   );
 });
