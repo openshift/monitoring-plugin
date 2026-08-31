@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { testCOOEditPerses1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
 import { testCOOEditPerses } from '../../support/perses/02.coo_edit_perses_admin.cy';

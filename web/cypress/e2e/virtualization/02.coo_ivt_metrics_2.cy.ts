@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { testMetricsRegression2 } from '../../support/monitoring/02.reg_metrics_2.cy';
 import { testMetricsRegressionNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';

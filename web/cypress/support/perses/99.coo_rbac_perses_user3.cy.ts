@@ -14,7 +14,7 @@ import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constant
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
 import { persesAriaLabels } from '@/shared/constants/data-test';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 let dashboardName = 'Testing Dashboard - UP ';
 const randomSuffix = Math.random().toString(5);

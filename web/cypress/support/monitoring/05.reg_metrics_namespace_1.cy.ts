@@ -6,7 +6,7 @@ import {
   MetricsPageQueryInput,
   MetricsPageUnits,
 } from '../../fixtures/monitoring/constants';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testMetricsRegressionNamespace1(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Metrics`, () => {

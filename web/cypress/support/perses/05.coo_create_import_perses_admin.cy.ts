@@ -5,7 +5,7 @@ import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testCOOCreateImportPerses(
   perspectiveName: CustomerPerspective,

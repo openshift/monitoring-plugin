@@ -10,7 +10,7 @@ import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelg
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/constants';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testCOOCreatePerses(
   perspectiveName: CustomerPerspective,

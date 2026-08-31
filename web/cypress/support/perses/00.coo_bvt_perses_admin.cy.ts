@@ -16,7 +16,7 @@ import { persesDashboardSampleQueries } from '../../fixtures/perses/constants';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testBVTCOOPerses1(
   perspectiveName: CustomerPerspective,
