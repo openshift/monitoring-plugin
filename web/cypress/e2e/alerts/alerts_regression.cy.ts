@@ -15,7 +15,7 @@ describe(
   { tags: ['@alerting', '@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
       cy.switchPerspective('Core platform');
     });
 
@@ -40,7 +40,7 @@ describe(
   { tags: ['@alerting'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {

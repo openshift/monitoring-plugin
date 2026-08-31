@@ -22,7 +22,10 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlock(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
+      ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR: {
+        namespace: string;
+        operatorName: string;
+      });
       cleanupMP(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
       beforeBlockCOO(
         CLUSTER_OBSERVABILITY_OPERATOR: {
@@ -92,81 +95,14 @@ function collectDebugInfo(
     return;
   }
   cy.aboutModal();
-  cy.podImage('monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace);
+  imagePatchUtils
+    .getImage('deployment/monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace)
+    .then((image) => cy.log(`Monitoring Plugin image: ${image}`));
   if (CLUSTER_OBSERVABILITY_OPERATOR && CLUSTER_OBSERVABILITY_OPERATOR.namespace) {
-    cy.podImage('monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace);
+    imagePatchUtils
+      .getImage('deployment/monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace)
+      .then((image) => cy.log(`Monitoring Console Plugin image: ${image}`));
   }
-}
-
-/**
- * Wait until ACM custom alert rules are evaluated and present in Alertmanager.
- * oc apply of thanos-ruler-custom-rules only updates the ConfigMap; Thanos Ruler
- * must reload/evaluate rules and push alerts to Alertmanager before the UI can show them.
- */
-function waitForAcmAlertsFiring(alertNames: string[] = ACM_DEFAULT_TEST_ALERTS): void {
-  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-  const ns = ACM_OBSERVABILITY_NS;
-
-  cy.log(`Waiting for ACM alerts to become firing: ${alertNames.join(', ')}`);
-
-  cy.log('Waiting for observability-thanos-rule pods to be Ready');
-  cy.exec(
-    `oc rollout status statefulset/observability-thanos-rule ` +
-      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
-    { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
-  ).then((result) => {
-    if (result.code !== 0) {
-      cy.log(
-        `thanos-rule rollout status not ready yet (${result.stderr || result.stdout}); ` +
-          'continuing to poll Alertmanager',
-      );
-    }
-  });
-
-  cy.log('Waiting for ACM Alertmanager pods to be Ready');
-  cy.exec(
-    `oc wait --for=condition=Ready pod ` +
-      `-l alertmanager=observability,app=multicluster-observability-alertmanager ` +
-      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
-    { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
-  );
-
-  cy.waitUntil(
-    () =>
-      cy
-        .exec(
-          `POD=$(oc get pods -n ${ns} -l alertmanager=observability ` +
-            `--field-selector=status.phase=Running ` +
-            `-o jsonpath='{.items[0].metadata.name}' --kubeconfig "${kubeconfig}") && ` +
-            `test -n "$POD" && ` +
-            `(oc exec -n ${ns} "$POD" -c alertmanager --kubeconfig "${kubeconfig}" -- ` +
-            `amtool alert query --alertmanager.url=http://127.0.0.1:9093 || ` +
-            `oc exec -n ${ns} "$POD" -c alertmanager --kubeconfig "${kubeconfig}" -- ` +
-            `wget -qO- http://127.0.0.1:9093/api/v2/alerts)`,
-          { failOnNonZeroExit: false },
-        )
-        .then((result) => {
-          if (result.code !== 0 || !result.stdout) {
-            return false;
-          }
-          const missing = alertNames.filter((name) => !result.stdout.includes(name));
-          if (missing.length > 0) {
-            // eslint-disable-next-line no-console
-            console.log(`ACM alerts still missing from Alertmanager: ${missing.join(', ')}`);
-            return false;
-          }
-          // eslint-disable-next-line no-console
-          console.log(`All expected ACM alerts found in Alertmanager: ${alertNames.join(', ')}`);
-          return true;
-        }),
-    {
-      timeout: acmAlertReadyTimeoutMilliseconds,
-      interval: 15000,
-      errorMsg:
-        `Timed out waiting for ACM alerts to fire in Alertmanager: ${alertNames.join(', ')}. ` +
-        'ConfigMap may be applied but Thanos Ruler has not evaluated/pushed the alerts yet.',
-    },
-  );
 }
 
 /**
@@ -271,38 +207,14 @@ function cleanupUIPlugin(
 // ── Cypress commands ───────────────────────────────────────────────
 
 Cypress.Commands.add(
-  'beforeBlock',
+  'ensureMonitoringPlugin',
   (CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string }) => {
-    if (useSession) {
-      const sessionKey = operatorAuthUtils.generateMPSessionKey(CLUSTER_MONITORING_OPERATOR);
-
-      cy.session(
-        sessionKey,
-        () => {
-          cy.log('Before block (session)');
-          cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
-          operatorAuthUtils.loginAndAuthNoSession();
-          imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
-          collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
-          cy.task('clearDownloads');
-          cy.log('Before block (session) completed');
-        },
-        {
-          cacheAcrossSpecs: true,
-          validate() {
-            cy.validateLogin();
-          },
-        },
-      );
-    } else {
-      cy.log('Before block (no session)');
-      cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
-      operatorAuthUtils.loginAndAuth();
-      imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
-      collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
-      cy.task('clearDownloads');
-      cy.log('Before block (no session) completed');
-    }
+    cy.log('Ensure Monitoring Plugin');
+    operatorAuthUtils.loginAndAuth();
+    imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
+    collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
+    cy.task('clearDownloads');
+    cy.log('Ensure Monitoring Plugin completed');
   },
 );
 

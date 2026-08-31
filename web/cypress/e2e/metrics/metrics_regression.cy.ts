@@ -10,7 +10,7 @@ import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+    cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
@@ -46,7 +46,7 @@ describe(
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+    cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -65,7 +65,7 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
