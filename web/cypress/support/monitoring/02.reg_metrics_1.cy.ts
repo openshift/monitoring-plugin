@@ -6,18 +6,14 @@ import {
   MetricsPageQueryInput,
   MetricsPageUnits,
 } from '../../fixtures/monitoring/constants';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
+export function runAllRegressionMetricsTests1(perspectiveName: CustomerPerspective) {
+  testMetricsRegression1(perspectiveName);
 }
 
-export function runAllRegressionMetricsTests1(perspective: PerspectiveConfig) {
-  testMetricsRegression1(perspective);
-}
-
-export function testMetricsRegression1(perspective: PerspectiveConfig) {
-  it(`${perspective.name} perspective - Metrics`, () => {
+export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
+  it(`${perspectiveName} perspective - Metrics`, () => {
     cy.log('1.1 Metrics page loaded');
     metricsPage.shouldBeLoaded();
 
@@ -37,7 +33,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.kebabDropdownAssertionWithoutQuery();
   });
 
-  it(`${perspective.name} perspective - Metrics > Actions - No query added`, () => {
+  it(`${perspectiveName} perspective - Metrics > Actions - No query added`, () => {
     cy.log('2.1 Only one query loaded');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
 
@@ -78,7 +74,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
       .should('have.attr', 'aria-expanded', 'true');
   });
 
-  it(`${perspective.name} perspective - Metrics > Actions - One query added`, () => {
+  it(`${perspectiveName} perspective - Metrics > Actions - One query added`, () => {
     cy.log('3.1 Only one query loaded');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
     metricsPage.shouldBeLoadedWithGraph();
@@ -153,7 +149,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.shouldBeLoaded();
   });
 
-  it(`${perspective.name} perspective - Metrics > Insert Example Query`, () => {
+  it(`${perspectiveName} perspective - Metrics > Insert Example Query`, () => {
     cy.log('4.1 Insert Example Query');
     metricsPage.clickInsertExampleQuery();
     metricsPage.shouldBeLoadedWithGraph();
@@ -219,7 +215,7 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
   });
 
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
-  it(`${perspective.name} perspective - Metrics > Units`, () => {
+  it(`${perspectiveName} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     metricsPage.clickInsertExampleQuery();
     metricsPage.unitsDropdownAssertion();

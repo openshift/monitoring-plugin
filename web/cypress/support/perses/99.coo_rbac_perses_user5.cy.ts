@@ -12,15 +12,10 @@ import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
-}
-
-export function runCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
-  testCOORBACPersesTestsDevUser5(perspective);
+export function runCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspective) {
+  testCOORBACPersesTestsDevUser5(perspectiveName);
 }
 
 let dashboardName = 'Testing Dashboard - UP ';
@@ -33,9 +28,9 @@ dashboardName += randomSuffix;
  * - no access to openshift-cluster-observability-operator, observ-test, perses-dev,
  *   empty-namespace3, empty-namespace4
  */
-export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
+export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspective) {
   it(
-    `1.${perspective.name} perspective - List Dashboards - Namespace validation and ` +
+    `1.${perspectiveName} perspective - List Dashboards - Namespace validation and ` +
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
@@ -83,7 +78,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
   );
 
   it(
-    `2.${perspective.name} perspective - Create Dashboard with panel groups, panels ` +
+    `2.${perspectiveName} perspective - Create Dashboard with panel groups, panels ` +
       `and variables`,
     () => {
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
@@ -218,7 +213,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`3.${perspective.name} perspective - Kebab icon - Enabled / Disabled`, () => {
+  it(`3.${perspectiveName} perspective - Kebab icon - Enabled / Disabled`, () => {
     cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
 
@@ -245,7 +240,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clearAllFilters();
   });
 
-  it(`4.${perspective.name} perspective - Rename to a new dashboard name`, () => {
+  it(`4.${perspectiveName} perspective - Rename to a new dashboard name`, () => {
     let renamedDashboardName = 'Renamed dashboard ';
     const randomSuffix = Math.random().toString(5);
     renamedDashboardName += randomSuffix;
@@ -302,7 +297,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     persesDashboardsPage.backToListPersesDashboardsPage();
   });
 
-  it(`5.${perspective.name} perspective - Duplicate and verify project dropdown and Delete`, () => {
+  it(`5.${perspectiveName} perspective - Duplicate and verify project dropdown and Delete`, () => {
     let duplicatedDashboardName = 'Duplicate dashboard ';
     const randomSuffix = Math.random().toString(5);
     duplicatedDashboardName += randomSuffix;
@@ -359,7 +354,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 
-  it(`6.${perspective.name} perspective - Delete dashboard`, () => {
+  it(`6.${perspectiveName} perspective - Delete dashboard`, () => {
     cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
 
@@ -382,7 +377,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clearAllFilters();
   });
 
-  it(`7.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
+  it(`7.${perspectiveName} perspective - Import button validation - Enabled / Disabled`, () => {
     cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 
@@ -416,7 +411,7 @@ export function testCOORBACPersesTestsDevUser5(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertImportButtonIsEnabled();
   });
 
-  it(`8.${perspective.name} perspective - Import button validation - JSON`, () => {
+  it(`8.${perspectiveName} perspective - Import button validation - JSON`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 

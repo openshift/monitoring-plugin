@@ -12,22 +12,23 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
+export function runCOOEditPersesTests(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testCOOEditPerses(perspectiveName, dashboardsPageName);
 }
 
-export function runCOOEditPersesTests(perspective: PerspectiveConfig) {
-  testCOOEditPerses(perspective);
-}
-
-export function testCOOEditPerses(perspective: PerspectiveConfig) {
-  it(`1.${perspective.name} perspective - Edit perses dashboard page`, () => {
+export function testCOOEditPerses(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  it(`1.${perspectiveName} perspective - Edit perses dashboard page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`1.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -58,15 +59,15 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
     cy.log(`1.6. Change namespace to All Projects`);
     cy.changeNamespace('All Projects');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
   });
 
   it(
-    `2.${perspective.name} perspective - Edit Toolbar - Edit Variables - ` + `Add List Variable`,
+    `2.${perspectiveName} perspective - Edit Toolbar - Edit Variables - ` + `Add List Variable`,
     () => {
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`2.2. Filter by Name`);
       listPersesDashboardsPage.filter.byName(
@@ -128,11 +129,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   );
 
   it(
-    `3.${perspective.name} perspective - Edit Toolbar - Edit Variables - ` + `Add Text Variable`,
+    `3.${perspectiveName} perspective - Edit Toolbar - Edit Variables - ` + `Add Text Variable`,
     () => {
       cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`3.2. Filter by Name`);
       listPersesDashboardsPage.filter.byName(
@@ -191,12 +192,12 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   );
 
   it(
-    `4.${perspective.name} perspective - Edit Toolbar - Edit Variables - Visibility, ` +
+    `4.${perspectiveName} perspective - Edit Toolbar - Edit Variables - Visibility, ` +
       `Move up/down, Edit and Delete Variable`,
     () => {
       cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`4.2. Filter by Name`);
       listPersesDashboardsPage.filter.byName(
@@ -283,12 +284,12 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   );
 
   it(
-    `5.${perspective.name} perspective - Edit Toolbar - Edit Variables - ` +
+    `5.${perspectiveName} perspective - Edit Toolbar - Edit Variables - ` +
       `Add Variable - Required field validation`,
     () => {
       cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`5.2. Filter by Name`);
       listPersesDashboardsPage.filter.byName(
@@ -322,11 +323,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
   /**TODO: https://issues.redhat.com/browse/OU-1054 is targeted for COO1.6.0,
    * so, commenting all Datasources related scenarios
-  it(`6.${perspective.name} perspective - Edit Toolbar - Edit Datasources
+  it(`6.${perspectiveName} perspective - Edit Toolbar - Edit Datasources
    - Add and Delete Prometheus Datasource`, () => {
     cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`6.2. Filter by Name`);
     listPersesDashboardsPage
@@ -373,11 +374,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     // persesDashboardsPage.clickEditActionButton('Save');
   });
 
-  it(`7.${perspective.name} perspective - Edit Toolbar - Edit Datasources -
+  it(`7.${perspectiveName} perspective - Edit Toolbar - Edit Datasources -
   - Edit Prometheus Datasource`, () => {
     cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`7.2. Filter by Name`);
     listPersesDashboardsPage
@@ -411,11 +412,11 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
 
   });
 
-  // it(`8.${perspective.name} perspective - Edit Toolbar -
+  // it(`8.${perspectiveName} perspective - Edit Toolbar -
   // Edit Datasources - Add Tempo Datasource`, () => {
   // });
 
-  it(`8.${perspective.name} perspective - Edit Toolbar -
+  it(`8.${perspectiveName} perspective - Edit Toolbar -
   - Edit Datasources - Required field validation`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
@@ -455,10 +456,10 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
   });
 */
 
-  it(`6.${perspective.name} perspective - Edit Toolbar - Add Panel Group`, () => {
+  it(`6.${perspectiveName} perspective - Edit Toolbar - Add Panel Group`, () => {
     cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`6.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -497,10 +498,10 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup1', 'Open');
   });
 
-  it(`7.${perspective.name} perspective - Edit Toolbar - Edit Panel Group`, () => {
+  it(`7.${perspectiveName} perspective - Edit Toolbar - Edit Panel Group`, () => {
     cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`7.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -535,10 +536,10 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.panelGroupHeaderAssertion('PanelGroup2', 'Closed');
   });
 
-  it(`8.${perspective.name} perspective - Edit Toolbar - Move Panel Group Down and Up`, () => {
+  it(`8.${perspectiveName} perspective - Edit Toolbar - Move Panel Group Down and Up`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`8.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -606,10 +607,10 @@ export function testCOOEditPerses(perspective: PerspectiveConfig) {
     persesDashboardsPage.assertPanelGroupOrder('Row 2', 2);
   });
 
-  it(`9.${perspective.name} perspective - Edit Toolbar - Delete Panel Group`, () => {
+  it(`9.${perspectiveName} perspective - Edit Toolbar - Delete Panel Group`, () => {
     cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`9.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(

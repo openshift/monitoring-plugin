@@ -17,18 +17,14 @@ import {
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
+export function runAllRegressionAlertsTestsNamespace(perspectiveName: CustomerPerspective) {
+  testAlertsRegressionNamespace(perspectiveName);
 }
 
-export function runAllRegressionAlertsTestsNamespace(perspective: PerspectiveConfig) {
-  testAlertsRegressionNamespace(perspective);
-}
-
-export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
-  it(`${perspective.name} perspective - Alerting > Alerts page - Filtering`, () => {
+export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspective) {
+  it(`${perspectiveName} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
     // Verify Source filter does not exist in namespace view
@@ -54,7 +50,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     listPage.filter.removeIndividualTag('alertname=' + `${WatchdogAlert.ALERTNAME}`);
   });
 
-  it(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
+  it(`${perspectiveName} perspective - Alerting > Silences page > Create silence`, () => {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Silences');
     silencesListPage.createSilence();
@@ -77,7 +73,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
   });
 
   it(
-    `${perspective.name} perspective - ` +
+    `${perspectiveName} perspective - ` +
       'Alerting > Alerts / Silences > Kebab icon on List and Details',
     () => {
       cy.log('3.1 use sidebar nav to go to Observe > Alerting');
@@ -236,7 +232,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`${perspective.name} perspective - Alerting > Alerting Rules`, () => {
+  it(`${perspectiveName} perspective - Alerting > Alerting Rules`, () => {
     cy.log('4.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Alerting rules');
     alertingRuleListPage.shouldBeLoaded();
@@ -317,7 +313,7 @@ export function testAlertsRegressionNamespace(perspective: PerspectiveConfig) {
     silencesListPage.rows.expireSilence(true);
   });
 
-  it(`${perspective.name} perspective - Alerting > Empty state`, () => {
+  it(`${perspectiveName} perspective - Alerting > Empty state`, () => {
     cy.log('5.1 Empty state');
     cy.changeNamespace('default');
     listPage.emptyState();

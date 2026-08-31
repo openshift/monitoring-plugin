@@ -10,24 +10,25 @@ import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelg
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/constants';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
+export function runCOOCreatePersesTests(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testCOOCreatePerses(perspectiveName, dashboardsPageName);
 }
 
-export function runCOOCreatePersesTests(perspective: PerspectiveConfig) {
-  testCOOCreatePerses(perspective);
-}
-
-export function testCOOCreatePerses(perspective: PerspectiveConfig) {
-  it(`1.${perspective.name} perspective - Create Dashboard validation with max length`, () => {
+export function testCOOCreatePerses(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  it(`1.${perspectiveName} perspective - Create Dashboard validation with max length`, () => {
     let dashboardName = 'Test Dashboard';
     const randomSuffix = Math.random().toString(5);
     dashboardName += randomSuffix;
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`1.2. Click on Create button`);
     listPersesDashboardsPage.clickCreateButton();
@@ -54,7 +55,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
   });
 
   it(
-    `2.${perspective.name} perspective - Create Dashboard with duplicated name in the ` +
+    `2.${perspectiveName} perspective - Create Dashboard with duplicated name in the ` +
       `same project`,
     () => {
       //dashboard name with spaces
@@ -62,7 +63,7 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
       const randomSuffix = Math.random().toString(5);
       dashboardName += randomSuffix;
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`2.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -109,14 +110,14 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
   );
 
   it(
-    `3.${perspective.name} perspective - Create Dashboard with panel groups, panels ` +
+    `3.${perspectiveName} perspective - Create Dashboard with panel groups, panels ` +
       `and variables`,
     () => {
       let dashboardName = 'Testing Dashboard - UP ';
       const randomSuffix = Math.random().toString(5);
       dashboardName += randomSuffix;
       cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`3.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -247,12 +248,12 @@ export function testCOOCreatePerses(perspective: PerspectiveConfig) {
   //TODO: Verify Create project dropdown not only showing perses projects,
   // but all namespaces you have access to, independently of having perses object
   // (that creates a perses project)
-  // it(`4.${perspective.name} perspective -
+  // it(`4.${perspectiveName} perspective -
   // Verify Create project dropdown not only showing perses projects,
   // but all namespaces you have access to, independently of having perses object
   // (that creates a perses project)`, () => {
   // cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-  // listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+  // listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
   // cy.log(`4.2. Click on Create button`);
   // listPersesDashboardsPage.clickCreateButton();

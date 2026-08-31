@@ -6,18 +6,14 @@ import {
   MetricsPageQueryInput,
   MetricsPageQueryKebabDropdown,
 } from '../../fixtures/monitoring/constants';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
+export function runAllRegressionMetricsTests2(perspectiveName: CustomerPerspective) {
+  testMetricsRegression2(perspectiveName);
 }
 
-export function runAllRegressionMetricsTests2(perspective: PerspectiveConfig) {
-  testMetricsRegression2(perspective);
-}
-
-export function testMetricsRegression2(perspective: PerspectiveConfig) {
-  it(`${perspective.name} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
+export function testMetricsRegression2(perspectiveName: CustomerPerspective) {
+  it(`${perspectiveName} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
     cy.log('6.1 Preparation to test Add Query button');
     metricsPage.clickActionsDeleteAllQueries();
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
@@ -321,7 +317,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     metricsPage.clickActionsDeleteAllQueries();
   });
 
-  it(`${perspective.name} perspective - Metrics > Predefined Queries > Export as CSV`, () => {
+  it(`${perspectiveName} perspective - Metrics > Predefined Queries > Export as CSV`, () => {
     //OCPBUGS-54316 - [4.16] Metrics "Export as CSV" is not working for all queries
     cy.log('7.1 Predefined Queries');
     metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.CPU_USAGE);
@@ -380,7 +376,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     metricsPage.clickActionsDeleteAllQueries();
   });
 
-  it(`${perspective.name} perspective - Metrics > No Datapoints`, () => {
+  it(`${perspectiveName} perspective - Metrics > No Datapoints`, () => {
     cy.log('8.1 No Datapoints');
     metricsPage.enterQueryInput(0, 'aaaaaaaaaa');
     metricsPage.clickRunQueriesButton();
@@ -399,7 +395,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     cy.get(Classes.MetricsPageQueryAutocomplete).should('contain', 'abs');
   });
 
-  it(`${perspective.name} perspective - Metrics > No Datapoints with alert`, () => {
+  it(`${perspectiveName} perspective - Metrics > No Datapoints with alert`, () => {
     cy.log('9.1 No Datapoints with alert');
     metricsPage.enterQueryInput(0, MetricsPageQueryInput.QUERY_WITH_ALERT);
     metricsPage.clickRunQueriesButton();

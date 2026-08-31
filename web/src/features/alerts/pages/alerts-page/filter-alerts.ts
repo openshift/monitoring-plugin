@@ -5,7 +5,7 @@ import {
   AggregatedAlertFilters,
   AlertFilterOptions,
 } from '@/features/alerts/pages/alerts-page/AlertsPage';
-import type { Perspective } from '@/shared/hooks/usePerspective';
+import type { Perspective } from '@/shared/constants/perspective';
 import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 export const filterAlerts = (

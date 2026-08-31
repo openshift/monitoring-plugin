@@ -14,15 +14,13 @@ import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constant
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
 import { persesAriaLabels } from '@/shared/constants/data-test';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
-}
-
-export function runCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
-  testCOORBACPersesTestsDevUser3(perspective);
+export function runCOORBACPersesTestsDevUser3(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testCOORBACPersesTestsDevUser3(perspectiveName, dashboardsPageName);
 }
 
 let dashboardName = 'Testing Dashboard - UP ';
@@ -36,9 +34,12 @@ dashboardName += randomSuffix;
  *   empty-namespace4
  * - openshift-monitoring: view role
  */
-export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
+export function testCOORBACPersesTestsDevUser3(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
   it(
-    `1.${perspective.name} perspective - List Dashboards - Namespace validation and ` +
+    `1.${perspectiveName} perspective - List Dashboards - Namespace validation and ` +
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
@@ -106,7 +107,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
    * With admin or editor permission on at least one namespace, Create stays enabled and the
    * project dropdown hides namespaces we cannot access.
    */
-  it(`2.${perspective.name} perspective - Create button validation - Disabled / Enabled`, () => {
+  it(`2.${perspectiveName} perspective - Create button validation - Disabled / Enabled`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 
@@ -138,7 +139,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
   });
 
   it(
-    `3.${perspective.name} perspective - Create Dashboard with panel groups, panels ` +
+    `3.${perspectiveName} perspective - Create Dashboard with panel groups, panels ` +
       `and variables`,
     () => {
       cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
@@ -273,9 +274,9 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`4.${perspective.name} perspective - Kebab icon - Enabled / Disabled`, () => {
+  it(`4.${perspectiveName} perspective - Kebab icon - Enabled / Disabled`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`4.2. Change namespace to empty-namespace3`);
     cy.changeNamespace('empty-namespace3');
@@ -300,13 +301,13 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clearAllFilters();
   });
 
-  it(`5.${perspective.name} perspective - Rename to a new dashboard name`, () => {
+  it(`5.${perspectiveName} perspective - Rename to a new dashboard name`, () => {
     let renamedDashboardName = 'Renamed dashboard ';
     const randomSuffix = Math.random().toString(5);
     renamedDashboardName += randomSuffix;
 
     cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`5.2. Change namespace to empty-namespace3`);
     cy.changeNamespace('empty-namespace3');
@@ -355,7 +356,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     persesDashboardsPage.backToListPersesDashboardsPage();
   });
 
-  it(`6.${perspective.name} perspective - Duplicate and verify project dropdown and Delete`, () => {
+  it(`6.${perspectiveName} perspective - Duplicate and verify project dropdown and Delete`, () => {
     let duplicatedDashboardName = 'Duplicate dashboard ';
     const randomSuffix = Math.random().toString(5);
     duplicatedDashboardName += randomSuffix;
@@ -412,7 +413,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 
-  it(`7.${perspective.name} perspective - Delete dashboard`, () => {
+  it(`7.${perspectiveName} perspective - Delete dashboard`, () => {
     cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
 
@@ -436,7 +437,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
   });
 
-  it(`8.${perspective.name} perspective - Import button validation - Enabled / Disabled`, () => {
+  it(`8.${perspectiveName} perspective - Import button validation - Enabled / Disabled`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 
@@ -476,7 +477,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertImportButtonIsEnabled();
   });
 
-  it(`9.${perspective.name} perspective - Import button validation - YAML`, () => {
+  it(`9.${perspectiveName} perspective - Import button validation - YAML`, () => {
     cy.log(`9.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 

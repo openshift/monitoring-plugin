@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { runAllRegressionLegacyDashboardsTests } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
@@ -26,9 +27,7 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTests({
-      name: 'Administrator',
-    });
+    runAllRegressionLegacyDashboardsTests(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -48,8 +47,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTestsNamespace({
-      name: 'Administrator',
-    });
+    runAllRegressionLegacyDashboardsTestsNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

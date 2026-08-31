@@ -18,32 +18,39 @@ import {
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  alertName?: string;
-  alertNamespace?: string;
+export function runAllRegressionAlertsTests(
+  perspectiveName: CustomerPerspective,
+  alertName?: string,
+  alertNamespace?: string,
+) {
+  testAlertsRegression(perspectiveName, alertName, alertNamespace);
 }
 
-export function runAllRegressionAlertsTests(perspective: PerspectiveConfig) {
-  testAlertsRegression(perspective);
+export function runAllRegressionCorePlatformAlertsTests(
+  perspectiveName: CustomerPerspective,
+  alertName?: string,
+  alertNamespace?: string,
+) {
+  testAlertsCorePlatformHeaderRegression(perspectiveName, alertName);
+  testAlertsRegression(perspectiveName, alertName, alertNamespace);
 }
 
-export function runAllRegressionCorePlatformAlertsTests(perspective: PerspectiveConfig) {
-  testAlertsCorePlatformHeaderRegression(perspective);
-  testAlertsRegression(perspective);
+export function runAllRegressionFleetManagementAlertsTests(
+  perspectiveName: CustomerPerspective,
+  alertName?: string,
+  alertNamespace?: string,
+) {
+  testAlertsFleetManagementRegression(perspectiveName, alertName);
+  testAlertsRegression(perspectiveName, alertName, alertNamespace);
 }
 
-export function runAllRegressionFleetManagementAlertsTests(perspective: PerspectiveConfig) {
-  testAlertsFleetManagementRegression(perspective);
-  testAlertsRegression(perspective);
-}
-
-export function testAlertsFleetManagementRegression(perspective: PerspectiveConfig) {
-  const alertName = perspective.alertName ?? WatchdogAlert.ALERTNAME;
-
-  it(`${perspective.name} perspective - Alerting > Alerts page - Filtering`, () => {
+export function testAlertsFleetManagementRegression(
+  perspectiveName: CustomerPerspective,
+  alertName: string = WatchdogAlert.ALERTNAME,
+) {
+  it(`${perspectiveName} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
@@ -70,7 +77,7 @@ export function testAlertsFleetManagementRegression(perspective: PerspectiveConf
     listPage.filter.removeIndividualTag('alertname=' + alertName);
   });
 
-  it(`${perspective.name} perspective - Alerting > Alerting Rules page - Filtering`, () => {
+  it(`${perspectiveName} perspective - Alerting > Alerting Rules page - Filtering`, () => {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Alerting rules');
     alertingRuleListPage.shouldBeLoaded();
@@ -112,10 +119,11 @@ export function testAlertsFleetManagementRegression(perspective: PerspectiveConf
   });
 }
 
-export function testAlertsCorePlatformHeaderRegression(perspective: PerspectiveConfig) {
-  const alertName = perspective.alertName ?? WatchdogAlert.ALERTNAME;
-
-  it(`${perspective.name} perspective - Alerting > Alerts page - Filtering`, () => {
+export function testAlertsCorePlatformHeaderRegression(
+  perspectiveName: CustomerPerspective,
+  alertName: string = WatchdogAlert.ALERTNAME,
+) {
+  it(`${perspectiveName} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.PENDING);
     listPage.filter.selectFilterOption('Alert State', AlertingRulesAlertState.SILENCED);
@@ -139,7 +147,7 @@ export function testAlertsCorePlatformHeaderRegression(perspective: PerspectiveC
     listPage.filter.removeIndividualTag('alertname=' + alertName);
   });
 
-  it(`${perspective.name} perspective - Alerting > Alerting Rules page - Filtering`, () => {
+  it(`${perspectiveName} perspective - Alerting > Alerting Rules page - Filtering`, () => {
     cy.log('2.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Alerting rules');
     alertingRuleListPage.shouldBeLoaded();
@@ -182,11 +190,12 @@ export function testAlertsCorePlatformHeaderRegression(perspective: PerspectiveC
   });
 }
 
-export function testAlertsRegression(perspective: PerspectiveConfig) {
-  const alertName = perspective.alertName ?? WatchdogAlert.ALERTNAME;
-  const alertNamespace = perspective.alertNamespace ?? WatchdogAlert.NAMESPACE;
-
-  it(`${perspective.name} perspective - Alerting > Silences page > Create silence`, () => {
+export function testAlertsRegression(
+  perspectiveName: CustomerPerspective,
+  alertName: string = WatchdogAlert.ALERTNAME,
+  alertNamespace: string = WatchdogAlert.NAMESPACE,
+) {
+  it(`${perspectiveName} perspective - Alerting > Silences page > Create silence`, () => {
     cy.log('3.1 use sidebar nav to go to Observe > Alerting');
     nav.tabs.switchTab('Silences');
     silencesListPage.createSilence();
@@ -207,7 +216,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
   });
 
   it(
-    `${perspective.name} perspective - ` +
+    `${perspectiveName} perspective - ` +
       `Alerting > Alerts / Silences > Kebab icon on List and Details`,
     () => {
       cy.log('4.1 use sidebar nav to go to Observe > Alerting');
@@ -370,7 +379,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`${perspective.name} perspective - Alerting > Alerting Rules`, () => {
+  it(`${perspectiveName} perspective - Alerting > Alerting Rules`, () => {
     cy.log('5.1 Search by Name');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
@@ -397,7 +406,7 @@ export function testAlertsRegression(perspective: PerspectiveConfig) {
     cy.log('5.5 Alerting rule details > Assert Kebab');
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     nav.tabs.switchTab('Alerting rules');
-    if (perspective.name !== 'Fleet management') {
+    if (perspectiveName !== 'Fleet management') {
       listPage.filter.clearAllFilters();
     }
     listPage.filter.byName(`${alertName}`, FilterOUIAIDs.RuleNameFilter);

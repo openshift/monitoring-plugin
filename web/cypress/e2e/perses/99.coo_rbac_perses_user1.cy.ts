@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { runCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
 import {
@@ -55,8 +56,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runCOORBACPersesTestsDevUser1({
-      name: 'Core platform',
-    });
+    runCOORBACPersesTestsDevUser1(CustomerPerspectiveName.CorePlatform);
   },
 );

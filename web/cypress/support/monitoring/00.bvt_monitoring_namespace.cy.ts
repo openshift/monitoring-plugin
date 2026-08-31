@@ -13,19 +13,15 @@ import {
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
+export function runBVTMonitoringTestsNamespace(perspectiveName: CustomerPerspective) {
+  testBVTMonitoringTestsNamespace(perspectiveName);
 }
 
-export function runBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) {
-  testBVTMonitoringTestsNamespace(perspective);
-}
-
-export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) {
+export function testBVTMonitoringTestsNamespace(perspectiveName: CustomerPerspective) {
   it(
-    `${perspective.name} perspective - ` +
+    `${perspectiveName} perspective - ` +
       'Alerting > Alerting Details page > Alerting Rule > Metrics',
     () => {
       cy.log('4.1. use sidebar nav to go to Observe > Alerting');
@@ -100,7 +96,7 @@ export function testBVTMonitoringTestsNamespace(perspective: PerspectiveConfig) 
     },
   );
 
-  it(`${perspective.name} perspective - Creates and expires a Silence`, () => {
+  it(`${perspectiveName} perspective - Creates and expires a Silence`, () => {
     cy.log('5.1 filter to Watchdog alert');
     nav.tabs.switchTab('Alerts');
     listPage.ARRows.shouldBeLoaded();

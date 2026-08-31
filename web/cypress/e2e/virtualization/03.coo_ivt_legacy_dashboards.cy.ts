@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -50,9 +51,7 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runAllRegressionLegacyDashboardsTests({
-      name: 'Virtualization',
-    });
+    runAllRegressionLegacyDashboardsTests(CustomerPerspectiveName.Virtualization);
   },
 );
 
@@ -70,8 +69,6 @@ describe(
       cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
-    runAllRegressionLegacyDashboardsTestsNamespace({
-      name: 'Virtualization',
-    });
+    runAllRegressionLegacyDashboardsTestsNamespace(CustomerPerspectiveName.Virtualization);
   },
 );

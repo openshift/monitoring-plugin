@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -54,8 +55,6 @@ describe(
       alerts.interceptWatchdogAlert();
     });
     // Run tests in Virtualization perspective
-    runAllRegressionAlertsTests({
-      name: 'Virtualization',
-    });
+    runAllRegressionAlertsTests(CustomerPerspectiveName.Virtualization);
   },
 );

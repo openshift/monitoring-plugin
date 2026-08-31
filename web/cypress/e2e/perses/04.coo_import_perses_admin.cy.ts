@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { runCOOImportPersesTests } from '../../support/perses/04.coo_import_perses_admin.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
@@ -25,8 +26,6 @@ describe(
       cy.cleanupExtraDashboards();
     });
 
-    runCOOImportPersesTests({
-      name: 'Core platform',
-    });
+    runCOOImportPersesTests(CustomerPerspectiveName.CorePlatform);
   },
 );

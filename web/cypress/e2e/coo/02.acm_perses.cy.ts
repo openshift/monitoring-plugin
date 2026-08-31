@@ -3,6 +3,7 @@
 import { nav } from 'cypress/views/nav';
 import '../../support/commands/auth-commands';
 import { runBVTCOOPersesTests1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -20,8 +21,5 @@ describe('ACM - Perses', { tags: ['@perses-dashboards', '@acm', '@coo'] }, () =>
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
   });
 
-  runBVTCOOPersesTests1({
-    name: 'Fleet management',
-    dashboardsPageName: 'Dashboards',
-  });
+  runBVTCOOPersesTests1(CustomerPerspectiveName.FleetManagement, 'Dashboards');
 });

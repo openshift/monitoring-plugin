@@ -16,35 +16,36 @@ import { persesDashboardSampleQueries } from '../../fixtures/perses/constants';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
+export function runBVTCOOPersesTests1(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testBVTCOOPerses1(perspectiveName, dashboardsPageName);
 }
 
-export function runBVTCOOPersesTests1(perspective: PerspectiveConfig) {
-  testBVTCOOPerses1(perspective);
-}
-
-export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
-  it(`1.${perspective.name} perspective - Dashboards (Perses) page`, () => {
+export function testBVTCOOPerses1(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  it(`1.${perspectiveName} perspective - Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     cy.changeNamespace('All Projects');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
     );
     persesDashboardsPage.shouldBeLoaded1();
   });
 
-  it(`2.${perspective.name} perspective - Accelerators common metrics dashboard `, () => {
+  it(`2.${perspectiveName} perspective - Accelerators common metrics dashboard `, () => {
     cy.log(
       `2.1. use sidebar nav to go to Observe > Dashboards (Perses) > ` +
         `Accelerators common metrics dashboard`,
     );
     cy.changeNamespace('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
     );
@@ -65,7 +66,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     );
   });
 
-  it(`3.${perspective.name} perspective - Perses Dashboard Sample dashboard`, () => {
+  it(`3.${perspectiveName} perspective - Perses Dashboard Sample dashboard`, () => {
     cy.log(
       `3.1. use sidebar nav to go to Observe > Dashboards (Perses) > ` +
         `Perses Dashboard Sample dashboard`,
@@ -91,7 +92,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
     persesDashboardsPage.statChartValueAssertion('RAM Total', false);
   });
 
-  it(`4.${perspective.name} perspective - Download and View JSON`, () => {
+  it(`4.${perspectiveName} perspective - Download and View JSON`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses) > Download and View JSON`);
     cy.changeNamespace('openshift-cluster-observability-operator');
     listPersesDashboardsPage.clickDashboard(
@@ -125,12 +126,12 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
   });
 
   it(
-    `5.${perspective.name} perspective - Duplicate from a project to another, ` +
+    `5.${perspectiveName} perspective - Duplicate from a project to another, ` +
       `Rename and Delete`,
     () => {
       cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`5.2. Change namespace to perses-dev`);
       cy.changeNamespace('perses-dev');
@@ -187,25 +188,19 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
 
       cy.log(`5.7. Search for the renamed dashboard`);
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink([
-        'Observe',
-        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
-      ]);
+      nav.sidenav.clickNavLink(['Observe', dashboardsPageName ?? 'Dashboards (Perses)']);
       cy.changeNamespace('All Projects');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed',
       );
       listPersesDashboardsPage.countDashboards('0');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink([
-        'Observe',
-        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
-      ]);
+      nav.sidenav.clickNavLink(['Observe', dashboardsPageName ?? 'Dashboards (Perses)']);
     },
   );
 
   it(
-    `6.${perspective.name} perspective - Create Dashboard with panel groups, panels ` +
+    `6.${perspectiveName} perspective - Create Dashboard with panel groups, panels ` +
       `and variables`,
     () => {
       let dashboardName = 'Testing Dashboard - UP ';
@@ -213,11 +208,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
       dashboardName += randomSuffix;
       cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink([
-        'Observe',
-        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
-      ]);
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      nav.sidenav.clickNavLink(['Observe', dashboardsPageName ?? 'Dashboards (Perses)']);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`6.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -356,10 +348,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.emptyState();
       listPersesDashboardsPage.countDashboards('0');
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink([
-        'Observe',
-        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
-      ]);
+      nav.sidenav.clickNavLink(['Observe', dashboardsPageName ?? 'Dashboards (Perses)']);
 
       cy.log(`6.15. Filter by Name`);
       listPersesDashboardsPage.filter.byName(dashboardName);

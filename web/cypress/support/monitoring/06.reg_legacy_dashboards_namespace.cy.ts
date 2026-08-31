@@ -11,18 +11,16 @@ import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page'
 import { alerts } from '../../fixtures/monitoring/alert';
 import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
+export function runAllRegressionLegacyDashboardsTestsNamespace(
+  perspectiveName: CustomerPerspective,
+) {
+  testLegacyDashboardsRegressionNamespace(perspectiveName);
 }
 
-export function runAllRegressionLegacyDashboardsTestsNamespace(perspective: PerspectiveConfig) {
-  testLegacyDashboardsRegressionNamespace(perspective);
-}
-
-export function testLegacyDashboardsRegressionNamespace(perspective: PerspectiveConfig) {
-  it(`${perspective.name} perspective - Dashboards (legacy)`, () => {
+export function testLegacyDashboardsRegressionNamespace(perspectiveName: CustomerPerspective) {
+  it(`${perspectiveName} perspective - Dashboards (legacy)`, () => {
     cy.log('1.1 Dashboards page loaded');
     legacyDashboardsPage.shouldBeLoaded();
 
@@ -50,7 +48,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
       .should('contain', MetricsPageQueryInputByNamespace.CPU_UTILISATION_FROM_REQUESTS);
   });
 
-  it(`${perspective.name} perspective - Dashboards (legacy) - Export as CSV`, () => {
+  it(`${perspectiveName} perspective - Dashboards (legacy) - Export as CSV`, () => {
     cy.log('2.1 Kebab dropdown - Export as CSV');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
@@ -69,7 +67,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     cy.byPFRole('menuitem').should('have.attr', 'disabled');
   });
 
-  it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
+  it(`${perspectiveName} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
     cy.log('3.1 Single Stat - No kebab dropdown');
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
@@ -86,7 +84,7 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
   });
 
   it(
-    `${perspective.name} perspective - OU-897 - ` +
+    `${perspectiveName} perspective - OU-897 - ` +
       'Hide Graph / Show Graph on Metrics, Alert Details and Dashboards',
     () => {
       cy.log('4.1 Observe > Metrics > Hide Graph');

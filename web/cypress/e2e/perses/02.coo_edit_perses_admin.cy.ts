@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
 import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
@@ -19,12 +20,8 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOEditPersesTests({
-      name: 'Core platform',
-    });
+    runCOOEditPersesTests(CustomerPerspectiveName.CorePlatform);
 
-    runCOOEditPersesTests1({
-      name: 'Core platform',
-    });
+    runCOOEditPersesTests1(CustomerPerspectiveName.CorePlatform);
   },
 );

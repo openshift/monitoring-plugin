@@ -6,26 +6,27 @@ import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { nav } from '../../views/nav';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
+export function runCOOListPersesTests(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testCOOListPerses(perspectiveName, dashboardsPageName);
 }
 
-export function runCOOListPersesTests(perspective: PerspectiveConfig) {
-  testCOOListPerses(perspective);
+export function runCOOListPersesDuplicateDashboardTests(perspectiveName: CustomerPerspective) {
+  testCOOListPersesDuplicateDashboard(perspectiveName);
 }
 
-export function runCOOListPersesDuplicateDashboardTests(perspective: PerspectiveConfig) {
-  testCOOListPersesDuplicateDashboard(perspective);
-}
-
-export function testCOOListPerses(perspective: PerspectiveConfig) {
-  it(`1.${perspective.name} perspective - List Dashboards (Perses) page`, () => {
+export function testCOOListPerses(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  it(`1.${perspectiveName} perspective - List Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`1.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -126,7 +127,7 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
   });
 
   it(
-    `2.${perspective.name} perspective - Kebab icon - Options available - ` +
+    `2.${perspectiveName} perspective - Kebab icon - Options available - ` +
       `Rename dashboard - Max length validation`,
     () => {
       cy.log(`2.1. Filter by Name and click on the Kebab icon`);
@@ -163,7 +164,7 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
   );
 
   it(
-    `3.${perspective.name} perspective - Kebab icon - Options available - ` + `Rename dashboard`,
+    `3.${perspectiveName} perspective - Kebab icon - Options available - ` + `Rename dashboard`,
     () => {
       let dashboardName = 'Dashboard to test rename';
       const randomSuffix = Math.random().toString(5);
@@ -246,7 +247,7 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
   // TODO: Add test for Rename to an existing dashboard name — OU-1220
   // https://issues.redhat.com/browse/OU-1220
   it(
-    `4.${perspective.name} perspective - Kebab icon - Options available - ` +
+    `4.${perspectiveName} perspective - Kebab icon - Options available - ` +
       `Rename dashboard to an existing dashboard name`,
     () => {
       cy.log(`4.1. Filter by Name and click on the Kebab icon`);
@@ -302,10 +303,9 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
   );
 }
 
-export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConfig) {
+export function testCOOListPersesDuplicateDashboard(perspectiveName: CustomerPerspective) {
   it(
-    `5.${perspective.name} perspective - Duplicate - existing dashboard ID in the ` +
-      `same project`,
+    `5.${perspectiveName} perspective - Duplicate - existing dashboard ID in the ` + `same project`,
     () => {
       cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
@@ -338,7 +338,7 @@ export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConf
   );
 
   it(
-    `6.${perspective.name} perspective - Duplicate - existing dashboard name in the ` +
+    `6.${perspectiveName} perspective - Duplicate - existing dashboard name in the ` +
       `same project`,
     () => {
       cy.log(`6.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
@@ -393,7 +393,7 @@ export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConf
   );
 
   it(
-    `7.${perspective.name} perspective - Duplicate - existing dashboard ID in another ` + `project`,
+    `7.${perspectiveName} perspective - Duplicate - existing dashboard ID in another ` + `project`,
     () => {
       cy.log(`7.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
@@ -426,7 +426,7 @@ export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConf
     },
   );
 
-  it(`8.${perspective.name} perspective - Delete and Cancel and then Delete`, () => {
+  it(`8.${perspectiveName} perspective - Delete and Cancel and then Delete`, () => {
     cy.log(`8.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
     listPersesDashboardsPage.shouldBeLoaded();

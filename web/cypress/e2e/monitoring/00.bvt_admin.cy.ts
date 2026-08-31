@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
@@ -71,8 +72,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runBVTMonitoringTests({
-      name: 'Administrator',
-    });
+    runBVTMonitoringTests(CustomerPerspectiveName.CorePlatform);
   },
 );

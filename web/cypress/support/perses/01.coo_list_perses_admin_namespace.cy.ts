@@ -6,22 +6,23 @@ import { commonPages } from '../../views/common';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { nav } from '../../views/nav';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
+export function runCOOListPersesTestsNamespace(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  testCOOListPersesNamespace(perspectiveName, dashboardsPageName);
 }
 
-export function runCOOListPersesTestsNamespace(perspective: PerspectiveConfig) {
-  testCOOListPersesNamespace(perspective);
-}
-
-export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
-  it(`1.${perspective.name} perspective - List Dashboards (Perses) page`, () => {
+export function testCOOListPersesNamespace(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
+  it(`1.${perspectiveName} perspective - List Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`1.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
@@ -122,12 +123,12 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
   });
 
   it(
-    `2.${perspective.name} perspective - ` +
+    `2.${perspectiveName} perspective - ` +
       'Duplicate from a project to another, Rename and Delete',
     () => {
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
       cy.log(`2.2. Change namespace to perses-dev`);
       cy.changeNamespace('perses-dev');
@@ -184,10 +185,7 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
 
       cy.log(`2.7. Search for the renamed dashboard`);
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink([
-        'Observe',
-        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
-      ]);
+      nav.sidenav.clickNavLink(['Observe', dashboardsPageName ?? 'Dashboards (Perses)']);
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed',
       );

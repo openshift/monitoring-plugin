@@ -1,3 +1,4 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import {
   runCOOListPersesDuplicateDashboardTests,
@@ -29,13 +30,9 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOListPersesTests({
-      name: 'Core platform',
-    });
+    runCOOListPersesTests(CustomerPerspectiveName.CorePlatform);
 
-    runCOOListPersesDuplicateDashboardTests({
-      name: 'Core platform',
-    });
+    runCOOListPersesDuplicateDashboardTests(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -56,8 +53,6 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOListPersesTestsNamespace({
-      name: 'Core platform',
-    });
+    runCOOListPersesTestsNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );
