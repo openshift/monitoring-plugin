@@ -22,7 +22,10 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlock(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
+      ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR: {
+        namespace: string;
+        operatorName: string;
+      });
       cleanupMP(CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string });
       beforeBlockCOO(
         CLUSTER_OBSERVABILITY_OPERATOR: {
@@ -92,9 +95,13 @@ function collectDebugInfo(
     return;
   }
   cy.aboutModal();
-  cy.podImage('monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace);
+  imagePatchUtils
+    .getImage('deployment/monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace)
+    .then((image) => cy.log(`Monitoring Plugin image: ${image}`));
   if (CLUSTER_OBSERVABILITY_OPERATOR && CLUSTER_OBSERVABILITY_OPERATOR.namespace) {
-    cy.podImage('monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace);
+    imagePatchUtils
+      .getImage('deployment/monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace)
+      .then((image) => cy.log(`Monitoring Console Plugin image: ${image}`));
   }
 }
 
@@ -200,38 +207,14 @@ function cleanupUIPlugin(
 // ── Cypress commands ───────────────────────────────────────────────
 
 Cypress.Commands.add(
-  'beforeBlock',
+  'ensureMonitoringPlugin',
   (CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string }) => {
-    if (useSession) {
-      const sessionKey = operatorAuthUtils.generateMPSessionKey(CLUSTER_MONITORING_OPERATOR);
-
-      cy.session(
-        sessionKey,
-        () => {
-          cy.log('Before block (session)');
-          cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
-          operatorAuthUtils.loginAndAuthNoSession();
-          imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
-          collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
-          cy.task('clearDownloads');
-          cy.log('Before block (session) completed');
-        },
-        {
-          cacheAcrossSpecs: true,
-          validate() {
-            cy.validateLogin();
-          },
-        },
-      );
-    } else {
-      cy.log('Before block (no session)');
-      cy.cleanupMP(CLUSTER_MONITORING_OPERATOR);
-      operatorAuthUtils.loginAndAuth();
-      imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
-      collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
-      cy.task('clearDownloads');
-      cy.log('Before block (no session) completed');
-    }
+    cy.log('Ensure Monitoring Plugin');
+    operatorAuthUtils.loginAndAuth();
+    imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
+    collectDebugInfo(CLUSTER_MONITORING_OPERATOR);
+    cy.task('clearDownloads');
+    cy.log('Ensure Monitoring Plugin completed');
   },
 );
 

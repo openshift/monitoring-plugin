@@ -3,33 +3,90 @@ import { readyTimeoutMilliseconds } from '../timeouts';
 
 export {};
 
-export const imagePatchUtils = {
-  setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
-    cy.log('Set Monitoring Plugin image in operator CSV');
-    if (Cypress.env('MP_IMAGE')) {
-      cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
-        env: {
-          MP_IMAGE: Cypress.env('MP_IMAGE'),
-          KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-          MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
-        },
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
-      }).then((result) => {
-        expect(result.code).to.eq(0);
-        cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
-      });
+function getImage(resource: string, namespace: string): Cypress.Chainable<string> {
+  return cy
+    .exec(
+      `oc get ${resource} -n ${namespace} ` +
+        `-o jsonpath='{.spec.template.spec.containers[0].image}' ` +
+        `--kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+    )
+    .then((result) => result.stdout.trim());
+}
 
-      waitForPodsReady(
-        'app.kubernetes.io/name=monitoring-plugin',
-        CLUSTER_MONITORING_OPERATOR.namespace,
-        readyTimeoutMilliseconds,
-      );
-      cy.log(
-        `Monitoring plugin pod is now running in namespace: ` +
-          `${CLUSTER_MONITORING_OPERATOR.namespace}`,
-      );
-      cy.reload(true);
+function waitForMonitoringPluginImage(namespace: string, expectedImage: string): void {
+  cy.waitUntil(
+    () =>
+      cy
+        .exec(
+          `oc get pods -l app.kubernetes.io/name=monitoring-plugin -n ${namespace} ` +
+            `-o jsonpath='{range .items[*]}{.spec.containers[0].image}{"\\n"}{end}' ` +
+            `--kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+          { failOnNonZeroExit: false },
+        )
+        .then((result) => {
+          const images = result.stdout.trim().split('\n').filter(Boolean);
+          return (
+            result.code === 0 &&
+            images.length > 0 &&
+            images.every((image) => image === expectedImage)
+          );
+        }),
+    {
+      timeout: readyTimeoutMilliseconds,
+      interval: 5000,
+      errorMsg: `Monitoring Plugin pods did not converge to image ${expectedImage}`,
+    },
+  );
+}
+
+export const imagePatchUtils = {
+  getImage,
+
+  setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
+    const expectedImage = Cypress.env('MP_IMAGE') as string | undefined;
+    if (expectedImage) {
+      cy.log('Check Monitoring Plugin image');
+      imagePatchUtils
+        .getImage('deployment/monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace)
+        .then((currentImage) => {
+          if (currentImage === expectedImage) {
+            waitForPodsReady(
+              'app.kubernetes.io/name=monitoring-plugin',
+              CLUSTER_MONITORING_OPERATOR.namespace,
+              readyTimeoutMilliseconds,
+            );
+            waitForMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR.namespace, expectedImage);
+            cy.log(`Monitoring Plugin already uses ${expectedImage}`);
+            return;
+          }
+
+          cy.log(
+            `Update Monitoring Plugin image from ${currentImage || 'unknown'} to ${expectedImage}`,
+          );
+          cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
+            env: {
+              MP_IMAGE: expectedImage,
+              KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+              MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+            },
+            timeout: readyTimeoutMilliseconds,
+          }).then((result) => {
+            expect(result.code).to.eq(0);
+            cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
+          });
+
+          waitForPodsReady(
+            'app.kubernetes.io/name=monitoring-plugin',
+            CLUSTER_MONITORING_OPERATOR.namespace,
+            readyTimeoutMilliseconds,
+          );
+          cy.log(
+            `Monitoring plugin pod is now running in namespace: ` +
+              `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+          );
+          waitForMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR.namespace, expectedImage);
+          cy.reload(true);
+        });
     } else {
       cy.log('MP_IMAGE is NOT set. Skipping patching the image in CMO operator CSV.');
     }
@@ -58,7 +115,6 @@ export const imagePatchUtils = {
           MCP_NAMESPACE: `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
       }).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`COO CSV updated successfully with ${config.componentName} image: ${result.stdout}`);
@@ -192,7 +248,6 @@ export const imagePatchUtils = {
           MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
         },
         timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: true,
       }).then((result) => {
         expect(result.code).to.eq(0);
         cy.log(`CMO CSV reverted successfully with Monitoring Plugin image: ${result.stdout}`);
