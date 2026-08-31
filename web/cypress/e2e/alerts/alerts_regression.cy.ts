@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   testAlertsCorePlatformHeaderRegression,
   testAlertsRegression,

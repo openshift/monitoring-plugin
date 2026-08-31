@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';

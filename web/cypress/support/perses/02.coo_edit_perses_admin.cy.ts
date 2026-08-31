@@ -12,7 +12,7 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testCOOEditPerses(
   perspectiveName: CustomerPerspective,

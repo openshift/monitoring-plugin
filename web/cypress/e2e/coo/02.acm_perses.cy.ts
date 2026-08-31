@@ -3,7 +3,7 @@
 import { nav } from 'cypress/views/nav';
 import '../../support/commands/auth-commands';
 import { testBVTCOOPerses1 } from 'cypress/support/perses/00.coo_bvt_perses_admin.cy';
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

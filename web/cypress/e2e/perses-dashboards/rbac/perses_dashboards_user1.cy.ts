@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../../views/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../../support/perses/99.coo_rbac_perses_user1.cy';
 import {

@@ -18,7 +18,7 @@ import {
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testAlertsFleetManagementRegression(
   perspectiveName: CustomerPerspective,

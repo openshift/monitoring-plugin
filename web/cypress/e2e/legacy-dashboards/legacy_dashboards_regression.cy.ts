@@ -1,4 +1,4 @@
-import { CustomerPerspectiveName } from '@/shared/hooks/usePerspective';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';

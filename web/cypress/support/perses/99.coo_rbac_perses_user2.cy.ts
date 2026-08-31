@@ -4,7 +4,7 @@ import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
 } from '../../fixtures/perses/constants';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**
  * User2 has access to:

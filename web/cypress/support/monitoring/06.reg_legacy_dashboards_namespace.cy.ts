@@ -11,7 +11,7 @@ import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page'
 import { alerts } from '../../fixtures/monitoring/alert';
 import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testLegacyDashboardsRegressionNamespace(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Dashboards (legacy)`, () => {

@@ -2,7 +2,7 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testCOOImportPerses(
   perspectiveName: CustomerPerspective,

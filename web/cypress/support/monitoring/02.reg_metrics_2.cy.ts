@@ -6,7 +6,7 @@ import {
   MetricsPageQueryInput,
   MetricsPageQueryKebabDropdown,
 } from '../../fixtures/monitoring/constants';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testMetricsRegression2(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {

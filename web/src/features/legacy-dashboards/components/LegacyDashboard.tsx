@@ -42,6 +42,7 @@ import { Panel, Row } from '@/features/legacy-dashboards/types/types';
 import { RefreshIntervalParam, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
+import type { Perspective } from '@/shared/constants/perspective';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useIsVisible } from '@/shared/hooks/useIsVisible';
@@ -50,7 +51,6 @@ import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getMutlipleQueryBrowserUrl,
   getObserveState,
-  type Perspective,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';

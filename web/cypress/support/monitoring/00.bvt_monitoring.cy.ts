@@ -13,7 +13,7 @@ import {
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
-import type { CustomerPerspective } from '@/shared/hooks/usePerspective';
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 export function testBVTMonitoring(perspectiveName: CustomerPerspective) {
   it(
