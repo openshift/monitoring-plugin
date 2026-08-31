@@ -236,11 +236,6 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 - `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
 
-**4. JIRA Tags** (format: `@JIRA-{ID}`):
-
-- Example: `@JIRA-OU-1033`
-- Link tests to specific JIRA issues
-
 #### Running Tests by Tags
 
 **Run component-specific tests:**

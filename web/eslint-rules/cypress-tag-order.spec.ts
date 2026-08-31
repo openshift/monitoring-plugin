@@ -21,7 +21,6 @@ describe('classifyTag', () => {
 
   it('classifies @x-y specific feature tags as features', () => {
     expect(classifyTag('@perses-dev')).toBe('feature');
-    expect(classifyTag('@JIRA-1234')).toBe('feature');
   });
 
   it('classifies unrecognized tags as unknown', () => {
