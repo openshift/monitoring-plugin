@@ -315,6 +315,7 @@ const mapPatternFlyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
+  const isDark = theme === 'dark';
 
   const muiTheme = getTheme(theme, {
     typography: {
@@ -330,6 +331,13 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
     echartsTheme: {
       color: patternflyChartsMultiUnorderedPalette,
+      tooltip: {
+        backgroundColor: isDark ? '#f0f0f0' : '#212427',
+        borderColor: isDark ? '#f0f0f0' : '#212427',
+        textStyle: {
+          color: isDark ? '#151515' : '#ffffff',
+        },
+      },
     },
     thresholds: {
       defaultColor: patternflyBlue300,
