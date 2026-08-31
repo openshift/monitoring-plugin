@@ -150,6 +150,7 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
           root: {
             borderRadius: 'var(--pf-t--global--border--radius--medium)',
             borderColor: 'var(--pf-t--global--border--color--default)',
+            backgroundColor: 'var(--pf-t--global--background--color--primary--default)',
           },
         },
       },
@@ -183,15 +184,16 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
       MuiOutlinedInput: {
         styleOverrides: {
           notchedOutline: {
-            borderColor: 'var(--pf-t--global--border--color--default)',
+            borderColor: 'var(--pf-t--global--border--color--control--default)',
           },
           root: {
             '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'var(--pf-t--global--border--color--default)',
+              borderColor: 'var(--pf-t--global--border--color--clicked)',
             },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'var(--pf-t--global--border--color--default)',
+              borderColor: 'var(--pf-t--global--border--color--clicked)',
             },
+            backgroundColor: 'var(--pf-t--global--background--color--control--default)',
           },
           input: {
             // Dashboard Variables >> Text Variable
@@ -218,6 +220,11 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
             '&.MuiButton-contained.MuiButton-colorPrimary': {
               color: t_color_white.value,
             },
+          },
+          outlinedSecondary: {
+            borderColor: 'var(--pf-t--global--border--color--default)',
+            borderRadius: 'var(--pf-t--global--border--radius--pill)',
+            color: isDark ? patternflyBlue100 : patternflyBlue300,
           },
         },
       },
@@ -294,6 +301,8 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
             '& .MuiButton-colorSecondary': {
               borderRadius: 'var(--pf-t--global--border--radius--pill) !important',
             },
+            backgroundColor: 'var(--pf-t--global--background--color--floating--default)',
+            backgroundImage: 'none',
           },
         },
       },
@@ -346,6 +355,21 @@ const mapPatterflyThemeToMUI = (theme: 'light' | 'dark'): ThemeOptions => {
           root: {
             // Uniform font weight in all table cells
             fontWeight: 'var(--pf-t--global--font--weight--body--default) !important',
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: 'transparent !important',
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: 'var(--pf-t--global--background--color--floating--default)',
+            backgroundImage: 'none',
           },
         },
       },
