@@ -42,6 +42,8 @@ import {
   chart_color_blue_300,
   chart_color_blue_400,
   chart_color_blue_500,
+  t_color_gray_10,
+  t_color_gray_90,
   t_color_gray_95,
   t_color_white,
   t_global_background_color_100,
@@ -345,6 +347,8 @@ export function useRemotePluginLoader(): PluginLoader {
 export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
+  const isDark = theme === 'dark';
+
   const muiTheme = getTheme(theme, {
     shape: {
       borderRadius: 6,
@@ -355,6 +359,13 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const chartsTheme: PersesChartsTheme = generateChartsTheme(muiTheme, {
     echartsTheme: {
       color: patternflyChartsMultiUnorderedPalette,
+      tooltip: {
+        backgroundColor: isDark ? t_color_gray_10.value : t_global_background_color_400.value,
+        borderColor: isDark ? t_color_gray_10.value : t_global_background_color_400.value,
+        textStyle: {
+          color: isDark ? t_color_gray_90.value : t_color_white.value,
+        },
+      },
     },
     thresholds: {
       defaultColor: patternflyBlue300,
