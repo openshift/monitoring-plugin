@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runCOOEditPersesTests1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
-import { runCOOEditPersesTests } from '../../support/perses/02.coo_edit_perses_admin.cy';
+import { testCOOEditPerses1 } from '../../support/perses/02.coo_edit_perses_admin_1.cy';
+import { testCOOEditPerses } from '../../support/perses/02.coo_edit_perses_admin.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
@@ -20,8 +20,8 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOEditPersesTests(CustomerPerspectiveName.CorePlatform);
+    testCOOEditPerses(CustomerPerspectiveName.CorePlatform);
 
-    runCOOEditPersesTests1(CustomerPerspectiveName.CorePlatform);
+    testCOOEditPerses1(CustomerPerspectiveName.CorePlatform);
   },
 );

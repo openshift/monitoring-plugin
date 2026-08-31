@@ -12,13 +12,6 @@ import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edi
 import { persesDashboardsAddListVariableSource } from '../../fixtures/perses/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOOCreatePersesTests(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOCreatePerses(perspectiveName, dashboardsPageName);
-}
-
 export function testCOOCreatePerses(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

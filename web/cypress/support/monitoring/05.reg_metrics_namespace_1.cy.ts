@@ -8,10 +8,6 @@ import {
 } from '../../fixtures/monitoring/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runAllRegressionMetricsTestsNamespace1(perspectiveName: CustomerPerspective) {
-  testMetricsRegressionNamespace1(perspectiveName);
-}
-
 export function testMetricsRegressionNamespace1(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Metrics`, () => {
     cy.log('1.1 Metrics page loaded');

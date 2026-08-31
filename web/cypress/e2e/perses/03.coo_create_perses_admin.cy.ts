@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runCOOCreatePersesTests } from '../../support/perses/03.coo_create_perses_admin.cy';
+import { testCOOCreatePerses } from '../../support/perses/03.coo_create_perses_admin.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
@@ -24,6 +24,6 @@ describe(
       cy.cleanupExtraDashboards();
     });
 
-    runCOOCreatePersesTests(CustomerPerspectiveName.CorePlatform);
+    testCOOCreatePerses(CustomerPerspectiveName.CorePlatform);
   },
 );

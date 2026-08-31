@@ -1,15 +1,11 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOORBACPersesTestsDevUser6(perspective: CustomerPerspective) {
-  testCOORBACPersesTestsDevUser6(perspective);
-}
-
 /**
  * User6 has access to:
  * - no access to any namespaces
  */
-function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspective) {
+export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspective) {
   it(
     `1.${perspectiveName} perspective - List Dashboards - Namespace validation and ` +
       `Dashboard search`,

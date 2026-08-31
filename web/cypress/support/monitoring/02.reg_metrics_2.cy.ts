@@ -8,10 +8,6 @@ import {
 } from '../../fixtures/monitoring/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runAllRegressionMetricsTests2(perspectiveName: CustomerPerspective) {
-  testMetricsRegression2(perspectiveName);
-}
-
 export function testMetricsRegression2(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Metrics > Add Query - Run Queries - Kebab icon`, () => {
     cy.log('6.1 Preparation to test Add Query button');

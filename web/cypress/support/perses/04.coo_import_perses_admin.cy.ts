@@ -4,13 +4,6 @@ import { persesImportDashboardsPage } from '../../views/perses-dashboards-import
 import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOOImportPersesTests(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOImportPerses(perspectiveName, dashboardsPageName);
-}
-
 export function testCOOImportPerses(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

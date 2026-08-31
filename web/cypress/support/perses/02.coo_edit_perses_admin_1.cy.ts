@@ -11,13 +11,6 @@ import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOOEditPersesTests1(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOEditPerses1(perspectiveName, dashboardsPageName);
-}
-
 export function testCOOEditPerses1(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

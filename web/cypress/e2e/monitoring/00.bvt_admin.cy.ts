@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
@@ -72,6 +72,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runBVTMonitoringTests(CustomerPerspectiveName.CorePlatform);
+    testBVTMonitoring(CustomerPerspectiveName.CorePlatform);
   },
 );

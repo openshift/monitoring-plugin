@@ -13,10 +13,6 @@ import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runAllRegressionLegacyDashboardsTests(perspectiveName: CustomerPerspective) {
-  testLegacyDashboardsRegression(perspectiveName);
-}
-
 export function testLegacyDashboardsRegression(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Dashboards (legacy)`, () => {
     cy.log('1.1 Dashboards page loaded');

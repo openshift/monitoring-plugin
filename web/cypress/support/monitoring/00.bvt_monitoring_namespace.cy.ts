@@ -15,10 +15,6 @@ import {
 import { alertingRuleListPage } from '../../views/alerting-rule-list-page';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runBVTMonitoringTestsNamespace(perspectiveName: CustomerPerspective) {
-  testBVTMonitoringTestsNamespace(perspectiveName);
-}
-
 export function testBVTMonitoringTestsNamespace(perspectiveName: CustomerPerspective) {
   it(
     `${perspectiveName} perspective - ` +

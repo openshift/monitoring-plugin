@@ -4,8 +4,8 @@ import {
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
-import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
@@ -51,7 +51,7 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runAllRegressionLegacyDashboardsTests(CustomerPerspectiveName.Virtualization);
+    testLegacyDashboardsRegression(CustomerPerspectiveName.Virtualization);
   },
 );
 
@@ -69,6 +69,6 @@ describe(
       cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
-    runAllRegressionLegacyDashboardsTestsNamespace(CustomerPerspectiveName.Virtualization);
+    testLegacyDashboardsRegressionNamespace(CustomerPerspectiveName.Virtualization);
   },
 );

@@ -19,10 +19,6 @@ import {
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runAllRegressionAlertsTestsNamespace(perspectiveName: CustomerPerspective) {
-  testAlertsRegressionNamespace(perspectiveName);
-}
-
 export function testAlertsRegressionNamespace(perspectiveName: CustomerPerspective) {
   it(`${perspectiveName} perspective - Alerting > Alerts page - Filtering`, () => {
     cy.log('1.1 Header components');

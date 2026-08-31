@@ -5,7 +5,7 @@ import {
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
+import { testAlertsRegression } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
@@ -55,6 +55,6 @@ describe(
       alerts.interceptWatchdogAlert();
     });
     // Run tests in Virtualization perspective
-    runAllRegressionAlertsTests(CustomerPerspectiveName.Virtualization);
+    testAlertsRegression(CustomerPerspectiveName.Virtualization);
   },
 );

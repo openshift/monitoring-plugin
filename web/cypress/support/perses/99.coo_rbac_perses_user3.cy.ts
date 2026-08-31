@@ -16,13 +16,6 @@ import { nav } from '../../views/nav';
 import { persesAriaLabels } from '@/shared/constants/data-test';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOORBACPersesTestsDevUser3(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOORBACPersesTestsDevUser3(perspectiveName, dashboardsPageName);
-}
-
 let dashboardName = 'Testing Dashboard - UP ';
 const randomSuffix = Math.random().toString(5);
 dashboardName += randomSuffix;

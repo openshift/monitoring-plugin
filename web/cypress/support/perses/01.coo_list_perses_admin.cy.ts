@@ -8,17 +8,6 @@ import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOOListPersesTests(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOListPerses(perspectiveName, dashboardsPageName);
-}
-
-export function runCOOListPersesDuplicateDashboardTests(perspectiveName: CustomerPerspective) {
-  testCOOListPersesDuplicateDashboard(perspectiveName);
-}
-
 export function testCOOListPerses(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

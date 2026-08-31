@@ -1,10 +1,6 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOORBACPersesTestsDevUser4(perspectiveName: CustomerPerspective) {
-  testCOORBACPersesTestsDevUser4(perspectiveName);
-}
-
 /**
  * User4 has access to:
  * - empty-namespace4: persesdashboard-viewer-role, persesdatasource-viewer-role

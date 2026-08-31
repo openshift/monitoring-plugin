@@ -18,13 +18,6 @@ import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runBVTCOOPersesTests1(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testBVTCOOPerses1(perspectiveName, dashboardsPageName);
-}
-
 export function testBVTCOOPerses1(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

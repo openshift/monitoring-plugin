@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
-import { runAllRegressionLegacyDashboardsTests } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { testLegacyDashboardsRegression } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
 
@@ -27,7 +27,7 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTests(CustomerPerspectiveName.CorePlatform);
+    testLegacyDashboardsRegression(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -47,6 +47,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTestsNamespace(CustomerPerspectiveName.CorePlatform);
+    testLegacyDashboardsRegressionNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

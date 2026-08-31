@@ -8,13 +8,6 @@ import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOOListPersesTestsNamespace(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOOListPersesNamespace(perspectiveName, dashboardsPageName);
-}
-
 export function testCOOListPersesNamespace(
   perspectiveName: CustomerPerspective,
   dashboardsPageName?: string,

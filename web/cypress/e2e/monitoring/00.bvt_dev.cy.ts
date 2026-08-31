@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
+import { testBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
 import { commonPages } from '../../views/common';
 import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
@@ -19,5 +19,5 @@ describe('BVT: Monitoring - Namespaced', { tags: ['@alerting'] }, () => {
   });
 
   // Run tests in Administrator perspective
-  runBVTMonitoringTestsNamespace(CustomerPerspectiveName.CorePlatform);
+  testBVTMonitoringTestsNamespace(CustomerPerspectiveName.CorePlatform);
 });

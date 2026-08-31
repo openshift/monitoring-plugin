@@ -5,8 +5,8 @@ import {
 } from '../../support/operators';
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionMetricsTests2 } from '../../support/monitoring/02.reg_metrics_2.cy';
-import { runAllRegressionMetricsTestsNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
+import { testMetricsRegression2 } from '../../support/monitoring/02.reg_metrics_2.cy';
+import { testMetricsRegressionNamespace2 } from '../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
@@ -57,7 +57,7 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTests2(CustomerPerspectiveName.Virtualization);
+    testMetricsRegression2(CustomerPerspectiveName.Virtualization);
   },
 );
 
@@ -77,6 +77,6 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTestsNamespace2(CustomerPerspectiveName.Virtualization);
+    testMetricsRegressionNamespace2(CustomerPerspectiveName.Virtualization);
   },
 );

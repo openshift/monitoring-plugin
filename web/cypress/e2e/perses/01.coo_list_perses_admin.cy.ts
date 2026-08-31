@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import {
-  runCOOListPersesDuplicateDashboardTests,
-  runCOOListPersesTests,
+  testCOOListPerses,
+  testCOOListPersesDuplicateDashboard,
 } from '../../support/perses/01.coo_list_perses_admin.cy';
-import { runCOOListPersesTestsNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
+import { testCOOListPersesNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -30,9 +30,9 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOListPersesTests(CustomerPerspectiveName.CorePlatform);
+    testCOOListPerses(CustomerPerspectiveName.CorePlatform);
 
-    runCOOListPersesDuplicateDashboardTests(CustomerPerspectiveName.CorePlatform);
+    testCOOListPersesDuplicateDashboard(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -53,6 +53,6 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runCOOListPersesTestsNamespace(CustomerPerspectiveName.CorePlatform);
+    testCOOListPersesNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

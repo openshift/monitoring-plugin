@@ -20,32 +20,6 @@ import {
 import { FilterOUIAIDs } from '@/shared/constants/data-test';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runAllRegressionAlertsTests(
-  perspectiveName: CustomerPerspective,
-  alertName?: string,
-  alertNamespace?: string,
-) {
-  testAlertsRegression(perspectiveName, alertName, alertNamespace);
-}
-
-export function runAllRegressionCorePlatformAlertsTests(
-  perspectiveName: CustomerPerspective,
-  alertName?: string,
-  alertNamespace?: string,
-) {
-  testAlertsCorePlatformHeaderRegression(perspectiveName, alertName);
-  testAlertsRegression(perspectiveName, alertName, alertNamespace);
-}
-
-export function runAllRegressionFleetManagementAlertsTests(
-  perspectiveName: CustomerPerspective,
-  alertName?: string,
-  alertNamespace?: string,
-) {
-  testAlertsFleetManagementRegression(perspectiveName, alertName);
-  testAlertsRegression(perspectiveName, alertName, alertNamespace);
-}
-
 export function testAlertsFleetManagementRegression(
   perspectiveName: CustomerPerspective,
   alertName: string = WatchdogAlert.ALERTNAME,

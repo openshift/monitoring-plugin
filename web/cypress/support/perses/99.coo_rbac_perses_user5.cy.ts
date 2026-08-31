@@ -14,10 +14,6 @@ import { persesImportDashboardsPage } from '../../views/perses-dashboards-import
 import { nav } from '../../views/nav';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspective) {
-  testCOORBACPersesTestsDevUser5(perspectiveName);
-}
-
 let dashboardName = 'Testing Dashboard - UP ';
 const randomSuffix = Math.random().toString(5);
 dashboardName += randomSuffix;

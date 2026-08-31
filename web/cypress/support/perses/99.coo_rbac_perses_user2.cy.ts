@@ -6,13 +6,6 @@ import {
 } from '../../fixtures/perses/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
-export function runCOORBACPersesTestsDevUser2(
-  perspectiveName: CustomerPerspective,
-  dashboardsPageName?: string,
-) {
-  testCOORBACPersesTestsDevUser2(perspectiveName, dashboardsPageName);
-}
-
 /**
  * User2 has access to:
  * - perses-dev: persesdashboard-viewer-role, persesdatasource-viewer-role

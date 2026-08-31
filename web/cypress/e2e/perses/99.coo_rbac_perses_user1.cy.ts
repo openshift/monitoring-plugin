@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -56,6 +56,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runCOORBACPersesTestsDevUser1(CustomerPerspectiveName.CorePlatform);
+    testCOORBACPersesTestsDevUser1(CustomerPerspectiveName.CorePlatform);
   },
 );

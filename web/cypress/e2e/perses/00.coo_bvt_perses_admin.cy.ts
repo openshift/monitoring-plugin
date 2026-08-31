@@ -1,7 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 //TODO: rename after customizable-dashboards gets merged
-import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
+import { testBVTCOOPerses1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -25,6 +25,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runBVTCOOPersesTests1(CustomerPerspectiveName.CorePlatform);
+    testBVTCOOPerses1(CustomerPerspectiveName.CorePlatform);
   },
 );

@@ -1,8 +1,12 @@
 import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
-import { runAllRegressionCorePlatformAlertsTests } from '../../../support/monitoring/01.reg_alerts.cy';
+import {
+  testAlertsCorePlatformHeaderRegression,
+  testAlertsRegression,
+} from '../../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 // Test suite for Core platform perspective
 describe(
@@ -25,8 +29,7 @@ describe(
     });
 
     // Run tests in Core platform perspective
-    runAllRegressionCorePlatformAlertsTests({
-      name: 'Core platform',
-    });
+    testAlertsCorePlatformHeaderRegression(CustomerPerspectiveName.CorePlatform);
+    testAlertsRegression(CustomerPerspectiveName.CorePlatform);
   },
 );

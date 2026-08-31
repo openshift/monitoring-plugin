@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
+import { testBVTCOOPerses1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
 import {
@@ -50,6 +50,6 @@ describe(
       commonPages.titleShouldHaveText('Dashboards');
     });
 
-    runBVTCOOPersesTests1(CustomerPerspectiveName.Virtualization);
+    testBVTCOOPerses1(CustomerPerspectiveName.Virtualization);
   },
 );
