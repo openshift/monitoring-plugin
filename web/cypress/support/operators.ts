@@ -4,7 +4,7 @@ export const CLUSTER_MONITORING_OPERATOR = {
 };
 
 export const CLUSTER_OBSERVABILITY_OPERATOR = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {

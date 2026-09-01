@@ -43,7 +43,7 @@ declare global {
 const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 
 const DTP = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
@@ -53,7 +53,7 @@ const DTP = {
 };
 
 const LOGGING_PLUGIN = {
-  namespace: 'openshift-cluster-observability-operator',
+  namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
   config: {
