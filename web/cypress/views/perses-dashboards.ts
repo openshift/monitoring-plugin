@@ -373,7 +373,6 @@ export const persesDashboardsPage = {
         .scrollIntoView()
         .parents('header')
         .siblings('figure')
-        .find('p')
         .should('contain', 'No data')
         .should('be.visible');
     } else {
@@ -383,7 +382,6 @@ export const persesDashboardsPage = {
         .scrollIntoView()
         .parents('header')
         .siblings('figure')
-        .find('h3')
         .should('not.contain', 'No data')
         .should('be.visible');
     }
