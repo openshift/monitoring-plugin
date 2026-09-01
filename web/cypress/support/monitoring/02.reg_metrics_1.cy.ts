@@ -37,6 +37,16 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.kebabDropdownAssertionWithoutQuery();
   });
 
+  it(`${perspective.name} perspective - Metrics > Kebab > Create alert state`, () => {
+    cy.log('2.1 Create alert is disabled for an empty query');
+    metricsPage.shouldBeLoaded();
+    metricsPage.createAlertKebabItemStateAssertion(0, true);
+
+    cy.log('2.2 Create alert is enabled after entering a query');
+    metricsPage.enterQueryInput(0, MetricsPageQueryInput.VECTOR_QUERY);
+    metricsPage.createAlertKebabItemStateAssertion(0, false);
+  });
+
   it(`${perspective.name} perspective - Metrics > Actions - No query added`, () => {
     cy.log('2.1 Only one query loaded');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);

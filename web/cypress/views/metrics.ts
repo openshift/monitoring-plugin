@@ -602,6 +602,21 @@ export const metricsPage = {
     cy.url().should('include', '/v2/alertrule/create?query=');
   },
 
+  createAlertKebabItemStateAssertion: (index: number, disabled: boolean) => {
+    cy.log(`metricsPage.createAlertKebabItemStateAssertion (${disabled ? 'disabled' : 'enabled'})`);
+    metricsPage.clickKebabDropdown(index);
+    const createAlertItem = cy
+      .byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
+      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
+      .should('be.visible');
+    if (disabled) {
+      createAlertItem.should('have.attr', 'aria-disabled', 'true');
+    } else {
+      createAlertItem.should('not.have.attr', 'aria-disabled', 'true');
+    }
+    cy.byTestID(DataTestIDs.KebabDropdownButton).eq(index).click();
+  },
+
   clickKebabDropdownItem: (option: MetricsPageQueryKebabDropdown, index: number) => {
     cy.log('metricsPage.clickKebabDropdownItem');
     metricsPage.clickKebabDropdown(index);
