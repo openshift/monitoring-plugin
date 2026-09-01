@@ -95,6 +95,7 @@ import { DataTestIDs } from '@/shared/constants/data-test';
 import { QueryParams } from '@/shared/constants/query-params';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useFeatures } from '@/shared/hooks/useFeatures';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
@@ -389,6 +390,7 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
 const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { plugin } = useMonitoring();
+  const { features } = useFeatures();
   const { perspective } = usePerspective();
   const navigate = useNavigate();
 
@@ -408,7 +410,9 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.text,
   );
 
-  const canCreateAlert = perspective === 'admin' || perspective === 'virtualization-perspective';
+  const canCreateAlert =
+    (perspective === 'admin' || perspective === 'virtualization-perspective') &&
+    (features[plugin]?.['alerting-management'] ?? false);
 
   const queryTableData = useSelector(
     (state: MonitoringState) =>

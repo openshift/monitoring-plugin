@@ -59,6 +59,7 @@ type Feature string
 const (
 	AcmAlerting           Feature = "acm-alerting"
 	Alerting              Feature = "alerting"
+	AlertingManagement    Feature = "alerting-management"
 	LegacyDashboards      Feature = "legacy-dashboards"
 	Metrics               Feature = "metrics"
 	Targets               Feature = "targets"

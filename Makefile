@@ -3,7 +3,7 @@ PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-MONITORING_FEATURES    ?=alerting,targets,legacy-dashboards,metrics
+MONITORING_FEATURES    ?=alerting,alerting-management,targets,legacy-dashboards,metrics
 ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
 MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,acm-alerting
 
