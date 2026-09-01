@@ -16,20 +16,24 @@ const KBV = {
   },
 };
 
-describe('IVT: Monitoring UIPlugin + Virtualization', { tags: ['@smoke', '@coo'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KBV);
-  });
+describe(
+  'IVT: Monitoring UIPlugin + Virtualization',
+  { tags: ['@alerting', '@coo', '@virtualization'] },
+  () => {
+    before(() => {
+      cy.beforeBlockVirtualization(KBV);
+    });
 
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
-    cy.switchPerspective('Core platform', 'Administrator');
-  });
+    it('1. Virtualization perspective - Observe Menu', () => {
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
+      troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
+      cy.switchPerspective('Core platform', 'Administrator');
+    });
 
-  /**
-   * TODO: To be replaced by COO validation such as Dashboards (Perses) scenarios
-   */
-});
+    /**
+     * TODO: To be replaced by COO validation such as Dashboards (Perses) scenarios
+     */
+  },
+);

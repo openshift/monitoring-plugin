@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
 Regression tests for time-based alert resolution issues with real firing alerts.
 
@@ -35,12 +36,16 @@ const MP = {
 
 describe(
   'Regression: Time-Based Alert Resolution (E2E with Firing Alerts)',
-  { tags: ['@incidents', '@slow', '@e2e-real'] },
+  { tags: ['@cluster-health-analyzer', '@slow', '@coo'] },
   () => {
     let currentAlertName: string;
 
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      incidentsPage.warmUpForPlugin();
+
+      // Reset the search timeout so this spec gets a fresh 35-minute window
+      incidentsPage.resetSearchTimeout();
 
       cy.log('Create firing alert for testing');
       cy.cleanupIncidentPrometheusRules();
@@ -63,7 +68,7 @@ describe(
       cy.waitUntil(() => incidentsPage.findIncidentWithAlert(currentAlertName), {
         interval: intervalMs,
         timeout: maxMinutes * intervalMs,
-        errorMsg: `Incident with alert ${currentAlertName} should appear within ${maxMinutes} 
+        errorMsg: `Incident with alert ${currentAlertName} should appear within ${maxMinutes}
           minutes`,
       });
 

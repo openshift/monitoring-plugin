@@ -1,13 +1,16 @@
-type BasicTag = '@smoke' | '@demo' | '@flaky' | '@xfail' | '@slow';
+type BasicTag = '@flaky' | '@xfail' | '@slow';
 
 type HighLevelComponentTag =
-  | '@monitoring'
-  | '@incidents'
   | '@coo'
   | '@virtualization'
-  | '@alerts'
+  | '@ols'
+  | '@acm-alerting'
+  | '@alerting'
+  | '@legacy-dashboards'
   | '@metrics'
-  | '@dashboards';
+  | '@targets'
+  | '@perses-dashboards'
+  | '@cluster-health-analyzer';
 
 type SpecificFeatureTag = `@${string}-${string}`;
 

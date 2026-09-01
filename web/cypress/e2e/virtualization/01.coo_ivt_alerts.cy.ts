@@ -35,7 +35,7 @@ const KBV = {
 
 describe(
   'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@alerting', '@virtualization', '@slow', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -49,7 +49,7 @@ describe(
 
 describe(
   'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@alerting', '@virtualization', '@slow', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockVirtualization(KBV);
@@ -57,7 +57,7 @@ describe(
 
     it('1. Virtualization perspective - Observe Menu', () => {
       cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
     });
   },
@@ -65,12 +65,12 @@ describe(
 
 describe(
   'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@virtualization', '@alerts'] },
+  { tags: ['@alerting', '@slow', '@virtualization', '@coo'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
       cy.validateLogin();
-      cy.switchPerspective('Virtualization');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');

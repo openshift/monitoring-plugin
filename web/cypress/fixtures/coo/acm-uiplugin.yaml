@@ -4,7 +4,11 @@ metadata:
   name: monitoring
 spec:
   monitoring:
-    acm:    
+    clusterHealthAnalyzer:
+      enabled: true
+    perses:
+      enabled: true
+    acm:
       enabled: true
       alertmanager:
         url: 'https://alertmanager.open-cluster-management-observability.svc:9095'

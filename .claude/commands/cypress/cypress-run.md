@@ -1,5 +1,5 @@
 ---
-name: cypress-run 
+name: cypress-run
 description: Display Cypress test commands - choose execution mode (headless recommended)
 parameters:
   - name: execution-mode
@@ -10,7 +10,8 @@ parameters:
 
 # Cypress Test Commands
 
-**Prerequisites**: 
+**Prerequisites**:
+
 1. Run `/cypress-setup` first to configure your environment.
 2. Ensure the "Cypress Tests" terminal window is open (created by `/cypress-setup`)
 
@@ -31,24 +32,27 @@ parameters:
 All npm commands should be executed in the "Cypress Tests" terminal using the helper scripts:
 
 **macOS:**
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run <command>"
 ```
 
 **Linux:**
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-linux.sh --run "npm run <command>"
 ```
 
 **Instructions**: Based on the `execution-mode` parameter provided by the user:
+
 - If `execution-mode` is "interactive": Display ONLY the "Interactive Mode" section below
 - If `execution-mode` is "headless": display ONLY the "Headless Mode" section with interactive options to be chosen
 - If `execution-mode` is "headed": display ONLY the "Headed Mode" section with interactive options to be chosen
 
 **IMPORTANT**: Always execute the selected command using the appropriate script:
+
 - macOS: `./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "<command>"`
 - Linux: `./.claude/commands/cypress/scripts/open-cypress-terminal-linux.sh --run "<command>"`
-
 
 ---
 
@@ -59,6 +63,7 @@ All npm commands should be executed in the "Cypress Tests" terminal using the he
 ## What is Interactive Mode?
 
 Interactive mode opens the Cypress Test Runner UI where you can:
+
 - Browse and select tests visually
 - Watch tests run in real-time with time-travel debugging
 - Inspect DOM snapshots at each step
@@ -71,16 +76,19 @@ Interactive mode opens the Cypress Test Runner UI where you can:
 **Open Cypress Interactive UI (run in Cypress Tests terminal):**
 
 macOS:
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run cypress:open"
 ```
 
 Linux:
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-linux.sh --run "npm run cypress:open"
 ```
 
 This opens a visual interface where you can:
+
 1. Choose a browser (Chrome, Firefox, Edge, Electron)
 2. Browse your test files
 3. Click any test to run it
@@ -113,10 +121,12 @@ All commands below run tests in headless mode (no visible browser).
 **IMPORTANT**: Before showing test commands, you MUST dynamically read:
 
 ### 1. Available NPM Scripts
+
 Read `web/package.json` and extract all scripts matching `test-cypress-*` and `cypress:*` patterns.
 Present them as available test suite commands.
 
-### 2. Available Test Spec Files  
+### 2. Available Test Spec Files
+
 Scan `web/cypress/e2e/` directory recursively and list all `.cy.ts` files.
 Present them as available spec file targets for `--spec` option.
 
@@ -125,21 +135,25 @@ Present them as available spec file targets for `--spec` option.
 ## Quick Reference - Base Commands
 
 **Run with npm script (if defined in package.json):**
+
 ```bash
 npm run <script-name>
 ```
 
 **Run all tests headless:**
+
 ```bash
 npm run cypress:run
 ```
 
 **Run specific spec file:**
+
 ```bash
 npm run cypress:run -- --spec "cypress/e2e/<path-to-file>.cy.ts"
 ```
 
 **Run with custom tags:**
+
 ```bash
 npm run cypress:run -- --env grepTags="<YOUR_TAGS_HERE>"
 ```
@@ -149,10 +163,12 @@ npm run cypress:run -- --env grepTags="<YOUR_TAGS_HERE>"
 ## NPM Scripts from package.json
 
 **Instructions**: Read `web/package.json` and list ALL scripts that start with:
+
 - `test-cypress-*` (predefined test suites)
 - `cypress:*` (base cypress commands)
 
 For each script found, display:
+
 ```bash
 npm run <script-name>
 ```
@@ -166,6 +182,7 @@ Add a brief description based on the grepTags or other flags in the script defin
 **Instructions**: Scan `web/cypress/e2e/` recursively and organize by folder:
 
 For each `.cy.ts` file found, show the command:
+
 ```bash
 npm run cypress:run -- --spec "cypress/e2e/<relative-path>"
 ```
@@ -177,29 +194,30 @@ Group files by their parent folder (monitoring, coo, perses, virtualization, inc
 ## Custom Tag Combinations - Headless
 
 **Base command for custom tags:**
+
 ```bash
 npm run cypress:run -- --env grepTags="YOUR_TAGS_HERE"
 ```
 
 **Tag Operators:**
-- `+` = AND (e.g., `@alerts+@smoke` = alerts AND smoke)
-- `--` = NOT (e.g., `@monitoring --@flaky` = monitoring but NOT flaky)
-- `,` = OR (e.g., `@alerts,@metrics` = alerts OR metrics)
+
+- `+` = AND (e.g., `@alerting+@metrics` = alerts AND metrics)
+- `--` = NOT (e.g., `@alerting --@flaky` = alerting but NOT flaky)
+- `,` = OR (e.g., `@alerting,@metrics` = alerts OR metrics)
 
 **Common tag patterns:**
 
-| Goal | Command |
-|------|---------|
-| Smoke tests only | `npm run cypress:run -- --env grepTags="@smoke"` |
+| Goal          | Command                                                  |
+| ------------- | -------------------------------------------------------- |
 | Exclude flaky | `npm run cypress:run -- --env grepTags="<tag> --@flaky"` |
-| Exclude demo | `npm run cypress:run -- --env grepTags="<tag> --@demo"` |
-| Fast smoke | `npm run cypress:run -- --env grepTags="@smoke --@slow --@flaky"` |
+| Exclude slow  | `npm run cypress:run -- --env grepTags="<tag> --@slow"`  |
 
 ---
 
 ## Running Multiple Spec Files
 
 **Comma-separate spec paths:**
+
 ```bash
 npm run cypress:run -- --spec "cypress/e2e/<file1>.cy.ts,cypress/e2e/<file2>.cy.ts"
 ```
@@ -209,6 +227,7 @@ npm run cypress:run -- --spec "cypress/e2e/<file1>.cy.ts,cypress/e2e/<file2>.cy.
 ## Advanced Headless Options
 
 **Run with specific browser:**
+
 ```bash
 npm run cypress:run -- --browser firefox
 npm run cypress:run -- --browser edge
@@ -216,11 +235,13 @@ npm run cypress:run -- --browser chrome
 ```
 
 **Disable video recording:**
+
 ```bash
 npm run cypress:run -- --config video=false
 ```
 
 **Disable screenshots:**
+
 ```bash
 npm run cypress:run -- --config screenshotOnRunFailure=false
 ```
@@ -234,11 +255,13 @@ All commands below open a visible browser window.
 ## Quick Start - Headed
 
 **Interactive Mode (Cypress UI, pick tests manually):**
+
 ```bash
 npm run cypress:open
 ```
 
 **Base headed mode command:**
+
 ```bash
 npm run cypress:run -- --headed
 ```
@@ -249,11 +272,13 @@ npm run cypress:run -- --headed
 
 **IMPORTANT**: Before showing test commands, you MUST dynamically read:
 
-### 1. Available Test Spec Files  
+### 1. Available Test Spec Files
+
 Scan `web/cypress/e2e/` directory recursively and list all `.cy.ts` files.
 Present them as available spec file targets with `--headed` flag.
 
 ### 2. Available Tags
+
 Extract grepTags patterns from `web/package.json` scripts to show common tag combinations.
 
 ---
@@ -261,17 +286,16 @@ Extract grepTags patterns from `web/package.json` scripts to show common tag com
 ## Running Test Suites - Headed
 
 To run any tag-based suite in headed mode, add `--headed` flag:
+
 ```bash
 npm run cypress:run -- --headed --env grepTags="<TAG_COMBINATION>"
 ```
 
 **Examples based on common tags:**
+
 ```bash
 # Monitoring tests (headed)
-npm run cypress:run -- --headed --env grepTags="@monitoring --@flaky"
-
-# Smoke tests (headed)
-npm run cypress:run -- --headed --env grepTags="@smoke --@flaky"
+npm run cypress:run -- --headed --env grepTags="@alerting @metrics @legacy-dashboards @targets --@flaky"
 
 # COO tests (headed)
 npm run cypress:run -- --headed --env grepTags="@coo --@flaky"
@@ -282,11 +306,13 @@ npm run cypress:run -- --headed --env grepTags="@coo --@flaky"
 ## Running Specific Files - Headed
 
 **Template:**
+
 ```bash
 npm run cypress:run -- --headed --spec "cypress/e2e/<path-to-file>.cy.ts"
 ```
 
 **Instructions**: Scan `web/cypress/e2e/` and for each `.cy.ts` file, the headed command is:
+
 ```bash
 npm run cypress:run -- --headed --spec "cypress/e2e/<relative-path>"
 ```
@@ -296,6 +322,7 @@ npm run cypress:run -- --headed --spec "cypress/e2e/<relative-path>"
 ## Advanced Headed Options
 
 **Headed with specific browser:**
+
 ```bash
 npm run cypress:run -- --headed --browser chrome
 npm run cypress:run -- --headed --browser firefox
@@ -303,6 +330,7 @@ npm run cypress:run -- --headed --browser edge
 ```
 
 **Headed without video:**
+
 ```bash
 npm run cypress:run -- --headed --config video=false
 ```
@@ -314,27 +342,22 @@ npm run cypress:run -- --headed --config video=false
 Use these tags with `--env grepTags`:
 
 **Feature Tags:**
-- `@monitoring` - Core monitoring plugin tests
-- `@monitoring-dev` - Developer user tests
-- `@alerts` - Alert-related tests
+
+- `@acm-alerting` - Alert-related tests in ACM perspective
+- `@alerting` - Alert-related tests
+- `@legacy-dashboards` - Legacy dashboard tests
 - `@metrics` - Metrics explorer tests
-- `@dashboards` - Legacy dashboard tests
-- `@perses` - Perses dashboard tests
+- `@perses-dashboards` - Perses dashboard tests
 - `@coo` - Observability Operator tests
-- `@acm` - Advanced Cluster Management tests
+- `@ols` - OpenShift Lightspeed integration tests
 - `@virtualization` - OpenShift Virtualization tests
-- `@incidents` - Incidents feature tests
+- `@cluster-health-analyzer` - Incidents feature tests
+- `@targets` - Targets page tests
 
 **Modifier Tags:**
-- `@smoke` - Quick smoke tests
+
 - `@slow` - Longer running tests
 - `@flaky` - Known flaky tests
-- `@demo` - Demo/showcase tests
-
-**Tag Operators:**
-- `+` = AND (e.g., `@alerts+@smoke` = alerts AND smoke)
-- `--` = NOT (e.g., `@monitoring --@flaky` = monitoring but NOT flaky)
-- `,` = OR (e.g., `@alerts,@metrics` = alerts OR metrics)
 
 ---
 
@@ -349,25 +372,25 @@ Use these tags with `--env grepTags`:
 All cypress commands should be executed in the "Cypress Tests" terminal using:
 
 **macOS:**
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "<your-command>"
 ```
 
 **Linux:**
+
 ```bash
 ./.claude/commands/cypress/scripts/open-cypress-terminal-linux.sh --run "<your-command>"
 ```
 
 **Examples:**
-```bash
-# Run smoke tests (macOS)
-./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run test-cypress-smoke"
 
+```bash
 # Run specific spec file (macOS)
 ./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run cypress:run -- --spec 'cypress/e2e/monitoring/00.bvt_admin.cy.ts'"
 
 # Run with custom tags (macOS)
-./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run cypress:run -- --env grepTags='@monitoring --@flaky'"
+./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run cypress:run -- --env grepTags='@alerting @legacy-dashboards @metrics @targets --@flaky'"
 
 # Open interactive mode (macOS)
 ./.claude/commands/cypress/scripts/open-cypress-terminal-macos.sh --run "npm run cypress:open"

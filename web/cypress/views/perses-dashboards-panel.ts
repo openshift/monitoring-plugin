@@ -1,13 +1,9 @@
 import { commonPages } from './common';
+import { editPersesDashboardsAddPanel, IDs, persesAriaLabels } from '@/shared/constants/data-test';
 import {
-  persesAriaLabels,
-  IDs,
-  editPersesDashboardsAddPanel,
-} from '../../src/components/data-test';
-import {
-  persesDashboardsModalTitles,
-  persesDashboardsAddPanelAddQueryType,
   persesDashboardsAddListPanelType,
+  persesDashboardsAddPanelAddQueryType,
+  persesDashboardsModalTitles,
 } from '../fixtures/perses/constants';
 
 export const persesDashboardsPanel = {
@@ -27,16 +23,12 @@ export const persesDashboardsPanel = {
       .contains('Type')
       .should('be.visible');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Add')
       .should('be.visible')
       .and('have.attr', 'disabled');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Cancel')
@@ -185,8 +177,6 @@ export const persesDashboardsPanel = {
         break;
     }
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Add')
@@ -272,16 +262,12 @@ export const persesDashboardsPanel = {
       .contains('Type')
       .should('be.visible');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Apply')
       .should('be.visible')
       .and('have.attr', 'disabled');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Cancel')
@@ -301,8 +287,6 @@ export const persesDashboardsPanel = {
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Apply')

@@ -8,6 +8,7 @@ import { persesImportDashboardsPage } from '../../views/perses-dashboards-import
 
 export interface PerspectiveConfig {
   name: string;
+  dashboardsPageName?: string;
   beforeEach?: () => void;
 }
 
@@ -24,7 +25,7 @@ export function testCOOCreateImportPerses(perspective: PerspectiveConfig) {
       const randomSuffix = Math.random().toString(5);
       dashboardName += randomSuffix;
       cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
       cy.log(`1.2. Click on Create button`);
       listPersesDashboardsPage.clickCreateButton();
@@ -96,7 +97,7 @@ export function testCOOCreateImportPerses(perspective: PerspectiveConfig) {
 
   it(`2. ${perspective.name} perspective - Import Dashboard - Perses dashboard - JSON file`, () => {
     cy.log(`2.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();
@@ -126,7 +127,7 @@ export function testCOOCreateImportPerses(perspective: PerspectiveConfig) {
 
   it(`3. ${perspective.name} perspective - Import Dashboard - Perses dashboard - YAML file`, () => {
     cy.log(`3.1 use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`3.2 Click on Import button`);
     listPersesDashboardsPage.clickImportButton();

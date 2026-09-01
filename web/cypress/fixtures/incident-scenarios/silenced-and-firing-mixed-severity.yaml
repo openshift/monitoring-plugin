@@ -1,0 +1,32 @@
+name: "Silenced and Firing Mixed Severity"
+description: "One silenced critical incident (resolved) and one firing warning incident."
+incidents:
+  - id: "silenced-critical-resolved-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "4h"
+      end: "1h"
+    alerts:
+      - name: "SilencedCriticalAlert001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        silenced: true
+        timeline:
+          start: "3h"
+          end: "2h"
+
+  - id: "firing-warning-unsilenced-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "2h"
+    alerts:
+      - name: "FiringWarningAlert001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        silenced: false
+        timeline:
+          start: "1h"

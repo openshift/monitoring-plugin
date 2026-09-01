@@ -1,13 +1,13 @@
 import { commonPages } from './common';
 import {
-  DataTestIDs,
   Classes,
-  listPersesDashboardsOUIAIDs,
-  listPersesDashboardsDataTestIDs,
+  DataTestIDs,
   IDs,
-  persesAriaLabels,
   LegacyTestIDs,
-} from '../../src/components/data-test';
+  listPersesDashboardsDataTestIDs,
+  listPersesDashboardsOUIAIDs,
+  persesAriaLabels,
+} from '@/shared/constants/data-test';
 import {
   listPersesDashboardsEmptyState,
   listPersesDashboardsNoDashboardsFoundState,
@@ -26,7 +26,9 @@ export const listPersesDashboardsPage = {
     cy.byTestID(listPersesDashboardsDataTestIDs.EmptyStateBody)
       .should('be.visible')
       .contains(listPersesDashboardsEmptyState.BODY);
-    cy.byTestID(listPersesDashboardsDataTestIDs.ClearAllFiltersButton).should('be.visible');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderClearAllFiltersButton).should(
+      'be.visible',
+    );
   },
 
   noDashboardsFoundState: () => {
@@ -37,10 +39,12 @@ export const listPersesDashboardsPage = {
     cy.byTestID(listPersesDashboardsDataTestIDs.EmptyStateBody)
       .should('be.visible')
       .contains(listPersesDashboardsNoDashboardsFoundState.BODY);
-    cy.byTestID(listPersesDashboardsDataTestIDs.ClearAllFiltersButton).should('not.exist');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderClearAllFiltersButton).should(
+      'not.exist',
+    );
   },
 
-  shouldBeLoaded: () => {
+  shouldBeLoaded: (dashboardsPageName?: string) => {
     cy.log('listPersesDashboardsPage.shouldBeLoaded');
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesBreadcrumb).should('not.exist');
     commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
@@ -48,7 +52,11 @@ export const listPersesDashboardsPage = {
       .should('contain', listPersesDashboardsPageSubtitle)
       .should('be.visible');
     cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible');
-    cy.byTestID(DataTestIDs.FavoriteStarButton).should('be.visible');
+    if (dashboardsPageName === 'Dashboards') {
+      cy.byTestID(DataTestIDs.FavoriteStarButton).should('not.exist');
+    } else {
+      cy.byTestID(DataTestIDs.FavoriteStarButton).should('be.visible');
+    }
     cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesDashListDataViewTable).should('be.visible');
   },
 
@@ -57,12 +65,12 @@ export const listPersesDashboardsPage = {
       cy.log('listPersesDashboardsPage.filter.byName');
       cy.wait(1000);
       cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
-        .contains('button', /Name|Project/)
+        .contains('button', /Dashboard|Project/)
         .click({ force: true });
       cy.wait(1000);
       cy.get(Classes.FilterDropdownOption)
         .should('be.visible')
-        .contains('Name')
+        .contains('Dashboard')
         .click({ force: true });
       cy.wait(1000);
       cy.byTestID(listPersesDashboardsDataTestIDs.NameFilter).should('be.visible').type(name);
@@ -75,7 +83,7 @@ export const listPersesDashboardsPage = {
     byProject: (project: string) => {
       cy.log('listPersesDashboardsPage.filter.byProject');
       cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
-        .contains('button', /Name|Project/)
+        .contains('button', /Dashboard|Project/)
         .click({ force: true });
       cy.wait(1000);
       cy.get(Classes.FilterDropdownOption)
@@ -302,8 +310,8 @@ export const listPersesDashboardsPage = {
 
   assertDuplicateDashboardAlreadyExists: () => {
     cy.log('listPersesDashboardsPage.assertDuplicateDashboardAlreadyExists');
-    cy.byPFRole('dialog')
-      .find(Classes.PersesCreateDashboardDashboardNameError)
+    cy.byPFRole('list')
+      .find('h4')
       .contains(persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_VALIDATION)
       .should('be.visible');
   },
@@ -347,7 +355,7 @@ export const listPersesDashboardsPage = {
       .contains('Delete dashboard')
       .should('be.visible')
       .click({ force: true });
-    cy.wait(2000);
+    cy.wait(5000);
   },
 
   deleteDashboardCancelButton: () => {
@@ -357,7 +365,7 @@ export const listPersesDashboardsPage = {
       .contains('Cancel')
       .should('be.visible')
       .click({ force: true });
-    cy.wait(2000);
+    cy.wait(5000);
   },
 
   deleteDashboardDeleteButton: () => {
@@ -367,7 +375,7 @@ export const listPersesDashboardsPage = {
       .contains('Delete')
       .should('be.visible')
       .click({ force: true });
-    cy.wait(2000);
+    cy.wait(5000);
   },
 
   projectDropdownNotExists: () => {

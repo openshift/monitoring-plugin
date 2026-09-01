@@ -1,6 +1,6 @@
 // Mock data generators for Prometheus mocking system
 import { IncidentDefinition, PrometheusResult } from './types';
-import { severityToValue, parseQueryLabels } from './utils';
+import { parseQueryLabels, severityToValue } from './utils';
 import { nowInClusterTimezone } from './utils';
 import { NEW_METRIC_NAME, OLD_METRIC_NAME } from './prometheus-mocks';
 
@@ -67,6 +67,7 @@ function severityToMetricValue(
  * Builds timeline values for both health and alerts metrics
  */
 function buildTimelineValues(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   timeline: any,
   alertSeverity: 'critical' | 'warning' | 'info',
   metricType: 'health' | 'alerts',
@@ -184,17 +185,13 @@ export function createIncidentMock(
         return;
       }
 
-      // eslint-disable-next-line no-console
       console.log(`Adding alert: ${alert.name} from incident: ${incident.id}`);
-      // eslint-disable-next-line no-console
       console.log(`Results array length before push: ${results.length}`);
       results.push({ metric, values });
-      // eslint-disable-next-line no-console
       console.log(`Results array length after push: ${results.length}`);
     });
   });
 
-  // eslint-disable-next-line no-console
   console.log(`Final results array length: ${results.length}`);
   return results;
 }
@@ -279,17 +276,13 @@ export function createAlertDetailsMock(
         return;
       }
 
-      // eslint-disable-next-line no-console
       console.log(`Adding ALERTS alert: ${alert.name} from incident: ${incident.id}`);
-      // eslint-disable-next-line no-console
       console.log(`ALERTS Results array length before push: ${results.length}`);
       results.push({ metric, values });
-      // eslint-disable-next-line no-console
       console.log(`ALERTS Results array length after push: ${results.length}`);
     });
   });
 
-  // eslint-disable-next-line no-console
   console.log(`Final ALERTS results array length: ${results.length}`);
   return results;
 }

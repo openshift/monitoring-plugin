@@ -1,0 +1,441 @@
+/**
+ * File copied from https://github.com/openshift/console/blob/097bb6537f157a1bd285c919a3b03e7f8bf7c111/frontend/public/components/utils/single-typeahead-dropdown.tsx
+ */
+
+import {
+  Button,
+  MenuToggle,
+  MenuToggleElement,
+  MenuToggleProps,
+  Select,
+  SelectList,
+  SelectOption,
+  SelectOptionProps,
+  SelectProps,
+  TextInputGroup,
+  TextInputGroupMain,
+  TextInputGroupUtilities,
+} from '@patternfly/react-core';
+import { TimesIcon } from '@patternfly/react-icons';
+import { t_global_spacer_control_horizontal_default } from '@patternfly/react-tokens';
+import * as _ from 'lodash-es';
+import {
+  FC,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  Ref,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useTranslation } from 'react-i18next';
+
+export type SingleTypeaheadDropdownProps = {
+  /** The items to display in the dropdown */
+  items: (SelectOptionProps & {
+    children?: string;
+  })[];
+  /** The function to call when the selected item changes */
+  onChange: (v: string) => void;
+  /** The function to call when the selected item is cleared */
+  onClear?: (v: string) => void;
+  /** The function to call when an item is created */
+  onCreate?: (v: string) => void;
+  /** The function to call when the input value changes */
+  onInputChange?: (v: string) => void;
+  /** The key of the selected item */
+  selectedKey: string;
+  /** The placeholder text to display in the input */
+  placeholder?: string;
+  /** Whether to hide the clear button */
+  hideClearButton?: boolean;
+  /** Whether to resize the dropdown to fit the selected item */
+  resizeToFit?: boolean;
+  /** Whether to enable creating new items */
+  enableCreateNew?: boolean;
+  /** The component to use render the dropdown options */
+  OptionComponent?: FC<SelectOptionProps>;
+
+  /** Additional props to pass to MenuToggle */
+  menuToggleProps?: Partial<MenuToggleProps>;
+  /** Additional props to pass to Select */
+  selectProps?: Partial<SelectProps>;
+  /** Clear the current items in the dropdown when new items are added */
+  clearOnNewItems?: boolean;
+};
+
+/**
+ * Uses canvas.measureText to compute and return the width of the given text
+ * of given font in pixels.
+ *
+ * @param text - The text to be rendered.
+ * @param font - The css font descriptor that text is to be rendered with
+ * (e.g. "bold 14px verdana").
+ *
+ * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+ */
+const getTextWidth = (text: string, font: string): number => {
+  // re-use canvas object for better performance
+  const canvas: HTMLCanvasElement =
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    getTextWidth.canvas || (getTextWidth.canvas = document.createElement('canvas'));
+  const context = canvas.getContext('2d');
+  context.font = font;
+  const metrics = context.measureText(text);
+  return Math.ceil(metrics.width);
+};
+
+/** A PF Select with typeahead filtering and single selection */
+export const SingleTypeaheadDropdown: FC<SingleTypeaheadDropdownProps> = ({
+  items,
+  onChange,
+  onClear,
+  onCreate,
+  onInputChange,
+  selectedKey,
+  placeholder,
+  hideClearButton = false,
+  resizeToFit = false,
+  enableCreateNew = false,
+  OptionComponent,
+  menuToggleProps = {},
+  selectProps = {},
+  clearOnNewItems = true,
+}) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectOptions, setSelectOptions] = useState<
+    (SelectOptionProps & {
+      children?: string;
+    })[]
+  >(items);
+  const selectedValue = useMemo(
+    () => selectOptions.find((i) => i.value === selectedKey),
+    [selectOptions, selectedKey],
+  );
+  const [inputValue, setInputValue] = useState<string>(selectedValue?.children || '');
+  const [filterValue, setFilterValue] = useState<string>('');
+  const [filteredSelectOptions, setFilteredSelectOptions] = useState<SelectOptionProps[]>(items);
+  const [focusedItemIndex, setFocusedItemIndex] = useState<number | null>(null);
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const textInputRef = useRef<HTMLInputElement>();
+
+  const ID_PREFIX = _.uniqueId('select-typeahead-'); // for aria to work, ids have to be unique
+  const NO_RESULTS = 'typeahead-dropdown__no-results';
+  const CREATE_NEW = 'typeahead-dropdown__create-new';
+
+  useEffect(() => {
+    // check if the incoming items are the same as those currently held in the selectOptions
+    // If they are, don't setSelectOptions to prevent losing current filter
+    if (_.isEmpty(_.xorWith(items, selectOptions, _.isEqual))) {
+      return;
+    }
+    let newSelectOptions = [];
+    if (clearOnNewItems) {
+      newSelectOptions = [...items];
+    } else {
+      newSelectOptions = [..._.differenceBy(items, selectOptions, 'value'), ...selectOptions];
+    }
+    setSelectOptions(newSelectOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
+
+  useEffect(() => {
+    setFilteredSelectOptions(selectOptions);
+  }, [selectOptions]);
+
+  useEffect(() => {
+    let newSelectOptions: SelectOptionProps[] = selectOptions;
+
+    // Filter menu items based on the text input value when one exists
+    if (filterValue) {
+      newSelectOptions = selectOptions.filter((menuItem) =>
+        String(menuItem.children).toLowerCase().includes(filterValue.toLowerCase()),
+      );
+
+      // If no option matches the filter exactly, display creation option
+      if (enableCreateNew && !selectOptions.some((option) => option.value === inputValue)) {
+        newSelectOptions = [
+          ...newSelectOptions,
+          {
+            children: t('Create new option "{{option}}"', { option: inputValue }),
+            value: CREATE_NEW,
+          },
+        ];
+      }
+
+      // Open the menu when the input value changes and the new value is not empty
+      if (!isOpen) {
+        setIsOpen(true);
+      }
+    }
+
+    setFilteredSelectOptions(newSelectOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterValue]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const createItemId = (value: any) => `${ID_PREFIX}-option-${String(value).replace(' ', '-')}`;
+
+  const setActiveAndFocusedItem = (itemIndex: number) => {
+    setFocusedItemIndex(itemIndex);
+    const focusedItem = filteredSelectOptions[itemIndex];
+    setActiveItemId(createItemId(focusedItem.value));
+  };
+
+  const resetActiveAndFocusedItem = () => {
+    setFocusedItemIndex(null);
+    setActiveItemId(null);
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    resetActiveAndFocusedItem();
+  };
+
+  const onInputClick = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+    } else if (!inputValue) {
+      closeMenu();
+    }
+  };
+
+  const selectOption = (value: string | number, content: string | number) => {
+    setInputValue(String(content));
+    setFilterValue('');
+    onChange(String(value));
+
+    closeMenu();
+  };
+
+  const onSelect = (
+    _event: ReactMouseEvent<Element, MouseEvent> | undefined,
+    value: string | number | undefined,
+  ) => {
+    if (enableCreateNew && value === CREATE_NEW) {
+      if (!selectOptions.some((item) => item.value === filterValue)) {
+        setSelectOptions([...selectOptions, { value: filterValue, children: filterValue }]);
+        if (onCreate) {
+          onCreate(filterValue);
+        }
+      }
+      selectOption(filterValue, filterValue);
+      resetActiveAndFocusedItem();
+    } else if (value && value !== NO_RESULTS) {
+      const selectedOption = selectOptions.find((i) => i.value === value);
+      selectOption(value, selectedOption?.children ?? selectedOption?.value ?? '');
+    }
+  };
+
+  useEffect(() => {
+    setInputValue(selectedValue?.children ?? selectedValue?.value ?? '');
+  }, [selectedValue]);
+
+  const onTextInputChange = (_event: FormEvent<HTMLInputElement>, value: string) => {
+    setInputValue(value);
+    setFilterValue(value);
+    if (onInputChange) {
+      onInputChange(value);
+    }
+    resetActiveAndFocusedItem();
+  };
+
+  const handleMenuArrowKeys = (key: string) => {
+    let indexToFocus = 0;
+
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+
+    if (filteredSelectOptions.every((option) => option.isDisabled)) {
+      return;
+    }
+
+    if (key === 'ArrowUp') {
+      if (focusedItemIndex === null || focusedItemIndex === 0) {
+        indexToFocus = filteredSelectOptions.length - 1;
+      } else {
+        indexToFocus = focusedItemIndex - 1;
+      }
+
+      // Skip disabled options
+      while (filteredSelectOptions[indexToFocus].isDisabled) {
+        indexToFocus--;
+        if (indexToFocus === -1) {
+          indexToFocus = filteredSelectOptions.length - 1;
+        }
+      }
+    }
+
+    if (key === 'ArrowDown') {
+      if (focusedItemIndex === null || focusedItemIndex === filteredSelectOptions.length - 1) {
+        indexToFocus = 0;
+      } else {
+        indexToFocus = focusedItemIndex + 1;
+      }
+
+      // Skip disabled options
+      while (filteredSelectOptions[indexToFocus].isDisabled) {
+        indexToFocus++;
+        if (indexToFocus === filteredSelectOptions.length) {
+          indexToFocus = 0;
+        }
+      }
+    }
+
+    setActiveAndFocusedItem(indexToFocus);
+  };
+
+  const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const focusedItem = focusedItemIndex !== null ? filteredSelectOptions[focusedItemIndex] : null;
+
+    switch (event.key) {
+      case 'Enter':
+        if (
+          isOpen &&
+          focusedItem &&
+          focusedItem.value !== NO_RESULTS &&
+          !focusedItem.isAriaDisabled
+        ) {
+          onSelect(null, focusedItem.value);
+        }
+
+        if (!isOpen) {
+          setIsOpen(true);
+        }
+
+        break;
+      case 'ArrowUp':
+      case 'ArrowDown':
+        event.preventDefault();
+        handleMenuArrowKeys(event.key);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const onToggleClick = () => {
+    setIsOpen(!isOpen);
+    textInputRef?.current?.focus();
+  };
+
+  const onClearButtonClick = () => {
+    onChange('');
+    setInputValue('');
+    setFilterValue('');
+    resetActiveAndFocusedItem();
+    textInputRef?.current?.focus();
+    if (onClear) {
+      onClear(selectedKey);
+    }
+  };
+
+  const selectedItemWidth = useMemo(() => {
+    // font is hardcoded because canvas can't read the non-global CSS variables
+    return (
+      resizeToFit &&
+      selectedValue &&
+      getTextWidth(String(selectedValue.children), '14px RedHatText')
+    );
+  }, [resizeToFit, selectedValue]);
+
+  const toggle = (toggleRef: Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      variant="typeahead"
+      onClick={onToggleClick}
+      isExpanded={isOpen}
+      {...menuToggleProps}
+    >
+      <TextInputGroup isPlain>
+        <TextInputGroupMain
+          value={inputValue}
+          onClick={onInputClick}
+          onChange={onTextInputChange}
+          onKeyDown={(ev: KeyboardEvent<HTMLInputElement>) => {
+            if (ev.key === 'Enter') {
+              ev.preventDefault(); // prevent accidental form submission
+            }
+            onInputKeyDown(ev);
+          }}
+          id={`${ID_PREFIX}-input`}
+          autoComplete="off"
+          innerRef={textInputRef}
+          placeholder={placeholder ?? t('Filter options')}
+          {...(activeItemId && { 'aria-activedescendant': activeItemId })}
+          role="combobox"
+          isExpanded={isOpen}
+          aria-controls={`${ID_PREFIX}-listbox`}
+          style={
+            // need to use max to account for min-width of the input element in PF
+            resizeToFit
+              ? {
+                  // eslint-disable-next-line max-len
+                  width: `max(calc(${selectedItemWidth}px + ${t_global_spacer_control_horizontal_default.var} * 2), 12ch)`,
+                }
+              : {}
+          }
+        />
+        {!hideClearButton && (
+          <TextInputGroupUtilities {...(!inputValue ? { style: { display: 'none' } } : {})}>
+            <Button
+              icon={<TimesIcon aria-hidden />}
+              variant="plain"
+              onClick={onClearButtonClick}
+              aria-label={t('Clear input value')}
+            />
+          </TextInputGroupUtilities>
+        )}
+      </TextInputGroup>
+    </MenuToggle>
+  );
+
+  return (
+    <Select
+      id={ID_PREFIX}
+      isOpen={isOpen}
+      selected={selectedKey}
+      onSelect={onSelect}
+      onOpenChange={(open) => {
+        if (open) {
+          setIsOpen(true);
+        } else {
+          closeMenu();
+        }
+      }}
+      toggle={toggle}
+      shouldFocusFirstItemOnOpen={false}
+      {...selectProps}
+    >
+      <SelectList id={`${ID_PREFIX}-listbox`}>
+        {filteredSelectOptions.map((v, k) => {
+          const SelectOptionComponent =
+            v.value === CREATE_NEW ? SelectOption : (OptionComponent ?? SelectOption);
+
+          return (
+            <SelectOptionComponent
+              key={k}
+              isSelected={selectedKey === v.value}
+              isFocused={focusedItemIndex === k}
+              id={createItemId(k)}
+              value={v.value}
+              {...v}
+            >
+              {v.children || v.value}
+            </SelectOptionComponent>
+          );
+        })}
+        {_.isEmpty(filteredSelectOptions) && filterValue && !enableCreateNew && (
+          <SelectOption isDisabled={true} isAriaDisabled={true} value={NO_RESULTS}>
+            {t(`No results found`)}
+          </SelectOption>
+        )}
+      </SelectList>
+    </Select>
+  );
+};

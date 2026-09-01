@@ -5,12 +5,18 @@ module.exports = {
   testEnvironment: 'node',
   setupFiles: ['./jest.setup.ts'],
   transform: {
-    '^.+\\.(js|jsx)$': ['ts-jest', {
-      tsconfig: {
-        allowJs: true,
-        esModuleInterop: true,
+    '^.+\\.(js|jsx)$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+        },
       },
-    }],
+    ],
   },
   transformIgnorePatterns: ['node_modules/(?!(@openshift-console|@patternfly|lodash-es)/)'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
 };

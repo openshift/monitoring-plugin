@@ -1,5 +1,5 @@
 import { detailsPage } from './details-page';
-import { DataTestIDs } from '../../src/components/data-test';
+import { DataTestIDs } from '@/shared/constants/data-test';
 
 export const commonPages = {
   projectDropdownShouldNotExist: () =>
@@ -7,7 +7,14 @@ export const commonPages = {
   projectDropdownShouldExist: () => cy.byLegacyTestID('namespace-bar-dropdown').should('exist'),
   titleShouldHaveText: (title: string) => {
     cy.log('commonPages.titleShouldHaveText - ' + `${title}`);
-    cy.waitUntil(() => cy.bySemanticElement('h1', title).should('be.visible'), { timeout: 60000 });
+    cy.waitUntil(
+      () =>
+        Cypress.$('h1')
+          .toArray()
+          .some((el) => el.textContent?.trim() === title && Cypress.dom.isVisible(el)),
+      { timeout: 60000 },
+    );
+    cy.bySemanticElement('h1', title).scrollIntoView().should('be.visible');
   },
 
   titleModalShouldHaveText: (title: string) => {

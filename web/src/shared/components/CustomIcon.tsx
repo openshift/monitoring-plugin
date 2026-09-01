@@ -1,0 +1,34 @@
+// SVG path data sourced from @rhds/icons (CC-BY-4.0 licensed)
+import type { FC } from 'react';
+
+const icons = {
+  'ai-experience': {
+    viewBox: '0 0 32 32',
+    d: 'M26.031 16.962a11.932 11.932 0 0 1-10.999-11c-.041-.52-.516-.961-1.038-.961s-.996.442-1.038.962A11.93 11.93 0 0 1 1.965 16.962c-.524.037-.97.514-.97 1.038 0 .521.442.997.962 1.038a11.933 11.933 0 0 1 11 11c.041.52.516.961 1.037.961.522 0 .997-.442 1.039-.962A11.931 11.931 0 0 1 26.03 19.038c.52-.042.962-.516.962-1.038 0-.521-.442-.997-.962-1.038Zm-12.037 8.803A13.888 13.888 0 0 0 6.228 18a13.898 13.898 0 0 0 7.767-7.766A13.888 13.888 0 0 0 21.76 18a13.899 13.899 0 0 0-7.767 7.766ZM30.502 7c0 .29-.209.536-.498.59a5.523 5.523 0 0 0-4.417 4.417c-.054.289-.3.498-.59.498s-.536-.21-.59-.498A5.52 5.52 0 0 0 19.99 7.59c-.289-.054-.498-.3-.498-.59s.21-.536.498-.59a5.52 5.52 0 0 0 4.417-4.417c.054-.289.301-.498.59-.498s.536.21.59.498a5.523 5.523 0 0 0 4.417 4.417c.289.054.498.3.498.59Z',
+  },
+} as const;
+
+export type CustomIconName = keyof typeof icons;
+
+type CustomIconProps = {
+  name: CustomIconName;
+  className?: string;
+};
+
+const CustomIcon: FC<CustomIconProps> = ({ name, className }) => {
+  const icon = icons[name];
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={icon.viewBox}
+      fill="currentColor"
+      width="1em"
+      height="1em"
+      className={className}
+    >
+      <path d={icon.d} />
+    </svg>
+  );
+};
+
+export default CustomIcon;

@@ -7,19 +7,17 @@ USER 0
 WORKDIR /opt/app-root
 
 ENV HUSKY=0
+ENV CYPRESS_INSTALL_BINARY=0
 
 COPY Makefile Makefile
-COPY scripts/update-plugin-name.sh scripts/update-plugin-name.sh
 COPY web/ web/
 
-RUN make update-plugin-name
-
-ENV I18N_NAMESPACE="plugin__monitoring-console-plugin"
+ENV CONSOLE_PLUGIN_NAME="monitoring-console-plugin"
 
 RUN make install-frontend-ci
 RUN make build-frontend
 
-FROM registry.access.redhat.com/ubi9/go-toolset:1.25 AS go-builder
+FROM registry.access.redhat.com/ubi9/go-toolset:1.26 AS go-builder
 
 WORKDIR /opt/app-root
 

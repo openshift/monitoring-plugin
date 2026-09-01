@@ -22,18 +22,6 @@ consoleFetchJSON.post = (url, json) =>
 
 export const ListPageFilter = () => <input data-test="name-filter-input"></input>;
 
-export const VirtualizedTable = ({ data, Row }) => (
-  <table>
-    <tbody>
-      <tr data-test-rows="resource-row">
-        {data.map((obj, i) => (
-          <Row key={i} obj={obj} />
-        ))}
-      </tr>
-    </tbody>
-  </table>
-);
-
 export const Timestamp = () => <div>Mock_Timestamp</div>;
 
 export const useActivePerspective = () => ['admin'];

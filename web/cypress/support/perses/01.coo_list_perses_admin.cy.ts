@@ -10,6 +10,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOOListPersesTests(perspective: PerspectiveConfig) {
@@ -24,7 +25,7 @@ export function testCOOListPerses(perspective: PerspectiveConfig) {
   it(`1.${perspective.name} perspective - List Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`1.2. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -367,7 +368,7 @@ export function testCOOListPersesDuplicateDashboard(perspective: PerspectiveConf
 
       cy.log(`6.4. Back to the list and duplicate to another project`);
       persesDashboardsPage.backToListPersesDashboardsPage();
-
+      cy.wait(2000);
       listPersesDashboardsPage.filter.byProject('perses-dev');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],

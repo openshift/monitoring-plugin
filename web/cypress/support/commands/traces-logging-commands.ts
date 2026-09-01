@@ -284,7 +284,7 @@ const tracesUtils = {
       // eslint-disable-next-line max-len
       `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${
         DTP.namespace
-      } --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      } --timeout=60s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       {
         timeout: 80000,
         failOnNonZeroExit: true,
@@ -661,7 +661,7 @@ const loggingUtils = {
       // eslint-disable-next-line max-len
       `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=logging -n ${
         LOGGING_PLUGIN.namespace
-      } --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      } --timeout=60s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       {
         timeout: 80000,
         failOnNonZeroExit: true,
@@ -690,7 +690,7 @@ const loggingUtils = {
     cy.exec(
       `oc delete ${LOGGING_PLUGIN.config.kind} ${
         LOGGING_PLUGIN.config.name
-      } --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      } --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       { failOnNonZeroExit: false },
     );
     cy.log('Cleanup Logging UI Plugin completed');
