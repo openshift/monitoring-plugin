@@ -12,7 +12,7 @@ Feature flags should be added to the Feature enum [here](pkg/server/server.go) a
 | perses-dashboards   | 4.14+       |
 | incidents           | 4.17+       |
 | alerting            | 5.0+        |
-| alerting-management | 5.0+        |
+| alerting-management | 5.1+        |
 | legacy-dashboards   | 5.0+        |
 | metrics             | 5.0+        |
 | targets             | 5.0+        |
