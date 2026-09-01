@@ -16,7 +16,7 @@ pipelines:
       if [ "${PLUGIN}" = "mcp" ]; then
         echo "==> Installing COO (if not already present)..."
         ./hack/install-coo.sh
-        echo "==> Applying UIPlugin CR..."
+        echo "==> Applying UIPlugin CR with all features enabled..."
         ./hack/create-uiplugin.sh
         echo "==> Scaling down COO..."
         ./hack/scale-down-coo.sh
@@ -41,7 +41,7 @@ dev:
     namespace: openshift-monitoring
     labelSelector:
       app.kubernetes.io/component: monitoring-plugin
-    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:ocp-4.19-coo-1.5
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
@@ -55,7 +55,7 @@ dev:
     labelSelector:
       app.kubernetes.io/instance: monitoring
       app.kubernetes.io/managed-by: observability-operator
-    devImage: quay.io/rh-ee-pyurkovi/monitoring-plugin:ocp-4.19-coo-1.5
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
     patches:
       - op: replace
         path: spec.containers[0].imagePullPolicy

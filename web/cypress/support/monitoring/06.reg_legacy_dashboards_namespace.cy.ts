@@ -5,17 +5,12 @@ import {
   MetricsPageQueryInputByNamespace,
   WatchdogAlert,
 } from '../../fixtures/monitoring/constants';
-import {
-  Classes,
-  LegacyDashboardPageTestIDs,
-  DataTestIDs,
-} from '../../../src/components/data-test';
+import { Classes, DataTestIDs, LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
-import { guidedTour } from '../../views/tour';
 
 export interface PerspectiveConfig {
   name: string;
@@ -76,9 +71,6 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
 
   it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
     cy.log('3.1 Single Stat - No kebab dropdown');
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
     nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
     commonPages.titleShouldHaveText('Dashboards');
     cy.changeNamespace('openshift-monitoring');

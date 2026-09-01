@@ -72,7 +72,7 @@ export const operatorAuthUtils = {
     }
     cy.exec(
       `oc get oauthclient openshift-browser-client -o go-template ` +
-        `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
     ).then((result) => {
       if (result.stderr === '') {
         const oauth = result.stdout;
@@ -190,6 +190,7 @@ function performLogin(
 ): void {
   cy.visit(Cypress.config('baseUrl'));
   cy.log('Session - after visiting');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     // Check if auth is disabled (for a local development environment)
     if (win.SERVER_FLAGS?.authDisabled) {
@@ -276,9 +277,15 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
+  cy.log('switchPerspective - ' + perspectives.join(', '));
   /* If side bar is collapsed then expand it
   before switching perspecting */
-  cy.wait(2000);
+  cy.waitUntil(
+    () => {
+      return cy.byTestID('username', { timeout: 120000 }).should('be.visible');
+    },
+    { timeout: 120000 },
+  );
   cy.get('body').then((body) => {
     if (body.find('.pf-m-collapsed').length > 0) {
       cy.get('#nav-toggle').click();
@@ -294,6 +301,7 @@ Cypress.Commands.add('uiLogin', (provider: string, username: string, password: s
   cy.log('Commands uiLogin');
   cy.clearCookie('openshift-session-token');
   cy.visit('/');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       cy.task('log', 'Skipping login, console is running with auth disabled');
@@ -325,7 +333,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
   // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
   cy.exec(
     `oc get oauthclient openshift-browser-client -o go-template ` +
-      `--template="{{index .redirectURIs 0}}" --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+      `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
   ).then((result) => {
     if (result.stderr !== '') {
       throw new Error(`Failed to get OAuth URL: ${result.stderr}`);
@@ -369,6 +377,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
 });
 
 Cypress.Commands.add('uiLogout', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cy.window().then((win: any) => {
     if (win.SERVER_FLAGS?.authDisabled) {
       cy.log('Skipping logout, console is running with auth disabled');
@@ -376,7 +385,7 @@ Cypress.Commands.add('uiLogout', () => {
     }
     cy.log('Log out UI');
     cy.byTestID('username').click();
-    cy.wait(3000);
+    cy.wait(5000);
     cy.byTestID('log-out').click({ force: true });
   });
 });

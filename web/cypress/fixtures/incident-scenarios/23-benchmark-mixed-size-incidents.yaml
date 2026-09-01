@@ -1,0 +1,160 @@
+name: "23 - Performance Benchmark - Mixed Size Incidents"
+description: >
+  12 incidents with heterogeneous alert counts (1 large, 2 medium, 3 small-medium,
+  6 small) for benchmarking chart rendering with realistic data distribution.
+  Uses 1h timeline consistent with other stress test fixtures.
+incidents:
+  # --- LARGE: 1 incident with 20 alerts ---
+  - id: mixed-large-mon
+    component: monitoring
+    layer: core
+    timeline:
+      start: 58m
+    alerts:
+      - { name: LargeMonCrit01, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit02, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit03, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit04, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit05, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit06, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit07, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit08, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit09, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonCrit10, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: LargeMonWarn01, namespace: openshift-monitoring, severity: warning, firing: true }
+      - { name: LargeMonWarn02, namespace: openshift-monitoring, severity: warning, firing: true }
+      - { name: LargeMonWarn03, namespace: openshift-monitoring, severity: warning, firing: true }
+      - { name: LargeMonWarn04, namespace: openshift-monitoring, severity: warning, firing: true }
+      - { name: LargeMonWarn05, namespace: openshift-monitoring, severity: warning, firing: true }
+      - { name: LargeMonInfo01, namespace: openshift-monitoring, severity: info, firing: true }
+      - { name: LargeMonInfo02, namespace: openshift-monitoring, severity: info, firing: true }
+      - { name: LargeMonInfo03, namespace: openshift-monitoring, severity: info, firing: true }
+      - { name: LargeMonInfo04, namespace: openshift-monitoring, severity: info, firing: true }
+      - { name: LargeMonInfo05, namespace: openshift-monitoring, severity: info, firing: true }
+
+  # --- MEDIUM: 2 incidents with 10 alerts each ---
+  - id: mixed-med-net
+    component: network
+    layer: core
+    timeline:
+      start: 52m
+    alerts:
+      - { name: MedNetCrit01, namespace: openshift-network, severity: critical, firing: true }
+      - { name: MedNetCrit02, namespace: openshift-network, severity: critical, firing: true }
+      - { name: MedNetCrit03, namespace: openshift-network, severity: critical, firing: true }
+      - { name: MedNetCrit04, namespace: openshift-network, severity: critical, firing: true }
+      - { name: MedNetCrit05, namespace: openshift-network, severity: critical, firing: true }
+      - { name: MedNetWarn01, namespace: openshift-network, severity: warning, firing: true }
+      - { name: MedNetWarn02, namespace: openshift-network, severity: warning, firing: true }
+      - { name: MedNetWarn03, namespace: openshift-network, severity: warning, firing: true }
+      - { name: MedNetWarn04, namespace: openshift-network, severity: warning, firing: true }
+      - { name: MedNetWarn05, namespace: openshift-network, severity: warning, firing: true }
+
+  - id: mixed-med-stor
+    component: storage
+    layer: core
+    timeline:
+      start: 48m
+    alerts:
+      - { name: MedStorCrit01, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: MedStorCrit02, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: MedStorCrit03, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: MedStorCrit04, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: MedStorCrit05, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: MedStorWarn01, namespace: openshift-storage, severity: warning, firing: true }
+      - { name: MedStorWarn02, namespace: openshift-storage, severity: warning, firing: true }
+      - { name: MedStorWarn03, namespace: openshift-storage, severity: warning, firing: true }
+      - { name: MedStorWarn04, namespace: openshift-storage, severity: warning, firing: true }
+      - { name: MedStorWarn05, namespace: openshift-storage, severity: warning, firing: true }
+
+  # --- SMALL-MEDIUM: 3 incidents with 5 alerts each ---
+  - id: mixed-sm-comp
+    component: compute
+    layer: core
+    timeline:
+      start: 42m
+    alerts:
+      - { name: SmCompCrit01, namespace: openshift-compute, severity: critical, firing: true }
+      - { name: SmCompCrit02, namespace: openshift-compute, severity: critical, firing: true }
+      - { name: SmCompCrit03, namespace: openshift-compute, severity: critical, firing: true }
+      - { name: SmCompWarn01, namespace: openshift-compute, severity: warning, firing: true }
+      - { name: SmCompWarn02, namespace: openshift-compute, severity: warning, firing: true }
+
+  - id: mixed-sm-etcd
+    component: etcd
+    layer: core
+    timeline:
+      start: 38m
+    alerts:
+      - { name: SmEtcdCrit01, namespace: openshift-etcd, severity: critical, firing: true }
+      - { name: SmEtcdCrit02, namespace: openshift-etcd, severity: critical, firing: true }
+      - { name: SmEtcdCrit03, namespace: openshift-etcd, severity: critical, firing: true }
+      - { name: SmEtcdWarn01, namespace: openshift-etcd, severity: warning, firing: true }
+      - { name: SmEtcdWarn02, namespace: openshift-etcd, severity: warning, firing: true }
+
+  - id: mixed-sm-api
+    component: api-server
+    layer: core
+    timeline:
+      start: 34m
+    alerts:
+      - { name: SmApiCrit01, namespace: openshift-apiserver, severity: critical, firing: true }
+      - { name: SmApiCrit02, namespace: openshift-apiserver, severity: critical, firing: true }
+      - { name: SmApiCrit03, namespace: openshift-apiserver, severity: critical, firing: true }
+      - { name: SmApiWarn01, namespace: openshift-apiserver, severity: warning, firing: true }
+      - { name: SmApiWarn02, namespace: openshift-apiserver, severity: warning, firing: true }
+
+  # --- SMALL: 6 incidents with 2 alerts each ---
+  - id: mixed-tiny-mon
+    component: monitoring
+    layer: core
+    timeline:
+      start: 28m
+    alerts:
+      - { name: TinyMonCrit01, namespace: openshift-monitoring, severity: critical, firing: true }
+      - { name: TinyMonWarn01, namespace: openshift-monitoring, severity: warning, firing: true }
+
+  - id: mixed-tiny-net
+    component: network
+    layer: core
+    timeline:
+      start: 24m
+    alerts:
+      - { name: TinyNetCrit01, namespace: openshift-network, severity: critical, firing: true }
+      - { name: TinyNetWarn01, namespace: openshift-network, severity: warning, firing: true }
+
+  - id: mixed-tiny-stor
+    component: storage
+    layer: core
+    timeline:
+      start: 20m
+    alerts:
+      - { name: TinyStorCrit01, namespace: openshift-storage, severity: critical, firing: true }
+      - { name: TinyStorWarn01, namespace: openshift-storage, severity: warning, firing: true }
+
+  - id: mixed-tiny-comp
+    component: compute
+    layer: core
+    timeline:
+      start: 16m
+    alerts:
+      - { name: TinyCompCrit01, namespace: openshift-compute, severity: critical, firing: true }
+      - { name: TinyCompWarn01, namespace: openshift-compute, severity: warning, firing: true }
+
+  - id: mixed-tiny-etcd
+    component: etcd
+    layer: core
+    timeline:
+      start: 12m
+    alerts:
+      - { name: TinyEtcdCrit01, namespace: openshift-etcd, severity: critical, firing: true }
+      - { name: TinyEtcdWarn01, namespace: openshift-etcd, severity: warning, firing: true }
+
+  - id: mixed-tiny-ver
+    component: version
+    layer: core
+    timeline:
+      start: 8m
+    alerts:
+      - { name: TinyVerCrit01, namespace: openshift-cluster-version, severity: critical, firing: true }
+      - { name: TinyVerWarn01, namespace: openshift-cluster-version, severity: warning, firing: true }

@@ -10,6 +10,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOOListPersesTestsNamespace(perspective: PerspectiveConfig) {
@@ -20,7 +21,7 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
   it(`1.${perspective.name} perspective - List Dashboards (Perses) page`, () => {
     cy.log(`1.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     commonPages.titleShouldHaveText('Dashboards');
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`1.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
@@ -112,8 +113,7 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.emptyState();
     listPersesDashboardsPage.countDashboards('0');
 
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`1.11. Click on a dashboard`);
     listPersesDashboardsPage.clickDashboard(persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[0]);
@@ -127,7 +127,7 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
     () => {
       cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
       commonPages.titleShouldHaveText('Dashboards');
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
       cy.log(`2.2. Change namespace to perses-dev`);
       cy.changeNamespace('perses-dev');
@@ -184,7 +184,10 @@ export function testCOOListPersesNamespace(perspective: PerspectiveConfig) {
 
       cy.log(`2.7. Search for the renamed dashboard`);
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      nav.sidenav.clickNavLink([
+        'Observe',
+        perspective.dashboardsPageName ?? 'Dashboards (Perses)',
+      ]);
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed',
       );

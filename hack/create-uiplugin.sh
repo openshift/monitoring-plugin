@@ -13,7 +13,7 @@ spec:
   monitoring:
     perses:
       enabled: true
-    incidents:
+    clusterHealthAnalyzer:
       enabled: true
     acm:
       enabled: true

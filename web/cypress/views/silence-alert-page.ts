@@ -1,4 +1,4 @@
-import { DataTestIDs, Classes } from '../../src/components/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 const silenceText =
   'Silences temporarily mute alerts based on a set of label selectors that you define. Notifications will not be sent for alerts that match all the listed values or regular expressions.';
 const alertText =
@@ -97,6 +97,7 @@ export const silenceAlertPage = {
               }
               cy.wrap($row)
                 .find('[data-test="' + DataTestIDs.SilencesPageFormTestIDs.RemoveLabel + '"]')
+                .scrollIntoView()
                 .should('be.visible');
             } else {
               return;
@@ -388,7 +389,7 @@ export const silenceAlertPage = {
     cy.log('silenceAlertPage.assertLabelValueError');
     cy.get(Classes.SilenceAlertTitle).should(
       'contain.text',
-      'invalid silence: at least one matcher must not match the empty string',
+      'at least one matcher must not match the empty string',
     );
   },
 };

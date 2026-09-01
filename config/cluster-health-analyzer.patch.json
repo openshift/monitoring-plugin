@@ -1,7 +1,7 @@
 [
   {
     "op": "add",
-    "path": "/extensions/1",
+    "path": "/extensions/0",
     "value": {
       "type": "console.tab",
       "properties": {

@@ -1,0 +1,81 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "dashboards",
+        "name": "%plugin__monitoring-plugin~Dashboards%",
+        "href": "/monitoring/dashboards",
+        "perspective": "admin",
+        "section": "observe",
+        "insertAfter": "metrics"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "dashboards-virt",
+        "name": "%plugin__monitoring-plugin~Dashboards%",
+        "href": "/virt-monitoring/dashboards",
+        "perspective": "virtualization-perspective",
+        "section": "observe-virt-perspective",
+        "insertAfter": "metrics-virt"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": [
+          "/monitoring/dashboards",
+          "/monitoring/dashboards/:dashboardName"
+        ],
+        "component": {
+          "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": [
+          "/virt-monitoring/dashboards",
+          "/virt-monitoring/dashboards/:dashboardName"
+        ],
+        "component": {
+          "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDashboardsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-plugin~Dashboards%",
+        "href": "",
+        "component": {
+          "$codeRef": "LegacyDashboardsPage.MpCmoLegacyDevDashboardsPage"
+        }
+      }
+    }
+  }
+]

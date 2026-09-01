@@ -35,7 +35,7 @@ const KBV = {
 
 describe(
   'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow'] },
+  { tags: ['@virtualization', '@coo', '@slow'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP);
@@ -47,36 +47,40 @@ describe(
   },
 );
 
-describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
+describe('Installation: Virtualization', { tags: ['@virtualization', '@coo', '@slow'] }, () => {
   before(() => {
     cy.beforeBlockVirtualization(KBV);
   });
 
   it('1. Virtualization perspective - Observe Menu', () => {
     cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization');
+    cy.switchPerspective('Virtualization', 'Fleet virtualization');
     guidedTour.closeKubevirtTour();
   });
 });
 
-describe('IVT: Monitoring + Virtualization', { tags: ['@smoke', '@virtualization'] }, () => {
-  beforeEach(() => {
-    cy.visit('/');
-    guidedTour.close();
-    cy.validateLogin();
-    cy.switchPerspective('Virtualization');
-    guidedTour.closeKubevirtTour();
-    nav.sidenav.clickNavLink(['Observe', 'Metrics']);
-    commonPages.titleShouldHaveText('Metrics');
-    cy.changeNamespace('All Projects');
-    alerts.getWatchdogAlert();
-    nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-    commonPages.titleShouldHaveText('Alerting');
-    alerts.getWatchdogAlert();
-  });
+describe(
+  'IVT: Monitoring + Virtualization',
+  { tags: ['@metrics', '@alerting', '@virtualization', '@coo'] },
+  () => {
+    beforeEach(() => {
+      cy.visit('/');
+      guidedTour.close();
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      alerts.getWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
+      commonPages.titleShouldHaveText('Alerting');
+      alerts.getWatchdogAlert();
+    });
 
-  // Run tests in Administrator perspective
-  runBVTMonitoringTests({
-    name: 'Virtualization',
-  });
-});
+    // Run tests in Administrator perspective
+    runBVTMonitoringTests({
+      name: 'Virtualization',
+    });
+  },
+);

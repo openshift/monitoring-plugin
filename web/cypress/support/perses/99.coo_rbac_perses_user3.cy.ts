@@ -13,11 +13,12 @@ import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
-import { persesAriaLabels } from '../../../src/components/data-test';
+import { persesAriaLabels } from '@/shared/constants/data-test';
 
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
@@ -274,7 +275,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
 
   it(`4.${perspective.name} perspective - Kebab icon - Enabled / Disabled`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`4.2. Change namespace to empty-namespace3`);
     cy.changeNamespace('empty-namespace3');
@@ -305,7 +306,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     renamedDashboardName += randomSuffix;
 
     cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`5.2. Change namespace to empty-namespace3`);
     cy.changeNamespace('empty-namespace3');

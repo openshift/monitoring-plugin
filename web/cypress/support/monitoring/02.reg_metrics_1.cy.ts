@@ -1,5 +1,5 @@
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs } from '../../../src/components/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
   GraphTimespan,
   MetricsPagePredefinedQueries,
@@ -213,6 +213,9 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
 
     cy.log('4.11 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
+
+    cy.log('4.12 Delete All Queries');
+    metricsPage.clickActionsDeleteAllQueries();
   });
 
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip

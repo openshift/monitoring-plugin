@@ -28,6 +28,12 @@ export enum Severity {
   NONE = 'None',
 }
 
+export enum Cluster {
+  LOCAL = 'local',
+  LOCAL_CLUSTER = 'local-cluster',
+  SPOKE = 'spoke',
+}
+
 export enum SilenceState {
   ACTIVE = 'Active',
   PENDING = 'Pending',

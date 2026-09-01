@@ -1,14 +1,14 @@
 import { commonPages } from './common';
 import {
+  editPersesDashboardsAddVariable,
+  IDs,
   persesAriaLabels,
   persesMUIDataTestIDs,
-  IDs,
-  editPersesDashboardsAddVariable,
-} from '../../src/components/data-test';
+} from '@/shared/constants/data-test';
 import {
-  persesDashboardsModalTitles,
-  persesDashboardsAddListVariableSource,
   persesDashboardsAddListVariableSort,
+  persesDashboardsAddListVariableSource,
+  persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
 } from '../fixtures/perses/constants';
 
@@ -129,6 +129,7 @@ export const persesDashboardsEditVariables = {
     if (allowAllValue) {
       cy.get('input[name="' + editPersesDashboardsAddVariable.inputAllowAllValue + '"]').click();
       if (customAllValue !== undefined && customAllValue !== '') {
+        cy.get('input[type="checkbox"]').eq(2).click();
         cy.get('input[name="' + editPersesDashboardsAddVariable.inputCustomAllValue + '"]')
           .clear()
           .type(customAllValue);
@@ -145,7 +146,8 @@ export const persesDashboardsEditVariables = {
       .eq(0)
       .find('input[role="combobox"]')
       .click()
-      .type(value + '{enter}');
+      .type(value, { delay: 100 })
+      .type('{enter}');
     cy.wait(2000);
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
     cy.wait(2000);

@@ -1,10 +1,10 @@
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs } from '../../../src/components/data-test';
+import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
   MetricsPagePredefinedQueries,
   MetricsPageQueryInput,
-  MetricsPageQueryKebabDropdown,
   MetricsPageQueryInputByNamespace,
+  MetricsPageQueryKebabDropdown,
 } from '../../fixtures/monitoring/constants';
 
 export interface PerspectiveConfig {
@@ -316,6 +316,9 @@ export function testMetricsRegressionNamespace2(perspective: PerspectiveConfig) 
       .contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES)
       .should('have.attr', 'aria-disabled', 'true');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
+
+    cy.log('6.18 Delete All Queries');
+    metricsPage.clickActionsDeleteAllQueries();
   });
 
   it(`${perspective.name} perspective - Metrics > Predefined Queries > Export as CSV`, () => {

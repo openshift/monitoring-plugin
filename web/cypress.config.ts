@@ -4,6 +4,10 @@ import * as console from 'console';
 import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
 import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
+import {
+  writeBenchmarkReport,
+  injectBenchmarksIntoMochawesome,
+} from './cypress/plugins/benchmark-reporter';
 
 const getLoginCredentials = (index: number): { username: string; password: string } => {
   const users = (process.env.CYPRESS_LOGIN_USERS || '').split(',').filter(Boolean);
@@ -25,16 +29,18 @@ export default defineConfig({
   },
   env: {
     grepFilterSpecs: true,
-    HOST_API: (process.env.CYPRESS_BASE_URL || '').replace(/console-openshift-console.apps/, 'api').concat(
-      ':6443',
-    ),
+    HOST_API: (process.env.CYPRESS_BASE_URL || '')
+      .replace(/console-openshift-console.apps/, 'api')
+      .concat(':6443'),
     // User 0 credentials - as kubeadmin or even non-admin user
-    // specifically for perses e2e tests, user0 is considered as console admin user to install COO and create RBAC roles and bindings
+    // specifically for perses e2e tests, user0 is considered as console admin user to
+    // install COO and create RBAC roles and bindings
     LOGIN_USERNAME: getLoginCredentials(0).username,
     LOGIN_PASSWORD: getLoginCredentials(0).password,
     // User 1 credentials
     // User 2 credentials
-    // specifically for perses e2e tests, user1 and user2 are considered as perses e2e users to test RBAC access to dashboards
+    // specifically for perses e2e tests, user1 and user2 are considered as perses
+    // e2e users to test RBAC access to dashboards
     LOGIN_USERNAME1: getLoginCredentials(1).username,
     LOGIN_PASSWORD1: getLoginCredentials(1).password,
     LOGIN_USERNAME2: getLoginCredentials(2).username,
@@ -62,12 +68,12 @@ export default defineConfig({
     openMode: 0,
   },
   e2e: {
-    browser: "chrome",
+    browser: 'chrome',
     viewportWidth: 1920,
     viewportHeight: 1080,
     setupNodeEvents(on, config) {
       registerCypressGrep(config);
-      
+
       on(
         'before:browser:launch',
         (
@@ -117,7 +123,7 @@ export default defineConfig({
           }
           return null;
         },
-         clearDownloads(folder: string = config.downloadsFolder): null {
+        clearDownloads(folder: string = config.downloadsFolder): null {
           // You must return a value or a promise from a task.
           // Returning null is a common practice for tasks that don't need to yield a value.
           console.log(`Clearing downloads folder: ${folder}`);
@@ -129,7 +135,13 @@ export default defineConfig({
          * @param args Object containing fileName and optional folder.
          * @returns True if the file exists, false otherwise.
          */
-        doesFileExist({ fileName, folder = config.downloadsFolder }: { fileName: string; folder?: string }): boolean {
+        doesFileExist({
+          fileName,
+          folder = config.downloadsFolder,
+        }: {
+          fileName: string;
+          folder?: string;
+        }): boolean {
           const filePath = path.join(folder, fileName);
           const exists = fs.existsSync(filePath);
           console.log(`Checking if file "${fileName}" exists at "${filePath}": ${exists}`);
@@ -151,17 +163,22 @@ export default defineConfig({
           return files;
         },
 
+        writeBenchmarkReport,
       });
       on('after:spec', (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
         if (results && results.video) {
-          // Do we have failures for any retry attempts?
           const failures = results.tests.some((test) =>
             test.attempts.some((attempt) => attempt.state === 'failed'),
           );
           if (!failures && fs.existsSync(results.video)) {
-            // Delete the video if the spec passed and no tests retried
             fs.unlinkSync(results.video);
           }
+        }
+
+        try {
+          injectBenchmarksIntoMochawesome(spec.relative);
+        } catch (e) {
+          console.log(`Benchmark injection skipped: ${(e as Error).message}`);
         }
       });
       return config;
@@ -184,9 +201,19 @@ export default defineConfig({
         resolve: {
           extensions: ['.ts', '.tsx', '.js', '.jsx'],
           alias: {
-            '@perses-dev/plugin-system': path.resolve(__dirname, 'cypress/component/mocks/perses-plugin-system.tsx'),
-            '@perses-dev/dashboards': path.resolve(__dirname, 'cypress/component/mocks/perses-dashboards.tsx'),
-            '@perses-dev/prometheus-plugin': path.resolve(__dirname, 'cypress/component/mocks/perses-prometheus-plugin.ts'),
+            '@': path.resolve(__dirname, 'src'),
+            '@perses-dev/plugin-system': path.resolve(
+              __dirname,
+              'cypress/component/mocks/perses-plugin-system.tsx',
+            ),
+            '@perses-dev/dashboards': path.resolve(
+              __dirname,
+              'cypress/component/mocks/perses-dashboards.tsx',
+            ),
+            '@perses-dev/prometheus-plugin': path.resolve(
+              __dirname,
+              'cypress/component/mocks/perses-prometheus-plugin.ts',
+            ),
           },
         },
         module: {
@@ -217,7 +244,9 @@ export default defineConfig({
         },
         plugins: [
           new DefinePlugin({
-            'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
+            'process.env.I18N_NAMESPACE': JSON.stringify(
+              `plugin__${process.env.CONSOLE_PLUGIN_NAME ?? 'monitoring-plugin'}`,
+            ),
           }),
           new NormalModuleReplacementPlugin(
             /helpers\/OlsToolUIPersesWrapper/,

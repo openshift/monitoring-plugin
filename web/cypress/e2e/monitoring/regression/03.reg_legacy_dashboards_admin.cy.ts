@@ -11,7 +11,7 @@ const MP = {
 // Test suite for Administrator perspective
 describe(
   'Regression: Monitoring - Legacy Dashboards (Administrator)',
-  { tags: ['@monitoring', '@dashboards'] },
+  { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);
@@ -39,7 +39,7 @@ describe(
 // Test suite for Administrator perspective
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)',
-  { tags: ['@monitoring', '@dashboards'] },
+  { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
       cy.beforeBlock(MP);

@@ -1,0 +1,38 @@
+import { Button } from '@patternfly/react-core';
+import type { FC, PropsWithChildren } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { ConsoleEmptyState } from '@/shared/console/console-shared/src/components/empty-state/ConsoleEmptyState';
+
+export const LoadError: FC<PropsWithChildren<LoadErrorProps>> = ({
+  label,
+  children,
+  canRetry = true,
+}) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
+  const actions = canRetry
+    ? [
+        <Button
+          key="try-again"
+          type="button"
+          onClick={() => window.location.reload()}
+          variant="link"
+          isInline
+        >
+          {t('Try again')}
+        </Button>,
+      ]
+    : [];
+  return (
+    <ConsoleEmptyState primaryActions={actions} title={t('Error loading {{label}}', { label })}>
+      {children}
+    </ConsoleEmptyState>
+  );
+};
+LoadError.displayName = 'LoadError';
+
+type LoadErrorProps = {
+  label: string;
+  canRetry?: boolean;
+};

@@ -10,7 +10,7 @@ import {
 } from '../../fixtures/perses/constants';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
-import { persesAriaLabels } from '../../../src/components/data-test';
+import { persesAriaLabels } from '@/shared/constants/data-test';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
@@ -19,6 +19,7 @@ import { nav } from '../../views/nav';
 export interface PerspectiveConfig {
   name: string;
   beforeEach?: () => void;
+  dashboardsPageName?: string;
 }
 
 export function runCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
@@ -39,7 +40,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
-      listPersesDashboardsPage.shouldBeLoaded();
+      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
       cy.assertNamespace('All Projects', true);
       cy.assertNamespace('openshift-cluster-observability-operator', true);
       cy.assertNamespace('observ-test', true);
@@ -52,7 +53,6 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
         `1.2. All Projects validation - Dashboard search - ` +
           `${persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]} dashboard`,
       );
-      cy.changeNamespace('All Projects');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
       );
@@ -101,11 +101,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
   it(`2.${perspective.name} perspective - Edit button validation - Editable dashboard`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.2 change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.shouldBeLoaded();
+    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
 
     cy.log(`2.3. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -442,9 +442,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
 
     cy.log(`6.4. Change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
+    cy.wait(2000);
 
     cy.log(`6.5. Assert Kebab icon is enabled`);
     listPersesDashboardsPage.clearAllFilters();
+    listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
@@ -452,11 +454,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertKebabIconOptions();
     listPersesDashboardsPage.clickKebabIcon();
 
-    cy.log(`6.2. Change namespace to All Projects`);
+    cy.log(`6.6. Change namespace to All Projects`);
     cy.changeNamespace('All Projects');
     listPersesDashboardsPage.clearAllFilters();
 
-    cy.log(`6.3. Filter by Project and Name`);
+    cy.log(`6.7. Filter by Project and Name`);
     listPersesDashboardsPage.filter.byProject('observ-test');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
@@ -466,7 +468,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertKebabIconDisabled();
     listPersesDashboardsPage.clearAllFilters();
 
-    cy.log(`6.4. Filter by Project and Name`);
+    cy.log(`6.8. Filter by Project and Name`);
     listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],

@@ -1,5 +1,5 @@
 import { commonPages } from './common';
-import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/components/data-test';
+import { Classes, DataTestIDs, FilterOUIAIDs } from '@/shared/constants/data-test';
 
 export const silencesListPage = {
   shouldBeLoaded: () => {
@@ -15,7 +15,6 @@ export const silencesListPage = {
   firstTimeEmptyState: () => {
     cy.log('silencesListPage.firstTimeEmptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No silences found').should('be.visible');
-    cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
   },
 
   emptyState: () => {

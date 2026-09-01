@@ -1,10 +1,10 @@
 import {
   IncidentDefinition,
-  IncidentTimeline,
-  IncidentScenarioFixture,
   IncidentFixture,
+  IncidentScenarioFixture,
+  IncidentTimeline,
 } from '../types';
-import { parseDuration, nowInClusterTimezone } from '../utils';
+import { nowInClusterTimezone, parseDuration } from '../utils';
 import { validateAndParseYamlFixture } from './schema-validator';
 
 /**

@@ -18,13 +18,13 @@ const MP = {
   operatorName: 'Cluster Monitoring Operator',
 };
 
-//TODO: change tag to @smoke, @dashboards, @perses when customizable-dashboards gets merged
 describe(
-  'BVT: COO - Dashboards (Perses) - Administrator perspective',
-  { tags: ['@smoke', '@dashboards', '@perses'] },
+  'BVT: COO - Dashboards (Perses) - Core platform perspective',
+  { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
       cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
 
@@ -34,7 +34,7 @@ describe(
 
     //TODO: rename after customizable-dashboards gets merged
     runBVTCOOPersesTests1({
-      name: 'Administrator',
+      name: 'Core platform',
     });
   },
 );
