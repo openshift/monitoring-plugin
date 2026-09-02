@@ -341,23 +341,27 @@ npm run cypress:run -- --headed --config video=false
 
 Use these tags with `--env grepTags`:
 
-**Feature Tags:**
+**1. Modifier Tags:**
 
-- `@acm-alerting` - Alert-related tests in ACM perspective
+- `@flaky` - Tests that don't pass reliably
+- `@xfail` - Tests for known bugs expected to fail
+- `@slow` - Long-running e2e tests (15+ minutes)
+
+**2. Infrastructure Tags:**
+
+- `@acm` - Advanced Cluster Management integration tests
+- `@coo` - Cluster Observability Operator functionality tests
+- `@virtualization` - Virtualization integration tests
+- `@ols` - OpenShift Lightspeed. Requires external installation of OLS and setup of LLM accounts through CI configuration
+
+**3. Feature Tags** (format: `@{component}`):
+
 - `@alerting` - Alert-related tests
 - `@legacy-dashboards` - Legacy dashboard tests
 - `@metrics` - Metrics explorer tests
+- `@targets` - Targets tests
 - `@perses-dashboards` - Perses dashboard tests
-- `@coo` - Observability Operator tests
-- `@ols` - OpenShift Lightspeed integration tests
-- `@virtualization` - OpenShift Virtualization tests
 - `@cluster-health-analyzer` - Incidents feature tests
-- `@targets` - Targets page tests
-
-**Modifier Tags:**
-
-- `@slow` - Longer running tests
-- `@flaky` - Known flaky tests
 
 ---
 

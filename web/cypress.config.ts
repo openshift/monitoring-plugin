@@ -5,8 +5,8 @@ import * as path from 'path';
 import registerCypressGrep from '@cypress/grep/src/plugin';
 import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
 import {
-  writeBenchmarkReport,
   injectBenchmarksIntoMochawesome,
+  writeBenchmarkReport,
 } from './cypress/plugins/benchmark-reporter';
 
 const getLoginCredentials = (index: number): { username: string; password: string } => {

@@ -214,32 +214,27 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 
 #### Tag Categories
 
-**1. Basic Tags:**
+**1. Modifier Tags:**
 
 - `@flaky` - Tests that don't pass reliably
 - `@xfail` - Tests for known bugs expected to fail
 - `@slow` - Long-running e2e tests (15+ minutes)
 
-**2. High-Level Component Tags:**
+**2. Infrastructure Tags:**
 
-- `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
+- `@acm` - Advanced Cluster Management integration tests
+- `@coo` - Cluster Observability Operator functionality tests
 - `@virtualization` - Virtualization integration tests
 - `@ols` - OpenShift Lightspeed. Requires external installation of OLS and setup of LLM accounts through CI configuration
 
-**3. Specific Feature Tags** (format: `@{component}`):
+**3. Feature Tags** (format: `@{component}`):
 
-- `@acm-alerting` - Alert-related tests in ACM perspective
 - `@alerting` - Alert-related tests
 - `@legacy-dashboards` - Legacy dashboard tests
 - `@metrics` - Metrics explorer tests
 - `@targets` - Targets tests
 - `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
-
-**4. JIRA Tags** (format: `@JIRA-{ID}`):
-
-- Example: `@JIRA-OU-1033`
-- Link tests to specific JIRA issues
 
 #### Running Tests by Tags
 
