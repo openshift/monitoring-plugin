@@ -140,11 +140,8 @@ export const persesDashboardsEditVariables = {
   addListVariable_staticListVariable_enterValue: (value: string) => {
     cy.log('persesDashboardsEditVariables.addListVariable_staticListVariable_enterValue');
     cy.wait(2000);
-    cy.get('h6')
-      .contains('List Options')
-      .next('div')
-      .eq(0)
-      .find('input[role="combobox"]')
+    cy.get('[data-testid="variable-editor"]')
+      .find('input[role="combobox"][placeholder="Values"]')
       .click()
       .type(value, { delay: 100 })
       .type('{enter}');
