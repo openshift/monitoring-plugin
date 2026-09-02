@@ -553,9 +553,6 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageDuplicateQueryDropdownItem)
       .contains(MetricsPageQueryKebabDropdown.DUPLICATE_QUERY)
       .should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
-      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
-      .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem).should('not.exist');
 
     cy.byTestID(DataTestIDs.KebabDropdownButton)
@@ -581,9 +578,6 @@ export const metricsPage = {
       .should('be.visible');
     cy.byTestID(DataTestIDs.MetricsPageExportCsvDropdownItem)
       .contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV)
-      .should('be.visible');
-    cy.byTestID(DataTestIDs.MetricsPageCreateAlertRuleDropdownItem)
-      .contains(MetricsPageQueryKebabDropdown.CREATE_ALERT)
       .should('be.visible');
     cy.byTestID(DataTestIDs.KebabDropdownButton)
       .eq(0)
