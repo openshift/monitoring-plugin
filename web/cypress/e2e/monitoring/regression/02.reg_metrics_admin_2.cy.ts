@@ -1,8 +1,9 @@
 import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
-import { runAllRegressionMetricsTests2 } from '../../../support/monitoring/02.reg_metrics_2.cy';
-import { runAllRegressionMetricsTestsNamespace2 } from '../../../support/monitoring/05.reg_metrics_namespace_2.cy';
+import { testMetricsRegression2 } from '../../../support/monitoring/02.reg_metrics_2.cy';
+import { testMetricsRegressionNamespace2 } from '../../../support/monitoring/05.reg_metrics_namespace_2.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
@@ -17,9 +18,7 @@ describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'
   });
 
   // Run tests in Administrator perspective
-  runAllRegressionMetricsTests2({
-    name: 'Administrator',
-  });
+  testMetricsRegression2(CustomerPerspectiveName.CorePlatform);
 });
 
 // Test suite for Administrator perspective
@@ -38,8 +37,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionMetricsTestsNamespace2({
-      name: 'Administrator',
-    });
+    testMetricsRegressionNamespace2(CustomerPerspectiveName.CorePlatform);
   },
 );

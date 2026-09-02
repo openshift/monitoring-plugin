@@ -1,8 +1,9 @@
 import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTestsNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
+import { testAlertsRegressionNamespace } from '../../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 describe(
   'Regression: Monitoring - Alerts Namespaced (Administrator)',
@@ -21,8 +22,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionAlertsTestsNamespace({
-      name: 'Administrator',
-    });
+    testAlertsRegressionNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

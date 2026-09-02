@@ -4,11 +4,12 @@ import {
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionMetricsTests1 } from '../../support/monitoring/02.reg_metrics_1.cy';
-import { runAllRegressionMetricsTestsNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
+import { testMetricsRegression1 } from '../../support/monitoring/02.reg_metrics_1.cy';
+import { testMetricsRegressionNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 describe(
   'Regression: Monitoring - Metrics (Virtualization)',
@@ -56,9 +57,7 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTests1({
-      name: 'Virtualization',
-    });
+    testMetricsRegression1(CustomerPerspectiveName.Virtualization);
   },
 );
 
@@ -78,8 +77,6 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    runAllRegressionMetricsTestsNamespace1({
-      name: 'Virtualization',
-    });
+    testMetricsRegressionNamespace1(CustomerPerspectiveName.Virtualization);
   },
 );
