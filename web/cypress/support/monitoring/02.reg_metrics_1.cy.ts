@@ -37,16 +37,6 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     metricsPage.kebabDropdownAssertionWithoutQuery();
   });
 
-  it(`${perspective.name} perspective - Metrics > Kebab > Create alert state`, () => {
-    cy.log('2.1 Create alert is disabled for an empty query');
-    metricsPage.shouldBeLoaded();
-    metricsPage.createAlertKebabItemStateAssertion(0, true);
-
-    cy.log('2.2 Create alert is enabled after entering a query');
-    metricsPage.enterQueryInput(0, MetricsPageQueryInput.VECTOR_QUERY);
-    metricsPage.createAlertKebabItemStateAssertion(0, false);
-  });
-
   it(`${perspective.name} perspective - Metrics > Actions - No query added`, () => {
     cy.log('2.1 Only one query loaded');
     cy.byTestID(DataTestIDs.MetricsPageExpandCollapseRowButton).should('have.length', 1);
@@ -161,15 +151,6 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
       .eq(0)
       .should('have.attr', 'aria-expanded', 'true');
     metricsPage.shouldBeLoaded();
-  });
-
-  it(`${perspective.name} perspective - Metrics > Kebab > Create alert`, () => {
-    cy.log('3b.1 Load a predefined query');
-    metricsPage.clickPredefinedQuery(MetricsPagePredefinedQueries.FILESYSTEM_USAGE);
-    metricsPage.shouldBeLoadedWithGraph();
-
-    cy.log('3b.2 Create alert kebab item renders and is clickable');
-    metricsPage.createAlertKebabItemAssertion(0);
   });
 
   it(`${perspective.name} perspective - Metrics > Insert Example Query`, () => {

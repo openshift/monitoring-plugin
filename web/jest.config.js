@@ -18,5 +18,6 @@ module.exports = {
   transformIgnorePatterns: ['node_modules/(?!(@openshift-console|@patternfly|lodash-es)/)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|scss)$': '<rootDir>/src/__mocks__/styleMock.js',
   },
 };

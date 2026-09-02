@@ -140,6 +140,8 @@
     "i18next-conv": "17.0.0",
     "i18next-parser": "^9.3.0",
     "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "jsdom": "^26.1.0",
     "mocha-junit-reporter": "^1.23.3",
     "mochawesome": "^7.1.3",
     "mochawesome-merge": "^4.1.0",
