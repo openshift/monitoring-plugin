@@ -19,6 +19,7 @@
     "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
     "lint": "eslint ./src ./cypress ./eslint-rules",
     "lint:tsc": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "npm run lint",
     "prepare": "cd .. && husky install web/.husky",
@@ -48,6 +49,9 @@
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@acm --@virtualization --@ols --@flaky --@xfail'",
     "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@ols --@acm --@xfail'",
     "test-cypress-acm": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@acm --@xfail'"
+  },
+  "engines": {
+    "node": ">=22.x"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.4",
