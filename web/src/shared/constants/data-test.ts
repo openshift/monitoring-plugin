@@ -37,6 +37,7 @@ export const DataTestIDs = {
   MetricsPageActionsDropdownButton: 'actions-dropdown-button',
   MetricsPageAddQueryButton: 'add-query-button',
   MetricsPageAddQueryDropdownItem: 'add-query-dropdown-item',
+  MetricsPageCreateAlertRuleDropdownItem: 'create-alert-rule-dropdown-item',
   MetricsPageDeleteAllQueriesDropdownItem: 'delete-all-queries-dropdown-item',
   MetricsPageDeleteQueryDropdownItem: 'delete-query-dropdown-item',
   MetricsPageDisableEnableQuerySwitch: 'disable-enable-query-switch',

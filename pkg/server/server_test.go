@@ -35,10 +35,11 @@ const (
 )
 
 var defaultFeatures = map[Feature]bool{
-	Alerting:         true,
-	Metrics:          true,
-	LegacyDashboards: true,
-	Targets:          true,
+	Alerting:           true,
+	AlertingManagement: true,
+	Metrics:            true,
+	LegacyDashboards:   true,
+	Targets:            true,
 }
 
 func TestCreateHTTPServer(t *testing.T) {

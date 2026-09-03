@@ -319,3 +319,16 @@ export const getDashboardsListUrl = (perspective: Perspective) => {
       return '';
   }
 };
+
+export const getCreateAlertRuleUrl = (perspective: Perspective, query: string) => {
+  const params = new URLSearchParams({ [QueryParams.Query]: query });
+
+  switch (perspective) {
+    case 'virtualization-perspective':
+      return `/virt-monitoring/v2/alertrule/create?${params.toString()}`;
+    case 'admin':
+      return `/monitoring/v2/alertrule/create?${params.toString()}`;
+    default:
+      return '';
+  }
+};

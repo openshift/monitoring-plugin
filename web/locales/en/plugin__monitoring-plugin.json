@@ -212,6 +212,8 @@
   "Delete all queries": "Delete all queries",
   "Show series": "Show series",
   "Hide series": "Hide series",
+  "Enter a query first": "Enter a query first",
+  "Create alert": "Create alert",
   "Disable query": "Disable query",
   "Enable query": "Enable query",
   "Hide all series": "Hide all series",

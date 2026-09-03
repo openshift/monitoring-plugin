@@ -13,4 +13,5 @@ export enum QueryParams {
   Refresh = 'refresh',
   Start = 'start',
   Edit = 'edit',
+  Query = 'query',
 }

@@ -71,16 +71,17 @@ import {
   t_global_spacer_md,
   t_global_spacer_sm,
 } from '@patternfly/react-tokens';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as _ from 'lodash-es';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
+import { QueryKebab } from '@/features/metrics/components/QueryKebab';
 import { DropDownPollInterval } from '@/shared/components/DropdownPollInterval';
-import KebabDropdown from '@/shared/components/KebabDropdown';
 import { colors, Error, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
 import { TablePagination } from '@/shared/components/table/TablePagination';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
@@ -95,9 +96,14 @@ import { DataTestIDs } from '@/shared/constants/data-test';
 import { QueryParams } from '@/shared/constants/query-params';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
+import { useFeatures } from '@/shared/hooks/useFeatures';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
-import { getObserveState } from '@/shared/hooks/usePerspective';
+import {
+  getCreateAlertRuleUrl,
+  getObserveState,
+  usePerspective,
+} from '@/shared/hooks/usePerspective';
 import {
   queryBrowserAddQuery,
   queryBrowserDeleteAllQueries,
@@ -114,8 +120,11 @@ import {
 import { MonitoringState } from '@/shared/store/store';
 import { PrometheusAPIError } from '@/shared/types/types';
 import { GraphUnits, isGraphUnit } from '@/shared/utils/units';
-import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
-import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
+import {
+  ALL_NAMESPACES_KEY,
+  buildPrometheusUrl,
+  getPrometheusBasePath,
+} from '@/shared/utils/utils';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -382,9 +391,11 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
   );
 };
 
-const QueryKebab: FC<{ index: number }> = ({ index }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+const QueryKebabContainer: FC<{ index: number }> = ({ index }) => {
   const { plugin } = useMonitoring();
+  const { features } = useFeatures();
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
 
   const isDisabledSeriesEmpty = useSelector((state: MonitoringState) =>
     _.isEmpty(getObserveState(plugin, state).queryBrowser?.queries[index]?.disabledSeries),
@@ -397,6 +408,14 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
   const query = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.query,
   );
+
+  const text = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries[index]?.text,
+  );
+
+  const canCreateAlert =
+    (perspective === 'admin' || perspective === 'virtualization-perspective') &&
+    (features[plugin]?.['alerting-management'] ?? false);
 
   const queryTableData = useSelector(
     (state: MonitoringState) =>
@@ -427,142 +446,25 @@ const QueryKebab: FC<{ index: number }> = ({ index }) => {
     dispatch(queryBrowserDuplicateQuery(index));
   }, [dispatch, index]);
 
-  const isSpan = (item) => item?.title?.props?.children;
-  const getSpanText = (item) => item.title.props.children;
+  const doCreateAlert = useCallback(() => {
+    navigate(getCreateAlertRuleUrl(perspective, text));
+  }, [navigate, perspective, text]);
 
-  // Takes data from QueryTable and removes/replaces all html objects from columns and rows
-  const convertQueryTable = () => {
-    const getColumns = () => {
-      const columns = queryTableData.columns;
-      const csvColumnHeaders = columns.slice(1).map((columnHeader) => {
-        if (typeof columnHeader?.title === 'string') {
-          return columnHeader.title;
-        } else if (isSpan(columnHeader)) {
-          return getSpanText(columnHeader);
-        } else {
-          return '';
-        }
-      });
-      return csvColumnHeaders;
-    };
-    const getRows = () => {
-      const rows = queryTableData.rows;
-      const csvRows = rows
-        .map((row) => row.slice(1))
-        .map((row) =>
-          row.map((rowItem) => {
-            return isSpan(rowItem) ? getSpanText(rowItem) : rowItem;
-          }),
-        );
-      return csvRows;
-    };
-    const tableData = [getColumns(), ...getRows()];
-    return tableData;
-  };
-
-  const getCsv = (array, delimiter = ',') =>
-    array
-      .map((row) =>
-        row.map((rowItem) => (isNaN(rowItem) ? `"${rowItem}"` : rowItem)).join(delimiter),
-      )
-      .join('\n');
-
-  const downloadCsv = (csvData) => {
-    // Modified from https://codesandbox.io/p/sandbox/react-export-to-csv-l6uhq?file=%2Fsrc%2FApp.jsx%3A39%2C10-39%2C16
-    const blob = new Blob([csvData], { type: 'data:text/csv;charset=utf-8,' });
-    const blobURL = window.URL.createObjectURL(blob);
-    // Create new tag for download file
-    const anchor = document.createElement('a');
-    anchor.download = `OpenShift_Metrics_QueryTable_${query}.csv`;
-    anchor.href = blobURL;
-    anchor.dataset.downloadurl = ['text/csv', anchor.download, anchor.href].join(':');
-    anchor.click();
-    // Remove URL.createObjectURL. The browser should not save the reference to the file.
-    setTimeout(() => {
-      // For Firefox it is necessary to delay revoking the ObjectURL
-      URL.revokeObjectURL(blobURL);
-    }, 100);
-  };
-
-  const doExportCsv = () => {
-    const tableData = convertQueryTable();
-    const csvData = getCsv(tableData);
-    downloadCsv(csvData);
-  };
-
-  const exportDropdownItem = (
-    <DropdownItem
-      key="export"
-      component="button"
-      onClick={doExportCsv}
-      data-test={DataTestIDs.MetricsPageExportCsvDropdownItem}
-    >
-      {t('Export as CSV')}
-    </DropdownItem>
+  return (
+    <QueryKebab
+      canCreateAlert={canCreateAlert}
+      isDisabledSeriesEmpty={isDisabledSeriesEmpty}
+      isEnabled={isEnabled}
+      onCreateAlert={doCreateAlert}
+      onDelete={doDelete}
+      onDuplicate={doClone}
+      onToggleAllSeries={toggleAllSeries}
+      onToggleIsEnabled={toggleIsEnabled}
+      query={query}
+      queryTableData={queryTableData}
+      text={text}
+    />
   );
-
-  const defaultDropdownItems = [
-    <DropdownItem
-      key="toggle-query"
-      component="button"
-      onClick={toggleIsEnabled}
-      data-test={DataTestIDs.MetricsPageDisableEnableQueryDropdownItem}
-    >
-      {isEnabled ? t('Disable query') : t('Enable query')}
-    </DropdownItem>,
-    isEnabled ? (
-      <DropdownItem
-        component="button"
-        onClick={toggleAllSeries}
-        key="toggle-all-series"
-        data-test={DataTestIDs.MetricsPageHideShowAllSeriesDropdownItem}
-      >
-        {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
-      </DropdownItem>
-    ) : (
-      <Tooltip
-        key="toggle-all-series-disabled"
-        position="left"
-        content={t('Query must be enabled')}
-      >
-        <DropdownItem
-          isAriaDisabled={true} // need to receive focus for tooltip to work
-          component="button"
-        >
-          {isDisabledSeriesEmpty ? t('Hide all series') : t('Show all series')}
-        </DropdownItem>
-      </Tooltip>
-    ),
-    <DropdownItem
-      key="delete"
-      component="button"
-      onClick={doDelete}
-      data-test={DataTestIDs.MetricsPageDeleteQueryDropdownItem}
-    >
-      {t('Delete query')}
-    </DropdownItem>,
-    <DropdownItem
-      key="duplicate"
-      component="button"
-      onClick={doClone}
-      data-test={DataTestIDs.MetricsPageDuplicateQueryDropdownItem}
-    >
-      {t('Duplicate query')}
-    </DropdownItem>,
-  ];
-
-  const hasQueryTableData = () => {
-    if (!query || !queryTableData?.rows || !queryTableData?.columns) {
-      return false;
-    }
-    return true;
-  };
-
-  const dropdownItems = hasQueryTableData()
-    ? [...defaultDropdownItems, exportDropdownItem]
-    : defaultDropdownItems;
-
-  return <KebabDropdown dropdownItems={dropdownItems} />;
 };
 
 const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, units }) => {
@@ -965,7 +867,7 @@ const Query: FC<{
 
   const [activeNamespace] = useActiveNamespace();
 
-  const queryKebab = <QueryKebab index={index} />;
+  const queryKebab = <QueryKebabContainer index={index} />;
   const querySwitch = (
     <div title={switchLabel} style={{ marginTop: t_global_spacer_sm.var }}>
       <Switch
@@ -1452,27 +1354,40 @@ const MetricsPage_: FC = () => {
   );
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
 const MetricsPage = withFallback(MetricsPage_);
 
 export const MpCmoMetricsPage: FC = () => {
   return (
-    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <MetricsPage />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+        <MetricsPage />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };
 
 export const MpCmoDevMetricsPage: FC = () => {
   return (
-    <MonitoringProvider
-      monitoringContext={{
-        plugin: 'monitoring-plugin',
-        prometheus: 'cmo',
-        displayNamespaceSelector: false,
-      }}
-    >
-      <MetricsPage />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider
+        monitoringContext={{
+          plugin: 'monitoring-plugin',
+          prometheus: 'cmo',
+          displayNamespaceSelector: false,
+        }}
+      >
+        <MetricsPage />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };
 
