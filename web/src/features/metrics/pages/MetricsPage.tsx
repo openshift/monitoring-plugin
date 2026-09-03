@@ -71,6 +71,7 @@ import {
   t_global_spacer_md,
   t_global_spacer_sm,
 } from '@patternfly/react-tokens';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as _ from 'lodash-es';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, MouseEvent as ReactMouseEvent, Ref } from 'react';
@@ -119,8 +120,11 @@ import {
 import { MonitoringState } from '@/shared/store/store';
 import { PrometheusAPIError } from '@/shared/types/types';
 import { GraphUnits, isGraphUnit } from '@/shared/utils/units';
-import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
-import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
+import {
+  ALL_NAMESPACES_KEY,
+  buildPrometheusUrl,
+  getPrometheusBasePath,
+} from '@/shared/utils/utils';
 
 // Stores information about the currently focused query input
 let focusedQuery;
@@ -1350,27 +1354,40 @@ const MetricsPage_: FC = () => {
   );
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+
 const MetricsPage = withFallback(MetricsPage_);
 
 export const MpCmoMetricsPage: FC = () => {
   return (
-    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
-      <MetricsPage />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+        <MetricsPage />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };
 
 export const MpCmoDevMetricsPage: FC = () => {
   return (
-    <MonitoringProvider
-      monitoringContext={{
-        plugin: 'monitoring-plugin',
-        prometheus: 'cmo',
-        displayNamespaceSelector: false,
-      }}
-    >
-      <MetricsPage />
-    </MonitoringProvider>
+    <QueryClientProvider client={queryClient}>
+      <MonitoringProvider
+        monitoringContext={{
+          plugin: 'monitoring-plugin',
+          prometheus: 'cmo',
+          displayNamespaceSelector: false,
+        }}
+      >
+        <MetricsPage />
+      </MonitoringProvider>
+    </QueryClientProvider>
   );
 };
 
