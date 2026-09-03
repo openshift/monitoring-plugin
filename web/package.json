@@ -173,7 +173,7 @@
     "echarts": "^5.6.0",
     "qs": "6.16.0",
     "dompurify": "3.4.13",
-    "fast-uri": "3.1.6",
+    "fast-uri": "3.1.7",
     "@istanbuljs/load-nyc-config": {
       "js-yaml": "3.15.1"
     },
