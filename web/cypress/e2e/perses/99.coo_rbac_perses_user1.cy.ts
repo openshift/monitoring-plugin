@@ -1,21 +1,10 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
@@ -23,7 +12,10 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesRBACandExtraDashboards();
@@ -64,8 +56,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    runCOORBACPersesTestsDevUser1({
-      name: 'Core platform',
-    });
+    testCOORBACPersesTestsDevUser1(CustomerPerspectiveName.CorePlatform);
   },
 );

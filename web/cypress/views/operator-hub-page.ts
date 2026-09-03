@@ -1,8 +1,9 @@
 import * as helperfuncs from '../views/utils';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 export const operatorHubPage = {
   installOperator: (operatorName, csName, installNamespace?) => {
-    cy.switchPerspective('Core platform', 'Administrator');
+    cy.switchPerspective(CustomerPerspectiveName.CorePlatform, 'Administrator');
     cy.visit(
       `/operatorhub/subscribe?pkg=${operatorName}&catalog=${csName}` +
         `&catalogNamespace=openshift-marketplace&targetNamespace=undefined`,

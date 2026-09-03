@@ -1,44 +1,21 @@
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../../support/operators';
 
 describe(
   'IVT: Monitoring + Virtualization',
   { tags: ['@alerting', '@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {
@@ -49,7 +26,7 @@ describe(
 
 describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
   before(() => {
-    cy.beforeBlockVirtualization(KBV);
+    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
   });
 
   it('1. Virtualization perspective - Observe Menu', () => {
@@ -72,15 +49,13 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     // Run tests in Administrator perspective
-    runBVTMonitoringTests({
-      name: 'Virtualization',
-    });
+    testBVTMonitoring(CustomerPerspectiveName.Virtualization);
   },
 );

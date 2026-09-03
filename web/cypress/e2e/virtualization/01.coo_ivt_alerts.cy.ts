@@ -1,47 +1,21 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runAllRegressionAlertsTests } from '../../support/monitoring/01.reg_alerts.cy';
+import { testAlertsRegression } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
 
 describe(
   'Regression: Monitoring - Alerts (Virtualization)',
   { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },
@@ -52,7 +26,7 @@ describe(
   { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {
@@ -75,14 +49,12 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
     // Run tests in Virtualization perspective
-    runAllRegressionAlertsTests({
-      name: 'Virtualization',
-    });
+    testAlertsRegression(CustomerPerspectiveName.Virtualization);
   },
 );

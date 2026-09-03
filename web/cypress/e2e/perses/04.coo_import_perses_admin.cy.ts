@@ -1,30 +1,13 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { runCOOImportPersesTests } from '../../support/perses/04.coo_import_perses_admin.cy';
+import { testCOOImportPerses } from '../../support/perses/04.coo_import_perses_admin.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
-// Set constants for the operators that need to be installed for tests.
-// const MCP = {
-//   namespace: 'openshift-cluster-observability-operator',
-//   packageName: 'cluster-observability-operator',
-//   operatorName: 'Cluster Observability Operator',
-//   config: {
-//     kind: 'UIPlugin',
-//     name: 'monitoring',
-//   },
-// };
-
-// const MP = {
-//   namespace: 'openshift-monitoring',
-//   operatorName: 'Cluster Monitoring Operator',
-// };
-
-//TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
   'COO - Dashboards (Perses) - Import perses dashboard',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      // cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
       operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
@@ -43,8 +26,6 @@ describe(
       cy.cleanupExtraDashboards();
     });
 
-    runCOOImportPersesTests({
-      name: 'Core platform',
-    });
+    testCOOImportPerses(CustomerPerspectiveName.CorePlatform);
   },
 );

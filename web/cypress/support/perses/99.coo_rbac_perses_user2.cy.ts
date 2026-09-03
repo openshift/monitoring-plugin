@@ -4,16 +4,7 @@ import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
 } from '../../fixtures/perses/constants';
-
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
-}
-
-export function runCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
-  testCOORBACPersesTestsDevUser2(perspective);
-}
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**
  * User2 has access to:
@@ -21,13 +12,16 @@ export function runCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
  * - no access to openshift-cluster-observability-operator, observ-test
  * - openshift-monitoring: view role
  */
-export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
+export function testCOORBACPersesTestsDevUser2(
+  perspectiveName: CustomerPerspective,
+  dashboardsPageName?: string,
+) {
   it(
-    `1.${perspective.name} perspective - List Dashboards - Namespace validation and ` +
+    `1.${perspectiveName} perspective - List Dashboards - Namespace validation and ` +
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
-      listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+      listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
       cy.assertNamespace('All Projects', true);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
@@ -98,13 +92,13 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`2.${perspective.name} perspective - Edit button validation - Not Editable dashboard`, () => {
+  it(`2.${perspectiveName} perspective - Edit button validation - Not Editable dashboard`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`2.2 change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`2.3. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
@@ -120,9 +114,9 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
     persesDashboardsPage.assertEditButtonIsDisabled();
   });
 
-  it(`3.${perspective.name} perspective - Create button validation - Disabled`, () => {
+  it(`3.${perspectiveName} perspective - Create button validation - Disabled`, () => {
     cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`3.2. Verify Create button is disabled`);
     listPersesDashboardsPage.assertCreateButtonIsDisabled();
@@ -138,9 +132,9 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertCreateButtonIsDisabled();
   });
 
-  it(`4.${perspective.name} perspective - Kebab icon - Disabled`, () => {
+  it(`4.${perspectiveName} perspective - Kebab icon - Disabled`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`4.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
@@ -165,9 +159,9 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clearAllFilters();
   });
 
-  it(`5.${perspective.name} perspective - Import button validation - Disabled`, () => {
+  it(`5.${perspectiveName} perspective - Import button validation - Disabled`, () => {
     cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
-    listPersesDashboardsPage.shouldBeLoaded(perspective.dashboardsPageName);
+    listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`5.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');

@@ -24,7 +24,6 @@ spec:
   upgradeStrategy: Default
 EOF
 
-
 oc apply -f - <<EOF
 ---
 apiVersion: operators.coreos.com/v1alpha1

@@ -4,29 +4,25 @@ import '../../support/commands/auth-commands';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { acmAlertingPage } from '../../views/acm-alerting-page';
+
 import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 import { incidentsPage } from 'cypress/views/incidents-page';
-import { runAllRegressionFleetManagementAlertsTests } from 'cypress/support/monitoring/01.reg_alerts.cy';
+import {
+  testAlertsFleetManagementRegression,
+  testAlertsRegression,
+} from 'cypress/support/monitoring/01.reg_alerts.cy';
 import { listPage } from 'cypress/views/list-page';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../support/operators';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 
 describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockACM(MCP, MP);
+    cy.beforeBlockACM(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
   });
 
   it('Navigate to Fleet Management > Observe > Alerting', () => {
@@ -71,9 +67,10 @@ describe('ACM Alerting UI', { tags: ['@alerting', '@acm', '@coo'] }, () => {
     troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
   });
 
-  runAllRegressionFleetManagementAlertsTests({
-    name: 'Fleet management',
-    alertName: 'Watchdog-spoke',
-    alertNamespace: `${MP.namespace}`,
-  });
+  testAlertsFleetManagementRegression(CustomerPerspectiveName.FleetManagement, 'Watchdog-spoke');
+  testAlertsRegression(
+    CustomerPerspectiveName.FleetManagement,
+    'Watchdog-spoke',
+    CLUSTER_MONITORING_OPERATOR.namespace,
+  );
 });

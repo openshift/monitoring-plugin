@@ -1,14 +1,5 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-
-export interface PerspectiveConfig {
-  name: string;
-  beforeEach?: () => void;
-  dashboardsPageName?: string;
-}
-
-export function runCOORBACPersesTestsDevUser4(perspective: PerspectiveConfig) {
-  testCOORBACPersesTestsDevUser4(perspective);
-}
+import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**
  * User4 has access to:
@@ -17,9 +8,9 @@ export function runCOORBACPersesTestsDevUser4(perspective: PerspectiveConfig) {
  *   empty-namespace3
  * - openshift-monitoring: view role
  */
-export function testCOORBACPersesTestsDevUser4(perspective: PerspectiveConfig) {
+export function testCOORBACPersesTestsDevUser4(perspectiveName: CustomerPerspective) {
   it(
-    `1.${perspective.name} perspective - List Dashboards - Namespace validation and ` +
+    `1.${perspectiveName} perspective - List Dashboards - Namespace validation and ` +
       `Dashboard search`,
     () => {
       cy.log(`1.1. Namespace validation`);
@@ -49,7 +40,7 @@ export function testCOORBACPersesTestsDevUser4(perspective: PerspectiveConfig) {
     },
   );
 
-  it(`2.${perspective.name} perspective - Import button validation - Disabled`, () => {
+  it(`2.${perspectiveName} perspective - Import button validation - Disabled`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 
