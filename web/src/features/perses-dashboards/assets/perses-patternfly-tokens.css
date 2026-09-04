@@ -1,0 +1,144 @@
+/*
+ * Perses-to-PatternFly 6 token mapping
+ */
+
+[data-perses-mode] {
+  /* ==================== */
+  /* Background tokens    */
+  /* ==================== */
+  --perses-bg-default: var(--pf-t--global--background--color--primary--default);
+  --perses-bg-surface: var(--pf-t--global--background--color--secondary--default);
+  --perses-bg-sunken: var(--pf-t--global--background--color--secondary--clicked);
+  --perses-bg-overlay: var(--pf-t--global--background--color--floating--default);
+  --perses-bg-backdrop: var(--pf-t--global--background--color--backdrop--default);
+  --perses-bg-navigation: var(--pf-t--global--background--color--primary--default);
+
+  /* ==================== */
+  /* Text tokens          */
+  /* ==================== */
+  --perses-text-primary: var(--pf-t--global--text--color--regular);
+  --perses-text-secondary: var(--pf-t--global--text--color--subtle);
+  --perses-text-disabled: var(--pf-t--global--text--color--disabled);
+  --perses-text-link: var(--pf-t--global--text--color--link--default);
+  --perses-text-link-hover: var(--pf-t--global--text--color--link--hover);
+  --perses-text-navigation: var(--pf-t--global--text--color--regular);
+  --perses-text-accent: var(--pf-t--global--text--color--subtle);
+  --perses-text-on-solid: var(--pf-t--global--text--color--inverse);
+
+  /* ==================== */
+  /* Border token         */
+  /* ==================== */
+  --perses-border-default: var(--pf-t--global--border--color--default);
+
+  /* ============================== */
+  /* Status tokens — primary (brand) */
+  /* ============================== */
+  --perses-status-bg-primary: var(--pf-t--global--color--brand--default);
+  --perses-status-bg-primary-hover: var(--pf-t--global--color--brand--hover);
+  --perses-status-text-primary: var(--pf-t--global--text--color--brand--default);
+  --perses-status-border-primary: var(--pf-t--global--border--color--brand--default);
+  --perses-status-icon-primary: var(--pf-t--global--color--brand--default);
+  --perses-status-solid-primary: var(--pf-t--global--color--brand--default);
+
+  /* ================================= */
+  /* Status tokens — secondary (neutral) */
+  /* ================================= */
+  --perses-status-bg-secondary: var(--pf-t--global--background--color--secondary--default);
+  --perses-status-bg-secondary-hover: var(--pf-t--global--background--color--secondary--hover);
+  --perses-status-text-secondary: var(--pf-t--global--text--color--subtle);
+  --perses-status-border-secondary: var(--pf-t--global--border--color--default);
+  --perses-status-icon-secondary: var(--pf-t--global--text--color--subtle);
+  --perses-status-solid-secondary: var(--pf-t--global--text--color--subtle);
+
+  /* ========================= */
+  /* Status tokens — error     */
+  /* ========================= */
+  --perses-status-bg-error: var(--pf-t--global--color--status--danger--default);
+  --perses-status-bg-error-hover: var(--pf-t--global--color--status--danger--hover);
+  --perses-status-text-error: var(--pf-t--global--text--color--status--danger--default);
+  --perses-status-border-error: var(--pf-t--global--border--color--status--danger--default);
+  --perses-status-icon-error: var(--pf-t--global--icon--color--status--danger--default);
+  --perses-status-solid-error: var(--pf-t--global--color--status--danger--default);
+
+  /* ========================= */
+  /* Status tokens — warning   */
+  /* ========================= */
+  --perses-status-bg-warning: var(--pf-t--global--color--status--warning--default);
+  --perses-status-bg-warning-hover: var(--pf-t--global--color--status--warning--hover);
+  --perses-status-text-warning: var(--pf-t--global--text--color--status--warning--default);
+  --perses-status-border-warning: var(--pf-t--global--border--color--status--warning--default);
+  --perses-status-icon-warning: var(--pf-t--global--icon--color--status--warning--default);
+  --perses-status-solid-warning: var(--pf-t--global--color--status--warning--default);
+
+  /* ========================= */
+  /* Status tokens — success   */
+  /* ========================= */
+  --perses-status-bg-success: var(--pf-t--global--color--status--success--default);
+  --perses-status-bg-success-hover: var(--pf-t--global--color--status--success--hover);
+  --perses-status-text-success: var(--pf-t--global--text--color--status--success--default);
+  --perses-status-border-success: var(--pf-t--global--border--color--status--success--default);
+  --perses-status-icon-success: var(--pf-t--global--icon--color--status--success--default);
+  --perses-status-solid-success: var(--pf-t--global--color--status--success--default);
+
+  /* ========================= */
+  /* Status tokens — info      */
+  /* ========================= */
+  --perses-status-bg-info: var(--pf-t--global--color--status--info--default);
+  --perses-status-bg-info-hover: var(--pf-t--global--color--status--info--hover);
+  --perses-status-text-info: var(--pf-t--global--text--color--status--info--default);
+  --perses-status-border-info: var(--pf-t--global--border--color--status--info--default);
+  --perses-status-icon-info: var(--pf-t--global--icon--color--status--info--default);
+  --perses-status-solid-info: var(--pf-t--global--color--status--info--default);
+
+  /* ==================== */
+  /* Spacing tokens       */
+  /* ==================== */
+  --perses-spacing-0: 0;
+  --perses-spacing-xs: var(--pf-t--global--spacer--xs);
+  --perses-spacing-sm: var(--pf-t--global--spacer--sm);
+  --perses-spacing-md: var(--pf-t--global--spacer--sm);
+  --perses-spacing-lg: var(--pf-t--global--spacer--md);
+  --perses-spacing-xl: var(--pf-t--global--spacer--md);
+  --perses-spacing-2xl: var(--pf-t--global--spacer--lg);
+  --perses-spacing-3xl: var(--pf-t--global--spacer--xl);
+  --perses-spacing-4xl: var(--pf-t--global--spacer--2xl);
+
+  /* ==================== */
+  /* Border radius tokens */
+  /* ==================== */
+  --perses-radius-none: var(--pf-t--global--border--radius--sharp);
+  --perses-radius-sm: var(--pf-t--global--border--radius--tiny);
+  --perses-radius-md: var(--pf-t--global--border--radius--tiny);
+  --perses-radius-lg: var(--pf-t--global--border--radius--small);
+  --perses-radius-xl: var(--pf-t--global--border--radius--medium);
+  --perses-radius-full: var(--pf-t--global--border--radius--pill);
+
+  /* ==================== */
+  /* Typography tokens    */
+  /* ==================== */
+
+  /* Font family */
+  --perses-font-family: var(--pf-t--global--font--family--body);
+
+  /* Font weights */
+  --perses-font-weight-light: 300;
+  --perses-font-weight-regular: var(--pf-t--global--font--weight--body--default);
+  --perses-font-weight-medium: var(--pf-t--global--font--weight--heading--default);
+  --perses-font-weight-bold: var(--pf-t--global--font--weight--heading--bold);
+
+  /* Font sizes */
+  --perses-font-size-xs: var(--pf-t--global--font--size--100);
+  --perses-font-size-sm: var(--pf-t--global--font--size--200);
+  --perses-font-size-md: var(--pf-t--global--font--size--300);
+  --perses-font-size-lg: var(--pf-t--global--font--size--500);
+  --perses-font-size-xl: var(--pf-t--global--font--size--600);
+  --perses-font-size-2xl: var(--pf-t--global--font--size--700);
+  --perses-font-size-3xl: var(--pf-t--global--font--size--800);
+  --perses-font-size-4xl: var(--pf-t--global--font--size--4xl);
+
+  /* Line heights */
+  --perses-line-height-tight: var(--pf-t--global--font--line-height--100);
+  --perses-line-height-compact: var(--pf-t--global--font--line-height--100);
+  --perses-line-height-normal: var(--pf-t--global--font--line-height--200);
+  --perses-line-height-relaxed: var(--pf-t--global--font--line-height--200);
+}
