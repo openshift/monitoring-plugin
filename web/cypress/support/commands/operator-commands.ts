@@ -367,20 +367,19 @@ Cypress.Commands.add(
   (CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR) => {
     cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
     cy.log('=== [Setup] Installing ACM test resources ===');
-    cy.exec('bash ./cypress/fixtures/coo/acm-install.sh', {
+    cy.exec('bash ./cypress/fixtures/shared/fleet-management/fleet-management-install.sh', {
       env: { KUBECONFIG: Cypress.env('KUBECONFIG_PATH') },
       failOnNonZeroExit: false,
       timeout: 1200000,
     });
     cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
+      `oc apply -f ./cypress/fixtures/shared/fleet-management/fleet-management-uiplugin.yaml` +
+        ` --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
     cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
+      `oc apply ` +
+        `-f ./cypress/fixtures/shared/fleet-management/fleet-management-alertrule-test.yaml ` +
+        `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
     cy.waitForAcmAlertsFiring(ACM_DEFAULT_TEST_ALERTS);
     cy.log('ACM environment setup completed');

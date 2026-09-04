@@ -4,11 +4,11 @@ import {
   LegacyDashboardsDashboardDropdown,
   MetricsPageQueryInput,
   WatchdogAlert,
-} from '../../fixtures/monitoring/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 import { Classes, DataTestIDs, LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 import { metricsPage } from '../../views/metrics';
 import { alertingRuleDetailsPage } from '../../views/alerting-rule-details-page';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { listPage } from '../../views/list-page';
 import { commonPages } from '../../views/common';
 import type { CustomerPerspective } from '@/shared/constants/perspective';

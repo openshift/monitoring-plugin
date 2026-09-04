@@ -637,7 +637,7 @@ export function testCOORBACPersesTestsDevUser1(
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -675,7 +675,7 @@ export function testCOORBACPersesTestsDevUser1(
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
@@ -700,7 +700,7 @@ export function testCOORBACPersesTestsDevUser1(
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.yaml',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.yaml',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.selectProject('openshift-cluster-observability-operator');

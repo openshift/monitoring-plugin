@@ -63,14 +63,17 @@ export const imagePatchUtils = {
           cy.log(
             `Update Monitoring Plugin image from ${currentImage || 'unknown'} to ${expectedImage}`,
           );
-          cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
-            env: {
-              MP_IMAGE: expectedImage,
-              KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
-              MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+          cy.exec(
+            './cypress/fixtures/shared/cluster-monitoring-operator/update-monitoring-plugin-image.sh',
+            {
+              env: {
+                MP_IMAGE: expectedImage,
+                KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
+                MP_NAMESPACE: `${CLUSTER_MONITORING_OPERATOR.namespace}`,
+              },
+              timeout: readyTimeoutMilliseconds,
             },
-            timeout: readyTimeoutMilliseconds,
-          }).then((result) => {
+          ).then((result) => {
             expect(result.code).to.eq(0);
             cy.log(`CMO deployment Scaled Down successfully: ${result.stdout}`);
           });
@@ -128,7 +131,7 @@ export const imagePatchUtils = {
   setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'MCP_CONSOLE_IMAGE',
-      scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
+      scriptPath: './cypress/fixtures/shared/cluster-observability-operator/update-mcp-image.sh',
       componentName: 'Monitoring Console Plugin',
     });
   },
@@ -136,7 +139,7 @@ export const imagePatchUtils = {
   setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
     imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
       envVar: 'CHA_IMAGE',
-      scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
+      scriptPath: './cypress/fixtures/shared/cluster-observability-operator/update-cha-image.sh',
       componentName: 'cluster-health-analyzer',
     });
   },
@@ -241,7 +244,7 @@ export const imagePatchUtils = {
   revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
-      cy.exec('./cypress/fixtures/cmo/reenable-monitoring.sh', {
+      cy.exec('./cypress/fixtures/shared/cluster-monitoring-operator/reenable-monitoring.sh', {
         env: {
           MP_IMAGE: Cypress.env('MP_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
