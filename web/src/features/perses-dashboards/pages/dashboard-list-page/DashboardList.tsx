@@ -6,8 +6,8 @@ import {
   Flex,
   FlexItem,
   Label,
+  MenuToggle,
   Title,
-  Tooltip,
 } from '@patternfly/react-core';
 import DataView from '@patternfly/react-data-view/dist/dynamic/DataView';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@patternfly/react-data-view/dist/dynamic/DataViewTable';
 import { DataViewToolbar } from '@patternfly/react-data-view/dist/dynamic/DataViewToolbar';
 import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks';
+import RhUiEllipsisVerticalFillIcon from '@patternfly/react-icons/dist/esm/icons/rh-ui-ellipsis-vertical-fill-icon';
 import { ActionsColumn } from '@patternfly/react-table';
 import type { DashboardResource } from '@perses-dev/client';
 import { type FC, memo, type ReactNode, useCallback, useMemo, useState } from 'react';
@@ -28,8 +29,7 @@ import {
   RenameActionModal,
 } from '@/features/perses-dashboards/components/DashboardActionModals';
 import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
-import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
-import { usePersesEditPermissions } from '@/features/perses-dashboards/hooks/usePersesEditPermissions';
+import { usePersesDashboardAccess } from '@/features/perses-dashboards/hooks/usePersesDashboardAccess';
 import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardListFrame';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
@@ -54,26 +54,29 @@ const DashboardActionsCell = memo(
     onRename,
     onDuplicate,
     onDelete,
-    emptyActions,
   }: {
     project: string;
     dashboard: DashboardResource;
     onRename: (dashboard: DashboardResource) => void;
     onDuplicate: (dashboard: DashboardResource) => void;
     onDelete: (dashboard: DashboardResource) => void;
-    emptyActions: { title: string; onClick: () => void }[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
+    const [checkAccess, setCheckAccess] = useState(false);
 
-    const { permissionsLoading } = useEditableProjects();
-    const { canEdit } = usePersesEditPermissions(project);
-    const disabled = !canEdit;
+    const [canUpdate, updateChecking] = usePersesDashboardAccess('update', project, checkAccess);
+    const [canDelete, deleteChecking] = usePersesDashboardAccess('delete', project, checkAccess);
 
     const rowSpecificActions = useMemo(
       () => [
         {
           title: t('Rename dashboard'),
           onClick: () => onRename(dashboard),
+          isAriaDisabled: updateChecking || !canUpdate,
+          tooltipProps:
+            !updateChecking && !canUpdate
+              ? { content: t('You do not have permission to edit dashboards in this project.') }
+              : undefined,
         },
         {
           title: t('Duplicate dashboard'),
@@ -82,31 +85,47 @@ const DashboardActionsCell = memo(
         {
           title: t('Delete dashboard'),
           onClick: () => onDelete(dashboard),
+          isAriaDisabled: deleteChecking || !canDelete,
+          tooltipProps:
+            !deleteChecking && !canDelete
+              ? { content: t('You do not have permission to delete dashboards in this project.') }
+              : undefined,
         },
       ],
-      [dashboard, onRename, onDuplicate, onDelete, t],
+      [
+        dashboard,
+        onRename,
+        onDuplicate,
+        onDelete,
+        t,
+        canUpdate,
+        updateChecking,
+        canDelete,
+        deleteChecking,
+      ],
     );
 
-    if (disabled) {
-      return (
-        <Tooltip content={t("You don't have permissions for dashboard actions")}>
-          <div>
-            <ActionsColumn items={emptyActions} isDisabled={true} />
-          </div>
-        </Tooltip>
-      );
-    }
-    if (permissionsLoading) {
-      return (
-        <Tooltip content={t('Checking permissions...')}>
-          <div>
-            <ActionsColumn items={emptyActions} isDisabled={true} />
-          </div>
-        </Tooltip>
-      );
-    }
-
-    return <ActionsColumn items={rowSpecificActions} isDisabled={false} />;
+    return (
+      <ActionsColumn
+        items={rowSpecificActions}
+        actionsToggle={({ onToggle, isOpen, isDisabled, toggleRef }) => (
+          <MenuToggle
+            aria-label={t('Actions')}
+            ref={toggleRef}
+            onClick={(event) => {
+              if (!isOpen) {
+                setCheckAccess(true);
+              }
+              onToggle(event);
+            }}
+            isExpanded={isOpen}
+            isDisabled={isDisabled}
+            variant="plain"
+            icon={<RhUiEllipsisVerticalFillIcon />}
+          />
+        )}
+      />
+    );
   },
 );
 
@@ -309,16 +328,6 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     setTargetedDashboard(undefined);
   }, []);
 
-  const emptyRowActions = useMemo(
-    () => [
-      {
-        title: t("You don't have permissions for dashboard actions"),
-        onClick: () => {},
-      },
-    ],
-    [t],
-  );
-
   const pageRows: DataViewTr[] = useMemo(() => {
     return sortedAndFilteredData
       .slice((page - 1) * perPage, (page - 1) * perPage + perPage)
@@ -336,7 +345,6 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
               onRename={handleRenameModalOpen}
               onDuplicate={handleDuplicateModalOpen}
               onDelete={handleDeleteModalOpen}
-              emptyActions={emptyRowActions}
             />
           ),
           props: { isActionCell: true },
@@ -346,7 +354,6 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     sortedAndFilteredData,
     page,
     perPage,
-    emptyRowActions,
     handleRenameModalOpen,
     handleDuplicateModalOpen,
     handleDeleteModalOpen,
@@ -466,7 +473,7 @@ export const DashboardList: FC = () => {
   const { activeProject, persesDashboards, combinedInitialLoad } = useDashboardsData();
 
   return (
-    <DashboardListFrame activeProject={activeProject}>
+    <DashboardListFrame>
       <DashboardsTable
         persesDashboards={persesDashboards}
         persesDashboardsLoading={combinedInitialLoad}

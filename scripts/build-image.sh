@@ -46,7 +46,7 @@ echo_vars
 
 if [[ $INTERACTIVE == 1 ]]; then
     # Prompt use it check env vars before proceeding to build
-    read -r -p "Are the environmental variables correct [y/N] " response
+    read -r -p "Are the environmental variables correct [Y/n] " response
     if [[ "${response:0:1}" =~ ^([nN])$ ]]; then
         exit 0
     fi

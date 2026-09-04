@@ -61,9 +61,5 @@ export const usePerses = (project?: string | number) => {
     persesProjectsLoading,
     persesProjects: persesProjects ?? [],
     persesProjectsError,
-    // Dashboards of a given project
-    persesProjectDashboards: persesProjectDashboards ?? [],
-    persesProjectDashboardsError,
-    persesProjectDashboardsLoading,
   };
 };

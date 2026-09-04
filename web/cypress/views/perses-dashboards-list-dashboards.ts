@@ -7,6 +7,7 @@ import {
   listPersesDashboardsDataTestIDs,
   listPersesDashboardsOUIAIDs,
   persesAriaLabels,
+  persesDashboardDataTestIDs,
 } from '@/shared/constants/data-test';
 import {
   listPersesDashboardsEmptyState,
@@ -181,14 +182,6 @@ export const listPersesDashboardsPage = {
       .should('not.have.attr', 'disabled');
   },
 
-  assertCreateButtonIsDisabled: () => {
-    cy.log('persesDashboardsPage.assertCreateButtonIsDisabled');
-    cy.byTestID(DataTestIDs.PersesCreateDashboardButton)
-      .scrollIntoView()
-      .should('be.visible')
-      .should('have.attr', 'disabled');
-  },
-
   clickKebabIcon: (index?: number) => {
     const idx = index !== undefined ? index : 0;
     cy.log('persesDashboardsPage.clickKebabIcon');
@@ -207,12 +200,35 @@ export const listPersesDashboardsPage = {
     cy.byPFRole('menuitem').contains('Delete dashboard').should('be.visible');
   },
 
-  assertKebabIconDisabled: () => {
-    cy.log('persesDashboardsPage.assertKebabIconDisabled');
-    cy.byAriaLabel(persesAriaLabels.persesDashboardKebabIcon)
-      .scrollIntoView()
-      .should('be.visible')
-      .should('have.attr', 'disabled');
+  assertKebabRowActionsDisabled: (index?: number) => {
+    cy.log('persesDashboardsPage.assertKebabRowActionsDisabled');
+    listPersesDashboardsPage.clickKebabIcon(index);
+    cy.byPFRole('menuitem')
+      .contains('Rename dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('Delete dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('Duplicate dashboard')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    listPersesDashboardsPage.clickKebabIcon(index);
+  },
+
+  assertDuplicateProjectDenied: (project: string) => {
+    listPersesDashboardsPage.duplicateDashboardEnterName('access-denied-check');
+    cy.log('persesDashboardsPage.assertDuplicateProjectDenied');
+    listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown(project);
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find('button').contains('Duplicate').should('be.disabled');
+  },
+
+  assertDuplicateAccessDenied: (project: string) => {
+    cy.log('persesDashboardsPage.assertDuplicateAccessDenied');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDuplicateOption();
+    listPersesDashboardsPage.assertDuplicateProjectDenied(project);
+    listPersesDashboardsPage.duplicateDashboardCancelButton();
   },
 
   clickRenameDashboardOption: () => {
@@ -410,13 +426,5 @@ export const listPersesDashboardsPage = {
       .scrollIntoView()
       .should('be.visible')
       .should('not.have.attr', 'disabled');
-  },
-
-  assertImportButtonIsDisabled: () => {
-    cy.log('listPersesDashboardsPage.assertImportButtonIsDisabled');
-    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu)
-      .scrollIntoView()
-      .should('be.visible')
-      .should('have.attr', 'disabled');
   },
 };
