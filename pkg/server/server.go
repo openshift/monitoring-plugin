@@ -64,6 +64,7 @@ const (
 	Metrics               Feature = "metrics"
 	Targets               Feature = "targets"
 	PersesDashboards      Feature = "perses-dashboards"
+	PersesUICustomization Feature = "perses-ui-customization"
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 )
 

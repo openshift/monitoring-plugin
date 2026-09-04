@@ -5,7 +5,7 @@ PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 MONITORING_FEATURES    ?=alerting,alerting-management,targets,legacy-dashboards,metrics
 ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
-MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,acm-alerting
+MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,perses-ui-customization,acm-alerting
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.11.3

@@ -1,4 +1,5 @@
 import '@/features/perses-dashboards/utils/perses-config';
+import '@/features/perses-dashboards/assets/perses-patternfly-tokens.css';
 import { ThemeOptions, ThemeProvider } from '@mui/material';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
@@ -59,6 +60,7 @@ import {
 } from '@/features/perses-dashboards/utils/perses-client';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { QueryParams } from '@/shared/constants/query-params';
+import { useFeatures } from '@/shared/hooks/useFeatures';
 import { usePatternFlyTheme } from '@/shared/hooks/usePatternflyTheme';
 
 // Override eChart defaults with PatternFly colors.
@@ -400,6 +402,9 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
   const { theme } = usePatternFlyTheme();
   const navigate = useNavigate();
   const isDark = theme === 'dark';
+  const { features } = useFeatures();
+  const uiCustomizationEnabled =
+    features['monitoring-console-plugin']?.['perses-ui-customization'] ?? false;
 
   const muiTheme = getTheme(theme, {
     shape: {
@@ -427,7 +432,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   const pluginLoader = useRemotePluginLoader();
 
-  return (
+  const content = (
     <ThemeProvider theme={muiTheme}>
       <RouterProvider RouterComponent={Link} navigate={navigate}>
         <ChartsProvider chartsTheme={chartsTheme}>
@@ -447,6 +452,9 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
       </RouterProvider>
     </ThemeProvider>
   );
+
+  // TODO: use the Perses ThemeProvider here instead of a plain div once it's available
+  return uiCustomizationEnabled ? <div data-perses-mode={theme}>{content}</div> : content;
 }
 
 interface InnerWrapperProps {
