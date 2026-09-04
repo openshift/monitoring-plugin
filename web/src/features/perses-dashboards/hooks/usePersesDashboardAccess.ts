@@ -1,5 +1,6 @@
-import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import type { AccessReviewResourceAttributes } from '@openshift-console/dynamic-plugin-sdk';
+
+import { useAccessReview } from '@/features/perses-dashboards/hooks/useAccessReview';
 
 export type DashboardVerb = 'create' | 'update' | 'delete';
 
@@ -8,9 +9,11 @@ export const usePersesDashboardAccess = (
   namespace: string | null = null,
   enabled = true,
 ): [boolean, boolean] => {
-  // set to {} when not enabled to prevent fetching access
-  const resourceAttributes: AccessReviewResourceAttributes = enabled
-    ? { group: 'perses.dev', resource: 'persesdashboards', verb, namespace }
-    : {};
-  return useAccessReview(resourceAttributes, undefined, true);
+  const resourceAttributes: AccessReviewResourceAttributes = {
+    group: 'perses.dev',
+    resource: 'persesdashboards',
+    verb,
+    namespace,
+  };
+  return useAccessReview(resourceAttributes, enabled && !!namespace);
 };
