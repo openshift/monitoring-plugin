@@ -11,7 +11,7 @@ describe(
   { tags: ['@alerting', '@legacy-dashboards', '@metrics', '@targets'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {

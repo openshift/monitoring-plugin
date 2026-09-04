@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
-import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import { nav } from '../../../views/nav';
+import { testCOORBACPersesTestsDevUser1 } from '../../../support/perses/99.coo_rbac_perses_user1.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../../support/operators';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',

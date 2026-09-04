@@ -4,6 +4,7 @@ import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
+import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -16,36 +17,19 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
       cy.log('Installation: COO and setting up Monitoring Plugin');
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
     });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
-  before(() => {
-    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
-  });
-
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.visit('/');
       guidedTour.close();
       cy.validateLogin();
       cy.switchPerspective('Virtualization', 'Fleet virtualization');
       guidedTour.closeKubevirtTour();
+      troubleshootingPanelPage.signalCorrelationShouldNotBeVisible();
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
