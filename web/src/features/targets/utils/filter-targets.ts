@@ -1,6 +1,19 @@
-import { TargetsFilterOptions, TargetsFilters } from '@/features/targets/pages/TargetsPage';
 import { Target } from '@/shared/types/types';
 import { fuzzyCaseInsensitive, targetSource } from '@/shared/utils/utils';
+
+export const enum TargetsFilterOptions {
+  NAME = 'name',
+  STATUS = 'status',
+  LABEL = 'label',
+  SOURCE = 'source',
+}
+
+export interface TargetsFilters {
+  [TargetsFilterOptions.NAME]: string;
+  [TargetsFilterOptions.STATUS]: string[];
+  [TargetsFilterOptions.LABEL]: string;
+  [TargetsFilterOptions.SOURCE]: string[];
+}
 
 export const filterTargets = (targets: Target[], selectedFilters: TargetsFilters) => {
   if (!targets) {

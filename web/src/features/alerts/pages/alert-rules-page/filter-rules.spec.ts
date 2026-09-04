@@ -1,8 +1,4 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
-  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
-}));
-
-jest.mock('../../components/AlertUtils', () => ({
+vi.mock('../../components/AlertUtils', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   alertingRuleSource: (rule: any) =>
     rule.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
@@ -13,8 +9,6 @@ import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertRulesFilterOptions,
   AlertRulesFilters,
-} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
-import {
   filterRules,
   ruleHasAlertState,
 } from '@/features/alerts/pages/alert-rules-page/filter-rules';

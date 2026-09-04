@@ -16,8 +16,8 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["node", "jest"],
+    "types": ["node", "vitest/globals"],
   },
-  "include": ["src", "eslint.config.ts", "eslint-rules"],
+  "include": ["src", "eslint.config.ts", "eslint-rules", "vitest.setup.ts"],
   "exclude": ["node_modules"],
 }

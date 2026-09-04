@@ -1,4 +1,4 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({}));
+vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({}));
 
 import { getCreateAlertRuleUrl } from '@/shared/hooks/usePerspective';
 
