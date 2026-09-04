@@ -1,4 +1,3 @@
-// 02.acm_alerting_ui.cy.ts
 // E2E test for validating ACM Alerting UI integration with Cluster Observability Operator (COO)
 import '../../support/commands/auth-commands';
 import { commonPages } from '../../views/common';
@@ -10,7 +9,7 @@ import { incidentsPage } from 'cypress/views/incidents-page';
 import {
   testAlertsFleetManagementRegression,
   testAlertsRegression,
-} from 'cypress/support/monitoring/01.reg_alerts.cy';
+} from 'cypress/support/alerts/alerts_regressions.cy';
 import { listPage } from 'cypress/views/list-page';
 import {
   CLUSTER_MONITORING_OPERATOR,

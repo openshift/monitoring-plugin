@@ -4,8 +4,8 @@ import {
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
-import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { testLegacyDashboardsRegression } from '../../support/legacy-dashboards/legacy_dashboards_regressions.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../support/legacy-dashboards/legacy_dashboards_regressions_namespaced.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';

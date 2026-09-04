@@ -14,7 +14,7 @@ the overflow with the original 5d timeline.
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
+} from '../../../support/shared/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MAX_GAP_STANDARD = 250;
