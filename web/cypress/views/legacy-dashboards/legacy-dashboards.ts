@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import { Classes, DataTestIDs, LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 import {
   API_PERFORMANCE_DASHBOARD_PANELS,
@@ -8,7 +8,7 @@ import {
   LegacyDashboardsTimeRange,
   MonitoringPageTitles,
   MonitoringRefreshInterval,
-} from '../fixtures/shared/cluster-monitoring-operator/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 export const legacyDashboardsPage = {
   shouldBeLoaded: () => {
     cy.log('legacyDashboardsPage.shouldBeLoaded');

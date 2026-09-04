@@ -1,13 +1,13 @@
-import { commonPages } from './common';
-import { detailsPage } from './details-page';
+import { commonPages } from '../shared/common';
+import { alertAndSilencesDetailsPage } from './alert-and-silence-details-page';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 export const silenceDetailsPage = {
   assertSilenceDetailsPage: (title: string, section: string, labelname: string) => {
     cy.log('silenceDetailsPage.assertSilenceDetailsPage');
     commonPages.titleShouldHaveText(title);
-    detailsPage.sectionHeaderShouldExist(section);
-    detailsPage.labelShouldExist(labelname);
+    alertAndSilencesDetailsPage.sectionHeaderShouldExist(section);
+    alertAndSilencesDetailsPage.labelShouldExist(labelname);
   },
 
   clickOnFiringAlerts: (alertname: string) => {

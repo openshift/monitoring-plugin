@@ -1,5 +1,5 @@
-import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-list-dashboards';
 
 /**
  * User4 has access to:

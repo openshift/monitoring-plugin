@@ -2,7 +2,7 @@ import { Classes, IDs, persesAriaLabels } from '@/shared/constants/data-test';
 import {
   persesDashboardsImportDashboard,
   persesDashboardsModalTitles,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesImportDashboardsPage = {
   importDashboardShouldBeLoaded: () => {

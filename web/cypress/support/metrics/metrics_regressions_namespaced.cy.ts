@@ -1,4 +1,4 @@
-import { metricsPage } from '../../views/metrics';
+import { metricsPage } from '../../views/metrics/metrics';
 import { Classes, DataTestIDs } from '@/shared/constants/data-test';
 import {
   GraphTimespan,

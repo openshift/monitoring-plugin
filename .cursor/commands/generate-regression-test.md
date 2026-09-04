@@ -92,7 +92,7 @@ Generate automated regression tests from test documentation in [`docs/incident_d
 Verifies: OU-XXX
 */
 
-import { incidentsPage } from "../../../views/incidents-page";
+import { incidentsPage } from "../../../views/incidents/incidents-page";
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
@@ -532,7 +532,7 @@ Tests both incidents chart and alerts chart tooltip behavior.
 Verifies: OU-XXX
 */
 
-import { incidentsPage } from "../../../views/incidents-page";
+import { incidentsPage } from "../../../views/incidents/incidents-page";
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

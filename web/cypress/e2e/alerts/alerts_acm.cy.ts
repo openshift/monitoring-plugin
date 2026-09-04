@@ -1,21 +1,20 @@
 // E2E test for validating ACM Alerting UI integration with Cluster Observability Operator (COO)
-import '../../support/commands/auth-commands';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { acmAlertingPage } from '../../views/acm-alerting-page';
-
-import { troubleshootingPanelPage } from 'cypress/views/troubleshooting-panel';
-import { incidentsPage } from 'cypress/views/incidents-page';
+import '../../support/shared/commands/auth-commands';
+import { troubleshootingPanelPage } from '../../views/shared/troubleshooting-panel';
+import { incidentsPage } from '../../views/incidents/incidents-page';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { acmAlertingPage } from '../../views/alerts/acm-alerting-page';
 import {
   testAlertsFleetManagementRegression,
   testAlertsRegression,
-} from 'cypress/support/alerts/alerts_regressions.cy';
-import { listPage } from 'cypress/views/list-page';
+} from '../../support/alerts/alerts_regressions.cy';
+import { listPage } from '../../views/shared/list-page';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
-import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+} from '../../support/shared/operators';
 
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 
