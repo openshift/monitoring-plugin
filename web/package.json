@@ -14,11 +14,12 @@
     "cypress:run:ci": "NO_COLOR=1 npx cypress run --browser chrome",
     "cypress:run:ci:component": "NO_COLOR=1 npx cypress run --browser chrome --component",
     "delete:reports": "rm -rf gui_test_screenshots/* || true",
-    "i18n": "i18n-scripts/build-i18n.sh && node i18n-scripts/set-english-defaults.js",
+    "i18n": "i18n-scripts/build-i18n.sh",
     "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
     "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
     "lint": "eslint ./src ./cypress ./eslint-rules",
     "lint:tsc": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "lint-fix": "eslint ./src --fix",
     "pre-commit:check": "npm run lint",
     "prepare": "cd .. && husky install web/.husky",
@@ -48,6 +49,9 @@
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@acm --@virtualization --@ols --@flaky --@xfail'",
     "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@ols --@acm --@xfail'",
     "test-cypress-acm": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@acm --@xfail'"
+  },
+  "engines": {
+    "node": ">=22.x"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.4",
@@ -137,8 +141,8 @@
     "globals": "^17.4.0",
     "html-webpack-plugin": "^5.5.0",
     "husky": "^8.0.0",
+    "i18next-cli": "^1.72.4",
     "i18next-conv": "17.0.0",
-    "i18next-parser": "^9.3.0",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "jsdom": "^26.1.0",
@@ -147,7 +151,6 @@
     "mochawesome-merge": "^4.1.0",
     "mochawesome-report-generator": "^6.2.0",
     "picomatch": "^4.0.3",
-    "pluralize": "^8.0.0",
     "prettier": "^3.8.1",
     "sass": "^1.42.1",
     "sass-loader": "^16.0.7",
