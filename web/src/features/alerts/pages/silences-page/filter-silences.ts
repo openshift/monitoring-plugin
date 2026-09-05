@@ -1,11 +1,19 @@
 import { Silence } from '@openshift-console/dynamic-plugin-sdk';
 
-import {
-  SilenceFilterOptions,
-  SilenceFilters,
-} from '@/features/alerts/pages/silences-page/SilencesPage';
 import type { Perspective } from '@/shared/constants/perspective';
 import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive, silenceState } from '@/shared/utils/utils';
+
+export const enum SilenceFilterOptions {
+  NAME = 'name',
+  STATE = 'silence-state',
+  CLUSTER = 'silence-cluster',
+}
+
+export interface SilenceFilters {
+  [SilenceFilterOptions.NAME]: string;
+  [SilenceFilterOptions.STATE]: string[];
+  [SilenceFilterOptions.CLUSTER]?: string[];
+}
 
 export const filterSilences = (
   silences: Silence[],
