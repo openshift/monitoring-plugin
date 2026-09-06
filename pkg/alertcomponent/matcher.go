@@ -35,8 +35,8 @@ func labelValueMatcher(key string, values ...string) LabelsMatcher {
 	return NewLabelsMatcher(key, NewStringValuesMatcher(values...))
 }
 
-func componentRule(component string, ms ...LabelsMatcher) componentMatcher {
-	return componentMatcher{component: component, matchers: ms}
+func componentRule(component string, matchers ...LabelsMatcher) componentMatcher {
+	return componentMatcher{component: component, matchers: matchers}
 }
 
 // LabelsMatcher represents a matcher definition for a set of labels.
@@ -50,8 +50,8 @@ func NewLabelsMatcher(key string, matcher ValueMatcher) LabelsMatcher {
 	return labelMatcher{key: key, matcher: matcher}
 }
 
-func NewStringValuesMatcher(keys ...string) ValueMatcher {
-	return stringMatcher(keys)
+func NewStringValuesMatcher(values ...string) ValueMatcher {
+	return stringMatcher(values)
 }
 
 func NewRegexValuesMatcher(regexes ...*regexp.Regexp) ValueMatcher {
@@ -74,11 +74,11 @@ func (l labelMatcher) Matches(labels model.LabelSet) (bool, []model.LabelName) {
 
 // Equals implements the LabelsMatcher interface.
 func (l labelMatcher) Equals(other LabelsMatcher) bool {
-	ol, ok := other.(labelMatcher)
+	otherLabel, ok := other.(labelMatcher)
 	if !ok {
 		return false
 	}
-	return l.key == ol.key && l.matcher.Equals(ol.matcher)
+	return l.key == otherLabel.key && l.matcher.Equals(otherLabel.matcher)
 }
 
 // ValueMatcher represents a matcher for a specific value.
@@ -100,11 +100,11 @@ func (s stringMatcher) Matches(value string) bool {
 
 // Equals implements the ValueMatcher interface.
 func (s stringMatcher) Equals(other ValueMatcher) bool {
-	o, ok := other.(stringMatcher)
+	otherStrings, ok := other.(stringMatcher)
 	if !ok {
 		return false
 	}
-	return equalsNoOrder(s, o)
+	return equalsNoOrder(s, otherStrings)
 }
 
 // regexpMatcher is a matcher for a list of regular expressions.
@@ -113,45 +113,44 @@ func (s stringMatcher) Equals(other ValueMatcher) bool {
 type regexpMatcher []*regexp.Regexp
 
 func (r regexpMatcher) Matches(value string) bool {
-	for _, re := range r {
-		if re.MatchString(value) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(r, func(re *regexp.Regexp) bool {
+		return re.MatchString(value)
+	})
 }
 
 // Equals implements the ValueMatcher interface.
 func (r regexpMatcher) Equals(other ValueMatcher) bool {
-	o, ok := other.(regexpMatcher)
+	otherRegexp, ok := other.(regexpMatcher)
 	if !ok {
 		return false
 	}
-	s1 := make([]string, 0, len(r))
-	for _, re := range r {
-		s1 = append(s1, re.String())
-	}
-	s2 := make([]string, 0, len(o))
-	for _, re := range o {
-		s2 = append(s2, re.String())
-	}
-	return equalsNoOrder(s1, s2)
+	return equalsNoOrder(regexpPatterns(r), regexpPatterns(otherRegexp))
 }
 
-func equalsNoOrder(a, b []string) bool {
-	if len(a) != len(b) {
+func regexpPatterns(regexps regexpMatcher) []string {
+	patterns := make([]string, 0, len(regexps))
+	for _, re := range regexps {
+		patterns = append(patterns, re.String())
+	}
+	return patterns
+}
+
+func equalsNoOrder(left, right []string) bool {
+	if len(left) != len(right) {
 		return false
 	}
 
-	seen := make(map[string]int, len(a))
-	for _, v := range a {
-		seen[v]++
+	counts := make(map[string]int, len(left))
+	for _, value := range left {
+		counts[value]++
 	}
-	for _, v := range b {
-		if seen[v] == 0 {
+	// Lengths already match, so any extra or missing value shows up as
+	// a zero count while walking right.
+	for _, value := range right {
+		if counts[value] == 0 {
 			return false
 		}
-		seen[v]--
+		counts[value]--
 	}
 	return true
 }
@@ -168,48 +167,48 @@ type componentMatcher struct {
 //
 // It returns the component and the keys that matched.
 // If no match is found, it returns an empty component and nil keys.
-func findComponent(compMatchers []componentMatcher, labels model.LabelSet) (
-	component string, keys []model.LabelName) {
-	for _, compMatcher := range compMatchers {
-		for _, labelsMatcher := range compMatcher.matchers {
-			if matches, keys := labelsMatcher.Matches(labels); matches {
-				return compMatcher.component, keys
+func findComponent(rules []componentMatcher, labels model.LabelSet) (string, []model.LabelName) {
+	for _, rule := range rules {
+		for _, labelsMatcher := range rule.matchers {
+			if match, matchedKeys := labelsMatcher.Matches(labels); match {
+				return rule.component, matchedKeys
 			}
 		}
 	}
 	return "", nil
 }
 
-// componentMatcherFn is a function that tries matching provided labels to a component.
-// It returns the layer, component and the keys from the labels that were used for matching.
-// If no match is found, it returns an empty layer, component and nil keys.
-type componentMatcherFn func(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName)
+// componentMatcherFn tries to match labels to a layer and component.
+// It returns the matched label keys, or empty values when there is no match.
+type componentMatcherFn func(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName)
 
-func evalMatcherFns(fns []componentMatcherFn, labels model.LabelSet) (
-	layer, comp string, labelsSubset model.LabelSet) {
-	for _, fn := range fns {
-		if layer, comp, keys := fn(labels); layer != "" {
-			return string(layer), string(comp), getLabelsSubset(labels, keys...)
+func evalMatcherFns(matchers []componentMatcherFn, labels model.LabelSet) (
+	layer, component string, labelsSubset model.LabelSet,
+) {
+	for _, fn := range matchers {
+		matchedLayer, matchedComponent, keys := fn(labels)
+		if matchedLayer != "" {
+			return string(matchedLayer), string(matchedComponent), getLabelsSubset(labels, keys...)
 		}
 	}
 	return "Others", "Others", getLabelsSubset(labels)
 }
 
-// getLabelsSubset returns a subset of the labels with given keys.
-func getLabelsSubset(m model.LabelSet, keys ...model.LabelName) model.LabelSet {
-	keys = append([]model.LabelName{
+// getLabelsSubset returns namespace, alertname, severity, and any extra keys
+// that were used to classify the alert.
+func getLabelsSubset(labels model.LabelSet, extraKeys ...model.LabelName) model.LabelSet {
+	keys := append([]model.LabelName{
 		model.LabelName(labelNamespace),
 		model.LabelName(managementlabels.AlertNameLabel),
 		model.LabelName(labelSeverity),
-	}, keys...)
-	return getMapSubset(m, keys...)
+	}, extraKeys...)
+	return getMapSubset(labels, keys...)
 }
 
-// getMapSubset returns a subset of the labels with given keys.
-func getMapSubset(m model.LabelSet, keys ...model.LabelName) model.LabelSet {
+func getMapSubset(labels model.LabelSet, keys ...model.LabelName) model.LabelSet {
 	subset := make(model.LabelSet, len(keys))
 	for _, key := range keys {
-		if val, ok := m[key]; ok {
+		if val, ok := labels[key]; ok {
 			subset[key] = val
 		}
 	}
@@ -308,18 +307,18 @@ var (
 
 var cvoAlerts = []model.LabelValue{"ClusterOperatorDown", "ClusterOperatorDegraded"}
 
-func cvoAlertsMatcher(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName) {
-	if slices.Contains(cvoAlerts, labels[managementlabels.AlertNameLabel]) {
-		component := labels["name"]
-		if component == "" {
-			component = "version"
-		}
-		return "cluster", component, nil
+func cvoAlertsMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
+	if !slices.Contains(cvoAlerts, labels[managementlabels.AlertNameLabel]) {
+		return "", "", nil
 	}
-	return "", "", nil
+	component = labels["name"]
+	if component == "" {
+		component = "version"
+	}
+	return "cluster", component, nil
 }
 
-func kubevirtOperatorMatcher(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName) {
+func kubevirtOperatorMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
 	if labels["kubernetes_operator_part_of"] != "kubevirt" {
 		return "", "", nil
 	}
@@ -340,27 +339,27 @@ func kubevirtOperatorMatcher(labels model.LabelSet) (layer, comp model.LabelValu
 	}
 }
 
-func computeMatcher(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName) {
+func computeMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
 	if slices.Contains(nodeAlerts, labels[managementlabels.AlertNameLabel]) {
 		return "cluster", "compute", nil
 	}
 	return "", "", nil
 }
 
-func coreMatcher(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName) {
-	// Try matching against core components.
-	if component, keys := findComponent(coreMatchers, labels); component != "" {
-		return "cluster", model.LabelValue(component), keys
+func coreMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
+	matched, matchedKeys := findComponent(coreMatchers, labels)
+	if matched == "" {
+		return "", "", nil
 	}
-	return "", "", nil
+	return "cluster", model.LabelValue(matched), matchedKeys
 }
 
-func workloadMatcher(labels model.LabelSet) (layer, comp model.LabelValue, keys []model.LabelName) {
-	// Try matching against workload components.
-	if component, keys := findComponent(workloadMatchers, labels); component != "" {
-		return "namespace", model.LabelValue(component), keys
+func workloadMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
+	matched, matchedKeys := findComponent(workloadMatchers, labels)
+	if matched == "" {
+		return "", "", nil
 	}
-	return "", "", nil
+	return "namespace", model.LabelValue(matched), matchedKeys
 }
 
 // DetermineComponent determines the component for a given set of labels.
