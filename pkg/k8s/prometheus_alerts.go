@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -171,33 +172,50 @@ func (pa *prometheusAlerts) FetchAlerts(ctx context.Context, req GetAlertsReques
 	return out, warnings, nil
 }
 
-func (pa *prometheusAlerts) GetRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, error) {
+func (pa *prometheusAlerts) FetchRules(ctx context.Context, req GetRulesRequest) ([]PrometheusRuleGroup, []string, error) {
+	namespaceScoped := namespaceFromLabels(req.Labels) != ""
+
 	platformRules, err := pa.getRulesViaProxy(ctx, ClusterMonitoringNamespace, PlatformRouteName, AlertSourcePlatform)
 	if err != nil {
 		// Namespace-scoped callers (Thanos tenancy) often lack platform
 		// Prometheus access. Soft-fail so tenancy results are still returned.
-		if namespaceFromLabels(req.Labels) == "" {
-			return nil, err
+		if !namespaceScoped {
+			return nil, nil, err
 		}
-		prometheusLog.Warnf("failed to get platform rules (continuing with namespace filter): %v", err)
 	}
 
-	userRules, err := pa.getUserWorkloadRules(ctx, req)
+	userRules, userErr := pa.getUserWorkloadRules(ctx, req)
+	groups, warnings, err := mergeRuleFetchResults(platformRules, err, userRules, userErr, namespaceScoped)
 	if err != nil {
-		prometheusLog.Warnf("failed to get user workload rules: %v", err)
+		return nil, nil, err
 	}
-
-	groups := append(platformRules, userRules...)
 
 	matchers, err := compileRuleLabelMatchers(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(matchers) == 0 {
-		return groups, nil
+		return groups, warnings, nil
 	}
 
-	return filterRuleGroupsByLabelMatchers(groups, matchers), nil
+	return filterRuleGroupsByLabelMatchers(groups, matchers), warnings, nil
+}
+
+// mergeRuleFetchResults combines platform and user-workload rule groups.
+// Platform fetch errors are fatal for cluster-wide requests and warnings
+// for namespace-scoped requests. User-workload errors are always warnings.
+func mergeRuleFetchResults(platform []PrometheusRuleGroup, platformErr error, user []PrometheusRuleGroup, userErr error, namespaceScoped bool) ([]PrometheusRuleGroup, []string, error) {
+	var warnings []string
+	if platformErr != nil {
+		if !namespaceScoped {
+			return nil, nil, platformErr
+		}
+		warnings = append(warnings, fmt.Sprintf("failed to get platform rules: %v", platformErr))
+	}
+	if userErr != nil {
+		warnings = append(warnings, fmt.Sprintf("failed to get user workload rules: %v", userErr))
+	}
+	return append(platform, user...), warnings, nil
 }
 
 func (pa *prometheusAlerts) alertingHealth(ctx context.Context) AlertingHealth {
@@ -276,11 +294,21 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 	return health
 }
 
+// getAlertsForSource fetches alerts from both Alertmanager and Prometheus in
+// parallel and merges the results. The fallback strategy is:
+//   - Both succeed: AM (firing+silenced) + Prom pending, with AM timestamps
+//     enriched from Prometheus activeAt.
+//   - AM only: AM alerts returned as-is (no Prom data to enrich from).
+//   - Prom only: all Prom alerts returned (AM was unreachable).
+//   - Both fail: error propagated from Prometheus.
 func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string) ([]PrometheusAlert, error) {
 	amAlerts, amErr := pa.getAlertmanagerAlerts(ctx, namespace, amRouteName, source)
 	promAlerts, promErr := pa.getAlertsViaProxy(ctx, namespace, promRouteName, source)
 
 	if amErr == nil {
+		if promErr == nil {
+			enrichActiveAt(amAlerts, promAlerts)
+		}
 		pending := filterAlertsByState(promAlerts, "pending")
 		return append(amAlerts, pending...), nil
 	}
@@ -335,15 +363,17 @@ func (pa *prometheusAlerts) getUserWorkloadAlertsViaAlertmanager(ctx context.Con
 		}
 	}
 
-	pending, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
+	promAlerts, err := pa.getAlertsViaProxy(ctx, UserWorkloadMonitoringNamespace, UserWorkloadRouteName, AlertSourceUser)
 	if err != nil {
-		pending, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
+		promAlerts, err = pa.getPrometheusAlertsViaService(ctx, UserWorkloadMonitoringNamespace, UserWorkloadPrometheusServiceName, UserWorkloadPrometheusPort, AlertSourceUser)
 		if err != nil {
 			return alerts, nil
 		}
 	}
 
-	return append(alerts, filterAlertsByState(pending, "pending")...), nil
+	// Enrich before filtering: AM alerts need activeAt from all Prom states.
+	enrichActiveAt(alerts, promAlerts)
+	return append(alerts, filterAlertsByState(promAlerts, "pending")...), nil
 }
 
 func (pa *prometheusAlerts) getPrometheusAlertsViaService(ctx context.Context, namespace string, serviceName string, port int32, source string) ([]PrometheusAlert, error) {
@@ -652,18 +682,12 @@ func (pa *prometheusAlerts) getRulesViaProxy(ctx context.Context, namespace stri
 	if err != nil {
 		return nil, err
 	}
-
-	var rulesResp prometheusRulesResponse
-	if err := json.Unmarshal(raw, &rulesResp); err != nil {
-		return nil, fmt.Errorf("decode prometheus response: %w", err)
+	groups, err := parsePrometheusRulesResponse(raw, "prometheus")
+	if err != nil {
+		return nil, err
 	}
-
-	if rulesResp.Status != "success" {
-		return nil, fmt.Errorf("prometheus API returned non-success status: %s", rulesResp.Status)
-	}
-
-	applyRuleSource(rulesResp.Data.Groups, source)
-	return rulesResp.Data.Groups, nil
+	applyRuleSource(groups, source)
+	return groups, nil
 }
 
 func (pa *prometheusAlerts) getRulesViaThanosTenancy(ctx context.Context, namespace string, source string) ([]PrometheusRuleGroup, error) {
@@ -671,17 +695,22 @@ func (pa *prometheusAlerts) getRulesViaThanosTenancy(ctx context.Context, namesp
 	if err != nil {
 		return nil, err
 	}
+	groups, err := parsePrometheusRulesResponse(raw, "thanos")
+	if err != nil {
+		return nil, err
+	}
+	applyRuleSource(groups, source)
+	return groups, nil
+}
 
+func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleGroup, error) {
 	var rulesResp prometheusRulesResponse
 	if err := json.Unmarshal(raw, &rulesResp); err != nil {
-		return nil, fmt.Errorf("decode thanos response: %w", err)
+		return nil, fmt.Errorf("decode %s response: %w", apiName, err)
 	}
-
 	if rulesResp.Status != "success" {
-		return nil, fmt.Errorf("thanos API returned non-success status: %s", rulesResp.Status)
+		return nil, fmt.Errorf("%s API returned non-success status: %s", apiName, rulesResp.Status)
 	}
-
-	applyRuleSource(rulesResp.Data.Groups, source)
 	return rulesResp.Data.Groups, nil
 }
 
@@ -772,6 +801,59 @@ func filterAlertsByState(alerts []PrometheusAlert, state string) []PrometheusAle
 		}
 	}
 	return out
+}
+
+// enrichActiveAt replaces ActiveAt in Alertmanager-sourced alerts with the
+// authoritative value from Prometheus. Alertmanager only exposes startsAt
+// (when it received the alert), while Prometheus tracks the true activeAt
+// (when the alert condition first became true).
+func enrichActiveAt(amAlerts, promAlerts []PrometheusAlert) {
+	if len(promAlerts) == 0 {
+		return
+	}
+
+	lookup := make(map[string]time.Time, len(promAlerts))
+	for _, alert := range promAlerts {
+		fp := alertFingerprint(alert.Labels)
+		if !alert.ActiveAt.IsZero() {
+			lookup[fp] = alert.ActiveAt
+		}
+	}
+
+	for i := range amAlerts {
+		fp := alertFingerprint(amAlerts[i].Labels)
+		if activeAt, ok := lookup[fp]; ok {
+			amAlerts[i].ActiveAt = activeAt
+		}
+	}
+}
+
+// alertFingerprint builds a stable identity key from an alert's labels,
+// excluding metadata labels injected by this plugin (source, backend).
+// This matches the same alert *instance* across Alertmanager and Prometheus
+// (which may differ only in injected metadata). It is distinct from the
+// alert rule ID (GetAlertingRuleId) which identifies the *rule definition*
+// and is computed from the rule spec (name, expr, duration, static labels).
+func alertFingerprint(labels map[string]string) string {
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		if k == AlertSourceLabel || k == AlertBackendLabel {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteByte('\xff')
+		}
+		b.WriteString(k)
+		b.WriteByte('\xfe')
+		b.WriteString(labels[k])
+	}
+	return b.String()
 }
 
 func mapAlertmanagerState(state string) string {

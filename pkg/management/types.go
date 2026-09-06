@@ -2,8 +2,10 @@ package management
 
 import (
 	"context"
+	"net/http"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
@@ -53,8 +55,16 @@ type Client interface {
 	// Non-fatal endpoint failures are returned as warnings.
 	EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error)
 
+	// EnrichRules retrieves Prometheus rule groups and applies relabeling.
+	// Non-fatal endpoint failures are returned as warnings.
+	EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, []string, error)
+
 	// GetAlertingHealth retrieves the alerting stack health status
 	GetAlertingHealth(ctx context.Context) (k8s.AlertingHealth, error)
+
+	// MetricsHandler returns an HTTP handler that exposes alert management metrics.
+	// It handles leader election internally using the provided kubeConfig.
+	MetricsHandler(ctx context.Context, kubeConfig *rest.Config) (http.Handler, error)
 }
 
 // PrometheusRuleOptions specifies options for selecting PrometheusRule resources and groups

@@ -56,3 +56,27 @@ func TestCompileRuleLabelMatchers_AcceptsSelectorBody(t *testing.T) {
 		t.Fatalf("expected severity matcher, got %q", matchers[0].Name)
 	}
 }
+
+func TestParseRuleMatchers_InvalidSyntax(t *testing.T) {
+	err := ParseRuleMatchers([]string{`severity=`})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+func TestLabelsWithoutNamespace(t *testing.T) {
+	in := map[string]string{
+		"namespace": "ns1",
+		"severity":  "critical",
+	}
+	got := LabelsWithoutNamespace(in)
+	if _, found := got["namespace"]; found {
+		t.Fatal("expected namespace key to be removed")
+	}
+	if got["severity"] != "critical" {
+		t.Errorf("expected severity=critical, got %q", got["severity"])
+	}
+	if in["namespace"] != "ns1" {
+		t.Fatal("expected original map to keep namespace")
+	}
+}
