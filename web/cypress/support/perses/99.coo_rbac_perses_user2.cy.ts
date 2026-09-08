@@ -1,5 +1,7 @@
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
@@ -114,67 +116,68 @@ export function testCOORBACPersesTestsDevUser2(
     persesDashboardsPage.assertEditButtonIsDisabled();
   });
 
-  it(`3.${perspectiveName} perspective - Create button validation - Disabled`, () => {
+  it(`3.${perspectiveName} perspective - Create button validation - Access denied`, () => {
     cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
-    cy.log(`3.2. Verify Create button is disabled`);
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
-
-    cy.log(`3.3 change namespace to perses-dev`);
+    cy.log(`3.2 change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
 
-    cy.log(`3.4. Verify Create button is disabled`);
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
-
-    cy.log(`3.5. Change namespace to openshift-monitoring`);
-    cy.changeNamespace('openshift-monitoring');
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
+    cy.log(`3.3. Verify Create button is enabled but creation is denied for perses-dev`);
+    listPersesDashboardsPage.assertCreateButtonIsEnabled();
+    listPersesDashboardsPage.clickCreateButton();
+    persesCreateDashboardsPage.createDashboardShouldBeLoaded();
+    persesCreateDashboardsPage.assertCreateAccessDenied('perses-dev');
+    persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
+    persesCreateDashboardsPage.createDashboardDialogCancelButton();
   });
 
-  it(`4.${perspectiveName} perspective - Kebab icon - Disabled`, () => {
+  it(`4.${perspectiveName} perspective - Kebab icon - Row actions denied`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`4.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
 
-    cy.log(`4.3. Assert Kebab icon is disabled`);
+    cy.log(`4.3. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
     );
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
+
+    cy.log(`4.4. Assert Duplicate is blocked by access-denied in the modal`);
+    listPersesDashboardsPage.assertDuplicateAccessDenied('perses-dev');
     listPersesDashboardsPage.clearAllFilters();
 
-    cy.log(`4.4. Change namespace to All Projects`);
+    cy.log(`4.5. Change namespace to All Projects`);
     cy.changeNamespace('All Projects');
 
-    cy.log(`4.5. Assert Kebab icon is disabled`);
+    cy.log(`4.6. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
     );
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
     listPersesDashboardsPage.clearAllFilters();
   });
 
-  it(`5.${perspectiveName} perspective - Import button validation - Disabled`, () => {
+  it(`5.${perspectiveName} perspective - Import button validation - Access denied`, () => {
     cy.log(`5.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
 
     cy.log(`5.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
 
-    cy.log(`5.3. Verify Import button is disabled`);
-    listPersesDashboardsPage.assertImportButtonIsDisabled();
-
-    cy.log(`5.5. Change namespace to openshift-monitoring`);
-    cy.changeNamespace('openshift-monitoring');
-    listPersesDashboardsPage.assertImportButtonIsDisabled();
-
-    cy.log(`5.6. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-    listPersesDashboardsPage.assertImportButtonIsDisabled();
+    cy.log(`5.3. Verify Import button is enabled but import is denied for perses-dev`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+    );
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+    persesImportDashboardsPage.assertImportAccessDenied('perses-dev');
+    persesImportDashboardsPage.clickCancelButton();
   });
 }

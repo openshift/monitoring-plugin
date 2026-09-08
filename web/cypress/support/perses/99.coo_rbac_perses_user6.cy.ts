@@ -1,5 +1,7 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 
 /**
  * User6 has access to:
@@ -20,16 +22,28 @@ export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspect
       cy.assertNamespace('empty-namespace3', false);
       cy.assertNamespace('empty-namespace4', false);
 
-      cy.log(`1.2. Create button validation`);
-      listPersesDashboardsPage.assertCreateButtonIsDisabled();
+      cy.log(`1.2. Create button is enabled but no project is selectable, so Create is disabled`);
+      listPersesDashboardsPage.assertCreateButtonIsEnabled();
+      listPersesDashboardsPage.clickCreateButton();
+      persesCreateDashboardsPage.createDashboardShouldBeLoaded();
+      cy.byPFRole('dialog').find('button').contains('Create').should('be.disabled');
+      persesCreateDashboardsPage.createDashboardDialogCancelButton();
     },
   );
 
-  it(`2.${perspectiveName} perspective - Import button validation - Disabled`, () => {
+  it(`2.${perspectiveName} perspective - Import button validation - Access denied`, () => {
     cy.log(`2.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.noDashboardsFoundState();
 
-    cy.log(`2.2. Verify Import button is disabled`);
-    listPersesDashboardsPage.assertImportButtonIsDisabled();
+    cy.log(`2.2. Verify Import button is enabled but import is disabled without a project`);
+    listPersesDashboardsPage.assertImportButtonIsEnabled();
+    listPersesDashboardsPage.clickImportButton();
+    persesImportDashboardsPage.importDashboardShouldBeLoaded();
+    persesImportDashboardsPage.uploadFile(
+      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+    );
+    persesImportDashboardsPage.assertPersesDashboardDetected();
+    cy.byPFRole('dialog').find('button').contains('Import').should('be.disabled');
+    persesImportDashboardsPage.clickCancelButton();
   });
 }

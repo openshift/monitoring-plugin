@@ -1,9 +1,13 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import type { Rule } from 'eslint';
 
 const PASCAL_CASE = /^[A-Z][a-zA-Z0-9]*$/;
 const KEBAB_CASE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const CAMEL_USE = /^use[A-Z][a-zA-Z0-9]*$/;
+
+const hasSibling = (dir: string, baseStem: string): boolean =>
+  ['.ts', '.tsx'].some((siblingExt) => fs.existsSync(path.join(dir, `${baseStem}${siblingExt}`)));
 
 export const fileNaming: Rule.RuleModule = {
   meta: {
@@ -26,6 +30,7 @@ export const fileNaming: Rule.RuleModule = {
     const stem = path.basename(filename, ext);
     // Strip spec/test suffix before checking
     const baseStem = stem.replace(/\.(spec|test)$/, '');
+    const isSpec = /\.(spec|test)$/.test(stem);
 
     if (ext === '.tsx') {
       if (!PASCAL_CASE.test(baseStem) && !CAMEL_USE.test(baseStem)) {
@@ -36,7 +41,9 @@ export const fileNaming: Rule.RuleModule = {
         });
       }
     } else if (ext === '.ts') {
-      const valid = KEBAB_CASE.test(baseStem) || CAMEL_USE.test(baseStem);
+      // Unit tests may mirror the casing of any sibling
+      const specMirror = isSpec && hasSibling(path.dirname(filename), baseStem);
+      const valid = KEBAB_CASE.test(baseStem) || CAMEL_USE.test(baseStem) || specMirror;
       if (!valid) {
         context.report({
           loc: { line: 1, column: 0 },

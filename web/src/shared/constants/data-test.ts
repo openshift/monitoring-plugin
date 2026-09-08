@@ -325,6 +325,9 @@ export const persesDashboardDataTestIDs = {
   importDashboardButtonToolbar: 'import-dashboard-button-list-page',
   editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
   cancelButtonToolbar: 'cancel-button-toolbar',
+  createAccessDeniedHelperText: 'perses-create-access-denied-helper-text',
+  updateAccessDeniedHelperText: 'perses-update-access-denied-helper-text',
+  deleteAccessDeniedHelperText: 'perses-delete-access-denied-helper-text',
 };
 
 export const listPersesDashboardsDataTestIDs = {

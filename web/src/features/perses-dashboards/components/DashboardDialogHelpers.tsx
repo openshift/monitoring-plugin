@@ -1,62 +1,66 @@
-import {
-  FormGroup,
-  FormHelperText,
-  HelperText,
-  HelperTextItem,
-  SelectOptionProps,
-  Spinner,
-} from '@patternfly/react-core';
+import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk';
+import { FormGroup, FormHelperText, HelperText, HelperTextItem } from '@patternfly/react-core';
+import type { SelectOptionProps } from '@patternfly/react-core';
+import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { TypeaheadSelect } from '@patternfly/react-templates';
-import { DashboardResource } from '@perses-dev/client';
-import { FC, ReactNode, useMemo } from 'react';
-import { Control, Controller } from 'react-hook-form';
+import { t_global_font_weight_200, t_global_spacer_200 } from '@patternfly/react-tokens';
+import type { DashboardResource } from '@perses-dev/client';
+import { useMemo } from 'react';
+import type { CSSProperties, FC } from 'react';
+import { Controller } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import {
-  formGroupStyle,
-  LabelSpacer,
-} from '@/features/perses-dashboards/components/DashboardActionModals';
 import { useToast } from '@/features/perses-dashboards/components/ToastProvider';
-import { useEditableProjects } from '@/features/perses-dashboards/hooks/useEditableProjects';
+import { useOcpProjects } from '@/features/perses-dashboards/hooks/useOcpProjects';
 import { usePerses } from '@/features/perses-dashboards/hooks/usePerses';
+import type { DashboardVerb } from '@/features/perses-dashboards/hooks/usePersesDashboardAccess';
 import { useCreateProjectMutation } from '@/features/perses-dashboards/utils/dashboard-api';
+import { persesDashboardDataTestIDs } from '@/shared/constants/data-test';
 import { getDashboardUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
+
+export const formGroupStyle = {
+  fontWeight: t_global_font_weight_200.value,
+} as CSSProperties;
+
+export const LabelSpacer: FC = () => {
+  return <div style={{ paddingBottom: t_global_spacer_200.value }} />;
+};
 
 export const useDashboardProjects = () => {
-  const {
-    editableProjects,
-    allProjects,
-    hasEditableProject,
-    permissionsLoading,
-    permissionsError,
-  } = useEditableProjects();
+  const [activeNamespace] = useActiveNamespace();
+  const { ocpProjects } = useOcpProjects();
 
-  const { persesProjects } = usePerses();
+  const availableProjects = useMemo(() => {
+    const names = new Set<string>();
+    ocpProjects.forEach((project) => {
+      if (project.metadata?.name) {
+        names.add(project.metadata.name);
+      }
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [ocpProjects]);
 
   const defaultProject = useMemo(() => {
-    return allProjects?.[0] || '';
-  }, [allProjects]);
+    if (activeNamespace && activeNamespace !== ALL_NAMESPACES_KEY) {
+      return activeNamespace;
+    }
+    return availableProjects[0] || '';
+  }, [activeNamespace, availableProjects]);
 
   const projectOptions = useMemo<SelectOptionProps[]>(() => {
-    if (!editableProjects) {
-      return [];
-    }
-    return editableProjects.map((project) => ({
+    return availableProjects.map((project) => ({
       name: project,
       value: project,
       content: project,
       children: project,
     }));
-  }, [editableProjects]);
+  }, [availableProjects]);
 
   return {
-    editableProjects,
-    allProjects,
-    hasEditableProject,
-    permissionsLoading,
-    permissionsError,
-    persesProjects,
+    availableProjects,
     defaultProject,
     projectOptions,
   };
@@ -66,9 +70,10 @@ export const useProjectCreation = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { addAlert } = useToast();
   const createProjectMutation = useCreateProjectMutation();
+  const { persesProjects } = usePerses();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ensureProjectExists = async (projectName: string, persesProjects: any[]) => {
+  const ensureProjectExists = async (projectName: string) => {
     const projectExists = persesProjects?.some((project) => project.metadata.name === projectName);
 
     if (!projectExists) {
@@ -121,36 +126,37 @@ export const useDashboardNavigation = () => {
   return { navigateToDashboard };
 };
 
-interface PermissionStateProps {
-  permissionsLoading: boolean;
-  permissionsError: unknown;
-  children: ReactNode;
-}
-
-export const PermissionStateWrapper: FC<PermissionStateProps> = ({
-  permissionsLoading,
-  permissionsError,
-  children,
+export const DashboardDeniedHelperText: FC<{ show: boolean; verb: DashboardVerb }> = ({
+  show,
+  verb,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  if (permissionsLoading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        {t('Loading...')} <Spinner aria-label="Dashboard Modal Loading" />
-      </div>
-    );
+  if (!show) {
+    return null;
   }
-
-  if (permissionsError) {
-    return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        {t('Failed to load project permissions. Please refresh the page and try again.')}
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  const { message, dataTest } = {
+    create: {
+      message: t('You do not have permission to create dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.createAccessDeniedHelperText,
+    },
+    update: {
+      message: t('You do not have permission to edit dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.updateAccessDeniedHelperText,
+    },
+    delete: {
+      message: t('You do not have permission to delete dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.deleteAccessDeniedHelperText,
+    },
+  }[verb];
+  return (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem icon={<ExclamationCircleIcon />} variant="error" data-test={dataTest}>
+          {message}
+        </HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
 };
 
 interface ProjectSelectFormGroupProps {

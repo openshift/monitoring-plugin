@@ -355,127 +355,47 @@ export const cooInstallUtils = {
           }
         });
 
-        const checkIntervalMs = 15000;
-        const startTime = Date.now();
-        const maxWaitTimeMs = 600000;
-
-        const checkStatus = () => {
-          const elapsed = Date.now() - startTime;
-
-          if (elapsed > maxWaitTimeMs) {
-            cy.log(
-              `${elapsed}ms - Timeout reached (${maxWaitTimeMs / 60000}m). Namespace ${
-                CLUSTER_OBSERVABILITY_OPERATOR.namespace
-              } still terminating. Attempting force-delete.`,
-            );
-            return cy
+        cy.waitUntil<boolean>(
+          () =>
+            cy
               .exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ` +
-                  `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} "${Cypress.env('KUBECONFIG_PATH')}"`,
-                { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
+                `oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}` +
+                  ` --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+                { failOnNonZeroExit: false },
               )
               .then((result) => {
-                cy.log(`${elapsed}ms - Force delete output: ${result.stdout}`);
                 if (result.code !== 0) {
-                  cy.log(`Force delete failed with exit code ${result.code}: ${result.stderr}`);
+                  Cypress.log({
+                    name: 'cleanupCOONamespace',
+                    message: `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} is successfully deleted.`,
+                  });
+                  return cy.wrap(true, { log: false });
                 }
-              });
-          }
 
-          cy.exec(
-            `oc get ns ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig "${Cypress.env(
-              'KUBECONFIG_PATH',
-            )}" -o jsonpath='{.status.phase}'`,
-            { failOnNonZeroExit: false },
-          ).then((result) => {
-            if (result.code !== 0) {
-              cy.log(
-                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} is ` +
-                  `successfully deleted.`,
-              );
-              return;
-            }
-            const status = result.stdout.trim();
-
-            if (status === 'Terminating') {
-              cy.log(
-                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} is still ` +
-                  `'Terminating'. Retrying in ${
-                    checkIntervalMs / 1000
-                  }s. Elapsed: ${Math.round(elapsed / 1000)}s`,
-              );
-              cy.exec(
-                `./cypress/fixtures/coo/force_delete_ns.sh ` +
-                  `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} "${Cypress.env('KUBECONFIG_PATH')}"`,
-                { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
-              ).then((forceResult) => {
-                cy.log(`${elapsed}ms - Force delete output: ${forceResult.stdout}`);
-                if (forceResult.code !== 0) {
-                  cy.log(
-                    `Force delete failed with exit code ${forceResult.code}: ${forceResult.stderr}`,
-                  );
-                }
-              });
-              cy.wait(checkIntervalMs).then(checkStatus);
-            } else {
-              cy.log(
-                `${elapsed}ms - ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} changed to ` +
-                  `unexpected state: ${status}. Stopping monitoring.`,
-              );
-            }
-          });
-        };
-
-        checkStatus();
-
-        cy.then(() => {
-          cooInstallUtils.waitForPodsDeleted(CLUSTER_OBSERVABILITY_OPERATOR.namespace, 300000);
-        });
+                return cy
+                  .exec(
+                    `./cypress/fixtures/coo/force_delete_ns.sh ${
+                      CLUSTER_OBSERVABILITY_OPERATOR.namespace
+                    } "${Cypress.env('KUBECONFIG_PATH')}"`,
+                    { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
+                  )
+                  .then((forceResult) => {
+                    Cypress.log({
+                      name: 'cleanupCOONamespace',
+                      message: `Force delete output: ${forceResult.stdout}`,
+                    });
+                    return false;
+                  });
+              }),
+          {
+            timeout: 600000,
+            interval: 15000,
+            errorMsg: `Timed out deleting namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
+          },
+        );
       } else {
         cy.log('Namespace does not exist, skipping deletion');
       }
     });
-  },
-
-  waitForPodsDeleted(namespace: string, maxWaitMs: number = 120000): void {
-    const kubeconfigPath = Cypress.env('KUBECONFIG_PATH') as string;
-    const checkIntervalMs = 5000;
-    const startTime = Date.now();
-    const podPatterns = 'monitoring|perses|perses-0|health-analyzer|troubleshooting-panel|korrel8r';
-
-    const checkPods = () => {
-      const elapsed = Date.now() - startTime;
-
-      if (elapsed > maxWaitMs) {
-        throw new Error(`Timeout: Pods still exist after ${maxWaitMs / 1000}s`);
-      }
-
-      cy.exec(`oc get pods -n ${namespace} --kubeconfig ${kubeconfigPath} -o name`, {
-        failOnNonZeroExit: false,
-      }).then((result) => {
-        if (result.code !== 0) {
-          if (result.stderr.includes('not found')) {
-            cy.log(`All target pods deleted after ${elapsed}ms (namespace gone)`);
-          } else {
-            cy.log(`${elapsed}ms - oc get pods failed: ${result.stderr}, retrying...`);
-            cy.wait(checkIntervalMs).then(checkPods);
-          }
-          return;
-        }
-
-        const matchingPods = result.stdout
-          .split('\n')
-          .filter((line) => new RegExp(podPatterns).test(line));
-
-        if (matchingPods.length === 0) {
-          cy.log(`All target pods deleted after ${elapsed}ms`);
-        } else {
-          cy.log(`${elapsed}ms - ${matchingPods.length} pod(s) still exist, retrying...`);
-          cy.wait(checkIntervalMs).then(checkPods);
-        }
-      });
-    };
-
-    checkPods();
   },
 };
