@@ -1239,10 +1239,15 @@ const MetricsPage_: FC = () => {
     }
   }, [units, setUnits]);
 
-  // Clear queries on unmount
+  // Clear queries on unmount, but only when navigating away from the query
+  // browser.  On a same-page remount (e.g. page refresh) the cleanup dispatch
+  // races with the new mount's sync effect and can empty Redux after the sync
+  // effect has already read queries from the URL, causing query0 to be lost.
   useEffect(() => {
     return () => {
-      dispatch(queryBrowserDeleteAllQueries());
+      if (!window.location.pathname.includes('query-browser')) {
+        dispatch(queryBrowserDeleteAllQueries());
+      }
     };
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
