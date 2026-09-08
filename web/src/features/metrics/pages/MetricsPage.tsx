@@ -951,7 +951,6 @@ const QueryBrowserWrapper: FC<{
   const { plugin } = useMonitoring();
   const [activeNamespace] = useActiveNamespace();
   const [queryParams, setQueryParams] = useSearchParams();
-  const [isFirstRender, , , setFirstRenderFalse] = useBoolean(true);
 
   const dispatch = useDispatch();
 
@@ -961,26 +960,6 @@ const QueryBrowserWrapper: FC<{
   const queries = useSelector(
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
-
-  // Initialize queries from URL parameters on first render
-  useEffect(() => {
-    if (!isFirstRender) {
-      return;
-    }
-    dispatch(queryBrowserDeleteAllQueries());
-    for (let i = 0; queryParams.has(`query${i}`); i++) {
-      const query = queryParams.get(`query${i}`);
-      dispatch(
-        queryBrowserPatchQuery(i, {
-          isEnabled: true,
-          isExpanded: true,
-          query,
-          text: query,
-        }),
-      );
-    }
-    setFirstRenderFalse();
-  }, [dispatch, queryParams, isFirstRender, setFirstRenderFalse]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use useMemo() to prevent these two arrays being recreated on every render, which would
@@ -995,21 +974,68 @@ const QueryBrowserWrapper: FC<{
     [disabledSeriesMemoKey],
   );
 
-  // Update the URL parameters when the queries shown in the graph change
+  const prevParams = useRef<URLSearchParams | null>(null);
+  const prevQueryStrings = useRef<string[] | null>(null);
+
+  // Keep URL query0/query1/… and Redux in sync.
   useEffect(() => {
-    if (isFirstRender) {
+    const fromUrl: string[] = [];
+    for (let i = 0; queryParams.has(`query${i}`); i++) {
+      fromUrl.push(queryParams.get(`query${i}`) ?? '');
+    }
+
+    const first = prevParams.current === null;
+    const urlChanged = first || prevParams.current !== queryParams;
+    const storeChanged = first || prevQueryStrings.current !== queryStrings;
+    prevParams.current = queryParams;
+    prevQueryStrings.current = queryStrings;
+
+    if (JSON.stringify(fromUrl) === JSON.stringify(queryStrings)) {
       return;
     }
-    const newParams = new URLSearchParams(removeQueryKeys(queryParams));
-    queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
-    if (customDataSourceName) {
-      newParams.set(QueryParams.Datasource, customDataSourceName);
+
+    const writeUrlFromStore = () => {
+      const newParams = new URLSearchParams(removeQueryKeys(queryParams));
+      queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
+      if (customDataSourceName) {
+        newParams.set(QueryParams.Datasource, customDataSourceName);
+      }
+      if (!newParams.get(QueryParams.Units)) {
+        newParams.set(QueryParams.Units, 'short');
+      }
+      setQueryParams(newParams, { replace: true });
+    };
+
+    const writeStoreFromUrl = () => {
+      dispatch(queryBrowserDeleteAllQueries());
+      fromUrl.forEach((query, i) => {
+        dispatch(
+          queryBrowserPatchQuery(i, {
+            isEnabled: true,
+            isExpanded: true,
+            query,
+            text: query,
+          }),
+        );
+      });
+    };
+
+    if (first) {
+      if (fromUrl.some((q) => q)) {
+        writeStoreFromUrl();
+      } else {
+        writeUrlFromStore();
+      }
+      return;
     }
-    if (!newParams.get(QueryParams.Units)) {
-      newParams.set(QueryParams.Units, 'short');
+    if (urlChanged) {
+      writeStoreFromUrl();
+      return;
     }
-    setQueryParams(newParams, { replace: true });
-  }, [queryStrings, customDataSourceName, isFirstRender, queryParams]);
+    if (storeChanged) {
+      writeUrlFromStore();
+    }
+  }, [customDataSourceName, dispatch, queryParams, queryStrings, setQueryParams]);
 
   if (hideGraphs) {
     return null;
@@ -1213,10 +1239,15 @@ const MetricsPage_: FC = () => {
     }
   }, [units, setUnits]);
 
-  // Clear queries on unmount
+  // Clear queries on unmount, but only when navigating away from the query
+  // browser.  On a same-page remount (e.g. page refresh) the cleanup dispatch
+  // races with the new mount's sync effect and can empty Redux after the sync
+  // effect has already read queries from the URL, causing query0 to be lost.
   useEffect(() => {
     return () => {
-      dispatch(queryBrowserDeleteAllQueries());
+      if (!window.location.pathname.includes('query-browser')) {
+        dispatch(queryBrowserDeleteAllQueries());
+      }
     };
   }, [dispatch]);
   const [customDataSource, setCustomDataSource] = useState<CustomDataSource>(undefined);
