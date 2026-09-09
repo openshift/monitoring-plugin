@@ -8,7 +8,7 @@ import {
   LegacyDashboardsTimeRange,
   MonitoringPageTitles,
   MonitoringRefreshInterval,
-} from '../fixtures/monitoring/constants';
+} from '../fixtures/shared/cluster-monitoring-operator/constants';
 export const legacyDashboardsPage = {
   shouldBeLoaded: () => {
     cy.log('legacyDashboardsPage.shouldBeLoaded');

@@ -3,31 +3,19 @@ export {};
 import { nav } from '../../views/nav';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { listPersesDashboardsOUIAIDs } from '@/shared/constants/data-test';
+import {
+  PERSES_E2E_DASHBOARDS_DIR,
+  PERSES_E2E_DATASOURCES_DIR,
+  PERSES_TEST_DASHBOARD_NAME_EXACT,
+  PERSES_TEST_DASHBOARD_NAME_PREFIXES,
+  SED_OCP_NS_TO_OBS_TEST,
+  SED_PERSES_DEV_TO_OBS_TEST,
+} from '../perses/constants';
 
 // Display name prefixes/exact matches for test-created PersesDashboards to delete before
 // Perses tests.
 // Examples: "Test Dashboard0.24...", "Dashboard to test duplication0.33...",
 // "Testing Dashboard - UP 0.32..."
-const PERSES_TEST_DASHBOARD_NAME_PREFIXES = [
-  'Testing Dashboard - UP ',
-  'Renamed dashboard ',
-  'Duplicate dashboard ',
-  'Test Dashboard',
-  'Dashboard to test rename',
-  'Dashboard to test duplication',
-  'DashboardToTestDuplication',
-  'Tempo Loki Perses Global Datasources',
-];
-const PERSES_TEST_DASHBOARD_NAME_EXACT = [
-  'Testing Perses dashboard - YAML',
-  'Testing Perses dashboard - JSON',
-  'Service Level dashboards / Virtual Machines by Time in Status',
-];
-
-const PERSES_E2E_DASHBOARDS_DIR = './cypress/fixtures/coo/coo140_perses/dashboards';
-const SED_OCP_NS_TO_OBS_TEST =
-  "sed 's/namespace: openshift-cluster-observability-operator/namespace: observ-test/g'";
-const SED_PERSES_DEV_TO_OBS_TEST = "sed 's/namespace: perses-dev/namespace: observ-test/g'";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -47,7 +35,7 @@ Cypress.Commands.add('setupPersesRBACandExtraDashboards', () => {
     `${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' &&
     Cypress.env('LOGIN_USERNAME2') !== undefined
   ) {
-    cy.exec('./cypress/fixtures/coo/coo140_perses/rbac/rbac_perses_e2e_ci_users.sh', {
+    cy.exec('./cypress/fixtures/perses/rbac_perses_e2e_ci_users.sh', {
       env: {
         USER1: `${Cypress.env('LOGIN_USERNAME1')}`,
         USER2: `${Cypress.env('LOGIN_USERNAME2')}`,
@@ -133,16 +121,16 @@ Cypress.Commands.add('cleanupExtraDashboards', () => {
       `--kubeconfig ${kc}`,
   );
 
-  cy.log('Remove thanos-compact-overview-1var instance.');
+  cy.log('Remove thanos-compact-overview instance.');
   cy.exec(
     `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
-      `thanos-compact-overview-1var.yaml | oc delete -f - --ignore-not-found ` +
+      `thanos-compact-overview.yaml | oc delete -f - --ignore-not-found ` +
       `--kubeconfig ${kc}`,
   );
 
   cy.log('Remove Thanos Querier instance.');
   cy.exec(
-    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DATASOURCES_DIR}/` +
       `thanos-querier-datasource.yaml | oc delete -f - --ignore-not-found ` +
       `--kubeconfig ${kc}`,
   );
