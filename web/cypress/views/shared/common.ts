@@ -1,4 +1,4 @@
-import { detailsPage } from './details-page';
+import { alertAndSilencesDetailsPage } from '../alerts/alert-and-silence-details-page';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 export const commonPages = {
@@ -57,7 +57,7 @@ export const commonPages = {
       cy.log('commonPages.detailsPage.alert');
       cy.byTestID(DataTestIDs.AlertResourceIcon).contains('A');
       cy.byTestID(DataTestIDs.SilenceButton).should('be.visible');
-      detailsPage.sectionHeaderShouldExist('Alert details');
+      alertAndSilencesDetailsPage.sectionHeaderShouldExist('Alert details');
       cy.byTestID(DataTestIDs.AlertingRuleResourceLink).scrollIntoView();
       cy.byTestID(DataTestIDs.AlertingRuleResourceIcon).contains('AR').should('be.visible');
       cy.byTestID(DataTestIDs.AlertingRuleResourceLink).contains(alert).should('be.visible');

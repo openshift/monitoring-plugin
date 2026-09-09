@@ -2,12 +2,12 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { testAlertsRegression } from '../../support/alerts/alerts_regressions.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { guidedTour } from '../../views/tour';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { guidedTour } from '../../views/shared/tour';
 
 describe(
   'Regression: Monitoring - Alerts (Virtualization)',

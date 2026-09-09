@@ -8,9 +8,9 @@ import {
   testMetricsRegressionNamespace1,
   testMetricsRegressionNamespace2,
 } from '../../support/metrics/metrics_regressions_namespaced.cy';
-import { commonPages } from '../../views/common';
-import { nav } from '../../views/nav';
-import { guidedTour } from '../../views/tour';
+import { commonPages } from '../../views/shared/common';
+import { nav } from '../../views/shared/nav';
+import { guidedTour } from '../../views/shared/tour';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

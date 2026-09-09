@@ -11,7 +11,7 @@ import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
 } from '../../support/shared/operators';
-import { incidentsPage } from '../../views/incidents-page';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 
 describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
