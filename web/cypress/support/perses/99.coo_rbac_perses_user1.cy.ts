@@ -266,11 +266,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertCreateButtonIsEnabled();
     listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
-    persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-    persesCreateDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace3');
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
+    persesCreateDashboardsPage.assertCreateAccessDenied('observ-test');
+    persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
     persesCreateDashboardsPage.assertProjectDropdown('openshift-cluster-observability-operator');
     persesCreateDashboardsPage.createDashboardDialogCancelButton();
 
@@ -434,11 +434,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     cy.log(`6.2. Change namespace to observ-test`);
     cy.changeNamespace('observ-test');
 
-    cy.log(`6.3. Assert Kebab icon is disabled`);
+    cy.log(`6.3. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
     );
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
 
     cy.log(`6.4. Change namespace to openshift-cluster-observability-operator`);
     cy.changeNamespace('openshift-cluster-observability-operator');
@@ -462,8 +462,7 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
     );
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.clickKebabIcon();
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
     listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`6.4. Filter by Project and Name`);
@@ -566,11 +565,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.clickDuplicateOption();
 
     cy.log(`8.5. Assert project dropdown options`);
-    listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('observ-test');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('perses-dev');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('empty-namespace3');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('empty-namespace4');
-    listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('openshift-monitoring');
+    listPersesDashboardsPage.assertDuplicateProjectDenied('observ-test');
+    listPersesDashboardsPage.assertDuplicateProjectDenied('openshift-monitoring');
     listPersesDashboardsPage.assertDuplicateProjectDropdownExists(
       'openshift-cluster-observability-operator',
     );
@@ -646,11 +645,11 @@ export function testCOORBACPersesTestsDevUser1(perspective: PerspectiveConfig) {
     persesImportDashboardsPage.assertPersesDashboardDetected();
 
     cy.log(`10.4. Verify project dropdown options`);
-    persesImportDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-    persesImportDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace3');
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
+    persesImportDashboardsPage.assertImportAccessDenied('observ-test');
+    persesImportDashboardsPage.assertImportAccessDenied('openshift-monitoring');
     persesImportDashboardsPage.assertProjectDropdown('openshift-cluster-observability-operator');
     persesImportDashboardsPage.clickCancelButton();
 

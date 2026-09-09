@@ -61,7 +61,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
       );
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
       persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
       persesCreateDashboardsPage.createDashboardDialogCancelButton();
@@ -77,7 +77,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
       );
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
       persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
 
@@ -94,7 +94,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
       );
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
       persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
       persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
       persesCreateDashboardsPage.createDashboardDialogCancelButton();
@@ -118,7 +118,7 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-    persesCreateDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
+    persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
     persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
     persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
     persesCreateDashboardsPage.createDashboardDialogCancelButton();
@@ -377,10 +377,10 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists(
       'openshift-cluster-observability-operator',
     );
-    listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('openshift-monitoring');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('observ-test');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('perses-dev');
     listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists('empty-namespace4');
+    listPersesDashboardsPage.assertDuplicateProjectDenied('openshift-monitoring');
     listPersesDashboardsPage.assertDuplicateProjectDropdownExists('empty-namespace3');
 
     cy.log(`6.6. Enter new dashboard name`);
@@ -457,8 +457,8 @@ export function testCOORBACPersesTestsDevUser3(perspective: PerspectiveConfig) {
     );
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-    persesImportDashboardsPage.assertProjectNotExistsInDropdown('openshift-monitoring');
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
+    persesImportDashboardsPage.assertImportAccessDenied('openshift-monitoring');
     persesImportDashboardsPage.assertProjectDropdown('empty-namespace3');
     persesImportDashboardsPage.clickCancelButton();
 

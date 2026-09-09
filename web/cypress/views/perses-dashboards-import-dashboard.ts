@@ -1,4 +1,9 @@
-import { Classes, IDs, persesAriaLabels } from '../../src/components/data-test';
+import {
+  Classes,
+  IDs,
+  persesAriaLabels,
+  persesDashboardDataTestIDs,
+} from '../../src/components/data-test';
 import {
   persesDashboardsImportDashboard,
   persesDashboardsModalTitles,
@@ -137,6 +142,17 @@ export const persesImportDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.importDashboardProjectInputButton)
       .should('be.visible')
       .click({ force: true });
+  },
+
+  assertImportAccessDenied: (project: string) => {
+    cy.log('persesImportDashboardsPage.assertImportAccessDenied');
+    cy.byAriaLabel(persesAriaLabels.importDashboardProjectInputButton)
+      .should('be.visible')
+      .click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
+    cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find('button').contains('Import').should('be.disabled');
   },
 
   assertFailedToMigrateGrafanaDashboard: () => {
