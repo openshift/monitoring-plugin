@@ -18,7 +18,6 @@ export const useActiveProject = () => {
     optional: true,
   });
 
-  // Sync the activeProject and activeNamespace changes
   useEffect(() => {
     if (!namespacesLoaded || projectFromUrl === activeNamespace) {
       return;
@@ -29,7 +28,6 @@ export const useActiveProject = () => {
       return;
     }
 
-    // If the project name exists as a namespace, set the active namespace
     if (
       namespaces.some((namespace) => namespace.metadata.name === projectFromUrl) ||
       projectFromUrl === ALL_NAMESPACES_KEY

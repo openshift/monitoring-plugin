@@ -5,8 +5,9 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
 import { QueryParams } from '../../../query-params';
-import { useActiveProject } from '../project/useActiveProject';
+import { useActiveProject } from './useActiveProject';
 import { usePerses } from './usePerses';
+import { useOcpProjects } from './useOcpProjects';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ALL_NAMESPACES_KEY } from '../../../utils';
 
@@ -16,6 +17,7 @@ export const useDashboardsData = () => {
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
+  const { ocpProjectsLoaded } = useOcpProjects();
   const [queryParams] = useSearchParams();
 
   // track initial page load to prevent a full page loading state when swapping dashboards
@@ -23,9 +25,7 @@ export const useDashboardsData = () => {
   const [initialPageLoad, , , setInitialPageLoadFalse] = useBoolean(true);
 
   // Retrieve perses dashboard information
-  const { persesProjects, persesProjectsLoading, persesDashboards, persesDashboardsLoading } =
-    usePerses();
-  const persesAvailable = !persesProjectsLoading && persesProjects;
+  const { persesProjectsLoading, persesDashboards, persesDashboardsLoading } = usePerses();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
@@ -33,12 +33,18 @@ export const useDashboardsData = () => {
     if (!initialPageLoad) {
       return false;
     }
-    if (!(persesProjectsLoading || persesDashboardsLoading)) {
+    if (ocpProjectsLoaded && !persesProjectsLoading && !persesDashboardsLoading) {
       setInitialPageLoadFalse();
       return false;
     }
     return true;
-  }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
+  }, [
+    ocpProjectsLoaded,
+    persesProjectsLoading,
+    persesDashboardsLoading,
+    initialPageLoad,
+    setInitialPageLoadFalse,
+  ]);
 
   const prevDashboardsRef = useRef<DashboardResource[]>([]);
   const prevMetadataRef = useRef<CombinedDashboardMetadata[]>([]);
@@ -131,8 +137,6 @@ export const useDashboardsData = () => {
   );
 
   return {
-    persesAvailable,
-    persesProjectsLoading,
     persesDashboards,
     dashboardName,
     changeBoard,
