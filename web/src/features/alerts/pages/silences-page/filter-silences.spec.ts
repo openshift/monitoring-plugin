@@ -4,11 +4,11 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 
 import { Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 
-import { filterSilences } from '@/features/alerts/pages/silences-page/filter-silences';
 import {
+  filterSilences,
   SilenceFilterOptions,
   SilenceFilters,
-} from '@/features/alerts/pages/silences-page/SilencesPage';
+} from '@/features/alerts/pages/silences-page/filter-silences';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const emptyFilters: SilenceFilters = {

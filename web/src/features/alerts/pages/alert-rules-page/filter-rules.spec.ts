@@ -13,8 +13,6 @@ import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertRulesFilterOptions,
   AlertRulesFilters,
-} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
-import {
   filterRules,
   ruleHasAlertState,
 } from '@/features/alerts/pages/alert-rules-page/filter-rules';
