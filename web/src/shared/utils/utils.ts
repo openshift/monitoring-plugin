@@ -166,6 +166,21 @@ export const isTimeoutError = (err: Error): boolean =>
   err.name === 'TimeoutError' || err.message.includes('timed out');
 
 /**
+ * Returns an externally supplied URL only when it is an absolute HTTP(S) URL.
+ *
+ * Do not normalize the value before returning it: callers display this value to
+ * users, and the browser will perform the same URL parsing when navigating.
+ */
+export const getSafeExternalURL = (value?: string): string | undefined => {
+  if (!value || !URL.canParse(value)) {
+    return undefined;
+  }
+
+  const url = new URL(value);
+  return url.protocol === 'http:' || url.protocol === 'https:' ? value : undefined;
+};
+
+/**
  * This function is used to get the parameters needed to break a long time period down into smaller
  * chunks which won't timeout
  *
