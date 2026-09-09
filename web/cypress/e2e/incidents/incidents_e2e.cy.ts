@@ -5,7 +5,7 @@ The run time can be 15 - 20 minutes. (Waiting untill the incident detection capt
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 describe('BVT: Incidents - e2e', { tags: ['@cluster-health-analyzer', '@coo', '@slow'] }, () => {

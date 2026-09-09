@@ -4,7 +4,7 @@
  * CLI tool to validate YAML fixture files against the JSON schema
  * Usage: npm run ts-node validate-fixtures.ts <fixture-file.yaml>
  * Or from web directory:
- * npm run ts-node cypress/support/incidents_prometheus_query_mocks/schema/validate-fixtures.ts
+ * npm run ts-node cypress/support/incidents/schema/validate-fixtures.ts
  */
 
 import * as fs from 'fs';
@@ -62,7 +62,7 @@ if (args.length === 0) {
     '   or: npm run ts-node validate-fixtures.ts --all (validates all .yaml files in fixtures directory)',
   );
   console.log(
-    'From web directory: npm run ts-node cypress/support/incidents_prometheus_query_mocks/schema/validate-fixtures.ts -- --all',
+    'From web directory: npm run ts-node cypress/support/incidents/schema/validate-fixtures.ts -- --all',
   );
   process.exit(1);
 }

@@ -3,8 +3,8 @@ import { nav } from '../../views/nav';
 import {
   testCOOListPerses,
   testCOOListPersesDuplicateDashboard,
-} from '../../support/perses/01.coo_list_perses_admin.cy';
-import { testCOOListPersesNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
+} from '../../support/perses/perses_list_admin.cy';
+import { testCOOListPersesNamespace } from '../../support/perses/perses_list_admin_namespace.cy';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

@@ -1,5 +1,7 @@
 # Cypress Setup & Configuration Guide
 
+TODO: UPDATE THIS WITH NEW STRUCTURE
+
 > **Technical setup and environment configuration for Monitoring Plugin Cypress tests**
 
 For testing workflows, test architecture, and creating tests, see **[CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)**
@@ -184,22 +186,7 @@ npm run cypress:run
 
 ```bash
 # COO BVT tests
-npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
-
-# ACM Alerting tests
-npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
-
-# Monitoring BVT tests
-npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
-
-# All Monitoring Regression tests
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/**"
-
-# All Virtualization IVT tests
-npm run cypress:run -- --spec "cypress/e2e/virtualization/**"
-
-# Incidents tests (requires CYPRESS_TIMEZONE and optionally CYPRESS_MOCK_NEW_METRICS)
-npm run cypress:run -- --spec "cypress/e2e/**/incidents*.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/alerts/alerts_bvt.cy.ts"
 ```
 
 **Note**: Incidents tests require `CYPRESS_TIMEZONE` to be set to match your cluster's timezone configuration. See [Incidents Testing Configuration](#incidents-testing-configuration) for details.
@@ -376,9 +363,9 @@ Component testing is configured in the `component` section of `web/cypress.confi
 cypress/
 ├── component/              # Component test files (.cy.tsx)
 ├── e2e/                    # E2E test files by perspective
-│   ├── monitoring/         # Core monitoring (Administrator)
-│   ├── coo/               # COO-specific tests
-│   └── virtualization/    # Virtualization integration
+│   ├── alerts/             # Alert tests
+│   ├── legacy-dashboards/  # Module tests
+│   └── shared/             # Shared common tests
 ├── support/               # Reusable test scenarios
 │   ├── monitoring/        # Test scenario modules
 │   ├── perses/           # Perses scenarios

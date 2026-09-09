@@ -14,7 +14,7 @@ with no 5-minute gap between End of one segment and Start of the next.
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
+} from '../../../support/shared/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 describe(

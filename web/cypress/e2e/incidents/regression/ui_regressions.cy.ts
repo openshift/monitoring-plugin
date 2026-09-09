@@ -13,7 +13,7 @@ This test loads comprehensive test data covering:
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
+} from '../../../support/shared/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const ARROW_HEIGHT = 12;

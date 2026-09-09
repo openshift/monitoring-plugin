@@ -17,7 +17,7 @@ Validate existing YAML incident fixture files against the JSON Schema to ensure 
 Use the validation tool to check each fixture:
 
 ```bash
-cd web/cypress/support/incidents_prometheus_query_mocks
+cd web/cypress/support/incidents
 node validate-fixtures.js --all
 ```
 
@@ -138,6 +138,6 @@ Provide:
 
 ## Tools Available
 
-- Schema validator: `web/cypress/support/incidents_prometheus_query_mocks/schema-validator.ts`
-- CLI validator: `web/cypress/support/incidents_prometheus_query_mocks/validate-fixtures.js`
-- JSON Schema: `web/cypress/support/incidents_prometheus_query_mocks/fixture-schema.json`
+- Schema validator: `web/cypress/support/incidents/schema-validator.ts`
+- CLI validator: `web/cypress/support/incidents/validate-fixtures.js`
+- JSON Schema: `web/cypress/support/incidents/fixture-schema.json`

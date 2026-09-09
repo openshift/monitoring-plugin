@@ -1,18 +1,18 @@
 import '@cypress/grep';
 
-import './selectors';
-import './commands/selector-commands';
-import './commands/auth-commands';
-import './commands/coo-install-commands';
-import './commands/image-patch-commands';
-import './commands/dashboards-commands';
-import './commands/operator-commands';
-import './commands/incident-commands';
-import './commands/utility-commands';
-import './incidents_prometheus_query_mocks';
-import './commands/virtualization-commands';
-import './commands/perses-commands';
-import './commands/traces-logging-commands';
+import './shared/commands/selectors';
+import './shared/commands/selector-commands';
+import './shared/commands/auth-commands';
+import './shared/cluster-observability-operator/coo-install-commands';
+import './shared/commands/image-patch-commands';
+import './perses/commands/dashboards-commands';
+import './shared/commands/operator-commands';
+import './incidents/commands/incident-commands';
+import './shared/commands/utility-commands';
+import './incidents';
+import './shared/commands/virtualization-commands';
+import './perses/commands/perses-commands';
+import './shared/commands/traces-logging-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
