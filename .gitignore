@@ -6,6 +6,7 @@ web/cypress/export-env.sh
 web/screenshots/
 web/cypress/videos/
 web/dist/
+web/coverage/
 web/node_modules/
 plugin-backend
 # Leave these permanently for backwards compatability for backporting
