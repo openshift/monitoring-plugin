@@ -68,7 +68,7 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { alertDescription, RuleResource } from '@/shared/utils/utils';
+import { alertDescription, getSafeExternalURL, RuleResource } from '@/shared/utils/utils';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }: { text: string }) => (
@@ -169,7 +169,7 @@ const AlertRulesDetailsPage_: FC = () => {
     return `${nameLabel}{${_.map(otherLabels, (v, k) => `${k}="${v}"`).join(',')}}`;
   };
 
-  const runbookURL = rule?.annotations?.runbook_url;
+  const runbookURL = getSafeExternalURL(rule?.annotations?.runbook_url);
 
   return (
     <>
