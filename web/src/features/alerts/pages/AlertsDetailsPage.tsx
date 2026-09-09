@@ -87,7 +87,6 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
-import { getSafeExternalURL } from '@/shared/utils/utils';
 import { AlertResource, alertState, RuleResource } from '@/shared/utils/utils';
 
 const AlertsDetailsPage_: FC = () => {
@@ -122,7 +121,7 @@ const AlertsDetailsPage_: FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const labels: PrometheusLabels = useMemo(() => alert?.labels, [labelsMemoKey]);
 
-  const runbookURL = getSafeExternalURL(alert?.annotations?.runbook_url);
+  const runbookURL = alert?.annotations?.runbook_url;
 
   const sourceId = rule?.sourceId;
 

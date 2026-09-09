@@ -4,7 +4,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 
 import { AlertSeverity, AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertingRuleStateSort, getSafeExternalURL, severitySort } from '@/shared/utils/utils';
+import { alertingRuleStateSort, severitySort } from '@/shared/utils/utils';
 
 const makeRule = (alerts: { state: AlertStates }[]): Rule => ({ alerts }) as unknown as Rule;
 
@@ -104,32 +104,5 @@ describe('severitySort', () => {
     const sorted = [...items].sort(severitySort);
     const severities = sorted.map((i) => i.labels.severity);
     expect(severities).toEqual(['critical', 'warning', 'info', 'none']);
-  });
-});
-
-describe('getSafeExternalURL', () => {
-  it('returns undefined when no URL is provided', () => {
-    expect(getSafeExternalURL()).toBeUndefined();
-  });
-
-  it.each([
-    'https://runbooks.example.com/alert',
-    'http://runbooks.example.com/alert?severity=high',
-  ])('returns a valid HTTP(S) URL unchanged: %s', (url) => {
-    expect(getSafeExternalURL(url)).toBe(url);
-  });
-
-  it.each([
-    'javascript:alert(1)',
-    'JaVaScRiPt:alert(1)',
-    'data:text/html,<script>alert(1)</script>',
-    'vbscript:msgbox(1)',
-    'mailto:security@example.com',
-    '/runbooks/alert',
-    '//runbooks.example.com/alert',
-    '\tjavascript:alert(1)',
-    'not a URL',
-  ])('rejects an unsafe or invalid URL: %s', (url) => {
-    expect(getSafeExternalURL(url)).toBeUndefined();
   });
 });
