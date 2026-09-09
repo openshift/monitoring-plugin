@@ -2,12 +2,24 @@ import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { isEmpty, some } from 'lodash-es';
 
 import { alertingRuleSource } from '@/features/alerts/components/AlertUtils';
-import {
-  AlertRulesFilterOptions,
-  AlertRulesFilters,
-} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
 import { AlertSource } from '@/shared/types/types';
 import { fuzzyCaseInsensitive } from '@/shared/utils/utils';
+
+export const enum AlertRulesFilterOptions {
+  NAME = 'name',
+  STATE = 'alert-state',
+  SEVERITY = 'alert-severity',
+  SOURCE = 'alert-source',
+  LABEL = 'label',
+}
+
+export interface AlertRulesFilters {
+  [AlertRulesFilterOptions.NAME]: string;
+  [AlertRulesFilterOptions.STATE]: string[];
+  [AlertRulesFilterOptions.SEVERITY]: string[];
+  [AlertRulesFilterOptions.SOURCE]?: AlertSource[];
+  [AlertRulesFilterOptions.LABEL]: string;
+}
 
 export const filterRules = (rules: Rule[], selectedFilters: AlertRulesFilters) => {
   if (!rules) {
