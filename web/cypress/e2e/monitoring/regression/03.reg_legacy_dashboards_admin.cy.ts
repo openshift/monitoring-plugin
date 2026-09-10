@@ -1,12 +1,9 @@
-import { runAllRegressionLegacyDashboardsTests } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
+import { testLegacyDashboardsRegression } from '../../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../../views/common';
 import { nav } from '../../../views/nav';
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 // Test suite for Administrator perspective
 describe(
@@ -14,7 +11,7 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
@@ -30,9 +27,7 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTests({
-      name: 'Administrator',
-    });
+    testLegacyDashboardsRegression(CustomerPerspectiveName.CorePlatform);
   },
 );
 
@@ -42,18 +37,16 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       commonPages.titleShouldHaveText('Dashboards');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
     // Run tests in Administrator perspective
-    runAllRegressionLegacyDashboardsTestsNamespace({
-      name: 'Administrator',
-    });
+    testLegacyDashboardsRegressionNamespace(CustomerPerspectiveName.CorePlatform);
   },
 );

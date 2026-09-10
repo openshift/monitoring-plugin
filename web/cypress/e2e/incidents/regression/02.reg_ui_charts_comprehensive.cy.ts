@@ -10,6 +10,10 @@ This test loads comprehensive test data covering:
 
 */
 
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const ARROW_HEIGHT = 12;
@@ -85,27 +89,16 @@ function verifyIncidentBarIsVisible(index: number, context: string) {
   verifyIncidentBarDimensions(index, context);
   verifyIncidentBarHasVisiblePaths(index, context);
 }
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 describe(
   'Regression: Charts UI - Comprehensive',
   { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
       incidentsPage.warmUpForPlugin();
     });
 

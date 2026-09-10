@@ -74,7 +74,7 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Released Version**               | `CYPRESS_COO_UI_INSTALL=true`                                                                           | Install operators from redhat-operators catalog. Production-like testing.                                     |
 | **Pre-provisioned COO**            | `CYPRESS_SKIP_COO_INSTALL=true`, optionally `CYPRESS_COO_NAMESPACE=<ns>`                                | COO already installed. Tests still enable the monitoring plugin. Specify namespace if non-default.            |
-| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_KBV_INSTALL=true`                                                                         | OpenShift Virtualization already installed.                                                                   |
+| **Pre-provisioned Virtualization** | `CYPRESS_SKIP_CNV_INSTALL=true`                                                                         | OpenShift Virtualization already installed.                                                                   |
 | **Local Dev / PR Testing**         | `CYPRESS_SKIP_ALL_INSTALL=true`                                                                         | Run UI locally via `make start-feature-frontend` ([details](../../README.md#development)). Skips all setup.   |
 | **Custom Images**                  | `CYPRESS_MP_IMAGE`, `CYPRESS_MCP_CONSOLE_IMAGE`, `CYPRESS_CHA_IMAGE`, `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE` | Patch component images in the CSV, or replace the operator bundle. Combine with an installation method above. |
 | **FBC Image**                      | `CYPRESS_FBC_STAGE_COO_IMAGE`                                                                           | Install COO from File-Based Catalog image. For release validation.                                            |
@@ -105,21 +105,21 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 
 ### Plugin Image Configuration
 
-| Variable                    | Description                            | Use Case                  |
-| --------------------------- | -------------------------------------- | ------------------------- |
-| `CYPRESS_MP_IMAGE`          | Custom Monitoring Plugin image         | Testing custom MP builds  |
-| `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom MCP builds |
-| `CYPRESS_CHA_IMAGE`         | Custom cluster-health-analyzer image   | Testing custom CHA builds |
+| Variable                    | Description                            | Use Case                                             |
+| --------------------------- | -------------------------------------- | ---------------------------------------------------- |
+| `CYPRESS_MP_IMAGE`          | Custom Monitoring Plugin image         | Testing custom CLUSTER_MONITORING_OPERATOR builds    |
+| `CYPRESS_MCP_CONSOLE_IMAGE` | Custom Monitoring Console Plugin image | Testing custom CLUSTER_OBSERVABILITY_OPERATOR builds |
+| `CYPRESS_CHA_IMAGE`         | Custom cluster-health-analyzer image   | Testing custom CHA builds                            |
 
 ### Operator Installation Control
 
 | Variable                   | Default | Description                                                    |
 | -------------------------- | ------- | -------------------------------------------------------------- |
 | `CYPRESS_SKIP_COO_INSTALL` | `false` | Skip Cluster Observability Operator installation               |
-| `CYPRESS_SKIP_KBV_INSTALL` | `false` | Skip OpenShift Virtualization installation                     |
+| `CYPRESS_SKIP_CNV_INSTALL` | `false` | Skip OpenShift Virtualization installation                     |
 | `CYPRESS_SKIP_ALL_INSTALL` | `false` | Skip all operator installations (for pre-provisioned clusters) |
 | `CYPRESS_COO_UI_INSTALL`   | `false` | Install COO from redhat-operators catalog                      |
-| `CYPRESS_KBV_UI_INSTALL`   | `false` | Install Virtualization from redhat-operators catalog           |
+| `CYPRESS_CNV_UI_INSTALL`   | `false` | Install Virtualization from redhat-operators catalog           |
 
 ### Bundle Images
 
@@ -127,15 +127,15 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | ---------------------------------- | ---------------------------------------- |
 | `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` | COO bundle image from Konflux            |
 | `CYPRESS_CUSTOM_COO_BUNDLE_IMAGE`  | Custom COO bundle image                  |
-| `CYPRESS_KONFLUX_KBV_BUNDLE_IMAGE` | Virtualization bundle image from Konflux |
-| `CYPRESS_CUSTOM_KBV_BUNDLE_IMAGE`  | Custom Virtualization bundle image       |
+| `CYPRESS_KONFLUX_CNV_BUNDLE_IMAGE` | Virtualization bundle image from Konflux |
+| `CYPRESS_CUSTOM_CNV_BUNDLE_IMAGE`  | Custom Virtualization bundle image       |
 
 ### FBC images
 
 | Variable                      | Description                              |
 | ----------------------------- | ---------------------------------------- |
 | `CYPRESS_FBC_STAGE_COO_IMAGE` | Cluster Observability Operator FBC image |
-| `CYPRESS_FBC_STAGE_KBV_IMAGE` | Virtualization FBC image                 |
+| `CYPRESS_FBC_STAGE_CNV_IMAGE` | Virtualization FBC image                 |
 
 ### Testing Configuration
 
@@ -214,32 +214,27 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 
 #### Tag Categories
 
-**1. Basic Tags:**
+**1. Modifier Tags:**
 
 - `@flaky` - Tests that don't pass reliably
 - `@xfail` - Tests for known bugs expected to fail
 - `@slow` - Long-running e2e tests (15+ minutes)
 
-**2. High-Level Component Tags:**
+**2. Infrastructure Tags:**
 
-- `@coo` - Cluster Observability Operator functionality tests (operator installation, ACM integration)
+- `@acm` - Advanced Cluster Management integration tests
+- `@coo` - Cluster Observability Operator functionality tests
 - `@virtualization` - Virtualization integration tests
 - `@ols` - OpenShift Lightspeed. Requires external installation of OLS and setup of LLM accounts through CI configuration
 
-**3. Specific Feature Tags** (format: `@{component}`):
+**3. Feature Tags** (format: `@{component}`):
 
-- `@acm-alerting` - Alert-related tests in ACM perspective
 - `@alerting` - Alert-related tests
 - `@legacy-dashboards` - Legacy dashboard tests
 - `@metrics` - Metrics explorer tests
 - `@targets` - Targets tests
 - `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
-
-**4. JIRA Tags** (format: `@JIRA-{ID}`):
-
-- Example: `@JIRA-OU-1033`
-- Link tests to specific JIRA issues
 
 #### Running Tests by Tags
 
