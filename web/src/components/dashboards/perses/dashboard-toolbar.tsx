@@ -16,13 +16,13 @@ import {
 import { TimeRangeControls, useTimeZoneParams } from '@perses-dev/plugin-system';
 import { ReactElement, ReactNode, useCallback, useEffect } from 'react';
 
-import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import { StackItem } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import PencilIcon from 'mdi-material-ui/PencilOutline';
 import { useTranslation } from 'react-i18next';
 import { DashboardDropdown } from '../shared/dashboard-dropdown';
 import { useDashboardsData } from './hooks/useDashboardsData';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 
 import { persesDashboardDataTestIDs } from '../../data-test';
 
@@ -72,8 +72,7 @@ export interface EditButtonProps {
 
 export const EditButton = ({ onClick, activeProject }: EditButtonProps): ReactElement => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { canEdit, loading } = usePersesEditPermissions(activeProject);
-  const disabled = !canEdit;
+  const [canUpdate, updateLoading] = usePersesDashboardAccess('update', activeProject);
 
   const button = (
     <Button
@@ -81,51 +80,23 @@ export const EditButton = ({ onClick, activeProject }: EditButtonProps): ReactEl
       startIcon={<PencilIcon />}
       variant="outlined"
       color="secondary"
-      disabled={disabled || loading}
+      disabled={updateLoading || !canUpdate}
       sx={{ whiteSpace: 'nowrap', minWidth: 'auto' }}
       data-test={persesDashboardDataTestIDs.editDashboardButtonToolbar}
     >
-      {loading ? t('Loading...') : t('Edit')}
+      {updateLoading ? t('Loading...') : t('Edit')}
     </Button>
   );
 
-  if (disabled && !loading) {
+  if (!updateLoading && !canUpdate) {
     return (
-      <Tooltip title={t("You don't have permission to edit this dashboard")} arrow>
+      <Tooltip title={t('You do not have permission to edit dashboards in this project.')} arrow>
         <span>{button}</span>
       </Tooltip>
     );
   }
 
   return button;
-};
-
-export const usePersesEditPermissions = (namespace: string | null = null) => {
-  const [canCreate, createLoading] = useAccessReview({
-    group: 'perses.dev',
-    resource: 'persesdashboards',
-    verb: 'create',
-    namespace,
-  });
-
-  const [canUpdate, updateLoading] = useAccessReview({
-    group: 'perses.dev',
-    resource: 'persesdashboards',
-    verb: 'update',
-    namespace,
-  });
-
-  const [canDelete, deleteLoading] = useAccessReview({
-    group: 'perses.dev',
-    resource: 'persesdashboards',
-    verb: 'delete',
-    namespace,
-  });
-
-  const loading = createLoading || updateLoading || deleteLoading;
-  const canEdit = canUpdate && canCreate && canDelete;
-
-  return { canEdit, loading };
 };
 
 export const OCPDashboardToolbar = (props: DashboardToolbarProps): ReactElement => {

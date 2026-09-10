@@ -29,12 +29,13 @@ import {
 } from './dashboard-action-validations';
 import { useCreateDashboardMutation } from './dashboard-api';
 import {
-  PermissionStateWrapper,
+  DashboardDeniedHelperText,
   ProjectSelectFormGroup,
   useDashboardNavigation,
   useDashboardProjects,
   useProjectCreation,
 } from './dashboard-dialog-helpers';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
 
@@ -50,15 +51,7 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { addAlert } = useToast();
 
-  const {
-    editableProjects,
-    hasEditableProject,
-    permissionsLoading,
-    permissionsError,
-    persesProjects,
-    defaultProject,
-    projectOptions,
-  } = useDashboardProjects();
+  const { defaultProject, projectOptions } = useDashboardProjects();
 
   const { ensureProjectExists, isCreatingProject } = useProjectCreation();
   const { navigateToDashboard } = useDashboardNavigation();
@@ -78,17 +71,25 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
   });
 
   useEffect(() => {
-    if (isOpen && editableProjects?.length > 0 && defaultProject) {
+    if (isOpen && defaultProject) {
       form.reset({
         projectName: defaultProject,
         dashboardName: '',
       });
     }
-  }, [isOpen, defaultProject, editableProjects?.length, form]);
+  }, [isOpen, defaultProject, form]);
+
+  const selectedProject = form.watch('projectName');
+  const [canCreate, checkingAccess] = usePersesDashboardAccess(
+    'create',
+    selectedProject || null,
+    isOpen,
+  );
+  const createDenied = !!selectedProject && !checkingAccess && !canCreate;
 
   const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
     try {
-      await ensureProjectExists(data.projectName, persesProjects || []);
+      await ensureProjectExists(data.projectName);
     } catch {
       return;
     }
@@ -128,60 +129,56 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
     >
       <ModalHeader title={t('Create Dashboard')} labelId="create-modal-title" />
       <ModalBody>
-        <PermissionStateWrapper
-          permissionsLoading={permissionsLoading}
-          permissionsError={permissionsError}
-        >
-          <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(processForm)}>
-              <Stack hasGutter>
-                <StackItem>
-                  <Controller
-                    control={form.control}
-                    name="dashboardName"
-                    render={({ field, fieldState }) => (
-                      <FormGroup
-                        label={t('Dashboard name')}
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(processForm)}>
+            <Stack hasGutter>
+              <StackItem>
+                <Controller
+                  control={form.control}
+                  name="dashboardName"
+                  render={({ field, fieldState }) => (
+                    <FormGroup
+                      label={t('Dashboard name')}
+                      isRequired
+                      fieldId="create-modal-dashboard-name-form-group"
+                      style={formGroupStyle}
+                    >
+                      <LabelSpacer />
+                      <TextInput
+                        {...field}
                         isRequired
-                        fieldId="create-modal-dashboard-name-form-group"
-                        style={formGroupStyle}
-                      >
-                        <LabelSpacer />
-                        <TextInput
-                          {...field}
-                          isRequired
-                          type="text"
-                          id="create-modal-dashboard-name-form-group-text-input"
-                          placeholder={t('my-new-dashboard')}
-                          validated={
-                            fieldState.error ? ValidatedOptions.error : ValidatedOptions.default
-                          }
-                        />
-                        {fieldState.error && (
-                          <FormHelperText>
-                            <HelperText>
-                              <HelperTextItem variant="error">
-                                {fieldState.error.message}
-                              </HelperTextItem>
-                            </HelperText>
-                          </FormHelperText>
-                        )}
-                      </FormGroup>
-                    )}
-                  />
-                </StackItem>
-                <StackItem>
-                  <ProjectSelectFormGroup
-                    control={form.control}
-                    projectOptions={projectOptions}
-                    defaultValue={defaultProject}
-                    label={t('Select project')}
-                  />
-                </StackItem>
-              </Stack>
-            </form>
-          </FormProvider>
-        </PermissionStateWrapper>
+                        type="text"
+                        id="create-modal-dashboard-name-form-group-text-input"
+                        placeholder={t('my-new-dashboard')}
+                        validated={
+                          fieldState.error ? ValidatedOptions.error : ValidatedOptions.default
+                        }
+                      />
+                      {fieldState.error && (
+                        <FormHelperText>
+                          <HelperText>
+                            <HelperTextItem variant="error">
+                              {fieldState.error.message}
+                            </HelperTextItem>
+                          </HelperText>
+                        </FormHelperText>
+                      )}
+                    </FormGroup>
+                  )}
+                />
+              </StackItem>
+              <StackItem>
+                <ProjectSelectFormGroup
+                  control={form.control}
+                  projectOptions={projectOptions}
+                  defaultValue={defaultProject}
+                  label={t('Select project')}
+                />
+                <DashboardDeniedHelperText show={createDenied} verb="create" />
+              </StackItem>
+            </Stack>
+          </form>
+        </FormProvider>
       </ModalBody>
       <ModalFooter>
         <Button
@@ -189,8 +186,9 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
           variant="primary"
           isDisabled={
             !(form.watch('dashboardName') || '')?.trim() ||
-            !(form.watch('projectName') || '')?.trim() ||
-            !hasEditableProject
+            !selectedProject?.trim() ||
+            checkingAccess ||
+            createDenied
           }
           isLoading={createDashboardMutation.isPending || isCreatingProject}
           onClick={form.handleSubmit(processForm)}

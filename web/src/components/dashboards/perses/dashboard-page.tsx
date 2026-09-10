@@ -30,7 +30,6 @@ const DashboardPage_: FC = () => {
     activeProjectDashboardsMetadata,
     changeBoard,
     dashboardName,
-    setActiveProject,
     activeProject,
     combinedInitialLoad,
   } = useDashboardsData();
@@ -38,11 +37,6 @@ const DashboardPage_: FC = () => {
   // Get dashboard and project from URL parameters
   const urlDashboard = searchParams.get('dashboard');
   const urlProject = searchParams.get('project');
-
-  // Set active project if provided in URL
-  if (urlProject && urlProject !== activeProject) {
-    setActiveProject(urlProject);
-  }
 
   useEffect(() => {
     if (urlDashboard && urlDashboard !== dashboardName) {
@@ -81,7 +75,6 @@ const DashboardPage_: FC = () => {
   return (
     <DashboardFrame
       activeProject={activeProject}
-      setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
       dashboardDisplayName={currentDashboard.title}
