@@ -1,46 +1,21 @@
-import { runAllRegressionLegacyDashboardsTests } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
-import { runAllRegressionLegacyDashboardsTestsNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../../support/operators';
+import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
 
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-const KBV = {
-  namespace: 'openshift-cnv',
-  packageName: 'kubevirt-hyperconverged',
-  config: {
-    kind: 'HyperConverged',
-    name: 'kubevirt-hyperconverged',
-  },
-  crd: {
-    kubevirt: 'kubevirts.kubevirt.io',
-    hyperconverged: 'hyperconvergeds.hco.kubevirt.io',
-  },
-};
-
 describe(
-  'Installation: COO and setting up Monitoring Plugin',
-  { tags: ['@virtualization', '@slow', '@coo'] },
+  'Regression: Monitoring - Legacy Dashboards (Virtualization)',
+  { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(MCP, MP);
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },
@@ -48,10 +23,10 @@ describe(
 
 describe(
   'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@virtualization', '@slow', '@coo'] },
+  { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KBV);
+      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {
@@ -64,7 +39,7 @@ describe(
 
 describe(
   'Regression: Monitoring - Legacy Dashboards (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
@@ -76,15 +51,13 @@ describe(
       cy.changeNamespace('All Projects');
     });
 
-    runAllRegressionLegacyDashboardsTests({
-      name: 'Virtualization',
-    });
+    testLegacyDashboardsRegression(CustomerPerspectiveName.Virtualization);
   },
 );
 
 describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
-  { tags: ['@legacy-dashboards', '@slow', '@virtualization', '@coo'] },
+  { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     beforeEach(() => {
       cy.visit('/');
@@ -93,11 +66,9 @@ describe(
       guidedTour.closeKubevirtTour();
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       commonPages.titleShouldHaveText('Dashboards');
-      cy.changeNamespace(MP.namespace);
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
     });
 
-    runAllRegressionLegacyDashboardsTestsNamespace({
-      name: 'Virtualization',
-    });
+    testLegacyDashboardsRegressionNamespace(CustomerPerspectiveName.Virtualization);
   },
 );

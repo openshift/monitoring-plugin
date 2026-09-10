@@ -1,30 +1,27 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/monitoring/alert';
-import { runBVTMonitoringTests } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
-// Set constants for the operators that need to be installed for tests.
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 describe(
   'BVT: Monitoring',
   { tags: ['@alerting', '@legacy-dashboards', '@metrics', '@targets'] },
   () => {
     before(() => {
-      cy.beforeBlock(MP);
+      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
       nav.sidenav.clickNavLink(['Observe', 'Alerting']);
       commonPages.titleShouldHaveText('Alerting');
-      alerts.getWatchdogAlert();
+      alerts.interceptWatchdogAlert();
     });
 
     it(`1. Admin perspective - Observe Menu`, () => {
@@ -75,8 +72,6 @@ describe(
     });
 
     // Run tests in Administrator perspective
-    runBVTMonitoringTests({
-      name: 'Administrator',
-    });
+    testBVTMonitoring(CustomerPerspectiveName.CorePlatform);
   },
 );

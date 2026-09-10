@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/nodejs-22:latest AS web-builder
+FROM registry.redhat.io/ubi9/nodejs-22 AS web-builder
 
 WORKDIR /opt/app-root
 

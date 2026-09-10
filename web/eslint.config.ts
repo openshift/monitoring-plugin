@@ -13,6 +13,8 @@ import importPlugin from 'eslint-plugin-import';
 import { importBoundaryZones } from './eslint-rules/import-boundary-zones';
 import { fileNaming } from './eslint-rules/file-naming';
 import { requireFeatureOwners } from './eslint-rules/require-feature-owners';
+import { cypressTagOrder } from './eslint-rules/cypress-tag-order';
+import { cypressTagsArray } from './eslint-rules/cypress-tags-array';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -191,6 +193,21 @@ export default defineConfig([
     rules: {
       'local-rules/file-naming': 'error',
       'local-rules/require-feature-owners': 'error',
+    },
+  },
+  {
+    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
+    plugins: {
+      'local-rules': {
+        rules: {
+          'cypress-tag-order': cypressTagOrder,
+          'cypress-tags-array': cypressTagsArray,
+        },
+      } as any,
+    },
+    rules: {
+      'local-rules/cypress-tag-order': 'error',
+      'local-rules/cypress-tags-array': 'error',
     },
   },
   {

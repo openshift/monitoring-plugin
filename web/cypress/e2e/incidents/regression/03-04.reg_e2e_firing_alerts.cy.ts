@@ -17,31 +17,23 @@ Both tests require continuously firing alerts and cannot be tested with mocked d
 Verifies: OU-XXX (time-based resolution bugs)
 */
 
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
-
-const MCP = {
-  namespace: Cypress.env('COO_NAMESPACE'),
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
-  },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
 
 describe(
   'Regression: Time-Based Alert Resolution (E2E with Firing Alerts)',
-  { tags: ['@cluster-health-analyzer', '@slow', '@coo'] },
+  { tags: ['@cluster-health-analyzer', '@coo', '@slow'] },
   () => {
     let currentAlertName: string;
 
     before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: false, troubleshootingPanel: false });
+      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+        dashboards: false,
+        troubleshootingPanel: false,
+      });
       incidentsPage.warmUpForPlugin();
 
       // Reset the search timeout so this spec gets a fresh 35-minute window

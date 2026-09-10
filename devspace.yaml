@@ -45,8 +45,9 @@ dev:
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
-    command: ["make"]
-    args: ["start-devspace-backend"]
+    command: ["sh", "-c"]
+    args:
+      - until test -f /opt/app-root/web/dist/plugin-manifest.json; do sleep 1; done; exec make start-devspace-backend
     ssh:
       enabled: true
 
@@ -63,7 +64,8 @@ dev:
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
-    command: ["make"]
-    args: ["start-devspace-mcp-backend"]
+    command: ["sh", "-c"]
+    args:
+      - until test -f /opt/app-root/web/dist/plugin-manifest.json; do sleep 1; done; exec make start-devspace-mcp-backend
     ssh:
       enabled: true

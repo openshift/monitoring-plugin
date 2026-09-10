@@ -37,6 +37,7 @@ export const DataTestIDs = {
   MetricsPageActionsDropdownButton: 'actions-dropdown-button',
   MetricsPageAddQueryButton: 'add-query-button',
   MetricsPageAddQueryDropdownItem: 'add-query-dropdown-item',
+  MetricsPageCreateAlertRuleDropdownItem: 'create-alert-rule-dropdown-item',
   MetricsPageDeleteAllQueriesDropdownItem: 'delete-all-queries-dropdown-item',
   MetricsPageDeleteQueryDropdownItem: 'delete-query-dropdown-item',
   MetricsPageDisableEnableQuerySwitch: 'disable-enable-query-switch',
@@ -324,6 +325,9 @@ export const persesDashboardDataTestIDs = {
   importDashboardButtonToolbar: 'import-dashboard-button-list-page',
   editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
   cancelButtonToolbar: 'cancel-button-toolbar',
+  createAccessDeniedHelperText: 'perses-create-access-denied-helper-text',
+  updateAccessDeniedHelperText: 'perses-update-access-denied-helper-text',
+  deleteAccessDeniedHelperText: 'perses-delete-access-denied-helper-text',
 };
 
 export const listPersesDashboardsDataTestIDs = {

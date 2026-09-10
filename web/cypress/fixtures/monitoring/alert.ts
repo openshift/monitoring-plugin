@@ -1,7 +1,7 @@
 import { WatchdogAlert } from './constants';
 
 export const alerts = {
-  getWatchdogAlert: () => {
+  interceptWatchdogAlert: () => {
     cy.intercept('GET', '/api/prometheus/api/v1/rules?', {
       data: {
         groups: [

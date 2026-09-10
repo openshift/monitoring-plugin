@@ -68,11 +68,19 @@ export const persesDashboardsPanel = {
 
   clickDropdownAndSelectOption: (label: string, option: string) => {
     cy.log('persesDashboardsPanel.clickDropdownAndSelectOption');
-    cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .find('label')
-      .contains(label)
-      .siblings('div')
-      .click();
+    if (label === 'Query Type') {
+      cy.get('#' + IDs.persesDashboardAddPanelForm)
+        .find('[data-testid="plugin-kind-select"]')
+        .should('have.length.at.least', 2)
+        .last()
+        .click();
+    } else {
+      cy.get('#' + IDs.persesDashboardAddPanelForm)
+        .find('label')
+        .contains(label)
+        .siblings('div')
+        .click();
+    }
     cy.wait(1000);
     cy.get('li')
       .contains(new RegExp(`^${option}$`))
