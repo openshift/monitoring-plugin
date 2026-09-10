@@ -1,4 +1,4 @@
-import { Classes, IDs } from "../../src/components/data-test";
+import { Classes, IDs, persesDashboardDataTestIDs } from "../../src/components/data-test";
 import { persesCreateDashboard, persesDashboardsModalTitles } from "../fixtures/perses/constants";
 
 export const persesCreateDashboardsPage = {
@@ -39,6 +39,17 @@ export const persesCreateDashboardsPage = {
     cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
   },
 
+  assertCreateAccessDenied: (project: string) => {
+    cy.log('persesCreateDashboardsPage.assertCreateAccessDenied');
+    cy.get('#' + IDs.persesDashboardCreateDashboardName)
+      .should('be.visible')
+      .clear()
+      .type('access-denied-check');
+    persesCreateDashboardsPage.selectProject(project);
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find('button').contains('Create').should('be.disabled');
+  },
+
   enterDashboardName: (name: string) => {
     cy.log('persesCreateDashboardsPage.enterDashboardName');
     cy.get('#' + IDs.persesDashboardCreateDashboardName).should('be.visible').clear().type(name);
@@ -47,6 +58,12 @@ export const persesCreateDashboardsPage = {
   createDashboardDialogCreateButton: () => {
     cy.log('persesCreateDashboardsPage.clickCreateButton');
     cy.byPFRole('dialog').find('button').contains('Create').should('be.visible').click({ force: true });
+    cy.wait(2000);
+  },
+
+  createDashboardDialogCancelButton: () => {
+    cy.log('persesCreateDashboardsPage.clickCancelButton');
+    cy.byPFRole('dialog').find('button').contains('Cancel').should('be.visible').click({ force: true });
     cy.wait(2000);
   },
 
