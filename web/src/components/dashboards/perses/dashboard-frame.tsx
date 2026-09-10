@@ -1,11 +1,13 @@
+import { NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
 import { FC, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { DashboardHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
-import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
 import { ToastProvider } from './ToastProvider';
 import { PagePadding } from './dashboard-page-padding';
+import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
 
 interface DashboardFrameProps {
   activeProject: string | null;
@@ -22,9 +24,11 @@ export const DashboardFrame: FC<DashboardFrameProps> = ({
   dashboardDisplayName,
   children,
 }) => {
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
   return (
     <>
-      <ProjectBar activeProject={activeProject} />
+      <NamespaceBar onNamespaceChange={() => navigate(getDashboardsListUrl(perspective))} />
       <ToastProvider>
         <PersesWrapper project={activeProject}>
           {activeProjectDashboardsMetadata?.length === 0 ? (

@@ -1,7 +1,9 @@
+import { NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
 import { FC, ReactNode } from 'react';
+import { useNavigate } from 'react-router';
 import { DashboardListHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
-import { ProjectBar } from './project/ProjectBar';
+import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
 
 interface DashboardListFrameProps {
   activeProject: string | null;
@@ -18,9 +20,11 @@ export const DashboardListFrame: FC<DashboardListFrameProps> = ({
   dashboardName,
   children,
 }) => {
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
   return (
     <>
-      <ProjectBar activeProject={activeProject} />
+      <NamespaceBar onNamespaceChange={() => navigate(getDashboardsListUrl(perspective))} />
       <DashboardListHeader
         boardItems={activeProjectDashboardsMetadata}
         changeBoard={changeBoard}

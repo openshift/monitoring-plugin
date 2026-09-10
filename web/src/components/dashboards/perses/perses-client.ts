@@ -13,32 +13,9 @@ export const fetchPersesDashboardsMetadata = (): Promise<DashboardResource[]> =>
   return consoleFetchJSON(persesURL);
 };
 
-export const fetchPersesDashboardsByProject = (project: string): Promise<DashboardResource[]> => {
-  const dashboardsEndpoint = `${PERSES_PROXY_BASE_PATH}/api/v1/dashboards`;
-  const persesURL = `${dashboardsEndpoint}?project=${encodeURIComponent(project)}`;
-
-  return consoleFetchJSON(persesURL);
-};
-
 export const fetchPersesProjects = (): Promise<ProjectResource[]> => {
   const listProjectURL = '/api/v1/projects';
   const persesURL = `${PERSES_PROXY_BASE_PATH}${listProjectURL}`;
-
-  return consoleFetchJSON(persesURL);
-};
-
-export interface PersesPermission {
-  scopes: string[];
-  actions: string[];
-}
-
-export type PersesUserPermissions = {
-  [projectName: string]: PersesPermission[];
-};
-
-export const fetchPersesUserPermissions = (username: string): Promise<PersesUserPermissions> => {
-  const userPermissionsURL = `/api/v1/users/${encodeURIComponent(username)}/permissions`;
-  const persesURL = `${PERSES_PROXY_BASE_PATH}${userPermissionsURL}`;
 
   return consoleFetchJSON(persesURL);
 };
@@ -71,30 +48,5 @@ export const useFetchPersesDashboard = (project: string, dashboardName: string) 
     persesDashboard,
     persesDashboardError,
     persesDashboardLoading,
-  };
-};
-
-export const useFetchPersesPermissions = (username: string) => {
-  const {
-    isLoading: persesPermissionsLoading,
-    error: persesPermissionsError,
-    data: persesUserPermissions,
-  } = useQuery({
-    queryKey: ['perses-user-permissions', username],
-    queryFn: () => fetchPersesUserPermissions(username),
-    enabled: !!username,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    refetchOnWindowFocus: true,
-    retry: 2,
-    onError: (error) => {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to fetch Perses user permissions:', error);
-    },
-  });
-
-  return {
-    persesUserPermissions,
-    persesPermissionsError,
-    persesPermissionsLoading,
   };
 };
