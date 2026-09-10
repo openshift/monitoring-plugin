@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 )
@@ -328,4 +329,165 @@ func TestLabelsMatch(t *testing.T) {
 			}
 		})
 	}
+}
+
+// --- parsePrometheusRulesResponse ---
+
+func TestParsePrometheusRulesResponse_Success(t *testing.T) {
+	raw, err := json.Marshal(prometheusRulesResponse{
+		Status: "success",
+		Data: prometheusRulesData{
+			Groups: []PrometheusRuleGroup{
+				{
+					Name: "group-a",
+					Rules: []PrometheusRule{
+						{Name: "AlertA", Type: RuleTypeAlerting, Labels: map[string]string{"severity": "critical"}},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("marshal fixture: %v", err)
+	}
+
+	groups, err := parsePrometheusRulesResponse(raw, "prometheus")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(groups) != 1 {
+		t.Fatalf("expected 1 group, got %d", len(groups))
+	}
+	if groups[0].Name != "group-a" {
+		t.Errorf("expected group name group-a, got %q", groups[0].Name)
+	}
+	if len(groups[0].Rules) != 1 || groups[0].Rules[0].Name != "AlertA" {
+		t.Errorf("expected rule AlertA, got %+v", groups[0].Rules)
+	}
+}
+
+func TestParsePrometheusRulesResponse_InvalidJSON(t *testing.T) {
+	_, err := parsePrometheusRulesResponse([]byte("not json"), "prometheus")
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
+	}
+}
+
+func TestParsePrometheusRulesResponse_NonSuccessStatus(t *testing.T) {
+	raw, err := json.Marshal(prometheusRulesResponse{Status: "error"})
+	if err != nil {
+		t.Fatalf("marshal fixture: %v", err)
+	}
+	_, err = parsePrometheusRulesResponse(raw, "thanos")
+	if err == nil {
+		t.Fatal("expected error for non-success status")
+	}
+}
+
+// --- applyRuleSource ---
+
+func TestApplyRuleSource(t *testing.T) {
+	groups := []PrometheusRuleGroup{
+		{
+			Name: "g",
+			Rules: []PrometheusRule{
+				{
+					Name:   "A",
+					Labels: nil,
+					Alerts: []PrometheusRuleAlert{{Labels: nil}, {Labels: map[string]string{"alertname": "A"}}},
+				},
+			},
+		},
+	}
+	applyRuleSource(groups, AlertSourcePlatform)
+	rule := groups[0].Rules[0]
+	if rule.Labels[AlertSourceLabel] != AlertSourcePlatform {
+		t.Errorf("rule source = %q, want %q", rule.Labels[AlertSourceLabel], AlertSourcePlatform)
+	}
+	if rule.Alerts[0].Labels[AlertSourceLabel] != AlertSourcePlatform {
+		t.Errorf("alert[0] source = %q, want %q", rule.Alerts[0].Labels[AlertSourceLabel], AlertSourcePlatform)
+	}
+	if rule.Alerts[1].Labels[AlertSourceLabel] != AlertSourcePlatform {
+		t.Errorf("alert[1] source = %q, want %q", rule.Alerts[1].Labels[AlertSourceLabel], AlertSourcePlatform)
+	}
+	if rule.Alerts[1].Labels["alertname"] != "A" {
+		t.Errorf("alert[1] alertname = %q, want %q", rule.Alerts[1].Labels["alertname"], "A")
+	}
+}
+
+// --- mergeRuleFetchResults ---
+
+func TestMergeRuleFetchResults(t *testing.T) {
+	platform := []PrometheusRuleGroup{{Name: "platform"}}
+	user := []PrometheusRuleGroup{{Name: "user"}}
+	platErr := errors.New("platform down")
+	userErr := errors.New("user down")
+
+	t.Run("both succeed", func(t *testing.T) {
+		groups, warnings, err := mergeRuleFetchResults(platform, nil, user, nil, false)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(groups) != 2 {
+			t.Fatalf("expected 2 groups, got %d", len(groups))
+		}
+		if len(warnings) != 0 {
+			t.Errorf("expected no warnings, got %v", warnings)
+		}
+	})
+
+	t.Run("cluster-wide platform error is fatal", func(t *testing.T) {
+		_, _, err := mergeRuleFetchResults(nil, platErr, user, nil, false)
+		if err == nil {
+			t.Fatal("expected platform error")
+		}
+		if !errors.Is(err, platErr) {
+			t.Errorf("expected platform error, got %v", err)
+		}
+	})
+
+	t.Run("namespace-scoped platform error is a warning", func(t *testing.T) {
+		groups, warnings, err := mergeRuleFetchResults(nil, platErr, user, nil, true)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(groups) != 1 || groups[0].Name != "user" {
+			t.Fatalf("expected user group, got %+v", groups)
+		}
+		if len(warnings) != 1 {
+			t.Fatalf("expected 1 warning, got %v", warnings)
+		}
+		if warnings[0] != "failed to get platform rules: platform down" {
+			t.Errorf("unexpected warning %q", warnings[0])
+		}
+	})
+
+	t.Run("user error is a warning", func(t *testing.T) {
+		groups, warnings, err := mergeRuleFetchResults(platform, nil, nil, userErr, false)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(groups) != 1 || groups[0].Name != "platform" {
+			t.Fatalf("expected platform group, got %+v", groups)
+		}
+		if len(warnings) != 1 {
+			t.Fatalf("expected 1 warning, got %v", warnings)
+		}
+		if warnings[0] != "failed to get user workload rules: user down" {
+			t.Errorf("unexpected warning %q", warnings[0])
+		}
+	})
+
+	t.Run("both errors are fatal", func(t *testing.T) {
+		_, _, err := mergeRuleFetchResults(nil, platErr, nil, userErr, true)
+		if err == nil {
+			t.Fatal("expected combined error")
+		}
+		if !errors.Is(err, platErr) {
+			t.Errorf("expected platform error, got %v", err)
+		}
+		if !errors.Is(err, userErr) {
+			t.Errorf("expected user error, got %v", err)
+		}
+	})
 }
