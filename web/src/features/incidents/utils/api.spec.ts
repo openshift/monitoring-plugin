@@ -1,20 +1,21 @@
 import { consoleFetchJSON, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import type { Mock, MockedFunction } from 'vitest';
 
 import { createAlertsQuery, fetchDataForIncidentsAndAlerts } from '@/features/incidents/utils/api';
 import { buildPrometheusUrl } from '@/shared/utils/utils';
 
 // Mock the SDK
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   PrometheusEndpoint: {
     QUERY_RANGE: 'api/v1/query_range',
   },
-  consoleFetchJSON: jest.fn(),
+  consoleFetchJSON: vi.fn(),
 }));
 
 // Mock the global utils to avoid window access side effects
-jest.mock('@/shared/utils/utils', () => ({
-  getPrometheusBasePath: jest.fn(),
-  buildPrometheusUrl: jest.fn(),
+vi.mock('@/shared/utils/utils', () => ({
+  getPrometheusBasePath: vi.fn(),
+  buildPrometheusUrl: vi.fn(),
 }));
 
 describe('createAlertsQuery', () => {
@@ -76,7 +77,7 @@ describe('createAlertsQuery', () => {
 
 describe('fetchDataForIncidentsAndAlerts', () => {
   it('should fetch data for incidents and alerts', async () => {
-    (buildPrometheusUrl as jest.Mock).mockReturnValue('@/shared/mock/url');
+    (buildPrometheusUrl as Mock).mockReturnValue('@/shared/mock/url');
     const now = Date.now();
 
     const result1 = {
@@ -119,7 +120,7 @@ describe('fetchDataForIncidentsAndAlerts', () => {
       },
     };
 
-    const mockConsoleFetchJSON = consoleFetchJSON as jest.MockedFunction<typeof consoleFetchJSON>;
+    const mockConsoleFetchJSON = consoleFetchJSON as MockedFunction<typeof consoleFetchJSON>;
     mockConsoleFetchJSON
       .mockResolvedValueOnce(mockPrometheusResponse1)
       .mockResolvedValueOnce(mockPrometheusResponse2);

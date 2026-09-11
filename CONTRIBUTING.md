@@ -76,7 +76,7 @@ This project uses [Prow](https://docs.prow.k8s.io/) for CI/CD automation. Pull r
    make lint-backend     # Go fmt and mod tidy
    make test-translations # Verify i18n keys
    make test-backend     # Go unit tests
-   make test-frontend    # Jest unit tests
+   make test-frontend    # Vitest unit tests
    ```
 
 3. **Required checks must pass** in CI before merging.

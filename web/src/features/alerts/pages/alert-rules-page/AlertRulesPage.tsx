@@ -24,6 +24,10 @@ import {
   SilencesNotLoadedWarning,
 } from '@/features/alerts/components/AlertUtils';
 import { filterRules } from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import {
+  AlertRulesFilterOptions,
+  AlertRulesFilters,
+} from '@/features/alerts/pages/alert-rules-page/filter-rules';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
@@ -47,22 +51,6 @@ import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
 import { alertingRuleStateSort, RuleResource, severitySort } from '@/shared/utils/utils';
-
-export const enum AlertRulesFilterOptions {
-  NAME = 'name',
-  STATE = 'alert-state',
-  SEVERITY = 'alert-severity',
-  SOURCE = 'alert-source',
-  LABEL = 'label',
-}
-
-export interface AlertRulesFilters {
-  [AlertRulesFilterOptions.NAME]: string;
-  [AlertRulesFilterOptions.STATE]: string[];
-  [AlertRulesFilterOptions.SEVERITY]: string[];
-  [AlertRulesFilterOptions.SOURCE]?: AlertSource[];
-  [AlertRulesFilterOptions.LABEL]: string;
-}
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
