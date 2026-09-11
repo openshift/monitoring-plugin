@@ -1,4 +1,4 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
 import { act } from 'react';
 import type { ButtonHTMLAttributes, PropsWithChildren, ReactNode } from 'react';
@@ -20,7 +20,7 @@ type MenuToggleProps = PropsWithChildren<
   ButtonHTMLAttributes<HTMLButtonElement> & { isExpanded: boolean }
 >;
 
-jest.mock('@patternfly/react-core', () => ({
+vi.mock('@patternfly/react-core', () => ({
   Dropdown: ({ children, isOpen, toggle }: DropdownProps) => (
     <div>
       {toggle(null)}
@@ -41,11 +41,11 @@ jest.mock('@patternfly/react-core', () => ({
   Tooltip: ({ children }: PropsWithChildren) => <>{children}</>,
 }));
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-const renderQueryKebab = (text?: string, onCreateAlert = jest.fn()) => {
+const renderQueryKebab = (text?: string, onCreateAlert = vi.fn()) => {
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
@@ -57,10 +57,10 @@ const renderQueryKebab = (text?: string, onCreateAlert = jest.fn()) => {
         isDisabledSeriesEmpty
         isEnabled
         onCreateAlert={onCreateAlert}
-        onDelete={jest.fn()}
-        onDuplicate={jest.fn()}
-        onToggleAllSeries={jest.fn()}
-        onToggleIsEnabled={jest.fn()}
+        onDelete={vi.fn()}
+        onDuplicate={vi.fn()}
+        onToggleAllSeries={vi.fn()}
+        onToggleIsEnabled={vi.fn()}
         queryTableData={{ columns: [], rows: [] }}
         text={text}
       />,
@@ -99,7 +99,7 @@ describe('QueryKebab', () => {
   });
 
   it('enables Create alert and invokes its action when the query has text', () => {
-    const onCreateAlert = jest.fn();
+    const onCreateAlert = vi.fn();
     const { cleanup } = renderQueryKebab('up', onCreateAlert);
     const createAlertItem = getCreateAlertItem();
 
