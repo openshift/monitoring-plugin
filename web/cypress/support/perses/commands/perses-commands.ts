@@ -1,7 +1,7 @@
 export {};
 
-import { nav } from '../../views/nav';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { nav } from '../../../views/nav';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
 import { listPersesDashboardsOUIAIDs } from '@/shared/constants/data-test';
 import {
   PERSES_E2E_DASHBOARDS_DIR,
@@ -10,7 +10,7 @@ import {
   PERSES_TEST_DASHBOARD_NAME_PREFIXES,
   SED_OCP_NS_TO_OBS_TEST,
   SED_PERSES_DEV_TO_OBS_TEST,
-} from '../perses/constants';
+} from '../constants';
 
 // Display name prefixes/exact matches for test-created PersesDashboards to delete before
 // Perses tests.

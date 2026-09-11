@@ -10,7 +10,7 @@ mid-test for empty state and traversal scenarios.
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+} from '../../support/shared/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {

@@ -88,8 +88,8 @@ getData: (): Cypress.Chainable<DataType> => {
 
 ### File Naming Convention
 - Location: `web/cypress/e2e/incidents/regression/`
-- Pattern: `XX.reg_<section-name>.cy.ts`
-- Examples: `05.reg_tooltip_positioning.cy.ts`, `01.reg_filtering.cy.ts`
+- Pattern: `<section-name>.cy.ts`
+- Examples: `tooltip_positioning.cy.ts`, `filtering.cy.ts`
 
 ### Test File Structure
 ```typescript
@@ -254,7 +254,7 @@ cy.mockIncidents([]);
 
 ### Creating Fixtures
 - Use `generate-incident-fixture` command for new fixtures
-- Follow schema from `web/cypress/support/incidents_prometheus_query_mocks/schema/fixture-schema.json`
+- Follow schema from `web/cypress/support/incidents/schema/fixture-schema.json`
 - Validate fixtures before committing
 - Prefer single scenario per test file for focused regression testing
 
@@ -299,7 +299,7 @@ cy.mockIncidents([]);
 import { incidentsPage } from '../../../views/incidents-page';
 
 // Import types when needed
-import { IncidentDefinition } from '../../support/incidents_prometheus_query_mocks';
+import { IncidentDefinition } from '../../support/incidents';
 ```
 
 ### Comments
