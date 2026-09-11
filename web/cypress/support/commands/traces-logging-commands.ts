@@ -27,7 +27,7 @@ declare global {
       cleanupTempo(TEMPO: { namespace: string; packageName: string });
       cleanupBase();
       cleanupTracingApps();
-      cleanupTempoLokiThanosPersesGlobalDatasource();
+      cleanupGlobalDatasources();
       cleanupDistributeTracingUIPlugin();
       cleanupLoki(LOKI: { namespace: string; packageName: string });
       cleanupLogging(CLO: { namespace: string; packageName: string });
@@ -35,7 +35,7 @@ declare global {
       cleanupLoggingUIPlugin();
       cleanupChainsawNamespaces();
 
-      createTempoLokiThanosPersesGlobalDatasource();
+      createGlobalDatasources();
     }
   }
 }
@@ -274,9 +274,8 @@ const tracesUtils = {
   installDistributeTracingUIPlugin(): void {
     cy.log('Create Distributed Tracing UI Plugin instance.');
     cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/traces/tracing-ui-plugin.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
+      `oc apply -f ./cypress/fixtures/shared/tracing/tracing-ui-plugin.yaml ` +
+        `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
     cy.exec(
       // eslint-disable-next-line max-len
@@ -329,7 +328,7 @@ const tracesUtils = {
       return;
     }
     const kc = Cypress.env('KUBECONFIG_PATH');
-    const savedStatePath = 'cypress/fixtures/coo/traces/.original-monitoring-config.json';
+    const savedStatePath = 'cypress/fixtures/shared/tracing/.original-monitoring-config.json';
 
     // Read and store the existing enableUserWorkload value, then patch
     cy.exec(
@@ -378,7 +377,7 @@ const tracesUtils = {
     });
 
     // Apply the rest of base.yaml (no longer contains cluster-monitoring-config)
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/traces/base.yaml --kubeconfig ${kc}`, {
+    cy.exec(`oc apply -f ./cypress/fixtures/shared/tracingaces/base.yaml --kubeconfig ${kc}`, {
       failOnNonZeroExit: false,
     });
   },
@@ -389,7 +388,7 @@ const tracesUtils = {
       return;
     }
     const kc = Cypress.env('KUBECONFIG_PATH');
-    const savedStatePath = 'cypress/fixtures/coo/traces/.original-monitoring-config.json';
+    const savedStatePath = 'cypress/fixtures/shared/tracing/.original-monitoring-config.json';
 
     // Restore cluster-monitoring-config if we saved its original state
     cy.exec(`test -f ${savedStatePath}`, {
@@ -424,7 +423,7 @@ const tracesUtils = {
     });
 
     // Delete the rest of base.yaml resources
-    cy.exec(`oc delete -f ./cypress/fixtures/coo/traces/base.yaml --kubeconfig ${kc}`, {
+    cy.exec(`oc delete -f ./cypress/fixtures/shared/tracing/base.yaml --kubeconfig ${kc}`, {
       failOnNonZeroExit: false,
       timeout: installTimeoutMilliseconds,
     });
@@ -437,7 +436,7 @@ const tracesUtils = {
       return;
     }
     cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/traces/tracing-apps.yaml --kubeconfig ${Cypress.env(
+      `oc apply -f ./cypress/fixtures/shared/tracing/tracing-apps.yaml --kubeconfig ${Cypress.env(
         'KUBECONFIG_PATH',
       )}`,
       { failOnNonZeroExit: false },
@@ -450,7 +449,7 @@ const tracesUtils = {
       return;
     }
     cy.exec(
-      `oc delete -f ./cypress/fixtures/coo/traces/tracing-apps.yaml --kubeconfig ${Cypress.env(
+      `oc delete -f ./cypress/fixtures/shared/tracing/tracing-apps.yaml --kubeconfig ${Cypress.env(
         'KUBECONFIG_PATH',
       )}`,
       { failOnNonZeroExit: false },
@@ -649,9 +648,8 @@ const loggingUtils = {
   installLoggingUIPlugin(): void {
     cy.log('Install Logging UI Plugin');
     cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/logging/logging-ui-plugin.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
+      `oc apply -f ./cypress/fixtures/shared/logging/logging-ui-plugin.yaml ` +
+        `--kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
     );
     cy.log('Install Logging UI Plugin completed');
 
@@ -701,7 +699,7 @@ const loggingUtils = {
       return;
     }
     const kc = Cypress.env('KUBECONFIG_PATH');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/logging/base.yaml --kubeconfig ${kc}`, {
+    cy.exec(`oc apply -f ./cypress/fixtures/shared/logging/base.yaml --kubeconfig ${kc}`, {
       failOnNonZeroExit: false,
     });
     cy.exec(`oc project openshift-logging --kubeconfig ${kc}`);
@@ -729,7 +727,7 @@ const loggingUtils = {
       { failOnNonZeroExit: false },
     );
 
-    cy.exec(`./cypress/fixtures/coo/logging/make-resources.sh`, {
+    cy.exec(`./cypress/fixtures/shared/logging/make-resources.sh`, {
       env: {
         KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
       },
@@ -747,12 +745,12 @@ const loggingUtils = {
       return;
     }
     cy.exec(
-      `oc delete -f ./cypress/fixtures/coo/logging/base.yaml --kubeconfig ${Cypress.env(
+      `oc delete -f ./cypress/fixtures/shared/logging/base.yaml --kubeconfig ${Cypress.env(
         'KUBECONFIG_PATH',
       )}`,
       { failOnNonZeroExit: false },
     );
-    cy.exec(`./cypress/fixtures/coo/logging/make-clean-resources.sh`, {
+    cy.exec(`./cypress/fixtures/shared/logging/make-clean-resources.sh`, {
       env: {
         KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
       },
@@ -764,16 +762,27 @@ const loggingUtils = {
 };
 
 const persesUtils = {
-  createTempoLokiThanosPersesGlobalDatasource(): void {
+  createGlobalDatasources(): void {
     cy.log('Create Tempo Loki Thanos Perses Global Datasource');
     const kc = Cypress.env('KUBECONFIG_PATH');
     cy.exec(
-      `oc apply -f ./cypress/fixtures/perses/perses-global-datasources.yaml --kubeconfig ${kc}`,
+      `oc apply -f ./cypress/fixtures/perses/datasources/global-loki-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
+      { failOnNonZeroExit: false },
+    );
+    cy.exec(
+      `oc apply -f ./cypress/fixtures/perses/datasources/global-tempo-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
+      { failOnNonZeroExit: false },
+    );
+    cy.exec(
+      `oc apply -f ./cypress/fixtures/perses/datasources/global-thanos-querier-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
       { failOnNonZeroExit: false },
     );
   },
 
-  cleanupTempoLokiThanosPersesGlobalDatasource(): void {
+  cleanupGlobalDatasources(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log(
         'SKIP_COO_INSTALL is set. Skipping Tempo Loki Thanos Perses Global Datasource cleanup.',
@@ -782,7 +791,18 @@ const persesUtils = {
     }
     const kc = Cypress.env('KUBECONFIG_PATH');
     cy.exec(
-      `oc delete -f ./cypress/fixtures/perses/perses-global-datasources.yaml --kubeconfig ${kc}`,
+      `oc delete -f ./cypress/fixtures/perses/datasources/global-loki-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
+      { failOnNonZeroExit: false },
+    );
+    cy.exec(
+      `oc delete -f ./cypress/fixtures/perses/datasources/global-tempo-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
+      { failOnNonZeroExit: false },
+    );
+    cy.exec(
+      `oc delete -f ./cypress/fixtures/perses/datasources/global-thanos-querier-datasource.yaml ` +
+        `--kubeconfig ${kc}`,
       { failOnNonZeroExit: false },
     );
   },
@@ -827,7 +847,7 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
       sessionKey,
       () => {
         cy.log('Before block Tempo (session)');
-        cy.cleanupTempoLokiThanosPersesGlobalDatasource();
+        cy.cleanupGlobalDatasources();
         cy.cleanupBase();
         cy.cleanupTracingApps();
         cy.cleanupTempo(TEMPO);
@@ -846,7 +866,7 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
     );
   } else {
     cy.log('Before block Tempo (no session)');
-    cy.cleanupTempoLokiThanosPersesGlobalDatasource();
+    cy.cleanupGlobalDatasources();
     cy.cleanupBase();
     cy.cleanupTracingApps();
     cy.cleanupTempo(TEMPO);
@@ -1024,14 +1044,14 @@ Cypress.Commands.add('waitForLoggingUIPluginReady', () => {
   cy.log('WaitFor Logging UI Plugin Ready completed');
 });
 
-Cypress.Commands.add('createTempoLokiThanosPersesGlobalDatasource', () => {
+Cypress.Commands.add('createGlobalDatasources', () => {
   cy.log('Create Tempo Loki Thanos Perses Global Datasource');
-  persesUtils.createTempoLokiThanosPersesGlobalDatasource();
+  persesUtils.createGlobalDatasources();
   cy.log('Create Tempo Loki Thanos Perses Global Datasource completed');
 });
 
-Cypress.Commands.add('cleanupTempoLokiThanosPersesGlobalDatasource', () => {
+Cypress.Commands.add('cleanupGlobalDatasources', () => {
   cy.log('Cleanup Tempo Loki Thanos Perses Global Datasource');
-  persesUtils.cleanupTempoLokiThanosPersesGlobalDatasource();
+  persesUtils.cleanupGlobalDatasources();
   cy.log('Cleanup Tempo Loki Thanos Perses Global Datasource completed');
 });

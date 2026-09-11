@@ -9,7 +9,7 @@ import {
   MetricsPageQueryKebabDropdown,
   MetricsPageUnits,
   MonitoringRefreshInterval,
-} from '../fixtures/monitoring/constants';
+} from '../fixtures/shared/cluster-monitoring-operator/constants';
 
 export const metricsPage = {
   shouldBeLoaded: () => {

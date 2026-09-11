@@ -10,7 +10,7 @@ import {
   persesDashboardDataTestIDs,
   persesMUIDataTestIDs,
 } from '@/shared/constants/data-test';
-import { MonitoringPageTitles } from '../fixtures/monitoring/constants';
+import { MonitoringPageTitles } from '../fixtures/shared/cluster-monitoring-operator/constants';
 import {
   listPersesDashboardsPageSubtitle,
   persesDashboardsEmptyDashboard,

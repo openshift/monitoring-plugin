@@ -16,7 +16,7 @@ import {
   persesDashboardsDuplicateDashboard,
   persesDashboardsRenameDashboard,
 } from '../fixtures/perses/constants';
-import { MonitoringPageTitles } from '../fixtures/monitoring/constants';
+import { MonitoringPageTitles } from '../fixtures/shared/cluster-monitoring-operator/constants';
 
 export const listPersesDashboardsPage = {
   emptyState: () => {
