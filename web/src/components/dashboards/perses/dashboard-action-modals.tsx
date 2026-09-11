@@ -24,7 +24,6 @@ import {
   useUpdateDashboardMutation,
   useCreateDashboardMutation,
   useDeleteDashboardMutation,
-  useCreateProjectMutation,
 } from './dashboard-api';
 import {
   renameDashboardDialogValidationSchema,
@@ -39,7 +38,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DashboardResource, getResourceExtendedDisplayName } from '@perses-dev/core';
 import { useToast } from './ToastProvider';
 import { generateMetadataName } from './dashboard-utils';
-import { DashboardDeniedHelperText, useDashboardProjects } from './dashboard-dialog-helpers';
+import {
+  DashboardDeniedHelperText,
+  useDashboardProjects,
+  useProjectCreation,
+} from './dashboard-dialog-helpers';
 import { useOcpProjects } from './hooks/useOcpProjects';
 import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 import { t_global_spacer_200, t_global_font_weight_200 } from '@patternfly/react-tokens';
@@ -195,7 +198,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
 
   const { ocpProjects } = useOcpProjects();
   const { availableProjects } = useDashboardProjects();
-  const createProjectMutation = useCreateProjectMutation();
+  const { ensureProjectExists, isCreatingProject } = useProjectCreation();
 
   const defaultProject = useMemo(() => {
     if (!dashboard) return '';
@@ -293,27 +296,10 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
   }
 
   const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
-    // Check if project exists, create it if it doesn't
-    const projectExists = ocpProjects?.some(
-      (project) => project.metadata.name === data.projectName,
-    );
-
-    if (!projectExists) {
-      try {
-        await createProjectMutation.mutateAsync(data.projectName);
-        addAlert(
-          t('Project "{{project}}" created successfully', { project: data.projectName }),
-          'success',
-        );
-      } catch (projectError) {
-        const errorMessage =
-          projectError?.message ||
-          t('Failed to create project "{{project}}". Please try again.', {
-            project: data.projectName,
-          });
-        addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
-        return;
-      }
+    try {
+      await ensureProjectExists(data.projectName);
+    } catch {
+      return;
     }
 
     const newDashboard: DashboardResource = {
@@ -472,9 +458,12 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                   checkingAccess ||
                   createDenied ||
                   isSchemaLoading ||
-                  createDashboardMutation.isPending
+                  createDashboardMutation.isPending ||
+                  isCreatingProject
                 }
-                isLoading={createDashboardMutation.isPending || isSchemaLoading}
+                isLoading={
+                  createDashboardMutation.isPending || isCreatingProject || isSchemaLoading
+                }
               >
                 {t('Duplicate')}
               </Button>
