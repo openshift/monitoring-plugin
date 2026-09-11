@@ -8,7 +8,7 @@ import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 // Test suite for Administrator perspective
 describe('Regression: Monitoring - Metrics (Administrator)', { tags: ['@metrics'] }, () => {
   before(() => {
-    cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+    cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
   });
 
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe(
   { tags: ['@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
     });
 
     beforeEach(() => {
