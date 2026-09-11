@@ -280,7 +280,11 @@ const AlertsPage_: FC = () => {
                   ))}
                 </TableFilters>
               }
-              actions={<DownloadCSVButton loaded={loaded} filteredData={aggregatedAlerts} />}
+              actions={
+                aggregatedAlerts?.length > 0 && (
+                  <DownloadCSVButton loaded={loaded} filteredData={aggregatedAlerts} />
+                )
+              }
               pagination={
                 <TablePagination
                   variant={PaginationVariant.top}
