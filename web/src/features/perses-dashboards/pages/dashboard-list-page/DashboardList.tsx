@@ -138,6 +138,7 @@ interface DashboardRowNameLink {
 
 interface DashboardRow {
   name: DashboardRowNameLink;
+  id: string;
   tags: ReactNode;
   project: string;
   created: ReactNode;
@@ -165,6 +166,9 @@ const sortDashboardData = (
   }
   if (sortBy === rowFilter('name')) {
     return [...data].sort((a, b) => localeCompareSort(a.name.label, b.name.label, direction));
+  }
+  if (sortBy === rowFilter('id')) {
+    return [...data].sort((a, b) => localeCompareSort(a.id, b.id, direction));
   }
   if (sortBy === rowFilter('project')) {
     return [...data].sort((a, b) => localeCompareSort(a.project, b.project, direction));
@@ -216,7 +220,19 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
 
   const columnKeys = useMemo(
     () => [
-      { label: t('Dashboard'), key: rowFilter('name') },
+      { label: t('Display Name'), key: rowFilter('name') },
+      {
+        label: t('Name'),
+        key: rowFilter('id'),
+        props: {
+          info: {
+            tooltip: t(
+              'This is the immutable, unique identifier for the dashboard. It cannot be changed after the dashboard is created.',
+            ),
+            ariaLabel: t('More information on Dashboard ID'),
+          },
+        },
+      },
       { label: t('Project'), key: rowFilter('project') },
       { label: t('Tags'), key: rowFilter('tags') },
       { label: t('Created on'), key: rowFilter('created') },
@@ -233,7 +249,8 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     }
     return persesDashboards.map((board) => {
       const metadata = board?.metadata;
-      const displayName = board?.spec?.display?.name || metadata?.name;
+      const id = metadata?.name;
+      const displayName = board?.spec?.display?.name || id;
       const dashboardsParams = `?dashboard=${metadata?.name}&project=${metadata?.project}`;
       const dashboardName: DashboardRowNameLink = {
         link: (
@@ -263,6 +280,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
 
       return {
         name: dashboardName,
+        id: id,
         project: board?.metadata?.project || '',
         tags: dashboardTags,
         created: <Timestamp timestamp={metadata?.createdAt} />,
@@ -331,8 +349,9 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
   const pageRows: DataViewTr[] = useMemo(() => {
     return sortedAndFilteredData
       .slice((page - 1) * perPage, (page - 1) * perPage + perPage)
-      .map(({ name, project, tags, created, modified, dashboard }) => [
+      .map(({ name, id, project, tags, created, modified, dashboard }) => [
         name.link,
+        id,
         project,
         tags,
         created,
