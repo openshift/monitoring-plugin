@@ -7,8 +7,10 @@ import { getAllQueryArguments } from '../../../console/utils/router';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
 import { QueryParams } from '../../../query-params';
-import { useActiveProject } from '../project/useActiveProject';
+import { useActiveProject } from './useActiveProject';
+import { useOcpProjects } from './useOcpProjects';
 import { usePerses } from './usePerses';
+import { ALL_NAMESPACES_KEY } from '../../../utils';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
 // be in a single location
@@ -16,15 +18,14 @@ export const useDashboardsData = () => {
   const navigate = useNavigate();
   const { perspective } = usePerspective();
   const { activeProject, setActiveProject } = useActiveProject();
+  const { ocpProjectsLoaded } = useOcpProjects();
 
   // track initial page load to prevent a full page loading state when swapping dashboards
   // or projects
   const [initialPageLoad, , , setInitialPageLoadFalse] = useBoolean(true);
 
   // Retrieve perses dashboard information
-  const { persesProjects, persesProjectsLoading, persesDashboards, persesDashboardsLoading } =
-    usePerses();
-  const persesAvailable = !persesProjectsLoading && persesProjects;
+  const { persesProjectsLoading, persesDashboards, persesDashboardsLoading } = usePerses();
   const [dashboardName] = useQueryParam(QueryParams.Dashboard, StringParam);
 
   // Determine when to stop having the full page loader be used
@@ -32,12 +33,18 @@ export const useDashboardsData = () => {
     if (!initialPageLoad) {
       return false;
     }
-    if (!(persesProjectsLoading || persesDashboardsLoading)) {
+    if (ocpProjectsLoaded && !persesProjectsLoading && !persesDashboardsLoading) {
       setInitialPageLoadFalse();
       return false;
     }
     return true;
-  }, [persesProjectsLoading, persesDashboardsLoading, initialPageLoad, setInitialPageLoadFalse]);
+  }, [
+    ocpProjectsLoaded,
+    persesProjectsLoading,
+    persesDashboardsLoading,
+    initialPageLoad,
+    setInitialPageLoadFalse,
+  ]);
 
   const prevDashboardsRef = useRef<DashboardResource[]>([]);
   const prevMetadataRef = useRef<CombinedDashboardMetadata[]>([]);
@@ -85,7 +92,7 @@ export const useDashboardsData = () => {
 
   // Retrieve dashboard metadata for the currently selected project
   const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
-    if (!activeProject) {
+    if (activeProject === ALL_NAMESPACES_KEY) {
       return combinedDashboardsMetadata;
     }
     return combinedDashboardsMetadata.filter((combinedDashboardMetadata) => {
@@ -106,7 +113,8 @@ export const useDashboardsData = () => {
       const params = new URLSearchParams(queryArguments);
 
       const dashboard = combinedDashboardsMetadata.find((item) => item.name === newBoard);
-      const projectToUse = activeProject || dashboard?.project;
+      const projectToUse =
+        activeProject === ALL_NAMESPACES_KEY ? dashboard?.project : activeProject;
 
       if (projectToUse) {
         params.set(QueryParams.Project, projectToUse);
@@ -130,7 +138,6 @@ export const useDashboardsData = () => {
   );
 
   return {
-    persesAvailable,
     persesProjectsLoading,
     persesDashboards,
     dashboardName,

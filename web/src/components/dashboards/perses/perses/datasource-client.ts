@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { DatasourceResource } from '@perses-dev/core';
 import buildURL from './url-builder';
-import { ocpPersesFetchJson } from '../perses-client';
 
 export const resource = 'datasources';
 
@@ -46,5 +46,5 @@ export function fetchDatasourceList(
     project: project,
     queryParams: buildDatasourceQueryParameters(kind, defaultDatasource, name),
   });
-  return ocpPersesFetchJson<DatasourceResource[]>(url);
+  return consoleFetchJSON(url) as Promise<DatasourceResource[]>;
 }

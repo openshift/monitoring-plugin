@@ -11,7 +11,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalVariant,
-  Spinner,
   Stack,
   StackItem,
   TextInput,
@@ -30,7 +29,6 @@ import {
 } from './dashboard-action-validations';
 import {
   useCreateDashboardMutation,
-  useCreateProjectMutation,
   useDeleteDashboardMutation,
   useUpdateDashboardMutation,
 } from './dashboard-api';
@@ -43,8 +41,13 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { useToast } from './ToastProvider';
 import { generateMetadataName } from './dashboard-utils';
-import { useEditableProjects } from './hooks/useEditableProjects';
-import { usePerses } from './hooks/usePerses';
+import {
+  DashboardDeniedHelperText,
+  useDashboardProjects,
+  useProjectCreation,
+} from './dashboard-dialog-helpers';
+import { useOcpProjects } from './hooks/useOcpProjects';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 
 export const formGroupStyle = {
   fontWeight: t_global_font_weight_200.value,
@@ -72,6 +75,12 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
   });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
+  const [canUpdate, updateChecking] = usePersesDashboardAccess(
+    'update',
+    dashboard?.metadata?.project ?? null,
+    isOpen && !!dashboard?.metadata?.project,
+  );
+  const updateDenied = !updateChecking && !canUpdate;
 
   if (!dashboard) {
     return null;
@@ -153,6 +162,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
                 </FormGroup>
               )}
             />
+            <DashboardDeniedHelperText show={updateDenied} verb="update" />
           </ModalBody>
           <ModalFooter>
             <Button
@@ -160,7 +170,10 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
               variant="primary"
               type="submit"
               isDisabled={
-                !(form.watch('dashboardName') || '')?.trim() || updateDashboardMutation.isPending
+                !(form.watch('dashboardName') || '')?.trim() ||
+                updateDashboardMutation.isPending ||
+                updateChecking ||
+                updateDenied
               }
               isLoading={updateDashboardMutation.isPending}
             >
@@ -183,33 +196,18 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
   const navigate = useNavigate();
   const { perspective } = usePerspective();
 
-  const {
-    editableProjects,
-    allProjects,
-    hasEditableProject,
-    permissionsLoading,
-    permissionsError,
-  } = useEditableProjects();
-
-  const { persesProjects } = usePerses();
-  const createProjectMutation = useCreateProjectMutation();
+  const { ocpProjects } = useOcpProjects();
+  const { availableProjects } = useDashboardProjects();
+  const { ensureProjectExists, isCreatingProject } = useProjectCreation();
 
   const defaultProject = useMemo(() => {
     if (!dashboard) return '';
 
-    if (dashboard.metadata.project && editableProjects.includes(dashboard.metadata.project)) {
-      return dashboard.metadata.project;
-    }
-
-    return allProjects[0] || '';
-  }, [dashboard, editableProjects, allProjects]);
-
-  const { schema: validationSchema } = useDashboardValidationSchema(t, defaultProject);
+    return dashboard.metadata.project || availableProjects[0] || '';
+  }, [dashboard, availableProjects]);
 
   const form = useForm<CreateDashboardValidationType>({
-    resolver: validationSchema
-      ? zodResolver(validationSchema)
-      : zodResolver(createDashboardDialogValidationSchema(t)),
+    resolver: zodResolver(createDashboardDialogValidationSchema(t)),
     mode: 'onBlur',
     defaultValues: {
       projectName: defaultProject,
@@ -218,55 +216,77 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
   });
 
   const selectedProjectName = form.watch('projectName');
+  const dashboardName = form.watch('dashboardName');
+
+  const { schema: dynamicValidationSchema, isSchemaLoading } = useDashboardValidationSchema(
+    t,
+    selectedProjectName,
+  );
 
   const projectOptions = useMemo<TypeaheadSelectOption[]>(() => {
-    if (!editableProjects) {
-      return [];
-    }
-    return editableProjects.map((project) => ({
+    return availableProjects.map((project) => ({
       content: project,
       value: project,
       selected: project === selectedProjectName,
     }));
-  }, [editableProjects, selectedProjectName]);
+  }, [availableProjects, selectedProjectName]);
+
+  const [canCreate, checkingAccess] = usePersesDashboardAccess(
+    'create',
+    selectedProjectName || null,
+    isOpen && !!dashboard?.metadata?.project,
+  );
+  const createDenied = !!selectedProjectName && !checkingAccess && !canCreate;
 
   const createDashboardMutation = useCreateDashboardMutation();
 
   useEffect(() => {
-    if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
+    if (!dashboardName?.trim()) {
+      form.clearErrors('dashboardName');
+      return;
+    }
+
+    const isOcpProject = ocpProjects.some(
+      (project) => project.metadata?.name === selectedProjectName,
+    );
+    if (dynamicValidationSchema && selectedProjectName && !isSchemaLoading && isOcpProject) {
+      const result = dynamicValidationSchema.safeParse(form.getValues());
+      if (!result.success) {
+        const issue = result.error.issues.find((item) => item.path[0] === 'dashboardName');
+        if (issue) form.setError('dashboardName', { type: 'validate', message: issue.message });
+      } else {
+        form.clearErrors('dashboardName');
+      }
+    } else if (!isOcpProject && selectedProjectName) {
+      form.clearErrors('dashboardName');
+    }
+  }, [
+    selectedProjectName,
+    dynamicValidationSchema,
+    form,
+    dashboardName,
+    isSchemaLoading,
+    ocpProjects,
+  ]);
+
+  useEffect(() => {
+    if (isOpen && dashboard && defaultProject) {
       form.reset({
         projectName: defaultProject,
         dashboardName: '',
       });
     }
-  }, [isOpen, dashboard, defaultProject, editableProjects?.length, form]);
+  }, [isOpen, dashboard, defaultProject, form]);
 
   if (!dashboard) {
     return null;
   }
 
   const processForm: SubmitHandler<CreateDashboardValidationType> = async (data) => {
-    // Check if project exists, create it if it doesn't
-    const projectExists = persesProjects?.some(
-      (project) => project.metadata.name === data.projectName,
-    );
-
-    if (!projectExists) {
-      try {
-        await createProjectMutation.mutateAsync(data.projectName);
-        addAlert(
-          t('Project "{{project}}" created successfully', { project: data.projectName }),
-          'success',
-        );
-      } catch (projectError) {
-        const errorMessage =
-          projectError?.message ||
-          t('Failed to create project "{{project}}". Please try again.', {
-            project: data.projectName,
-          });
-        addAlert(t('Error creating project: {{error}}', { error: errorMessage }), 'danger');
-        return;
-      }
+    try {
+      await ensureProjectExists(data.projectName);
+    } catch {
+      return;
     }
 
     const newDashboard: DashboardResource = {
@@ -327,16 +347,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
       aria-labelledby="duplicate-modal"
     >
       <ModalHeader title={t('Duplicate Dashboard')} labelId="duplicate-modal-title" />
-      {permissionsLoading ? (
-        <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
-          {t('Loading...')} <Spinner aria-label="Duplicate Dashboard Modal Loading" />
-        </ModalBody>
-      ) : permissionsError ? (
-        <ModalBody style={{ textAlign: 'center', padding: '2rem' }}>
-          <ExclamationCircleIcon />
-          {t('Failed to load project permissions. Please refresh the page and try again.')}
-        </ModalBody>
-      ) : (
+      {
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(processForm)}>
             <ModalBody>
@@ -416,6 +427,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                             </HelperText>
                           </FormHelperText>
                         )}
+                        <DashboardDeniedHelperText show={createDenied} verb="create" />
                       </FormGroup>
                     )}
                   />
@@ -430,10 +442,15 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                 isDisabled={
                   !(form.watch('dashboardName') || '')?.trim() ||
                   !(form.watch('projectName') || '')?.trim() ||
-                  !hasEditableProject ||
-                  createDashboardMutation.isPending
+                  checkingAccess ||
+                  createDenied ||
+                  isSchemaLoading ||
+                  createDashboardMutation.isPending ||
+                  isCreatingProject
                 }
-                isLoading={createDashboardMutation.isPending}
+                isLoading={
+                  createDashboardMutation.isPending || isCreatingProject || isSchemaLoading
+                }
               >
                 {t('Duplicate')}
               </Button>
@@ -443,7 +460,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
             </ModalFooter>
           </form>
         </FormProvider>
-      )}
+      }
     </Modal>
   );
 };
@@ -454,6 +471,12 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
 
   const deleteDashboardMutation = useDeleteDashboardMutation();
   const dashboardName = dashboard?.spec?.display?.name ?? t('this dashboard');
+  const [canDelete, deleteChecking] = usePersesDashboardAccess(
+    'delete',
+    dashboard?.metadata?.project ?? null,
+    isOpen && !!dashboard?.metadata?.project,
+  );
+  const deleteDenied = !deleteChecking && !canDelete;
 
   const handleDeleteConfirm = async () => {
     if (!dashboard) return;
@@ -493,12 +516,15 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
         {t('Are you sure you want to delete ')}
         <strong>{dashboardName}</strong>
         {t('? This action can not be undone.')}
+        <DashboardDeniedHelperText show={deleteDenied} verb="delete" />
       </ModalBody>
       <ModalFooter>
         <Button
           key="delete-modal-btn-delete"
           onClick={handleDeleteConfirm}
-          isDisabled={!dashboard || deleteDashboardMutation.isPending}
+          isDisabled={
+            !dashboard || deleteDashboardMutation.isPending || deleteChecking || deleteDenied
+          }
           isLoading={deleteDashboardMutation.isPending}
         >
           {deleteDashboardMutation.isPending ? t('Deleting...') : t('Delete')}
