@@ -1,11 +1,9 @@
 /** @jest-environment jsdom */
 
-import { act } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ButtonHTMLAttributes, PropsWithChildren, ReactNode } from 'react';
-import { createRoot } from 'react-dom/client';
 
 import { QueryKebab } from '@/features/metrics/components/QueryKebab';
-import { DataTestIDs } from '@/shared/constants/data-test';
 
 type DropdownProps = PropsWithChildren<{
   isOpen: boolean;
@@ -46,66 +44,41 @@ jest.mock('react-i18next', () => ({
 }));
 
 const renderQueryKebab = (text?: string, onCreateAlert = jest.fn()) => {
-  const container = document.createElement('div');
-  document.body.append(container);
-  const root = createRoot(container);
-
-  act(() => {
-    root.render(
-      <QueryKebab
-        canCreateAlert
-        isDisabledSeriesEmpty
-        isEnabled
-        onCreateAlert={onCreateAlert}
-        onDelete={jest.fn()}
-        onDuplicate={jest.fn()}
-        onToggleAllSeries={jest.fn()}
-        onToggleIsEnabled={jest.fn()}
-        queryTableData={{ columns: [], rows: [] }}
-        text={text}
-      />,
-    );
-  });
-
-  act(() => {
-    container.querySelector<HTMLButtonElement>('[data-test="kebab-dropdown-button"]')?.click();
-  });
-
-  return {
-    cleanup: () => {
-      act(() => root.unmount());
-      container.remove();
-    },
-    onCreateAlert,
-  };
-};
-
-const getCreateAlertItem = () =>
-  document.querySelector<HTMLButtonElement>(
-    `[data-test="${DataTestIDs.MetricsPageCreateAlertRuleDropdownItem}"]`,
+  render(
+    <QueryKebab
+      canCreateAlert
+      isDisabledSeriesEmpty
+      isEnabled
+      onCreateAlert={onCreateAlert}
+      onDelete={jest.fn()}
+      onDuplicate={jest.fn()}
+      onToggleAllSeries={jest.fn()}
+      onToggleIsEnabled={jest.fn()}
+      queryTableData={{ columns: [], rows: [] }}
+      text={text}
+    />,
   );
 
+  fireEvent.click(screen.getByRole('button', { name: 'toggle menu' }));
+
+  return onCreateAlert;
+};
+
 describe('QueryKebab', () => {
-  Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
-
-  afterEach(() => document.body.replaceChildren());
-
   it.each([undefined, '   '])('disables Create alert when the query is empty', (text) => {
-    const { cleanup } = renderQueryKebab(text);
-    const createAlertItem = getCreateAlertItem();
+    renderQueryKebab(text);
+    const createAlertItem = screen.getByRole('button', { name: 'Create alert' });
 
-    expect(createAlertItem?.getAttribute('aria-disabled')).toBe('true');
-    cleanup();
+    expect(createAlertItem.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('enables Create alert and invokes its action when the query has text', () => {
     const onCreateAlert = jest.fn();
-    const { cleanup } = renderQueryKebab('up', onCreateAlert);
-    const createAlertItem = getCreateAlertItem();
+    renderQueryKebab('up', onCreateAlert);
+    const createAlertItem = screen.getByRole('button', { name: 'Create alert' });
 
-    expect(createAlertItem?.getAttribute('aria-disabled')).not.toBe('true');
-    act(() => createAlertItem?.click());
+    expect(createAlertItem.getAttribute('aria-disabled')).not.toBe('true');
+    fireEvent.click(createAlertItem);
     expect(onCreateAlert).toHaveBeenCalledTimes(1);
-    cleanup();
   });
 });
