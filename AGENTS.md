@@ -180,7 +180,7 @@ make test-frontend
 
 The Monitoring Plugin uses a dual testing approach for unit tests:
 
-- **Frontend Unit Tests**: Jest + TypeScript for React components and utilities
+- **Frontend Unit Tests**: Vitest + TypeScript for React components and utilities
 - **Backend Unit Tests**: Go's built-in testing framework for server functionality
 
 Unit tests focus on isolated function testing and run quickly in CI/CD pipelines, while E2E tests (Cypress) validate full user workflows.
@@ -191,8 +191,8 @@ Unit tests focus on isolated function testing and run quickly in CI/CD pipelines
 
 - **Location**: Co-located with source files in `web/src/`
 - **Naming**: `*.spec.ts` (e.g., `format.spec.ts`, `utils.spec.ts`)
-- **Framework**: Jest 30.2.0 with ts-jest
-- **Configuration**: `web/jest.config.js`
+- **Framework**: Vitest 4.1.11
+- **Configuration**: `web/vitest.config.mts`
 
 **Backend Tests:**
 
@@ -211,6 +211,9 @@ make test-frontend
 # Run individually from web directory
 cd web && npm run test:unit
 
+# Run with coverage
+cd web && npm run test:unit:coverage
+
 # Run Go tests directly
 go test ./pkg/... -v
 ```
@@ -228,9 +231,8 @@ Create unit tests when:
 
 **Frontend:**
 
-- `jest` (v30.2.0) - Test runner and assertions
-- `ts-jest` (v29.4.4) - TypeScript support
-- `@types/jest` - TypeScript definitions
+- `vitest` (v4.1.11) - Test runner and assertions
+- `@vitest/coverage-v8` (v4.1.11) - Code coverage (v8 provider)
 
 **Backend:**
 
@@ -240,8 +242,8 @@ Create unit tests when:
 #### Frontend Unit Testing Structure
 
 **Testing Framework & Configuration**
-Test Framework: Jest + ts-jest
-Configuration File: web/jest.config.js
+Test Framework: Vitest
+Configuration File: web/vitest.config.mts
 
 **Test File Location & Naming Convention**
 Pattern: \*.spec.ts files co-located with source code
