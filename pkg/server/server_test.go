@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 )
 
 type httpClientConfig struct {
@@ -150,6 +152,14 @@ func TestServerRunning(t *testing.T) {
 
 	if _, err = getRequestResults(t, httpClient, serverURL+"/features"); err != nil {
 		t.Fatalf("Failed: could not fetch features endpoint: %v", err)
+	}
+
+	metricsBody, err := getRequestResults(t, httpClient, serverURL+"/metrics")
+	if err != nil {
+		t.Fatalf("Failed: could not fetch /metrics with alert-management-api disabled: %v", err)
+	}
+	if strings.Contains(metricsBody, metrics.MetricName) {
+		t.Fatalf("expected no %s without alert-management-api, got %q", metrics.MetricName, metricsBody)
 	}
 
 	// sanity check - make sure we cannot get to a bogus context path
