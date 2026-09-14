@@ -143,6 +143,8 @@ func TestRBAC_UpdateAlertRule_Single(t *testing.T) {
 	ruleInY2 := mustCreateRule(ctx, t, f, nsY, "RBACUpd1AlertY2", "e2e-rbac-upd1-pr")
 
 	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInY)
+	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInY2)
+	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInZ)
 
 	cases := []struct {
 		name       string
@@ -183,7 +185,6 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 
 	keepID := mustCreateRule(ctx, t, f, ns, "KeepSingleAlert", "e2e-delete-single-pr")
 	deleteID := mustCreateRule(ctx, t, f, ns, "DeleteSingleAlert", "e2e-delete-single-pr")
-	_ = keepID
 
 	err = framework.Poll(time.Second, time.Minute, func() error {
 		status, err := tryDeleteAlertRuleSingle(ctx, f, f.BearerToken, deleteID)
@@ -197,6 +198,20 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("single delete failed: %v", err)
+	}
+
+	err = framework.Poll(time.Second, 20*time.Second, func() error {
+		status, _, err := tryPreviewAlertRule(ctx, f, f.BearerToken, previewUpdateProbeRequest(keepID))
+		if err != nil {
+			return err
+		}
+		if status != http.StatusOK {
+			return fmt.Errorf("sibling rule %s not resolvable via API after delete: expected HTTP 200, got %d", keepID, status)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("sibling rule API resolution after single delete: %v", err)
 	}
 
 	err = framework.Poll(time.Second, 20*time.Second, func() error {

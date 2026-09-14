@@ -10,6 +10,9 @@ info:
 servers:
   - url: /api/v1/alerting
 
+security:
+  - bearerAuth: []
+
 paths:
   /rules:
     patch:
@@ -147,6 +150,79 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Conflict (e.g. duplicate rule ID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rules/preview:
+    post:
+      operationId: PreviewAlertRule
+      summary: Preview a single alert rule create or update
+      description: >
+        Calculates the changes required to create or update one alert rule
+        without modifying cluster resources. Provide alertingRule (and optional
+        prometheusRule) to preview creation; provide ruleId plus at least one
+        update field to preview an update. Works for externally managed
+        resources — the response indicates whether the API can persist the
+        change (writable) and lists the required changes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreviewAlertRuleRequest"
+      responses:
+        "200":
+          description: Preview of the required changes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreviewAlertRuleResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (insufficient RBAC permissions)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Operation not allowed for this rule type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Conflict (e.g. duplicate rule ID)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: Request body exceeds the 1 MB limit
           content:
             application/json:
               schema:
@@ -519,6 +595,113 @@ components:
             $ref: "#/components/schemas/UpdateAlertRuleResult"
           description: Per-rule update results.
 
+    PreviewAlertRuleRequest:
+      type: object
+      description: >
+        Preview a single alert rule create or update. For create preview,
+        set alertingRule and optionally prometheusRule (omit prometheusRule for
+        platform rules). For update preview, set ruleId and at least one of
+        labels, alertingRuleEnabled, or classification.
+      properties:
+        ruleId:
+          type: string
+          description: Stable alert rule ID for update preview.
+        alertingRule:
+          $ref: "#/components/schemas/AlertRuleSpec"
+        prometheusRule:
+          $ref: "#/components/schemas/PrometheusRuleTarget"
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          description: Label overrides for update preview.
+        alertingRuleEnabled:
+          type: boolean
+          nullable: true
+          description: Drop/restore toggle for update preview (platform rules only).
+        classification:
+          $ref: "#/components/schemas/AlertRuleClassificationUpdate"
+
+    PreviewAlertRuleResponse:
+      type: object
+      required:
+        - writable
+        - resources
+        - desiredRule
+      properties:
+        writable:
+          type: boolean
+          description: Whether the Alerts Management API can persist this change.
+        managedBy:
+          type: string
+          enum: [gitops, operator]
+          description: External management source when the target is not writable.
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreviewResourceChange"
+          description: >
+            Kubernetes resources that would be created or modified by this
+            operation. A single alert operation may affect multiple resources.
+        desiredRule:
+          $ref: "#/components/schemas/AlertRuleSpec"
+          description: >
+            Effective resulting alert rule after applying the requested change.
+            Suitable for display without reconstructing from per-resource changes.
+
+    PreviewResourceChange:
+      type: object
+      required:
+        - resource
+        - changes
+      properties:
+        resource:
+          $ref: "#/components/schemas/PreviewTargetResource"
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleChange"
+        desiredObject:
+          type: object
+          description: >
+            Complete resulting Kubernetes object for this resource entry.
+            Omitted when the resource would be deleted.
+
+    PreviewTargetResource:
+      type: object
+      required:
+        - apiVersion
+        - kind
+        - name
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+
+    RuleChange:
+      type: object
+      required:
+        - field
+        - operation
+      properties:
+        field:
+          type: string
+          description: >
+            Semantic alert-rule field path (e.g. severity, labels.severity, for, rule).
+        operation:
+          type: string
+          enum: [add, replace, remove]
+        currentValue:
+          description: Value before the change, for replace or remove operations.
+        newValue:
+          description: Value after the change, for add or replace operations.
+
     ErrorResponse:
       type: object
       required:
@@ -527,3 +710,12 @@ components:
         error:
           type: string
           description: Human-readable error message.
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        OpenShift user bearer token in the Authorization header
+        (forwarded by the console bridge).
