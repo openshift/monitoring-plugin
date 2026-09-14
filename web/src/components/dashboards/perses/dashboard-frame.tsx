@@ -1,15 +1,16 @@
+import { NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
 import React, { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { DashboardEmptyState } from './emptystates/DashboardEmptyState';
 import { DashboardHeader } from './dashboard-header';
 import { CombinedDashboardMetadata } from './hooks/useDashboardsData';
-import { ProjectBar } from './project/ProjectBar';
 import { PersesWrapper } from './PersesWrapper';
 import { ToastProvider } from './ToastProvider';
 import { PagePadding } from './dashboard-page-padding';
+import { getDashboardsListUrl, usePerspective } from '../../hooks/usePerspective';
 
 interface DashboardFrameProps {
   activeProject: string | null;
-  setActiveProject: (project: string | null) => void;
   activeProjectDashboardsMetadata: CombinedDashboardMetadata[];
   changeBoard: (boardName: string) => void;
   dashboardDisplayName: string;
@@ -18,15 +19,16 @@ interface DashboardFrameProps {
 
 export const DashboardFrame: React.FC<DashboardFrameProps> = ({
   activeProject,
-  setActiveProject,
   activeProjectDashboardsMetadata,
   changeBoard,
   dashboardDisplayName,
   children,
 }) => {
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
   return (
     <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
+      <NamespaceBar onNamespaceChange={() => navigate(getDashboardsListUrl(perspective))} />
       <ToastProvider>
         <PersesWrapper project={activeProject}>
           {activeProjectDashboardsMetadata?.length === 0 ? (
