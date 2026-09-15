@@ -14,7 +14,6 @@ declare global {
       clickNavLink(path: string[]): Chainable<Element>;
       changeNamespace(namespace: string): Chainable<Element>;
       aboutModal(): Chainable<Element>;
-      podImage(pod: string, namespace: string): Chainable<Element>;
       assertNamespace(namespace: string, exists: boolean): Chainable<Element>;
       checkForAlertRecursively(attemptsLeft?: number): Chainable<Element>;
       dynamicPluginWorkConsoleAround(): Chainable<Element>;
@@ -189,65 +188,6 @@ Cypress.Commands.overwrite('log', (log, ...args) => {
     // In headed mode, use the original cy.log behavior
     return log(...args);
   }
-});
-
-Cypress.Commands.add('podImage', (pod: string, namespace: string) => {
-  cy.log('Get pod image');
-  cy.switchPerspective('Core platform', 'Administrator');
-  cy.clickNavLink(['Workloads', 'Pods']);
-  cy.byTestID('page-heading').contains('Pods').should('be.visible');
-  cy.get(
-    'table tbody tr, [data-ouia-component-id="DataViewTableBasic"], [data-test="empty-box-body"]',
-    { timeout: 30000 },
-  ).should('have.length.greaterThan', 0);
-  cy.changeNamespace(namespace);
-  // Wait for the pod table to load after namespace change so the page stabilizes
-  cy.get('table tbody tr, [data-ouia-component-id="DataViewTableBasic"] tbody tr', {
-    timeout: 30000,
-  }).should('have.length.greaterThan', 0);
-  cy.get('[data-ouia-component-id="DataViewFilters"]', {
-    timeout: 30000,
-  }).should('have.length.greaterThan', 0);
-  cy.wait(10000);
-  // Re-check for DataViewFilters after the table has stabilized
-  cy.get('body').then(($body) => {
-    const hasDataViewFilters = $body.find('[data-ouia-component-id="DataViewFilters"]').length > 0;
-    let filterSelector: string;
-    if (hasDataViewFilters) {
-      const hasFilterByName = $body.find('[placeholder="Filter by name"]').length > 0;
-      filterSelector = '[placeholder="Filter by name"]';
-      if (!hasFilterByName) {
-        cy.byOUIAID('DataViewFilters')
-          .find('button')
-          .contains('Status')
-          .scrollIntoView()
-          .should('be.visible')
-          .click();
-        cy.byOUIAID('OUIA-Generated-Menu')
-          .find('button')
-          .contains('Name')
-          .scrollIntoView()
-          .should('be.visible')
-          .click();
-      }
-    } else {
-      filterSelector = '[data-test="name-filter-input"]';
-    }
-    // Separate the visibility assertion from the type action so Cypress
-    // re-queries the element for each command independently.
-    cy.get(filterSelector).scrollIntoView().should('be.visible');
-    cy.get(filterSelector).type(pod);
-  });
-  cy.get(`a[data-test^="${pod}"]`).eq(0).as('podLink').click();
-  cy.byPFRole('rowgroup')
-    .find('td')
-    .eq(1)
-    .scrollIntoView()
-    .should('be.visible')
-    .then(($td) => {
-      cy.log('Pod image: ' + $td.text());
-    });
-  cy.log('Get pod image completed');
 });
 
 Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => {

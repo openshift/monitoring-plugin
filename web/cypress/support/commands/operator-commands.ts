@@ -23,8 +23,10 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlock();
-      cleanupMP();
+      ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR: {
+        namespace: string;
+        operatorName: string;
+      });
       beforeBlockCOO(options?: COOSetupOptions);
       cleanupCOO(options?: COOSetupOptions);
       RemoveClusterAdminRole();
@@ -66,10 +68,14 @@ function collectDebugInfo({
   }
   cy.aboutModal();
   if (debugMonitoringPlugin) {
-    cy.podImage('monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace);
+    imagePatchUtils
+      .getImage('deployment/monitoring-plugin', CLUSTER_MONITORING_OPERATOR.namespace)
+      .then((image) => cy.log(`Monitoring Plugin image: ${image}`));
   }
   if (debugMonitoringConsolePlugin) {
-    cy.podImage('monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace);
+    imagePatchUtils
+      .getImage('deployment/monitoring', CLUSTER_OBSERVABILITY_OPERATOR.namespace)
+      .then((image) => cy.log(`Monitoring Console Plugin image: ${image}`));
   }
 }
 
@@ -170,46 +176,17 @@ function cleanupUIPlugin(opts: Required<COOSetupOptions>): void {
 
 // ── Cypress commands ───────────────────────────────────────────────
 
-Cypress.Commands.add('beforeBlock', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateMPSessionKey();
-
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block (session)');
-        cy.cleanupMP();
-        operatorAuthUtils.loginAndAuthNoSession();
-        imagePatchUtils.setupMonitoringPluginImage();
-        collectDebugInfo({ debugMonitoringPlugin: true });
-        cy.task('clearDownloads');
-        cy.log('Before block (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block (no session)');
-    cy.cleanupMP();
+Cypress.Commands.add(
+  'ensureMonitoringPlugin',
+  (CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string }) => {
+    cy.log('Ensure Monitoring Plugin');
     operatorAuthUtils.loginAndAuth();
-    imagePatchUtils.setupMonitoringPluginImage();
+    imagePatchUtils.setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR);
     collectDebugInfo({ debugMonitoringPlugin: true });
     cy.task('clearDownloads');
-    cy.log('Before block (no session) completed');
-  }
-});
-
-Cypress.Commands.add('cleanupMP', () => {
-  if (useSession) {
-    cy.log('cleanupMP (session)');
-    imagePatchUtils.revertMonitoringPluginImage();
-    cy.log('cleanupMP (session) completed');
-  }
-});
+    cy.log('Ensure Monitoring Plugin completed');
+  },
+);
 
 Cypress.Commands.add('beforeBlockCOO', (options?: COOSetupOptions) => {
   const opts = { ...DEFAULT_COO_OPTIONS, ...options };

@@ -40,7 +40,7 @@ declare global {
 // Moved from operator-commands.ts so all auth concerns live in one file.
 
 export const operatorAuthUtils = {
-  performLoginAndAuth(useSession: boolean): void {
+  ensureUserPermissions(): void {
     if (`${Cypress.env('LOGIN_USERNAME')}` === 'kubeadmin') {
       cy.adminCLI(
         `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -75,7 +75,10 @@ export const operatorAuthUtils = {
         `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
       );
     }
-    cy.adminCLI(
+  },
+
+  login(useSession = true): void {
+    cy.exec(
       `oc get oauthclient openshift-browser-client -o go-template ` +
         `--template="{{index .redirectURIs 0}}"`,
     ).then((result) => {
@@ -113,12 +116,14 @@ export const operatorAuthUtils = {
 
   loginAndAuth(): void {
     cy.log('Before block');
-    operatorAuthUtils.performLoginAndAuth(true);
+    operatorAuthUtils.ensureUserPermissions();
+    operatorAuthUtils.login();
   },
 
   loginAndAuthNoSession(): void {
     cy.log('Before block (no session)');
-    operatorAuthUtils.performLoginAndAuth(false);
+    operatorAuthUtils.ensureUserPermissions();
+    operatorAuthUtils.login(false);
   },
 
   generateCOOSessionKey(): string[] {
@@ -328,7 +333,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
   cy.log('Commands relogin - fetching OAuth URL and performing fresh login');
 
   cy.uiLogout();
-  // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
+  // Get the OAuth URL from the cluster before performing a fresh login.
   cy.exec(
     `oc get oauthclient openshift-browser-client -o go-template ` +
       `--template="{{index .redirectURIs 0}}"`,
