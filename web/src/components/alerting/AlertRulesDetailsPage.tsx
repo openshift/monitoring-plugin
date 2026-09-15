@@ -46,7 +46,7 @@ import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
 import { Alerts } from '../types';
-import { alertDescription, RuleResource } from '../utils';
+import { alertDescription, getSafeExternalURL, RuleResource } from '../utils';
 
 import './alert-rules-details-page.scss';
 
@@ -187,7 +187,7 @@ const AlertRulesDetailsPage_: React.FC<AlertRulesDetailsPageProps> = ({ match })
   };
 
   // eslint-disable-next-line camelcase
-  const runbookURL = rule?.annotations?.runbook_url;
+  const runbookURL = getSafeExternalURL(rule?.annotations?.runbook_url);
 
   return (
     <>
