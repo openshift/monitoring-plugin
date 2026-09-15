@@ -11,7 +11,7 @@ import { Alerts } from '../types';
 import { useSelector } from 'react-redux';
 import * as _ from 'lodash-es';
 import { getAllQueryArguments } from '../console/utils/router';
-import { AlertResource, alertState, getSafeExternalURL, RuleResource } from '../utils';
+import { AlertResource, alertState, RuleResource } from '../utils';
 import {
   Alert,
   AlertStates,
@@ -125,7 +125,7 @@ const AlertsDetailsPage_: React.FC<AlertsDetailsPageProps> = ({ history, match }
   const labels: PrometheusLabels = React.useMemo(() => alert?.labels, [labelsMemoKey]);
 
   // eslint-disable-next-line camelcase
-  const runbookURL = getSafeExternalURL(alert?.annotations?.runbook_url);
+  const runbookURL = alert?.annotations?.runbook_url;
 
   const sourceId = rule?.sourceId;
 
