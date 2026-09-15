@@ -41,6 +41,8 @@ import { useHistory } from 'react-router-dom';
 import { usePerspective, getDashboardUrl } from '../../hooks/usePerspective';
 import { useEditableProjects } from './hooks/useEditableProjects';
 import { TypeaheadSelect } from '../../TypeaheadSelect';
+import { DashboardDeniedHelperText } from './dashboard-dialog-helpers';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 
 export const formGroupStyle = {
   fontWeight: 'var(--pf-v5-global--FontWeight--normal)',
@@ -68,6 +70,12 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
   });
 
   const updateDashboardMutation = useUpdateDashboardMutation();
+  const [canUpdate, updateChecking] = usePersesDashboardAccess(
+    'update',
+    dashboard?.metadata?.project ?? null,
+    isOpen,
+  );
+  const updateDenied = !updateChecking && !canUpdate;
 
   React.useEffect(() => {
     if (isOpen && dashboard) {
@@ -121,7 +129,10 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
           key="rename-modal-btn-rename"
           variant="primary"
           isDisabled={
-            !(form.watch('dashboardName') || '')?.trim() || updateDashboardMutation.isPending
+            !(form.watch('dashboardName') || '')?.trim() ||
+            updateDashboardMutation.isPending ||
+            updateChecking ||
+            updateDenied
           }
           isLoading={updateDashboardMutation.isPending}
           onClick={form.handleSubmit(processForm)}
@@ -170,6 +181,7 @@ export const RenameActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
               </FormGroup>
             )}
           />
+          <DashboardDeniedHelperText show={updateDenied} verb="update" />
         </form>
       </FormProvider>
     </Modal>
@@ -230,6 +242,13 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
   }, [editableProjects]);
 
   const createDashboardMutation = useCreateDashboardMutation();
+  const selectedProject = form.watch('projectName');
+  const [canCreate, createChecking] = usePersesDashboardAccess(
+    'create',
+    selectedProject || null,
+    isOpen,
+  );
+  const createDenied = !!selectedProject && !createChecking && !canCreate;
 
   React.useEffect(() => {
     if (isOpen && dashboard && editableProjects?.length > 0 && defaultProject) {
@@ -328,7 +347,9 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
           isDisabled={
             !(form.watch('dashboardName') || '')?.trim() ||
             !(form.watch('projectName') || '')?.trim() ||
-            !hasEditableProject
+            !hasEditableProject ||
+            createChecking ||
+            createDenied
           }
           isLoading={createDashboardMutation.isPending || createProjectMutation.isPending}
           onClick={form.handleSubmit(processForm)}
@@ -418,6 +439,7 @@ export const DuplicateActionModal = ({ dashboard, isOpen, onClose }: ActionModal
                           </HelperText>
                         </FormHelperText>
                       )}
+                      <DashboardDeniedHelperText show={createDenied} verb="create" />
                     </FormGroup>
                   )}
                 />
@@ -436,6 +458,12 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
 
   const deleteDashboardMutation = useDeleteDashboardMutation();
   const dashboardName = dashboard?.spec?.display?.name ?? t('this dashboard');
+  const [canDelete, deleteChecking] = usePersesDashboardAccess(
+    'delete',
+    dashboard?.metadata?.project ?? null,
+    isOpen,
+  );
+  const deleteDenied = !deleteChecking && !canDelete;
 
   const handleDeleteConfirm = async () => {
     if (!dashboard) return;
@@ -466,7 +494,9 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
         <Button
           key="delete-modal-btn-delete"
           onClick={handleDeleteConfirm}
-          isDisabled={!dashboard || deleteDashboardMutation.isPending}
+          isDisabled={
+            !dashboard || deleteDashboardMutation.isPending || deleteChecking || deleteDenied
+          }
           isLoading={deleteDashboardMutation.isPending}
         >
           {deleteDashboardMutation.isPending ? t('Deleting...') : t('Delete')}
@@ -483,6 +513,7 @@ export const DeleteActionModal = ({ dashboard, isOpen, onClose }: ActionModalPro
       {t('Are you sure you want to delete ')}
       <strong>{dashboardName}</strong>
       {t('? This action can not be undone.')}
+      <DashboardDeniedHelperText show={deleteDenied} verb="delete" />
     </Modal>
   );
 };

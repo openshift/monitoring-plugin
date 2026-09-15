@@ -7,7 +7,7 @@ import { getAllQueryArguments } from '../../../console/utils/router';
 import { useBoolean } from '../../../hooks/useBoolean';
 import { getDashboardUrl, usePerspective } from '../../../hooks/usePerspective';
 import { QueryParams } from '../../../query-params';
-import { useActiveProject } from '../project/useActiveProject';
+import { ALL_NAMESPACES_KEY, useActiveProject } from './useActiveProject';
 import { usePerses } from './usePerses';
 
 // This hook syncs with mutliple external API's, redux, and URL state. Its a lot, but needs to all
@@ -85,7 +85,7 @@ export const useDashboardsData = () => {
 
   // Retrieve dashboard metadata for the currently selected project
   const activeProjectDashboardsMetadata = useMemo<CombinedDashboardMetadata[]>(() => {
-    if (!activeProject) {
+    if (activeProject === ALL_NAMESPACES_KEY) {
       return combinedDashboardsMetadata;
     }
     return combinedDashboardsMetadata.filter((combinedDashboardMetadata) => {

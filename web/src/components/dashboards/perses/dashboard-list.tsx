@@ -7,9 +7,9 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
+  MenuToggle,
   Pagination,
   Title,
-  Tooltip,
 } from '@patternfly/react-core';
 import { DataView } from '@patternfly/react-data-view/dist/dynamic/DataView';
 import { DataViewFilters } from '@patternfly/react-data-view/dist/dynamic/DataViewFilters';
@@ -25,19 +25,20 @@ import { useDataViewPagination } from '@patternfly/react-data-view/dist/dynamic/
 import { ActionsColumn, ThProps } from '@patternfly/react-table';
 import { Link, useLocation, useHistory } from 'react-router-dom';
 
-import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
-import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
-import { usePersesEditPermissions } from './dashboard-toolbar';
+import { getDashboardsListUrl, getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
+import { NamespaceBar, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 import { DashboardResource } from '@perses-dev/core';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   DeleteActionModal,
   DuplicateActionModal,
   RenameActionModal,
 } from './dashboard-action-modals';
-import { ProjectBar } from './project/ProjectBar';
 import { Helmet } from 'react-helmet';
 import { DashboardListPageHeader } from './dashboard-header';
-import { useEditableProjects } from './hooks/useEditableProjects';
+import { EllipsisVIcon } from '@patternfly/react-icons';
+import { ALL_NAMESPACES_KEY } from './hooks/useActiveProject';
 const perPageOptions = [
   { title: '10', value: 10 },
   { title: '20', value: 20 },
@@ -50,25 +51,28 @@ const DashboardActionsCell = React.memo(
     onRename,
     onDuplicate,
     onDelete,
-    emptyActions,
   }: {
     project: string;
     dashboard: DashboardResource;
     onRename: (dashboard: DashboardResource) => void;
     onDuplicate: (dashboard: DashboardResource) => void;
     onDelete: (dashboard: DashboardResource) => void;
-    emptyActions: any[];
   }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
-    const { permissionsLoading } = useEditableProjects();
-    const { canEdit, loading } = usePersesEditPermissions(project);
-    const disabled = !canEdit;
+    const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const [canUpdate, updateChecking] = usePersesDashboardAccess('update', project, isDropdownOpen);
+    const [canDelete, deleteChecking] = usePersesDashboardAccess('delete', project, isDropdownOpen);
 
     const rowSpecificActions = React.useMemo(
       () => [
         {
           title: t('Rename dashboard'),
           onClick: () => onRename(dashboard),
+          isAriaDisabled: updateChecking || !canUpdate,
+          tooltipProps:
+            !updateChecking && !canUpdate
+              ? { content: t('You do not have permission to edit dashboards in this project.') }
+              : undefined,
         },
         {
           title: t('Duplicate dashboard'),
@@ -77,32 +81,47 @@ const DashboardActionsCell = React.memo(
         {
           title: t('Delete dashboard'),
           onClick: () => onDelete(dashboard),
+          isAriaDisabled: deleteChecking || !canDelete,
+          tooltipProps:
+            !deleteChecking && !canDelete
+              ? { content: t('You do not have permission to delete dashboards in this project.') }
+              : undefined,
         },
       ],
-      [dashboard, onRename, onDuplicate, onDelete, t],
+      [
+        dashboard,
+        onRename,
+        onDuplicate,
+        onDelete,
+        t,
+        canUpdate,
+        updateChecking,
+        canDelete,
+        deleteChecking,
+      ],
     );
 
-    if (disabled || loading) {
-      return (
-        <Tooltip content={t("You don't have permissions for dashboard actions")}>
-          <div>
-            <ActionsColumn items={emptyActions} isDisabled={true} />
-          </div>
-        </Tooltip>
-      );
-    }
-
-    if (permissionsLoading) {
-      return (
-        <Tooltip content={t('Checking permissions...')}>
-          <div>
-            <ActionsColumn items={emptyActions} isDisabled={true} />
-          </div>
-        </Tooltip>
-      );
-    }
-
-    return <ActionsColumn items={rowSpecificActions} isDisabled={false} />;
+    return (
+      <ActionsColumn
+        items={rowSpecificActions}
+        isDisabled={false}
+        actionsToggle={({ onToggle, toggleRef, isOpen, isDisabled }) => (
+          <MenuToggle
+            aria-label="Kebab toggle"
+            ref={toggleRef}
+            onClick={(e) => {
+              onToggle(e);
+              setIsDropdownOpen(true);
+            }}
+            isExpanded={isOpen}
+            isDisabled={isDisabled}
+            variant="plain"
+          >
+            <EllipsisVIcon />
+          </MenuToggle>
+        )}
+      />
+    );
   },
 );
 
@@ -263,7 +282,7 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
             item.project
               ?.toLocaleLowerCase()
               .includes(filters['project-filter']?.toLocaleLowerCase())) &&
-          (!activeProject || item.project === activeProject),
+          (activeProject === ALL_NAMESPACES_KEY || item.project === activeProject),
       ),
     [filters, tableRows, activeProject],
   );
@@ -308,17 +327,6 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     setTargetedDashboard(undefined);
   }, []);
 
-  const emptyRowActions = React.useMemo(
-    () => [
-      {
-        title: t("You don't have permissions for dashboard actions"),
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onClick: () => {},
-      },
-    ],
-    [t],
-  );
-
   const pageRows: DataViewTr[] = React.useMemo(() => {
     return sortedAndFilteredData
       .slice((page - 1) * perPage, (page - 1) * perPage + perPage)
@@ -335,7 +343,6 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
               onRename={handleRenameModalOpen}
               onDuplicate={handleDuplicateModalOpen}
               onDelete={handleDeleteModalOpen}
-              emptyActions={emptyRowActions}
             />
           ),
           props: { isActionCell: true },
@@ -345,7 +352,6 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
     sortedAndFilteredData,
     page,
     perPage,
-    emptyRowActions,
     handleRenameModalOpen,
     handleDuplicateModalOpen,
     handleDeleteModalOpen,
@@ -435,13 +441,14 @@ const DashboardsTable: React.FunctionComponent<DashboardsTableProps> = ({
 };
 
 export const DashboardList: React.FC = () => {
-  const { setActiveProject, activeProject, persesDashboards, combinedInitialLoad } =
-    useDashboardsData();
+  const { activeProject, persesDashboards, combinedInitialLoad } = useDashboardsData();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const { perspective } = usePerspective();
+  const navigate = useNavigate();
 
   return (
     <>
-      <ProjectBar activeProject={activeProject} setActiveProject={setActiveProject} />
+      <NamespaceBar onNamespaceChange={() => navigate(getDashboardsListUrl(perspective))} />
       <Helmet>
         <title>{t('Metrics dashboards')}</title>
       </Helmet>
