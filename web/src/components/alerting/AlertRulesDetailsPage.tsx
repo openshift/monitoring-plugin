@@ -63,7 +63,7 @@ import {
 import KebabDropdown from '../kebab-dropdown';
 import { Labels } from '../labels';
 import { ToggleGraph } from '../MetricsPage';
-import { alertDescription, RuleResource } from '../utils';
+import { alertDescription, getSafeExternalURL, RuleResource } from '../utils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import { DataTestIDs } from '../data-test';
@@ -167,7 +167,7 @@ const AlertRulesDetailsPage_: FC = () => {
   };
 
   // eslint-disable-next-line camelcase
-  const runbookURL = rule?.annotations?.runbook_url;
+  const runbookURL = getSafeExternalURL(rule?.annotations?.runbook_url);
 
   return (
     <>

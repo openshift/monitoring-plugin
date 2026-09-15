@@ -26,7 +26,7 @@ import {
   getRuleUrl,
   usePerspective,
 } from '../hooks/usePerspective';
-import { AlertResource, alertState, RuleResource } from '../utils';
+import { AlertResource, alertState, getSafeExternalURL, RuleResource } from '../utils';
 import { MonitoringProvider } from '../../contexts/MonitoringContext';
 
 import {
@@ -120,7 +120,7 @@ const AlertsDetailsPage_: FC = () => {
   const labels: PrometheusLabels = useMemo(() => alert?.labels, [labelsMemoKey]);
 
   // eslint-disable-next-line camelcase
-  const runbookURL = alert?.annotations?.runbook_url;
+  const runbookURL = getSafeExternalURL(alert?.annotations?.runbook_url);
 
   const sourceId = rule?.sourceId;
 
