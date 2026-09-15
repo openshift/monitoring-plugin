@@ -12,9 +12,9 @@
 // limitations under the License.
 
 import { GlobalDatasourceResource } from '@perses-dev/core';
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import buildURL from './url-builder';
 import { buildDatasourceQueryParameters } from './datasource-client';
-import { ocpPersesFetchJson } from '../perses-client';
 
 const globalDatasourceResource = 'globaldatasources';
 
@@ -27,5 +27,5 @@ export function fetchGlobalDatasourceList(
     resource: globalDatasourceResource,
     queryParams: buildDatasourceQueryParameters(kind, defaultDatasource, name),
   });
-  return ocpPersesFetchJson<GlobalDatasourceResource[]>(url);
+  return consoleFetchJSON(url) as Promise<GlobalDatasourceResource[]>;
 }

@@ -19,6 +19,8 @@ import { formGroupStyle, LabelSpacer } from './dashboard-action-modals';
 import { useToast } from './ToastProvider';
 import { getDashboardUrl, usePerspective } from '../../hooks/usePerspective';
 import { DashboardResource } from '@perses-dev/core';
+import { DashboardVerb } from './hooks/usePersesDashboardAccess';
+import { persesDashboardDataTestIDs } from '../../data-test';
 
 export const useDashboardProjects = () => {
   const {
@@ -148,6 +150,39 @@ export const PermissionStateWrapper: React.FC<PermissionStateProps> = ({
   }
 
   return <>{children}</>;
+};
+
+export const DashboardDeniedHelperText: React.FC<{ show: boolean; verb: DashboardVerb }> = ({
+  show,
+  verb,
+}) => {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  if (!show) return null;
+
+  const { message, dataTest } = {
+    create: {
+      message: t('You do not have permission to create dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.createAccessDeniedHelperText,
+    },
+    update: {
+      message: t('You do not have permission to edit dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.updateAccessDeniedHelperText,
+    },
+    delete: {
+      message: t('You do not have permission to delete dashboards in this project.'),
+      dataTest: persesDashboardDataTestIDs.deleteAccessDeniedHelperText,
+    },
+  }[verb];
+
+  return (
+    <FormHelperText>
+      <HelperText>
+        <HelperTextItem icon={<ExclamationCircleIcon />} variant="error" data-test={dataTest}>
+          {message}
+        </HelperTextItem>
+      </HelperText>
+    </FormHelperText>
+  );
 };
 
 interface ProjectSelectFormGroupProps {

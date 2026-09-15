@@ -18,6 +18,7 @@ import yaml from 'js-yaml';
 import { ChangeEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  DashboardDeniedHelperText,
   useDashboardProjects,
   useProjectCreation,
   useDashboardNavigation,
@@ -36,6 +37,7 @@ import {
 } from './dashboard-action-validations';
 import { CodeEditor } from '@openshift-console/dynamic-plugin-sdk';
 import './dashboard-import-dialog.scss';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['application/json', 'text/yaml', 'application/x-yaml', 'text/x-yaml'];
@@ -312,7 +314,19 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
   };
 
   const projectNameValue = form.watch('projectName');
-  const canImport = parsedDashboard && projectNameValue && !isImporting && !parseError;
+  const [canCreate, checkingAccess] = usePersesDashboardAccess(
+    'create',
+    projectNameValue || null,
+    isOpen,
+  );
+  const createDenied = !!projectNameValue && !checkingAccess && !canCreate;
+  const canImport =
+    parsedDashboard &&
+    projectNameValue &&
+    !isImporting &&
+    !parseError &&
+    !checkingAccess &&
+    !createDenied;
 
   return (
     <Modal
@@ -416,6 +430,7 @@ export const DashboardImportDialog: React.FunctionComponent<DashboardImportDialo
                       label={t('2. Select project')}
                       maxHeight="200px"
                     />
+                    <DashboardDeniedHelperText show={createDenied} verb="create" />
                   </StackItem>
                 )}
               </Stack>
