@@ -128,7 +128,8 @@
     "fast-uri": "3.1.4",
     "junit-report-merger": {
       "js-yaml": "3.15.2"
-    }
+    },
+    "adm-zip": "0.6.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
