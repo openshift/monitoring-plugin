@@ -1,5 +1,6 @@
 import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesDashboardsDashboardDropdownCOO, persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 
 export interface PerspectiveConfig {
@@ -72,41 +73,46 @@ export function testCOORBACPersesTestsDevUser2(perspective: PerspectiveConfig) {
 
   });
 
-  it(`3.${perspective.name} perspective - Create button validation - Disabled`, () => {
+  it(`3.${perspective.name} perspective - Create button validation - Access denied`, () => {
     cy.log(`3.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
 
-    cy.log(`3.2. Verify Create button is disabled`);
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
+    cy.log(`3.2. Verify Create button is enabled but creation is denied`);
+    listPersesDashboardsPage.assertCreateButtonIsEnabled();
+    listPersesDashboardsPage.clickCreateButton();
+    persesCreateDashboardsPage.createDashboardShouldBeLoaded();
+    persesCreateDashboardsPage.assertCreateAccessDenied('perses-dev');
+    persesCreateDashboardsPage.createDashboardDialogCancelButton();
 
     cy.log(`3.3 change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
 
-    cy.log(`3.4. Verify Create button is disabled`);
-    listPersesDashboardsPage.assertCreateButtonIsDisabled();
+    cy.log(`3.4. Verify Create button is enabled but creation is denied`);
+    listPersesDashboardsPage.assertCreateButtonIsEnabled();
 
   });
 
-  it(`4.${perspective.name} perspective - Kebab icon - Disabled`, () => {
+  it(`4.${perspective.name} perspective - Kebab icon - Row actions denied`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses)`);
     listPersesDashboardsPage.shouldBeLoaded();
 
     cy.log(`4.2. Change namespace to perses-dev`);
     cy.changeNamespace('perses-dev');
 
-    cy.log(`4.3. Assert Kebab icon is disabled`);
+    cy.log(`4.3. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
+    listPersesDashboardsPage.assertDuplicateAccessDenied('perses-dev');
     listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`4.4. Change namespace to All Projects`);
     cy.changeNamespace('All Projects');
 
-    cy.log(`4.5. Assert Kebab icon is disabled`);
+    cy.log(`4.5. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byProject('perses-dev');
     listPersesDashboardsPage.filter.byName(persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0]);
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.assertKebabIconDisabled();
+    listPersesDashboardsPage.assertKebabRowActionsDisabled();
     listPersesDashboardsPage.clearAllFilters();
 
   });

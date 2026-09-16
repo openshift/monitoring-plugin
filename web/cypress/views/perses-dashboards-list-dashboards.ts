@@ -1,5 +1,5 @@
 import { commonPages } from "./common";
-import { DataTestIDs, Classes, listPersesDashboardsOUIAIDs, listPersesDashboardsDataTestIDs, IDs, persesAriaLabels } from "../../src/components/data-test";
+import { DataTestIDs, Classes, listPersesDashboardsOUIAIDs, listPersesDashboardsDataTestIDs, IDs, persesAriaLabels, persesDashboardDataTestIDs } from "../../src/components/data-test";
 import { listPersesDashboardsEmptyState, listPersesDashboardsPageSubtitle, persesDashboardsDuplicateDashboard, persesDashboardsRenameDashboard } from "../fixtures/perses/constants";
 import { MonitoringPageTitles } from "../fixtures/monitoring/constants";
 
@@ -134,6 +134,15 @@ export const listPersesDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.persesDashboardKebabIcon).scrollIntoView().should('be.visible').should('have.attr', 'disabled');
   },
 
+  assertKebabRowActionsDisabled: (index?: number) => {
+    cy.log('persesDashboardsPage.assertKebabRowActionsDisabled');
+    listPersesDashboardsPage.clickKebabIcon(index);
+    cy.byPFRole('menuitem').contains('Rename dashboard').should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem').contains('Delete dashboard').should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem').contains('Duplicate dashboard').should('not.have.attr', 'aria-disabled', 'true');
+    listPersesDashboardsPage.clickKebabIcon(index);
+  },
+
   clickRenameDashboardOption: () => {
     cy.log('listPersesDashboardsPage.clickRenameDashboardOption');
     cy.wait(1000);
@@ -207,6 +216,17 @@ export const listPersesDashboardsPage = {
     cy.get(Classes.PersesCreateDashboardProjectDropdown).should('be.visible').click({ force: true });
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
     cy.wait(2000);
+  },
+
+  assertDuplicateAccessDenied: (project: string) => {
+    cy.log('persesDashboardsPage.assertDuplicateAccessDenied');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDuplicateOption();
+    listPersesDashboardsPage.duplicateDashboardEnterName('access-denied-check');
+    listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown(project);
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find('button').contains('Duplicate').should('be.disabled');
+    listPersesDashboardsPage.duplicateDashboardCancelButton();
   },
 
   assertDuplicateProjectDropdownOptions: (project: string, contains: boolean) => {
