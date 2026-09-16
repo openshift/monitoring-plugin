@@ -85,9 +85,8 @@ function waitForAcmAlertsFiring(alertNames: string[] = ACM_DEFAULT_TEST_ALERTS):
   cy.log(`Waiting for ACM alerts to become firing: ${alertNames.join(', ')}`);
 
   cy.log('Waiting for observability-thanos-rule pods to be Ready');
-  cy.exec(
-    `oc rollout status statefulset/observability-thanos-rule ` +
-      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
+  cy.adminCLI(
+    `oc rollout status statefulset/observability-thanos-rule ` + `-n ${ns} --timeout=300s`,
     { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
   ).then((result) => {
     if (result.code !== 0) {
@@ -99,10 +98,10 @@ function waitForAcmAlertsFiring(alertNames: string[] = ACM_DEFAULT_TEST_ALERTS):
   });
 
   cy.log('Waiting for ACM Alertmanager pods to be Ready');
-  cy.exec(
+  cy.adminCLI(
     `oc wait --for=condition=Ready pod ` +
       `-l alertmanager=observability,app=multicluster-observability-alertmanager ` +
-      `-n ${ns} --timeout=300s --kubeconfig "${kubeconfig}"`,
+      `-n ${ns} --timeout=300s`,
     { failOnNonZeroExit: false, timeout: acmAlertReadyTimeoutMilliseconds },
   );
 
@@ -317,16 +316,8 @@ Cypress.Commands.add('beforeBlockACM', () => {
     failOnNonZeroExit: false,
     timeout: 1200000,
   });
-  cy.exec(
-    `oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml --kubeconfig ${Cypress.env(
-      'KUBECONFIG_PATH',
-    )}`,
-  );
-  cy.exec(
-    `oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml --kubeconfig ${Cypress.env(
-      'KUBECONFIG_PATH',
-    )}`,
-  );
+  cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/acm-uiplugin.yaml`);
+  cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/acm-alerrule-test.yaml`);
   cy.waitForAcmAlertsFiring(ACM_DEFAULT_TEST_ALERTS);
   cy.log('ACM environment setup completed');
 });

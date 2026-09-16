@@ -61,12 +61,9 @@ describe(
           `--field-selector metadata.name=${DASHBOARD_NAME} --ignore-not-found`,
       ).then(() => {
         // Fallback: delete any dashboard whose CR name matches the display name pattern
-        cy.exec(
-          `oc get persesdashboard -n ${DASHBOARD_PROJECT} -o name --kubeconfig ${Cypress.env(
-            'KUBECONFIG_PATH',
-          )}`,
-          { failOnNonZeroExit: false },
-        ).then((result) => {
+        cy.adminCLI(`oc get persesdashboard -n ${DASHBOARD_PROJECT} -o name`, {
+          failOnNonZeroExit: false,
+        }).then((result) => {
           if (result.stdout) {
             const dashboards = result.stdout
               .split('\n')

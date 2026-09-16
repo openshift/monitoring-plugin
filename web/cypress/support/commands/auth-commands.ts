@@ -28,7 +28,7 @@ declare global {
         password: string,
         oauthurl: string,
       ): Chainable<Element>;
-      adminCLI(command: string, options?);
+      adminCLI(command: string, options?): Chainable<Exec>;
       executeAndDelete(command: string);
       validateLogin(): Chainable<Element>;
       relogin(provider: string, username: string, password: string): Chainable<Element>;
@@ -75,9 +75,9 @@ export const operatorAuthUtils = {
         `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
       );
     }
-    cy.exec(
+    cy.adminCLI(
       `oc get oauthclient openshift-browser-client -o go-template ` +
-        `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+        `--template="{{index .redirectURIs 0}}"`,
     ).then((result) => {
       if (result.stderr === '') {
         const oauth = result.stdout;
@@ -199,11 +199,7 @@ function performLogin(
       cy.task('log', '  skipping login, console is running with auth disabled');
       return;
     }
-    cy.exec(
-      `oc get node --selector=hypershift.openshift.io/managed --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-    ).then((result) => {
+    cy.adminCLI(`oc get node --selector=hypershift.openshift.io/managed`).then((result) => {
       cy.log(result.stdout);
       cy.task('log', result.stdout);
       if (result.stdout.includes('Ready')) {
@@ -335,7 +331,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
   // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
   cy.exec(
     `oc get oauthclient openshift-browser-client -o go-template ` +
-      `--template="{{index .redirectURIs 0}}" --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+      `--template="{{index .redirectURIs 0}}"`,
   ).then((result) => {
     if (result.stderr !== '') {
       throw new Error(`Failed to get OAuth URL: ${result.stderr}`);
@@ -413,11 +409,14 @@ Cypress.Commands.add('cliLogout', () => {
   });
 });
 
-Cypress.Commands.add('adminCLI', (command: string) => {
-  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
-  cy.log(`Run admin command: ${command}`);
-  cy.exec(`${command} --kubeconfig ${kubeconfig}`);
-});
+Cypress.Commands.add(
+  'adminCLI',
+  (command: string, options?: Partial<Cypress.ExecOptions>): Cypress.Chainable<Cypress.Exec> => {
+    const kubeconfig = Cypress.env('KUBECONFIG_PATH');
+    cy.log(`Run admin command: ${command}`);
+    return cy.exec(`${command} --kubeconfig ${kubeconfig}`, options);
+  },
+);
 
 Cypress.Commands.add('executeAndDelete', (command: string) => {
   cy.exec(command, { failOnNonZeroExit: false }).then((result) => {

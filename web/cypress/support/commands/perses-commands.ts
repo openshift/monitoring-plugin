@@ -66,16 +66,16 @@ Cypress.Commands.add('setupPersesExtraDashboards', () => {
   const kc = Cypress.env('KUBECONFIG_PATH');
 
   cy.log('Create perses-dev namespace.');
-  cy.exec(`oc create namespace perses-dev --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+  cy.adminCLI(`oc create namespace perses-dev`, { failOnNonZeroExit: false });
 
   cy.log('Create observ-test namespace.');
-  cy.exec(`oc create namespace observ-test --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+  cy.adminCLI(`oc create namespace observ-test`, { failOnNonZeroExit: false });
 
   cy.log('Create empty-namespace3 namespace.');
-  cy.exec(`oc create namespace empty-namespace3 --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+  cy.adminCLI(`oc create namespace empty-namespace3`, { failOnNonZeroExit: false });
 
   cy.log('Create empty-namespace4 namespace.');
-  cy.exec(`oc create namespace empty-namespace4 --kubeconfig ${kc}`, { failOnNonZeroExit: false });
+  cy.adminCLI(`oc create namespace empty-namespace4`, { failOnNonZeroExit: false });
 
   cy.log('Create openshift-cluster-sample-dashboard instance.');
   cy.exec(
@@ -148,11 +148,7 @@ Cypress.Commands.add('cleanupExtraDashboards', () => {
   );
 
   cy.log('Remove observ-test namespace');
-  cy.exec(
-    `oc delete namespace observ-test --ignore-not-found --kubeconfig ${Cypress.env(
-      'KUBECONFIG_PATH',
-    )}`,
-  );
+  cy.adminCLI(`oc delete namespace observ-test --ignore-not-found`);
 });
 
 function isTestDashboardName(displayName: string | undefined): boolean {
