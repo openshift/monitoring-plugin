@@ -3,7 +3,7 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
-import { OPENTELEMETRY_OPERATOR, TEMPO_OPERATOR } from '../operators';
+import { LOKI_OPERATOR, OPENTELEMETRY_OPERATOR, TEMPO_OPERATOR } from '../operators';
 
 export {};
 
@@ -18,7 +18,7 @@ declare global {
       installDistributeTracingUIPlugin();
       waitForDistributeTracingUIPluginReady();
 
-      beforeBlockLoki(LOKI: { namespace: string; packageName: string });
+      beforeBlockLoki();
       beforeBlockLogging(CLO: { namespace: string; packageName: string });
       configureLoggingLoki();
       installLoggingUIPlugin();
@@ -30,7 +30,7 @@ declare global {
       cleanupTracingApps();
       cleanupTempoLokiThanosPersesGlobalDatasource();
       cleanupDistributeTracingUIPlugin();
-      cleanupLoki(LOKI: { namespace: string; packageName: string });
+      cleanupLoki();
       cleanupLogging(CLO: { namespace: string; packageName: string });
       cleanupLoggingLoki();
       cleanupLoggingUIPlugin();
@@ -474,14 +474,14 @@ const tracesUtils = {
 };
 
 const loggingUtils = {
-  installLoki(LOKI: { namespace: string; packageName: string }): void {
+  installLoki(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Loki Operator installation.');
       return;
     }
 
     cy.log('Install Loki Operator');
-    operatorHubPage.installOperator(LOKI.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(LOKI_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -492,7 +492,7 @@ const loggingUtils = {
     });
   },
 
-  cleanupLoki(LOKI: { namespace: string }): void {
+  cleanupLoki(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Loki Operator cleanup.');
       return;
@@ -501,11 +501,13 @@ const loggingUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Loki Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${LOKI.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${LOKI_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Loki Operator resource');
     cy.executeAndDelete(
-      `oc delete operator loki-operator.${LOKI.namespace} --kubeconfig ${kubeconfig}`,
+      `oc delete operator loki-operator.${LOKI_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
     );
 
     cy.log('Delete Loki CustomResourceDefinitions');
@@ -566,7 +568,7 @@ const loggingUtils = {
     );
   },
 
-  waitForLokiReady(LOKI: { namespace: string }): void {
+  waitForLokiReady(): void {
     cy.log('Check Loki Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -574,30 +576,34 @@ const loggingUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${LOKI.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep loki',
+            `oc get pods -n ${LOKI_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+              '| grep loki',
             { failOnNonZeroExit: false },
           )
           .then((result) => result.code === 0 && result.stdout.trim().length > 0),
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Loki operator pod not found in namespace ${LOKI.namespace}`,
+        errorMsg: `Loki operator pod not found in namespace ${LOKI_OPERATOR.namespace}`,
       },
     );
 
-    cy.exec(`oc get pods -n ${LOKI.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep loki')
+    cy.exec(
+      `oc get pods -n ${LOKI_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep loki',
+    )
       .its('stdout')
       .then((podOutput) => {
         const podName = podOutput.trim().split('\n')[0];
         cy.log(`Found Loki pod: ${podName}`);
 
         cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${LOKI.namespace} ` +
+          `oc wait --for=condition=Ready ${podName} -n ${LOKI_OPERATOR.namespace} ` +
             `--timeout=120s --kubeconfig ${kubeconfig}`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Loki operator pod is now running in namespace: ${LOKI.namespace}`);
+          cy.log(`Loki operator pod is now running in namespace: ${LOKI_OPERATOR.namespace}`);
         });
       });
 
@@ -876,18 +882,18 @@ Cypress.Commands.add('beforeBlockTempo', () => {
   }
 });
 
-Cypress.Commands.add('beforeBlockLoki', (LOKI: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockLoki', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('loki', LOKI);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('loki', LOKI_OPERATOR);
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block Loki (session)');
         cy.cleanupLoggingLoki();
-        cy.cleanupLoki(LOKI);
+        cy.cleanupLoki();
         operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLoki(LOKI);
-        loggingUtils.waitForLokiReady(LOKI);
+        loggingUtils.installLoki();
+        loggingUtils.waitForLokiReady();
         cy.log('Before block Loki (session) completed');
       },
       {
@@ -900,10 +906,10 @@ Cypress.Commands.add('beforeBlockLoki', (LOKI: { namespace: string; packageName:
   } else {
     cy.log('Before block Loki (no session)');
     cy.cleanupLoggingLoki();
-    cy.cleanupLoki(LOKI);
+    cy.cleanupLoki();
     operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLoki(LOKI);
-    loggingUtils.waitForLokiReady(LOKI);
+    loggingUtils.installLoki();
+    loggingUtils.waitForLokiReady();
     cy.log('Before block Loki (no session) completed');
   }
 });
@@ -952,9 +958,9 @@ Cypress.Commands.add('cleanupTempo', () => {
   cy.log('Cleanup Tempo completed');
 });
 
-Cypress.Commands.add('cleanupLoki', (LOKI: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupLoki', () => {
   cy.log('Cleanup Loki');
-  loggingUtils.cleanupLoki(LOKI);
+  loggingUtils.cleanupLoki();
   cy.log('Cleanup Loki completed');
 });
 

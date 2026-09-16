@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { CLUSTER_LOGGING_OPERATOR, LOKI_OPERATOR } from '../../support/operators';
+import { CLUSTER_LOGGING_OPERATOR } from '../../support/operators';
 import { testCOOCreateImportPerses } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
@@ -13,7 +13,7 @@ describe(
       cy.configureBase();
       cy.configureTracingApps();
 
-      cy.beforeBlockLoki(LOKI_OPERATOR);
+      cy.beforeBlockLoki();
       cy.beforeBlockLogging(CLUSTER_LOGGING_OPERATOR);
       cy.configureLoggingLoki();
 
@@ -52,7 +52,7 @@ describe(
       });
       cy.cleanupLoggingLoki();
       cy.cleanupLogging(CLUSTER_LOGGING_OPERATOR);
-      cy.cleanupLoki(LOKI_OPERATOR);
+      cy.cleanupLoki();
       cy.cleanupTracingApps();
       cy.cleanupBase();
       cy.cleanupOtel();
