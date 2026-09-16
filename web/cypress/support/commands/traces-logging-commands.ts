@@ -3,7 +3,12 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
-import { LOKI_OPERATOR, OPENTELEMETRY_OPERATOR, TEMPO_OPERATOR } from '../operators';
+import {
+  CLUSTER_LOGGING_OPERATOR,
+  LOKI_OPERATOR,
+  OPENTELEMETRY_OPERATOR,
+  TEMPO_OPERATOR,
+} from '../operators';
 
 export {};
 
@@ -19,7 +24,7 @@ declare global {
       waitForDistributeTracingUIPluginReady();
 
       beforeBlockLoki();
-      beforeBlockLogging(CLO: { namespace: string; packageName: string });
+      beforeBlockLogging();
       configureLoggingLoki();
       installLoggingUIPlugin();
       waitForLoggingUIPluginReady();
@@ -31,7 +36,7 @@ declare global {
       cleanupTempoLokiThanosPersesGlobalDatasource();
       cleanupDistributeTracingUIPlugin();
       cleanupLoki();
-      cleanupLogging(CLO: { namespace: string; packageName: string });
+      cleanupLogging();
       cleanupLoggingLoki();
       cleanupLoggingUIPlugin();
       cleanupChainsawNamespaces();
@@ -522,14 +527,14 @@ const loggingUtils = {
     );
   },
 
-  installLogging(CLO: { namespace: string; packageName: string }): void {
+  installLogging(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Operator installation.');
       return;
     }
 
     cy.log('Install Logging Operator');
-    operatorHubPage.installOperator(CLO.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(CLUSTER_LOGGING_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -540,7 +545,7 @@ const loggingUtils = {
     });
   },
 
-  cleanupLogging(CLO: { namespace: string }): void {
+  cleanupLogging(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Operator cleanup.');
       return;
@@ -549,11 +554,14 @@ const loggingUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Logging Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${CLO.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${CLUSTER_LOGGING_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Logging Operator resource');
     cy.executeAndDelete(
-      `oc delete operator cluster-logging.${CLO.namespace} --kubeconfig ${kubeconfig}`,
+      `oc delete operator cluster-logging.${CLUSTER_LOGGING_OPERATOR.namespace} ` +
+        `--kubeconfig ${kubeconfig}`,
     );
 
     cy.log('Delete Logging CustomResourceDefinitions');
@@ -618,7 +626,7 @@ const loggingUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  waitForLoggingReady(CLO: { namespace: string }): void {
+  waitForLoggingReady(): void {
     cy.log('Check Logging Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -626,7 +634,8 @@ const loggingUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${CLO.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name ` +
+              `--kubeconfig ${kubeconfig} ` +
               '| grep logging',
             { failOnNonZeroExit: false },
           )
@@ -634,12 +643,14 @@ const loggingUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Logging operator pod not found in namespace ${CLO.namespace}`,
+        errorMsg:
+          `Logging operator pod not found in namespace ` + `${CLUSTER_LOGGING_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${CLO.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep logging',
+      `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep logging',
     )
       .its('stdout')
       .then((podOutput) => {
@@ -647,12 +658,15 @@ const loggingUtils = {
         cy.log(`Found Logging pod: ${podName}`);
 
         cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${CLO.namespace} ` +
+          `oc wait --for=condition=Ready ${podName} -n ${CLUSTER_LOGGING_OPERATOR.namespace} ` +
             `--timeout=120s --kubeconfig ${kubeconfig}`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Logging operator pod is now running in namespace: ${CLO.namespace}`);
+          cy.log(
+            `Logging operator pod is now running in namespace: ` +
+              `${CLUSTER_LOGGING_OPERATOR.namespace}`,
+          );
         });
       });
 
@@ -914,18 +928,21 @@ Cypress.Commands.add('beforeBlockLoki', () => {
   }
 });
 
-Cypress.Commands.add('beforeBlockLogging', (CLO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockLogging', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('logging', CLO);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
+      'logging',
+      CLUSTER_LOGGING_OPERATOR,
+    );
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block Logging (session)');
-        cy.cleanupLogging(CLO);
+        cy.cleanupLogging();
         cy.cleanupLoggingLoki();
         operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLogging(CLO);
-        loggingUtils.waitForLoggingReady(CLO);
+        loggingUtils.installLogging();
+        loggingUtils.waitForLoggingReady();
         cy.log('Before block Logging (session) completed');
       },
       {
@@ -937,11 +954,11 @@ Cypress.Commands.add('beforeBlockLogging', (CLO: { namespace: string; packageNam
     );
   } else {
     cy.log('Before block Logging (no session)');
-    cy.cleanupLogging(CLO);
+    cy.cleanupLogging();
     cy.cleanupLoggingLoki();
     operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLogging(CLO);
-    loggingUtils.waitForLoggingReady(CLO);
+    loggingUtils.installLogging();
+    loggingUtils.waitForLoggingReady();
     cy.log('Before block Logging (no session) completed');
   }
 });
@@ -964,9 +981,9 @@ Cypress.Commands.add('cleanupLoki', () => {
   cy.log('Cleanup Loki completed');
 });
 
-Cypress.Commands.add('cleanupLogging', (CLO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupLogging', () => {
   cy.log('Cleanup Logging Operator');
-  loggingUtils.cleanupLogging(CLO);
+  loggingUtils.cleanupLogging();
   cy.log('Cleanup Logging Operator completed');
 });
 
