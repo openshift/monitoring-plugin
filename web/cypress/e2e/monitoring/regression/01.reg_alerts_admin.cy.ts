@@ -1,4 +1,3 @@
-import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
 import {
   testAlertsCorePlatformHeaderRegression,
@@ -14,7 +13,7 @@ describe(
   { tags: ['@alerting', '@metrics'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlock();
       cy.switchPerspective('Core platform');
     });
 

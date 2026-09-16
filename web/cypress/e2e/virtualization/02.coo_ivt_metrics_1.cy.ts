@@ -1,6 +1,5 @@
 import {
   CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
@@ -16,7 +15,7 @@ describe(
   { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {

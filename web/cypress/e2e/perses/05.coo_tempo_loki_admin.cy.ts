@@ -1,8 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_LOGGING_OPERATOR,
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
   LOKI_OPERATOR,
   OPENTELEMETRY_OPERATOR,
   TEMPO_OPERATOR,
@@ -28,7 +26,7 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupExtraDashboards();
 
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -53,7 +51,7 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupExtraDashboards();
-      cy.cleanupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.cleanupCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });

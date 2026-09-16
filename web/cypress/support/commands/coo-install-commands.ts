@@ -2,11 +2,12 @@ import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
+import { CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};
 
 export const cooInstallUtils = {
-  installCOO(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string; packageName: string }): void {
+  installCOO(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Cluster Observability Operator installation.');
     } else if (Cypress.env('COO_UI_INSTALL')) {
@@ -115,7 +116,7 @@ export const cooInstallUtils = {
     }
   },
 
-  waitForCOOReady(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  waitForCOOReady(): void {
     cy.log('Check Cluster Observability Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -177,7 +178,7 @@ export const cooInstallUtils = {
     }
   },
 
-  enableOpenShiftMode(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  enableOpenShiftMode(): void {
     if (!Cypress.env('KONFLUX_COO_BUNDLE_IMAGE') && !Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
       return;
     }
@@ -278,7 +279,7 @@ export const cooInstallUtils = {
     });
   },
 
-  cleanupCOONamespace(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  cleanupCOONamespace(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       return;
     }

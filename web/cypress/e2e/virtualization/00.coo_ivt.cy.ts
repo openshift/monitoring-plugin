@@ -4,18 +4,14 @@ import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-  KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../../support/operators';
 
 describe(
   'IVT: Monitoring + Virtualization',
   { tags: ['@alerting', '@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {

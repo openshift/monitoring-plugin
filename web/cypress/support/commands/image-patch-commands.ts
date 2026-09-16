@@ -1,10 +1,11 @@
 import { waitForPodsReady, waitForPodsReadyOrAbsent } from './wait-utils';
 import { readyTimeoutMilliseconds } from '../timeouts';
+import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};
 
 export const imagePatchUtils = {
-  setupMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
+  setupMonitoringPluginImage(): void {
     cy.log('Set Monitoring Plugin image in operator CSV');
     if (Cypress.env('MP_IMAGE')) {
       cy.exec('./cypress/fixtures/cmo/update-monitoring-plugin-image.sh', {
@@ -38,14 +39,7 @@ export const imagePatchUtils = {
   /**
    * Generic function to patch a component image in the COO CSV.
    */
-  patchCOOCSVImage(
-    CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string },
-    config: {
-      envVar: string;
-      scriptPath: string;
-      componentName: string;
-    },
-  ): void {
+  patchCOOCSVImage(config: { envVar: string; scriptPath: string; componentName: string }): void {
     const imageValue = Cypress.env(config.envVar);
     cy.log(`Set ${config.componentName} image in operator CSV`);
 
@@ -69,16 +63,16 @@ export const imagePatchUtils = {
     }
   },
 
-  setupMonitoringConsolePlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
+  setupMonitoringConsolePlugin(): void {
+    imagePatchUtils.patchCOOCSVImage({
       envVar: 'MCP_CONSOLE_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-mcp-image.sh',
       componentName: 'Monitoring Console Plugin',
     });
   },
 
-  setupClusterHealthAnalyzer(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
-    imagePatchUtils.patchCOOCSVImage(CLUSTER_OBSERVABILITY_OPERATOR, {
+  setupClusterHealthAnalyzer(): void {
+    imagePatchUtils.patchCOOCSVImage({
       envVar: 'CHA_IMAGE',
       scriptPath: './cypress/fixtures/coo/update-cha-image.sh',
       componentName: 'cluster-health-analyzer',
@@ -90,7 +84,7 @@ export const imagePatchUtils = {
    * expected CI image. If OLM reverted the CSV patch, re-apply it, patch the
    * deployment directly, and wait until the pod rolls out with the correct image.
    */
-  verifyMonitoringConsolePluginImage(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  verifyMonitoringConsolePluginImage(): void {
     const expectedImage = Cypress.env('MCP_CONSOLE_IMAGE');
     if (!expectedImage) {
       return;
@@ -182,7 +176,7 @@ export const imagePatchUtils = {
     checkAndFix(1);
   },
 
-  revertMonitoringPluginImage(CLUSTER_MONITORING_OPERATOR: { namespace: string }): void {
+  revertMonitoringPluginImage(): void {
     if (Cypress.env('MP_IMAGE')) {
       cy.log('MP_IMAGE is set. Lets revert CMO operator CSV');
       cy.exec('./cypress/fixtures/cmo/reenable-monitoring.sh', {

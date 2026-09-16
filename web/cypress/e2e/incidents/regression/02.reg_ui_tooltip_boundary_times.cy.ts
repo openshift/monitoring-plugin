@@ -11,10 +11,6 @@ with no 5-minute gap between End of one segment and Start of the next.
 */
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 describe(
@@ -22,7 +18,7 @@ describe(
   { tags: ['@cluster-health-analyzer', '@coo', '@xfail'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: false,
         troubleshootingPanel: false,
       });

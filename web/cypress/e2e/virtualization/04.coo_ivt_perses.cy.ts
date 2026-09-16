@@ -3,11 +3,7 @@ import { nav } from '../../views/nav';
 import { testBVTCOOPerses1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 import { guidedTour } from '../../views/tour';
 import { commonPages } from '../../views/common';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-  KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../../support/operators';
 
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
@@ -15,7 +11,7 @@ describe(
 
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {

@@ -1,14 +1,10 @@
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO();
   });
 
   it('1. Admin perspective - Observe Menu', () => {

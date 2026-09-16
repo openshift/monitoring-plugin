@@ -2,11 +2,12 @@ import 'cypress-wait-until';
 import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
 import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
+import { CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};
 
 export const dashboardsUtils = {
-  setupMonitoringUIPlugin(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  setupMonitoringUIPlugin(): void {
     cy.log('Create Monitoring UI Plugin instance.');
     cy.exec(
       `oc apply -f ./cypress/fixtures/coo/monitoring-ui-plugin.yaml --kubeconfig ${Cypress.env(
@@ -26,7 +27,7 @@ export const dashboardsUtils = {
     cy.dynamicPluginWorkConsoleAround();
   },
 
-  setupDashboardsAndPlugins(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  setupDashboardsAndPlugins(): void {
     cy.log('Create perses-dev namespace.');
     cy.exec(`oc new-project perses-dev --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`, {
       failOnNonZeroExit: false,
@@ -96,7 +97,7 @@ export const dashboardsUtils = {
     cy.url().should('include', '/monitoring/v2/dashboards');
   },
 
-  setupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  setupTroubleshootingPanel(): void {
     cy.log('Create troubleshooting panel instance.');
     cy.exec(
       `oc apply -f ./cypress/fixtures/coo/troubleshooting-panel-ui-plugin.yaml ` +
@@ -158,11 +159,8 @@ export const dashboardsUtils = {
     );
   },
 
-  cleanupTroubleshootingPanel(CLUSTER_OBSERVABILITY_OPERATOR: {
-    namespace: string;
-    config1?: { kind: string; name: string };
-  }): void {
-    const config1 = CLUSTER_OBSERVABILITY_OPERATOR.config1 || {
+  cleanupTroubleshootingPanel(): void {
+    const config = {
       kind: 'UIPlugin',
       name: 'troubleshooting-panel',
     };
@@ -174,7 +172,7 @@ export const dashboardsUtils = {
 
     cy.log('Delete Troubleshooting Panel instance.');
     cy.executeAndDelete(
-      `oc delete ${config1.kind} ${config1.name} --ignore-not-found --kubeconfig ${Cypress.env(
+      `oc delete ${config.kind} ${config.name} --ignore-not-found --kubeconfig ${Cypress.env(
         'KUBECONFIG_PATH',
       )}`,
     );

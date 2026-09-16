@@ -10,10 +10,6 @@ This test loads comprehensive test data covering:
 
 */
 
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const ARROW_HEIGHT = 12;
@@ -95,7 +91,7 @@ describe(
   { tags: ['@cluster-health-analyzer', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: false,
         troubleshootingPanel: false,
       });

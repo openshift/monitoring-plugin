@@ -1,7 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import {
   CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
   KUBEVIRT_HYPERCONVERGED_OPERATOR,
 } from '../../support/operators';
 import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
@@ -15,7 +14,7 @@ describe(
   { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },

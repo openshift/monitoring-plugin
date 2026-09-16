@@ -4,14 +4,13 @@ import { alerts } from '../../fixtures/monitoring/alert';
 import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
 import { commonPages } from '../../views/common';
 import { overviewPage } from '../../views/overview-page';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 
 describe(
   'BVT: Monitoring',
   { tags: ['@alerting', '@legacy-dashboards', '@metrics', '@targets'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlock();
     });
 
     beforeEach(() => {

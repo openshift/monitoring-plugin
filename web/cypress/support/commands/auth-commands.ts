@@ -1,5 +1,6 @@
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
+import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};
 declare global {
@@ -116,14 +117,7 @@ export const operatorAuthUtils = {
     operatorAuthUtils.performLoginAndAuth(false);
   },
 
-  generateCOOSessionKey(
-    CLUSTER_OBSERVABILITY_OPERATOR: {
-      namespace: string;
-      operatorName: string;
-      packageName: string;
-    },
-    CLUSTER_MONITORING_OPERATOR: { namespace: string; operatorName: string },
-  ): string[] {
+  generateCOOSessionKey(): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
@@ -147,10 +141,7 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
-  generateMPSessionKey(CLUSTER_MONITORING_OPERATOR: {
-    namespace: string;
-    operatorName: string;
-  }): string[] {
+  generateMPSessionKey(): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),

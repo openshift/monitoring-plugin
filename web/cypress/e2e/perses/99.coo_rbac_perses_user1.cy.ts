@@ -1,10 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
@@ -12,7 +8,7 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
