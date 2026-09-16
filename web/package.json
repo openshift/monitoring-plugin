@@ -168,7 +168,8 @@
     "@istanbuljs/load-nyc-config": {
       "js-yaml": "3.15.2"
     },
-    "adm-zip": "0.6.1"
+    "adm-zip": "0.6.1",
+    "undici": "7.29.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
