@@ -208,7 +208,9 @@ Cypress.Commands.add('ensureMonitoringConsolePlugin', (options?: COOSetupOptions
       },
       {
         cacheAcrossSpecs: true,
-        validate: () => cy.validateLogin(),
+        validate: () => {
+          cy.validateLogin();
+        },
       },
     );
   } else {
