@@ -1,4 +1,3 @@
-import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../../support/operators';
 import { guidedTour } from '../../views/tour';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
@@ -7,7 +6,7 @@ describe(
   { tags: ['@alerting', '@coo', '@virtualization'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.beforeBlockVirtualization();
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

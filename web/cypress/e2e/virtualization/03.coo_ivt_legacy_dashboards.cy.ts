@@ -1,8 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { testLegacyDashboardsRegression } from '../../support/monitoring/03.reg_legacy_dashboards.cy';
 import { testLegacyDashboardsRegressionNamespace } from '../../support/monitoring/06.reg_legacy_dashboards_namespace.cy';
 import { commonPages } from '../../views/common';
@@ -25,7 +22,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.beforeBlockVirtualization();
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

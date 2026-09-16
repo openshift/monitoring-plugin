@@ -4,6 +4,7 @@ import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
 import { guidedTour } from '../../views/tour';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
+import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../operators';
 
 export {};
 
@@ -13,8 +14,8 @@ declare global {
     interface Chainable {
       adminCLI(command: string, options?);
       executeAndDelete(command: string);
-      beforeBlockVirtualization(CNV: { namespace: string; packageName: string });
-      cleanupCNV(CNV: { namespace: string; packageName: string });
+      beforeBlockVirtualization();
+      cleanupCNV();
     }
   }
 }
@@ -22,7 +23,7 @@ declare global {
 const useSession = Cypress.env('SESSION');
 
 const virtualizationUtils = {
-  installVirtualization(CNV: { namespace: string; packageName: string }): void {
+  installVirtualization(): void {
     if (Cypress.env('SKIP_CNV_INSTALL')) {
       cy.log('SKIP_CNV_INSTALL is set. Skipping Openshift Virtualization installation.');
     } else if (Cypress.env('CNV_UI_INSTALL')) {
@@ -30,7 +31,10 @@ const virtualizationUtils = {
         'CNV_UI_INSTALL is set. Kubevirt will be installed from redhat-operators catalog source',
       );
       cy.log('Install Openshift Virtualization');
-      operatorHubPage.installOperator(CNV.packageName, 'redhat-operators');
+      operatorHubPage.installOperator(
+        KUBEVIRT_HYPERCONVERGED_OPERATOR.packageName,
+        'redhat-operators',
+      );
       cy.get('.co-clusterserviceversion-install__heading', {
         timeout: installTimeoutMilliseconds,
       }).should('include.text', 'Create initialization resource');
@@ -41,12 +45,13 @@ const virtualizationUtils = {
       cy.log('Install Openshift Virtualization');
 
       cy.exec(
-        `oc create namespace ${CNV.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+        `oc create namespace ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${CNV.namespace} ${Cypress.env(
-          'KONFLUX_CNV_BUNDLE_IMAGE',
-        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
+        `operator-sdk run bundle --timeout=10m --namespace ` +
+          `${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} ${Cypress.env(
+            'KONFLUX_CNV_BUNDLE_IMAGE',
+          )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('CUSTOM_CNV_BUNDLE_IMAGE')) {
@@ -56,12 +61,13 @@ const virtualizationUtils = {
       cy.log('Install Openshift Virtualization');
 
       cy.exec(
-        `oc create namespace ${CNV.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+        `oc create namespace ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
       cy.exec(
-        `operator-sdk run bundle --timeout=10m --namespace ${CNV.namespace} ${Cypress.env(
-          'CUSTOM_CNV_BUNDLE_IMAGE',
-        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
+        `operator-sdk run bundle --timeout=10m --namespace ` +
+          `${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} ${Cypress.env(
+            'CUSTOM_CNV_BUNDLE_IMAGE',
+          )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('FBC_STAGE_CNV_IMAGE')) {
@@ -84,7 +90,7 @@ const virtualizationUtils = {
     }
   },
 
-  waitForVirtualizationReady(CNV: { namespace: string }): void {
+  waitForVirtualizationReady(): void {
     cy.log('Check Openshift Virtualization status');
     cy.exec(`oc get csv -n openshift-cnv | grep kubevirt | awk '{print $1}'`)
       .its('stdout') // Get the captured output string
@@ -99,7 +105,7 @@ const virtualizationUtils = {
           `sleep 15 && oc wait ` +
             `--for=jsonpath='{.status.phase}'=Succeeded ` +
             `ClusterServiceVersion/${CNV_OPERATOR_NAME} ` +
-            `-n ${CNV.namespace} ` +
+            `-n ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} ` +
             `--timeout=300s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
           {
             timeout: readyTimeoutMilliseconds, // Set a long timeout for the 'oc wait' command
@@ -112,7 +118,7 @@ const virtualizationUtils = {
       nav.sidenav.clickNavLink([section, 'Installed Operators']);
     });
 
-    cy.changeNamespace(CNV.namespace);
+    cy.changeNamespace(KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace);
 
     cy.byTestID('name-filter-input').should('be.visible').type('Openshift Virtualization{enter}');
     cy.get('[data-test="status-text"]', { timeout: installTimeoutMilliseconds })
@@ -120,7 +126,7 @@ const virtualizationUtils = {
       .should('contain.text', 'Succeeded', { timeout: installTimeoutMilliseconds });
   },
 
-  setupHyperconverged(CNV: { namespace: string }): void {
+  setupHyperconverged(): void {
     if (Cypress.env('SKIP_CNV_INSTALL')) {
       cy.log('Skip Hyperconverged instance creation.');
     } else if (Cypress.env('CNV_UI_INSTALL')) {
@@ -152,7 +158,7 @@ const virtualizationUtils = {
       );
       cy.exec(
         `sleep 15 && oc wait --for=condition=Available --selector=app=kubevirt-hyperconverged -n ${
-          CNV.namespace
+          KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace
         } --timeout=60s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
         {
           timeout: readyTimeoutMilliseconds,
@@ -160,7 +166,10 @@ const virtualizationUtils = {
         },
       ).then((result) => {
         expect(result.code).to.eq(0);
-        cy.log(`Hyperconverged is now running in namespace: ${CNV.namespace}`);
+        cy.log(
+          `Hyperconverged is now running in namespace: ` +
+            `${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace}`,
+        );
       });
     }
 
@@ -168,12 +177,11 @@ const virtualizationUtils = {
     cy.byLegacyTestID('perspective-switcher-toggle').should('be.visible');
   },
 
-  cleanup(CNV: {
-    namespace: string;
-    config?: { kind: string; name: string };
-    crd?: { kubevirt: string; hyperconverged: string };
-  }): void {
-    const config = CNV.config || { kind: 'HyperConverged', name: 'kubevirt-hyperconverged' };
+  cleanup(): void {
+    const config = KUBEVIRT_HYPERCONVERGED_OPERATOR.config || {
+      kind: 'HyperConverged',
+      name: 'kubevirt-hyperconverged',
+    };
 
     cy.adminCLI(
       `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -187,7 +195,7 @@ const virtualizationUtils = {
       cy.log('Delete Hyperconverged instance.');
       cy.executeAndDelete(
         `oc patch hyperconverged.hco.kubevirt.io/kubevirt-hyperconverged -n ${
-          CNV.namespace
+          KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace
         } -p '{"metadata":{"finalizers":[]}}' --type=merge --kubeconfig ${Cypress.env(
           'KUBECONFIG_PATH',
         )}`,
@@ -195,7 +203,7 @@ const virtualizationUtils = {
 
       cy.executeAndDelete(
         `oc patch kubevirt.kubevirt.io/kubevirt -n ${
-          CNV.namespace
+          KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace
         } --type=merge -p '{"metadata":{"finalizers":[]}}' --kubeconfig ${Cypress.env(
           'KUBECONFIG_PATH',
         )}`,
@@ -203,20 +211,20 @@ const virtualizationUtils = {
 
       cy.executeAndDelete(
         `oc delete HyperConverged kubevirt-hyperconverged -n ${
-          CNV.namespace
+          KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace
         } --ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Remove Openshift Virtualization subscription');
       cy.executeAndDelete(
         `oc delete subscription ${config.name} -n ${
-          CNV.namespace
+          KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace
         } --ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
 
       cy.log('Remove Openshift Virtualization CSV');
       cy.executeAndDelete(
-        `oc delete csv -n ${CNV.namespace} ` +
+        `oc delete csv -n ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} ` +
           `-l operators.coreos.com/kubevirt-hyperconverged.openshift-cnv ` +
           `--ignore-not-found --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       );
@@ -224,16 +232,18 @@ const virtualizationUtils = {
       cy.log('Remove Openshift Virtualization namespace');
       const kubeconfig = Cypress.env('KUBECONFIG_PATH');
       cy.exec(
-        `oc delete namespace ${CNV.namespace} --ignore-not-found ` +
+        `oc delete namespace ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} --ignore-not-found ` +
           `--timeout=60s --kubeconfig ${kubeconfig}`,
         { failOnNonZeroExit: false, timeout: 90000 },
       ).then((result) => {
         if (result.code !== 0 && result.stderr?.includes('timed out')) {
           cy.log('Namespace stuck in Terminating, removing finalizers');
           cy.exec(
-            `oc get namespace ${CNV.namespace} -o json --kubeconfig ${kubeconfig}` +
+            `oc get namespace ${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace} -o json ` +
+              `--kubeconfig ${kubeconfig}` +
               ` | jq '.spec.finalizers = []'` +
-              ` | oc replace --raw "/api/v1/namespaces/${CNV.namespace}/finalize" -f - ` +
+              ` | oc replace --raw ` +
+              `"/api/v1/namespaces/${KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace}/finalize" -f - ` +
               `--kubeconfig ${kubeconfig}`,
             { failOnNonZeroExit: false },
           );
@@ -258,50 +268,47 @@ const virtualizationUtils = {
   },
 };
 
-Cypress.Commands.add(
-  'beforeBlockVirtualization',
-  (CNV: { namespace: string; packageName: string }) => {
-    if (useSession) {
-      const sessionKey = operatorAuthUtils.generateKNVSessionKey(CNV);
-      cy.session(
-        sessionKey,
-        () => {
-          cy.log('Before block Virtualization (session)');
+Cypress.Commands.add('beforeBlockVirtualization', () => {
+  if (useSession) {
+    const sessionKey = operatorAuthUtils.generateKNVSessionKey();
+    cy.session(
+      sessionKey,
+      () => {
+        cy.log('Before block Virtualization (session)');
 
-          cy.cleanupCNV(CNV);
+        cy.cleanupCNV();
 
-          operatorAuthUtils.loginAndAuthNoSession();
-          virtualizationUtils.installVirtualization(CNV);
-          virtualizationUtils.waitForVirtualizationReady(CNV);
-          virtualizationUtils.setupHyperconverged(CNV);
-          cy.log('Before block Virtualization (session) completed');
+        operatorAuthUtils.loginAndAuthNoSession();
+        virtualizationUtils.installVirtualization();
+        virtualizationUtils.waitForVirtualizationReady();
+        virtualizationUtils.setupHyperconverged();
+        cy.log('Before block Virtualization (session) completed');
+      },
+      {
+        cacheAcrossSpecs: true,
+        validate() {
+          cy.validateLogin();
+          // Additional validation for Virtualization setup
+          cy.switchPerspective('Virtualization');
+          guidedTour.closeKubevirtTour();
         },
-        {
-          cacheAcrossSpecs: true,
-          validate() {
-            cy.validateLogin();
-            // Additional validation for Virtualization setup
-            cy.switchPerspective('Virtualization');
-            guidedTour.closeKubevirtTour();
-          },
-        },
-      );
-    } else {
-      cy.log('Before block Virtualization (no session)');
+      },
+    );
+  } else {
+    cy.log('Before block Virtualization (no session)');
 
-      cy.cleanupCNV(CNV);
+    cy.cleanupCNV();
 
-      operatorAuthUtils.loginAndAuth();
-      virtualizationUtils.installVirtualization(CNV);
-      virtualizationUtils.waitForVirtualizationReady(CNV);
-      virtualizationUtils.setupHyperconverged(CNV);
-      cy.log('Before block Virtualization (no session) completed');
-    }
-  },
-);
+    operatorAuthUtils.loginAndAuth();
+    virtualizationUtils.installVirtualization();
+    virtualizationUtils.waitForVirtualizationReady();
+    virtualizationUtils.setupHyperconverged();
+    cy.log('Before block Virtualization (no session) completed');
+  }
+});
 
-Cypress.Commands.add('cleanupCNV', (CNV: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupCNV', () => {
   cy.log('Cleanup Virtualization (no session)');
-  virtualizationUtils.cleanup(CNV);
+  virtualizationUtils.cleanup();
   cy.log('Cleanup Virtualization (no session) completed');
 });

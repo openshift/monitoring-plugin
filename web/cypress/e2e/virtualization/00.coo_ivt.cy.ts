@@ -4,7 +4,6 @@ import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { nav } from '../../views/nav';
 import { commonPages } from '../../views/common';
-import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../../support/operators';
 
 describe(
   'IVT: Monitoring + Virtualization',
@@ -22,7 +21,7 @@ describe(
 
 describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
   before(() => {
-    cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+    cy.beforeBlockVirtualization();
   });
 
   it('1. Virtualization perspective - Observe Menu', () => {

@@ -1,6 +1,10 @@
 import { nav } from '../../views/nav';
 import { guidedTour } from '../../views/tour';
-import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
+import {
+  CLUSTER_MONITORING_OPERATOR,
+  CLUSTER_OBSERVABILITY_OPERATOR,
+  KUBEVIRT_HYPERCONVERGED_OPERATOR,
+} from '../operators';
 
 export {};
 declare global {
@@ -152,12 +156,12 @@ export const operatorAuthUtils = {
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
-  generateKNVSessionKey(CNV: { namespace: string; packageName: string }): string[] {
+  generateKNVSessionKey(): string[] {
     const baseKey = [
       Cypress.env('LOGIN_IDP'),
       Cypress.env('LOGIN_USERNAME'),
-      CNV.namespace,
-      CNV.packageName,
+      KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace,
+      KUBEVIRT_HYPERCONVERGED_OPERATOR.packageName,
     ];
     const envVars = [Cypress.env('SKIP_CNV_INSTALL'), Cypress.env('CNV_UI_INSTALL')];
     return [...baseKey, ...envVars.map((v) => v || '')];
