@@ -161,7 +161,8 @@
     "qs": "^6.15.1",
     "dompurify": "3.4.13",
     "linkify-it": "^5.0.1",
-    "fast-uri": "3.1.7"
+    "fast-uri": "3.1.7",
+    "adm-zip": "0.6.1"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
