@@ -124,7 +124,6 @@ const DashboardPage_: React.FC = () => {
   return (
     <DashboardFrame
       activeProject={activeProject}
-      setActiveProject={setActiveProject}
       activeProjectDashboardsMetadata={activeProjectDashboardsMetadata}
       changeBoard={changeBoard}
       dashboardDisplayName={currentDashboard.title}

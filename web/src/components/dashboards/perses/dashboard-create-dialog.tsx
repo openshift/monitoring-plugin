@@ -26,6 +26,7 @@ import {
 } from './dashboard-action-validations';
 import { useCreateDashboardMutation } from './dashboard-api';
 import {
+  DashboardDeniedHelperText,
   PermissionStateWrapper,
   ProjectSelectFormGroup,
   useDashboardNavigation,
@@ -34,6 +35,7 @@ import {
 } from './dashboard-dialog-helpers';
 import { createNewDashboard } from './dashboard-utils';
 import { useToast } from './ToastProvider';
+import { usePersesDashboardAccess } from './hooks/usePersesDashboardAccess';
 
 interface DashboardCreateDialogProps {
   isOpen: boolean;
@@ -74,6 +76,13 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
       dashboardName: '',
     },
   });
+  const selectedProject = form.watch('projectName');
+  const [canCreate, checkingAccess] = usePersesDashboardAccess(
+    'create',
+    selectedProject || null,
+    isOpen,
+  );
+  const createDenied = !!selectedProject && !checkingAccess && !canCreate;
 
   React.useEffect(() => {
     if (isOpen && editableProjects?.length > 0 && defaultProject) {
@@ -131,7 +140,9 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
           isDisabled={
             !(form.watch('dashboardName') || '')?.trim() ||
             !(form.watch('projectName') || '')?.trim() ||
-            !hasEditableProject
+            !hasEditableProject ||
+            checkingAccess ||
+            createDenied
           }
           isLoading={createDashboardMutation.isPending || isCreatingProject}
           onClick={form.handleSubmit(processForm)}
@@ -192,6 +203,7 @@ export const DashboardCreateDialog: React.FunctionComponent<DashboardCreateDialo
                   defaultValue={defaultProject}
                   label={t('Select project')}
                 />
+                <DashboardDeniedHelperText show={createDenied} verb="create" />
               </StackItem>
             </Stack>
           </form>

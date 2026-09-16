@@ -1,5 +1,5 @@
 import { checkErrors } from '../support';
-import { projectDropdown } from '../views/common';
+import { namespaceDropdown } from '../views/common';
 import { detailsPage } from '../views/details-page';
 import { listPage } from '../views/list-page';
 import { nav } from '../views/nav';
@@ -90,7 +90,7 @@ describe('Monitoring: Alerts', () => {
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     // TODO, switch to 'listPage.titleShouldHaveText('Alerting');', when we switch to new test id
     cy.byLegacyTestID('resource-title').should('have.text', 'Alerting');
-    projectDropdown.shouldNotExist();
+    namespaceDropdown.shouldNotExist();
     listPage.rows.shouldBeLoaded();
 
     cy.log('filter Alerts');
