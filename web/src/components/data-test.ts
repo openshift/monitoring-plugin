@@ -216,7 +216,6 @@ export const Classes = {
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   NamespaceDropdownExpanded:
     '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
-  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width',
   PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
@@ -292,6 +291,9 @@ export const persesDashboardDataTestIDs = {
   importDashboardButtonToolbar: 'import-dashboard-button-list-page',
   editDashboardButtonToolbar: 'edit-dashboard-button-toolbar',
   cancelButtonToolbar: 'cancel-button-toolbar',
+  createAccessDeniedHelperText: 'perses-create-access-denied-helper-text',
+  updateAccessDeniedHelperText: 'perses-update-access-denied-helper-text',
+  deleteAccessDeniedHelperText: 'perses-delete-access-denied-helper-text',
 };
 
 export const listPersesDashboardsDataTestIDs = {
