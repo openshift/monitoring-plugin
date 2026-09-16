@@ -3,7 +3,7 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
-import { OPENTELEMETRY_OPERATOR } from '../operators';
+import { OPENTELEMETRY_OPERATOR, TEMPO_OPERATOR } from '../operators';
 
 export {};
 
@@ -12,7 +12,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       beforeBlockOtel();
-      beforeBlockTempo(TEMPO: { namespace: string; packageName: string });
+      beforeBlockTempo();
       configureBase();
       configureTracingApps();
       installDistributeTracingUIPlugin();
@@ -25,7 +25,7 @@ declare global {
       waitForLoggingUIPluginReady();
 
       cleanupOtel();
-      cleanupTempo(TEMPO: { namespace: string; packageName: string });
+      cleanupTempo();
       cleanupBase();
       cleanupTracingApps();
       cleanupTempoLokiThanosPersesGlobalDatasource();
@@ -152,14 +152,14 @@ const tracesUtils = {
     );
   },
 
-  installTempo(TEMPO: { namespace: string; packageName: string }): void {
+  installTempo(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tempo Operator installation.');
       return;
     }
 
     cy.log('Install Tempo Operator');
-    operatorHubPage.installOperator(TEMPO.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(TEMPO_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -170,7 +170,7 @@ const tracesUtils = {
     });
   },
 
-  waitForTempoReady(TEMPO: { namespace: string }): void {
+  waitForTempoReady(): void {
     cy.log('Check Tempo Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -178,7 +178,7 @@ const tracesUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${TEMPO.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${TEMPO_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
               '| grep tempo',
             { failOnNonZeroExit: false },
           )
@@ -186,12 +186,13 @@ const tracesUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Tempo operator pod not found in namespace ${TEMPO.namespace}`,
+        errorMsg: `Tempo operator pod not found in namespace ${TEMPO_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${TEMPO.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep tempo',
+      `oc get pods -n ${TEMPO_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep tempo',
     )
       .its('stdout')
       .then((podOutput) => {
@@ -199,12 +200,12 @@ const tracesUtils = {
         cy.log(`Found Tempo pod: ${podName}`);
 
         cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${TEMPO.namespace} ` +
+          `oc wait --for=condition=Ready ${podName} -n ${TEMPO_OPERATOR.namespace} ` +
             `--timeout=120s --kubeconfig ${kubeconfig}`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Tempo operator pod is now running in namespace: ${TEMPO.namespace}`);
+          cy.log(`Tempo operator pod is now running in namespace: ${TEMPO_OPERATOR.namespace}`);
         });
       });
 
@@ -219,7 +220,7 @@ const tracesUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  cleanupTempo(TEMPO: { namespace: string }): void {
+  cleanupTempo(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tempo Operator cleanup.');
       return;
@@ -228,13 +229,18 @@ const tracesUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Tempo Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${TEMPO.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${TEMPO_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Tempo Operator resource');
-    cy.exec(`oc delete operator tempo-product.${TEMPO.namespace} --kubeconfig ${kubeconfig}`, {
-      timeout: readyTimeoutMilliseconds,
-      failOnNonZeroExit: false,
-    });
+    cy.exec(
+      `oc delete operator tempo-product.${TEMPO_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+      {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: false,
+      },
+    );
 
     cy.log('Delete Tempo CustomResourceDefinitions');
     const tempoCRs = ['tempomonolithics.tempo.grafana.com', 'tempostacks.tempo.grafana.com'];
@@ -832,9 +838,9 @@ Cypress.Commands.add('beforeBlockOtel', () => {
   }
 });
 
-Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockTempo', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('tempo', TEMPO);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('tempo', TEMPO_OPERATOR);
     cy.session(
       sessionKey,
       () => {
@@ -842,11 +848,11 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
         cy.cleanupTempoLokiThanosPersesGlobalDatasource();
         cy.cleanupBase();
         cy.cleanupTracingApps();
-        cy.cleanupTempo(TEMPO);
+        cy.cleanupTempo();
         tracesUtils.cleanupChainsawNamespaces();
         operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installTempo(TEMPO);
-        tracesUtils.waitForTempoReady(TEMPO);
+        tracesUtils.installTempo();
+        tracesUtils.waitForTempoReady();
         cy.log('Before block Tempo (session) completed');
       },
       {
@@ -861,11 +867,11 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
     cy.cleanupTempoLokiThanosPersesGlobalDatasource();
     cy.cleanupBase();
     cy.cleanupTracingApps();
-    cy.cleanupTempo(TEMPO);
+    cy.cleanupTempo();
     tracesUtils.cleanupChainsawNamespaces();
     operatorAuthUtils.loginAndAuth();
-    tracesUtils.installTempo(TEMPO);
-    tracesUtils.waitForTempoReady(TEMPO);
+    tracesUtils.installTempo();
+    tracesUtils.waitForTempoReady();
     cy.log('Before block Tempo (no session) completed');
   }
 });
@@ -940,9 +946,9 @@ Cypress.Commands.add('cleanupOtel', () => {
   cy.log('Cleanup OpenTelemetry completed');
 });
 
-Cypress.Commands.add('cleanupTempo', (TEMPO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupTempo', () => {
   cy.log('Cleanup Tempo');
-  tracesUtils.cleanupTempo(TEMPO);
+  tracesUtils.cleanupTempo();
   cy.log('Cleanup Tempo completed');
 });
 

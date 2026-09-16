@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { CLUSTER_LOGGING_OPERATOR, LOKI_OPERATOR, TEMPO_OPERATOR } from '../../support/operators';
+import { CLUSTER_LOGGING_OPERATOR, LOKI_OPERATOR } from '../../support/operators';
 import { testCOOCreateImportPerses } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
@@ -8,7 +8,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo', '@xfail'] },
   () => {
     before(() => {
-      cy.beforeBlockTempo(TEMPO_OPERATOR);
+      cy.beforeBlockTempo();
       cy.beforeBlockOtel();
       cy.configureBase();
       cy.configureTracingApps();
@@ -56,7 +56,7 @@ describe(
       cy.cleanupTracingApps();
       cy.cleanupBase();
       cy.cleanupOtel();
-      cy.cleanupTempo(TEMPO_OPERATOR);
+      cy.cleanupTempo();
     });
 
     testCOOCreateImportPerses(CustomerPerspectiveName.CorePlatform);
