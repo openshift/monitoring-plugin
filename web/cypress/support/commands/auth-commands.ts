@@ -28,7 +28,7 @@ declare global {
         password: string,
         oauthurl: string,
       ): Chainable<Element>;
-      adminCLI(command: string, options?): Chainable<Exec>;
+      adminCLI(command: string, options?: Partial<ExecOptions>): Chainable<Exec>;
       executeAndDelete(command: string);
       validateLogin(): Chainable<Element>;
       relogin(provider: string, username: string, password: string): Chainable<Element>;
@@ -45,40 +45,36 @@ export const operatorAuthUtils = {
       cy.adminCLI(
         `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
       );
-    } else {
-      cy.adminCLI(`oc project openshift-monitoring`);
-      cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env(
-          'LOGIN_USERNAME',
-        )} -n openshift-monitoring`,
-      );
-      cy.adminCLI(
-        'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
-          `--role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
-      );
-      cy.adminCLI(
-        `oc adm policy add-role-to-user view ${Cypress.env(
-          'LOGIN_USERNAME',
-        )} -n openshift-monitoring`,
-      );
-      cy.adminCLI(`oc project default`);
-      cy.adminCLI(
-        `oc adm policy add-role-to-user monitoring-edit ${Cypress.env(
-          'LOGIN_USERNAME',
-        )} -n default`,
-      );
-      cy.adminCLI(
-        'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
-          `--role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
-      );
-      cy.adminCLI(
-        `oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`,
-      );
+      return;
     }
+    cy.adminCLI(`oc project openshift-monitoring`);
+    cy.adminCLI(
+      `oc adm policy add-role-to-user monitoring-edit ${Cypress.env(
+        'LOGIN_USERNAME',
+      )} -n openshift-monitoring`,
+    );
+    cy.adminCLI(
+      'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
+        `--role-namespace openshift-monitoring ${Cypress.env('LOGIN_USERNAME')}`,
+    );
+    cy.adminCLI(
+      `oc adm policy add-role-to-user view ${Cypress.env(
+        'LOGIN_USERNAME',
+      )} -n openshift-monitoring`,
+    );
+    cy.adminCLI(`oc project default`);
+    cy.adminCLI(
+      `oc adm policy add-role-to-user monitoring-edit ${Cypress.env('LOGIN_USERNAME')} -n default`,
+    );
+    cy.adminCLI(
+      'oc adm policy add-role-to-user monitoring-alertmanager-edit ' +
+        `--role-namespace default ${Cypress.env('LOGIN_USERNAME')}`,
+    );
+    cy.adminCLI(`oc adm policy add-role-to-user view ${Cypress.env('LOGIN_USERNAME')} -n default`);
   },
 
   login(useSession = true): void {
-    cy.exec(
+    cy.adminCLI(
       `oc get oauthclient openshift-browser-client -o go-template ` +
         `--template="{{index .redirectURIs 0}}"`,
     ).then((result) => {
@@ -147,17 +143,6 @@ export const operatorAuthUtils = {
       Cypress.env('MCP_CONSOLE_IMAGE'),
       Cypress.env('CHA_IMAGE'),
     ];
-    return [...baseKey, ...envVars.map((v) => v || '')];
-  },
-
-  generateMPSessionKey(): string[] {
-    const baseKey = [
-      Cypress.env('LOGIN_IDP'),
-      Cypress.env('LOGIN_USERNAME'),
-      CLUSTER_MONITORING_OPERATOR.namespace,
-      CLUSTER_MONITORING_OPERATOR.operatorName,
-    ];
-    const envVars = [Cypress.env('SKIP_ALL_INSTALL'), Cypress.env('MP_IMAGE')];
     return [...baseKey, ...envVars.map((v) => v || '')];
   },
 
@@ -334,7 +319,7 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
 
   cy.uiLogout();
   // Get the OAuth URL from the cluster before performing a fresh login.
-  cy.exec(
+  cy.adminCLI(
     `oc get oauthclient openshift-browser-client -o go-template ` +
       `--template="{{index .redirectURIs 0}}"`,
   ).then((result) => {

@@ -8,7 +8,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: true,
         troubleshootingPanel: false,
       });

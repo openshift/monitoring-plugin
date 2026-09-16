@@ -8,7 +8,7 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -17,7 +17,8 @@ describe(
       cy.setupPersesRBACandExtraDashboards();
 
       // Clear Cypress session cache and logout
-      // This is critical because beforeBlockCOO uses cy.session() which caches the login state
+      // This is critical because ensureMonitoringConsolePlugin uses cy.session()
+      // which caches login state
       cy.log('Clearing Cypress session cache to ensure fresh login');
       cy.then(() => {
         Cypress.session.clearAllSavedSessions();

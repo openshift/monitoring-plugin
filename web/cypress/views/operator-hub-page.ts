@@ -17,6 +17,19 @@ export const operatorHubPage = {
     }
     cy.get('[data-test="install-operator"]').click();
   },
+  uninstallOperator: (operatorName) => {
+    cy.switchPerspective(CustomerPerspectiveName.CorePlatform, 'Administrator');
+    cy.visit('/operatorhub/installed-operators');
+    cy.get('body').should('be.visible');
+    cy.byTestID('name-filter-input').clear().type(`${operatorName}{enter}`);
+    cy.contains('tr', operatorName, { timeout: 120000 })
+      .should('be.visible')
+      .within(() => {
+        cy.get('[data-test-id="kebab-button"]').click();
+      });
+    cy.contains('[role="menuitem"]', 'Uninstall Operator').click();
+    cy.contains('button', 'Uninstall').click();
+  },
   checkOperatorStatus: (csvName, csvStatus) => {
     cy.get('input[data-test="name-filter-input"]').clear().type(`${csvName}`);
     cy.get(`[data-test-operator-row="${csvName}"]`, { timeout: 120000 })

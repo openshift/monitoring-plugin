@@ -4,7 +4,7 @@ import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   it('1. Admin perspective - Observe Menu', () => {

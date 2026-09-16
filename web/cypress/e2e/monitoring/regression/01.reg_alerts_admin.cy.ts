@@ -1,3 +1,4 @@
+import { CLUSTER_MONITORING_OPERATOR } from 'cypress/support/operators';
 import { alerts } from '../../../fixtures/monitoring/alert';
 import {
   testAlertsCorePlatformHeaderRegression,
@@ -14,7 +15,7 @@ describe(
   { tags: ['@alerting', '@metrics'] },
   () => {
     before(() => {
-      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin();
       cy.switchPerspective('Core platform');
     });
 
@@ -39,7 +40,7 @@ describe(
   { tags: ['@alerting'] },
   () => {
     before(() => {
-      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {

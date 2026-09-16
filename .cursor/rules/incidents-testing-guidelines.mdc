@@ -103,7 +103,7 @@ import { incidentsPage } from '../../../views/incidents-page';
 
 describe('Regression: <Section Name>', () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {
@@ -125,7 +125,7 @@ describe('Regression: <Section Name>', () => {
 ### Required Elements
 - File header comment with purpose and issue reference (e.g., "Verifies: OU-XXX")
 - Import `incidentsPage` from relative path
-- Use `cy.beforeBlockCOO()` in `before()` hook
+- Use `cy.ensureMonitoringConsolePlugin()` in `before()` hook
 - Use `incidentsPage.goTo()` in `beforeEach()`
 - Use `cy.mockIncidentFixture()` for test data
 

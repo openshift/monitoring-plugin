@@ -11,7 +11,7 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {
@@ -37,7 +37,7 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.ensureMonitoringPlugin(CLUSTER_MONITORING_OPERATOR);
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {

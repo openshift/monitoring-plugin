@@ -18,7 +18,7 @@ const MAX_GAP_RELAXED = 500;
 
 describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO({
+    cy.ensureMonitoringConsolePlugin({
       dashboards: false,
       troubleshootingPanel: false,
     });
