@@ -1,10 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import {
-  CLUSTER_LOGGING_OPERATOR,
-  LOKI_OPERATOR,
-  OPENTELEMETRY_OPERATOR,
-  TEMPO_OPERATOR,
-} from '../../support/operators';
+import { CLUSTER_LOGGING_OPERATOR, LOKI_OPERATOR, TEMPO_OPERATOR } from '../../support/operators';
 import { testCOOCreateImportPerses } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
@@ -14,7 +9,7 @@ describe(
   () => {
     before(() => {
       cy.beforeBlockTempo(TEMPO_OPERATOR);
-      cy.beforeBlockOtel(OPENTELEMETRY_OPERATOR);
+      cy.beforeBlockOtel();
       cy.configureBase();
       cy.configureTracingApps();
 
@@ -60,7 +55,7 @@ describe(
       cy.cleanupLoki(LOKI_OPERATOR);
       cy.cleanupTracingApps();
       cy.cleanupBase();
-      cy.cleanupOtel(OPENTELEMETRY_OPERATOR);
+      cy.cleanupOtel();
       cy.cleanupTempo(TEMPO_OPERATOR);
     });
 

@@ -3,6 +3,7 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
+import { OPENTELEMETRY_OPERATOR } from '../operators';
 
 export {};
 
@@ -10,7 +11,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlockOtel(OTEL: { namespace: string; packageName: string });
+      beforeBlockOtel();
       beforeBlockTempo(TEMPO: { namespace: string; packageName: string });
       configureBase();
       configureTracingApps();
@@ -23,7 +24,7 @@ declare global {
       installLoggingUIPlugin();
       waitForLoggingUIPluginReady();
 
-      cleanupOtel(OTEL: { namespace: string; packageName: string });
+      cleanupOtel();
       cleanupTempo(TEMPO: { namespace: string; packageName: string });
       cleanupBase();
       cleanupTracingApps();
@@ -63,14 +64,14 @@ const LOGGING_PLUGIN = {
 };
 
 const tracesUtils = {
-  installOtel(OTEL: { namespace: string; packageName: string }): void {
+  installOtel(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping OpenTelemetry Operator installation.');
       return;
     }
 
     cy.log('Install Red Hat build of OpenTelemetry');
-    operatorHubPage.installOperator(OTEL.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(OPENTELEMETRY_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -81,7 +82,7 @@ const tracesUtils = {
     });
   },
 
-  waitForOtelReady(OTEL: { namespace: string }): void {
+  waitForOtelReady(): void {
     cy.log('Check OpenTelemetry Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -89,7 +90,8 @@ const tracesUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${OTEL.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${OPENTELEMETRY_OPERATOR.namespace} -o name ` +
+              `--kubeconfig ${kubeconfig} ` +
               '| grep opentelemetry',
             { failOnNonZeroExit: false },
           )
@@ -97,12 +99,14 @@ const tracesUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `OpenTelemetry operator pod not found in namespace ${OTEL.namespace}`,
+        errorMsg:
+          `OpenTelemetry operator pod not found in namespace ` +
+          `${OPENTELEMETRY_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${OTEL.namespace} -o name --kubeconfig ${kubeconfig} ` +
+      `oc get pods -n ${OPENTELEMETRY_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
         '| grep opentelemetry',
     )
       .its('stdout')
@@ -111,12 +115,15 @@ const tracesUtils = {
         cy.log(`Found OpenTelemetry pod: ${podName}`);
 
         cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${OTEL.namespace} ` +
+          `oc wait --for=condition=Ready ${podName} -n ${OPENTELEMETRY_OPERATOR.namespace} ` +
             `--timeout=120s --kubeconfig ${kubeconfig}`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`OpenTelemetry operator pod is now running in namespace: ${OTEL.namespace}`);
+          cy.log(
+            `OpenTelemetry operator pod is now running in namespace: ` +
+              `${OPENTELEMETRY_OPERATOR.namespace}`,
+          );
         });
       });
 
@@ -131,7 +138,7 @@ const tracesUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  cleanupOtel(OTEL: { namespace: string }): void {
+  cleanupOtel(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping OpenTelemetry Operator cleanup.');
       return;
@@ -140,7 +147,9 @@ const tracesUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Remove OpenTelemetry Operator');
-    cy.executeAndDelete(`oc delete namespace ${OTEL.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${OPENTELEMETRY_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
   },
 
   installTempo(TEMPO: { namespace: string; packageName: string }): void {
@@ -790,17 +799,20 @@ const persesUtils = {
 
 // ── Cypress commands ───────────────────────────────────────────────
 
-Cypress.Commands.add('beforeBlockOtel', (OTEL: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockOtel', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('otel', OTEL);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
+      'otel',
+      OPENTELEMETRY_OPERATOR,
+    );
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block OpenTelemetry (session)');
-        cy.cleanupOtel(OTEL);
+        cy.cleanupOtel();
         operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installOtel(OTEL);
-        tracesUtils.waitForOtelReady(OTEL);
+        tracesUtils.installOtel();
+        tracesUtils.waitForOtelReady();
         cy.log('Before block OpenTelemetry (session) completed');
       },
       {
@@ -812,10 +824,10 @@ Cypress.Commands.add('beforeBlockOtel', (OTEL: { namespace: string; packageName:
     );
   } else {
     cy.log('Before block OpenTelemetry (no session)');
-    cy.cleanupOtel(OTEL);
+    cy.cleanupOtel();
     operatorAuthUtils.loginAndAuth();
-    tracesUtils.installOtel(OTEL);
-    tracesUtils.waitForOtelReady(OTEL);
+    tracesUtils.installOtel();
+    tracesUtils.waitForOtelReady();
     cy.log('Before block OpenTelemetry (no session) completed');
   }
 });
@@ -922,9 +934,9 @@ Cypress.Commands.add('beforeBlockLogging', (CLO: { namespace: string; packageNam
   }
 });
 
-Cypress.Commands.add('cleanupOtel', (OTEL: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupOtel', () => {
   cy.log('Cleanup OpenTelemetry');
-  tracesUtils.cleanupOtel(OTEL);
+  tracesUtils.cleanupOtel();
   cy.log('Cleanup OpenTelemetry completed');
 });
 
