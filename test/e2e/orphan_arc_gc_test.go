@@ -22,6 +22,8 @@ import (
 const (
 	orphanARCGCPollInterval = time.Second
 	orphanARCGCPollTimeout  = 2 * time.Minute
+	orphanARCGCOpTimeout    = 20 * time.Second
+	orphanARCGCTestTimeout  = 2*orphanARCGCPollTimeout + 2*orphanARCGCOpTimeout
 )
 
 // TestOrphanAlertRelabelConfigGC creates plugin-owned AlertRelabelConfigs
@@ -33,7 +35,8 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create framework: %v", err)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), orphanARCGCTestTimeout)
+	defer cancel()
 
 	// Cluster-monitoring namespace so GET /rules can see the live rule
 	// (e2e-management-api does not enable user-workload monitoring).
@@ -65,8 +68,8 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	}
 
 	var liveRuleID string
-	err = framework.Poll(orphanARCGCPollInterval, orphanARCGCPollTimeout, func() error {
-		rules, listErr := listRules(ctx, f)
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCPollTimeout, func(pollCtx context.Context) error {
+		rules, listErr := listRules(pollCtx, f)
 		if listErr != nil {
 			return fmt.Errorf("list rules: %w", listErr)
 		}
@@ -90,8 +93,10 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	gitopsRuleID := "e2e-orphan-gc-gitops-" + idSuffix
 
 	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), orphanARCGCOpTimeout)
+		defer cleanupCancel()
 		for _, name := range []string{orphanName, liveName, gitopsName, manualName} {
-			if delErr := deleteAlertRelabelConfig(ctx, f, name); delErr != nil {
+			if delErr := deleteAlertRelabelConfig(cleanupCtx, f, name); delErr != nil {
 				t.Logf("cleanup ARC %s: %v", name, delErr)
 			}
 		}
@@ -107,6 +112,20 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	}, nil); err != nil {
 		t.Fatalf("Failed to create live ARC: %v", err)
 	}
+
+	var gitopsOrphansBaseline float64
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		value, gaugeErr := gitOpsOrphanGauge(pollCtx, f)
+		if gaugeErr != nil {
+			return gaugeErr
+		}
+		gitopsOrphansBaseline = value
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout reading GitOps-orphan metric baseline: %v", err)
+	}
+
 	if err := createAlertRelabelConfig(ctx, f, gitopsName, map[string]string{
 		managementlabels.ARCAnnotationAlertRuleIDKey: gitopsRuleID,
 		"argocd.argoproj.io/tracking-id":             "e2e-orphan-arc-gc",
@@ -117,9 +136,9 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create unannotated ARC: %v", err)
 	}
 
-	err = framework.Poll(orphanARCGCPollInterval, 20*time.Second, func() error {
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
 		current, getErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Get(
-			ctx, promRule.Name, metav1.GetOptions{},
+			pollCtx, promRule.Name, metav1.GetOptions{},
 		)
 		if getErr != nil {
 			return getErr
@@ -129,7 +148,7 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		}
 		current.Annotations["e2e.monitoring.openshift.io/gc-sync"] = idSuffix
 		_, updateErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Update(
-			ctx, current, metav1.UpdateOptions{},
+			pollCtx, current, metav1.UpdateOptions{},
 		)
 		return updateErr
 	})
@@ -137,8 +156,8 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to update PrometheusRule to trigger GC: %v", err)
 	}
 
-	err = framework.Poll(orphanARCGCPollInterval, orphanARCGCPollTimeout, func() error {
-		exists, existsErr := alertRelabelConfigExists(ctx, f, orphanName)
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCPollTimeout, func(pollCtx context.Context) error {
+		exists, existsErr := alertRelabelConfigExists(pollCtx, f, orphanName)
 		if existsErr != nil {
 			return existsErr
 		}
@@ -160,6 +179,28 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 			t.Errorf("keeper ARC %s was deleted", keeper)
 		}
 	}
+
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		value, gaugeErr := gitOpsOrphanGauge(pollCtx, f)
+		if gaugeErr != nil {
+			return gaugeErr
+		}
+		if value < gitopsOrphansBaseline+1 {
+			return fmt.Errorf("%s = %g, want >= %g", k8s.MetricAlertRelabelConfigGitOpsOrphans, value, gitopsOrphansBaseline+1)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for GitOps-orphan metric: %v", err)
+	}
+}
+
+func gitOpsOrphanGauge(ctx context.Context, f *framework.Framework) (float64, error) {
+	body, err := fetchPluginMetrics(ctx, f)
+	if err != nil {
+		return 0, err
+	}
+	return metricSampleValue(body, k8s.MetricAlertRelabelConfigGitOpsOrphans)
 }
 
 func alertRuleIDByName(rules []k8s.PrometheusRule, alertName string) (string, bool) {
@@ -197,9 +238,9 @@ func createAlertRelabelConfig(ctx context.Context, f *framework.Framework, name 
 		},
 	}
 
-	return framework.Poll(time.Second, 20*time.Second, func() error {
+	return framework.PollWithContext(ctx, time.Second, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
 		_, err := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Create(
-			ctx, arc, metav1.CreateOptions{},
+			pollCtx, arc, metav1.CreateOptions{},
 		)
 		if err == nil || apierrors.IsAlreadyExists(err) {
 			return nil

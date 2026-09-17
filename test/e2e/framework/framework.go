@@ -40,6 +40,8 @@ type Framework struct {
 
 type CleanupFunc func() error
 
+const namespaceCleanupTimeout = 20 * time.Second
+
 func e2eEnvironment() (string, string, error) {
 	kubeConfigPath := strings.TrimSpace(os.Getenv("KUBECONFIG"))
 	if kubeConfigPath == "" {
@@ -161,7 +163,9 @@ func (f *Framework) createNamespace(ctx context.Context, name string, isClusterM
 	}
 
 	return testNamespace, func() error {
-		return f.Clientset.CoreV1().Namespaces().Delete(ctx, testNamespace, metav1.DeleteOptions{})
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), namespaceCleanupTimeout)
+		defer cancel()
+		return f.Clientset.CoreV1().Namespaces().Delete(cleanupCtx, testNamespace, metav1.DeleteOptions{})
 	}, nil
 }
 

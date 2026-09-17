@@ -11,11 +11,16 @@ import (
 )
 
 type mockARCInterface struct {
-	arcs    map[string]*osmv1.AlertRelabelConfig
-	deleted []string
+	arcs      map[string]*osmv1.AlertRelabelConfig
+	deleted   []string
+	listErr   error
+	deleteErr error
 }
 
 func (m *mockARCInterface) List(_ context.Context, _ string) ([]osmv1.AlertRelabelConfig, error) {
+	if m.listErr != nil {
+		return nil, m.listErr
+	}
 	var result []osmv1.AlertRelabelConfig
 	for _, arc := range m.arcs {
 		result = append(result, *arc)
@@ -37,6 +42,9 @@ func (m *mockARCInterface) Create(_ context.Context, arc osmv1.AlertRelabelConfi
 func (m *mockARCInterface) Update(_ context.Context, _ osmv1.AlertRelabelConfig) error { return nil }
 
 func (m *mockARCInterface) Delete(_ context.Context, ns, name string) error {
+	if m.deleteErr != nil {
+		return m.deleteErr
+	}
 	m.deleted = append(m.deleted, ns+"/"+name)
 	delete(m.arcs, ns+"/"+name)
 	return nil

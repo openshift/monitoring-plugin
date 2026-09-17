@@ -45,7 +45,6 @@ const (
 
 	AppKubernetesIoComponent                   = "app.kubernetes.io/component"
 	AppKubernetesIoComponentAlertManagementApi = "alert-management-api"
-	AppKubernetesIoComponentMonitoringPlugin   = "monitoring-plugin"
 
 	relabeledRulesSyncKeyInitial        = "initial-sync"
 	relabeledRulesSyncKeyPrometheusRule = "prometheus-rule-sync"
@@ -59,6 +58,7 @@ type relabeledRulesManager struct {
 	alertRelabelConfigs     AlertRelabelConfigInterface
 	prometheusRulesInformer cache.SharedIndexInformer
 	secretInformer          cache.SharedIndexInformer
+	gcMetrics               *alertRelabelConfigGCMetrics
 
 	// relabeledRules stores the relabeled rules in memory
 	relabeledRules map[string]monitoringv1.Rule
@@ -92,6 +92,7 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		alertRelabelConfigs:     alertRelabelConfigs,
 		prometheusRulesInformer: prometheusRulesInformer,
 		secretInformer:          secretInformer,
+		gcMetrics:               defaultAlertRelabelConfigGCMetrics,
 	}
 
 	_, err := rrm.prometheusRulesInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
