@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 type httpClientConfig struct {
@@ -150,6 +152,14 @@ func TestServerRunning(t *testing.T) {
 
 	if _, err = getRequestResults(t, httpClient, serverURL+"/features"); err != nil {
 		t.Fatalf("Failed: could not fetch features endpoint: %v", err)
+	}
+
+	metricsBody, err := getRequestResults(t, httpClient, serverURL+"/metrics")
+	if err != nil {
+		t.Fatalf("Failed: could not fetch /metrics: %v", err)
+	}
+	if strings.Contains(metricsBody, k8s.MetricAlertRelabelConfigGCListErrorsTotal) {
+		t.Fatalf("expected no GC metrics without alert-management-api, got %q", metricsBody)
 	}
 
 	// sanity check - make sure we cannot get to a bogus context path
