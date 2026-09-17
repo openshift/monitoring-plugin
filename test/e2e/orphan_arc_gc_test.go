@@ -4,16 +4,19 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
@@ -22,6 +25,13 @@ import (
 const (
 	orphanARCGCPollInterval = time.Second
 	orphanARCGCPollTimeout  = 2 * time.Minute
+	orphanARCGCOpTimeout    = 20 * time.Second
+	orphanARCGCTestTimeout  = 10 * time.Minute
+
+	// pluginARCWriteRole is the namespaced Role (and RoleBinding) granting
+	// the monitoring-plugin service account write access to
+	// AlertRelabelConfigs, which the orphan GC needs.
+	pluginARCWriteRole = "monitoring-plugin-alertrelabelconfigs-writer"
 )
 
 // TestOrphanAlertRelabelConfigGC creates plugin-owned AlertRelabelConfigs
@@ -33,10 +43,28 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create framework: %v", err)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), orphanARCGCTestTimeout)
+	defer cancel()
 
-	// Cluster-monitoring namespace so GET /rules can see the live rule
-	// (e2e-management-api does not enable user-workload monitoring).
+	// The orphan GC runs in the plugin's background sync and marks or deletes
+	// orphaned AlertRelabelConfigs through the monitoring-plugin service
+	// account. The e2e-management-api job only grants that service account
+	// read access to AlertRelabelConfigs, so grant the write permissions the
+	// GC needs before creating the fixtures.
+	cleanupARCWrite, err := grantPluginAlertRelabelConfigWrite(ctx, f)
+	if err != nil {
+		t.Fatalf("Failed to grant the plugin service account AlertRelabelConfig write permissions: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), orphanARCGCOpTimeout)
+		defer cleanupCancel()
+		if err := cleanupARCWrite(cleanupCtx); err != nil {
+			t.Logf("cleanup plugin AlertRelabelConfig write permissions: %v", err)
+		}
+	})
+
+	// The management API E2E job does not enable user-workload monitoring,
+	// so keep the live rule in a cluster-monitoring namespace.
 	testNamespace, cleanup, err := f.CreatePlatformNamespace(ctx, "test-orphan-arc-gc")
 	if err != nil {
 		t.Fatalf("Failed to create test namespace: %v", err)
@@ -64,22 +92,9 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create PrometheusRule: %v", err)
 	}
 
-	var liveRuleID string
-	err = framework.Poll(orphanARCGCPollInterval, orphanARCGCPollTimeout, func() error {
-		rules, listErr := listRules(ctx, f)
-		if listErr != nil {
-			return fmt.Errorf("list rules: %w", listErr)
-		}
-		id, found := alertRuleIDByName(rules, alertName)
-		if !found {
-			return fmt.Errorf("alert %s not in GET /rules yet", alertName)
-		}
-		liveRuleID = id
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("Timeout waiting for live rule to appear: %v", err)
-	}
+	// Cleanup identifies rules from their CR specs, independently of whether
+	// Prometheus has evaluated them or exposed them through GET /rules.
+	liveRuleID := alertrule.GetAlertingRuleId(&liveRule)
 
 	idSuffix := fmt.Sprintf("%d", time.Now().UnixNano())
 	orphanName := "e2e-ogc-orphan-" + idSuffix
@@ -90,8 +105,10 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	gitopsRuleID := "e2e-orphan-gc-gitops-" + idSuffix
 
 	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), orphanARCGCOpTimeout)
+		defer cleanupCancel()
 		for _, name := range []string{orphanName, liveName, gitopsName, manualName} {
-			if delErr := deleteAlertRelabelConfig(ctx, f, name); delErr != nil {
+			if delErr := deleteAlertRelabelConfig(cleanupCtx, f, name); delErr != nil {
 				t.Logf("cleanup ARC %s: %v", name, delErr)
 			}
 		}
@@ -107,6 +124,7 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	}, nil); err != nil {
 		t.Fatalf("Failed to create live ARC: %v", err)
 	}
+
 	if err := createAlertRelabelConfig(ctx, f, gitopsName, map[string]string{
 		managementlabels.ARCAnnotationAlertRuleIDKey: gitopsRuleID,
 		"argocd.argoproj.io/tracking-id":             "e2e-orphan-arc-gc",
@@ -117,32 +135,43 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Failed to create unannotated ARC: %v", err)
 	}
 
-	err = framework.Poll(orphanARCGCPollInterval, 20*time.Second, func() error {
-		current, getErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Get(
-			ctx, promRule.Name, metav1.GetOptions{},
-		)
+	if err := triggerOrphanARCGC(ctx, f, testNamespace, promRule.Name, idSuffix); err != nil {
+		t.Fatalf("Failed to trigger GC: %v", err)
+	}
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		arc, getErr := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Get(pollCtx, orphanName, metav1.GetOptions{})
 		if getErr != nil {
 			return getErr
 		}
-		if current.Annotations == nil {
-			current.Annotations = map[string]string{}
+		if arc.Annotations["monitoring.openshift.io/orphaned-since"] == "" {
+			if err := triggerOrphanARCGC(pollCtx, f, testNamespace, promRule.Name, fmt.Sprintf("%s-mark-%d", idSuffix, time.Now().UnixNano())); err != nil {
+				return err
+			}
+			return fmt.Errorf("orphan has not been marked yet")
 		}
-		current.Annotations["e2e.monitoring.openshift.io/gc-sync"] = idSuffix
-		_, updateErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(testNamespace).Update(
-			ctx, current, metav1.UpdateOptions{},
-		)
+		// Preserve the first-pass assertion without waiting 15 minutes in CI.
+		arc.Annotations["monitoring.openshift.io/orphaned-since"] = time.Now().Add(-30 * time.Minute).UTC().Format(time.RFC3339Nano)
+		_, updateErr := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Update(pollCtx, arc, metav1.UpdateOptions{})
 		return updateErr
 	})
 	if err != nil {
-		t.Fatalf("Failed to update PrometheusRule to trigger GC: %v", err)
+		t.Fatalf("Failed to age the preserved orphan: %v", err)
+	}
+	if err := triggerOrphanARCGC(ctx, f, testNamespace, promRule.Name, idSuffix+"-expired"); err != nil {
+		t.Fatalf("Failed to trigger expired orphan cleanup: %v", err)
 	}
 
-	err = framework.Poll(orphanARCGCPollInterval, orphanARCGCPollTimeout, func() error {
-		exists, existsErr := alertRelabelConfigExists(ctx, f, orphanName)
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCPollTimeout, func(pollCtx context.Context) error {
+		exists, existsErr := alertRelabelConfigExists(pollCtx, f, orphanName)
 		if existsErr != nil {
 			return existsErr
 		}
 		if exists {
+			// Retry the trigger in case the ARC informer had not observed the
+			// aged marker when the previous rule update was processed.
+			if err := triggerOrphanARCGC(pollCtx, f, testNamespace, promRule.Name, fmt.Sprintf("%s-expired-%d", idSuffix, time.Now().UnixNano())); err != nil {
+				return err
+			}
 			return fmt.Errorf("orphan ARC %s still present", orphanName)
 		}
 		return nil
@@ -162,18 +191,81 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 	}
 }
 
-func alertRuleIDByName(rules []k8s.PrometheusRule, alertName string) (string, bool) {
-	for _, rule := range rules {
-		if rule.Name != alertName {
-			continue
-		}
-		id := rule.Labels[k8s.AlertRuleLabelId]
-		if id == "" {
-			return "", false
-		}
-		return id, true
+// grantPluginAlertRelabelConfigWrite grants the monitoring-plugin service
+// account permission to update, patch, and delete AlertRelabelConfigs in the
+// cluster-monitoring namespace and returns a cleanup function revoking the
+// grant. The orphan GC runs in the plugin's background sync and writes
+// AlertRelabelConfigs with the service account credentials, but the CI setup
+// only grants it read access.
+func grantPluginAlertRelabelConfigWrite(ctx context.Context, f *framework.Framework) (func(context.Context) error, error) {
+	role := &rbacv1.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pluginARCWriteRole,
+			Namespace: k8s.ClusterMonitoringNamespace,
+		},
+		Rules: []rbacv1.PolicyRule{{
+			APIGroups: []string{"monitoring.openshift.io"},
+			Resources: []string{"alertrelabelconfigs"},
+			Verbs:     []string{"update", "patch", "delete"},
+		}},
 	}
-	return "", false
+
+	binding := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pluginARCWriteRole,
+			Namespace: k8s.ClusterMonitoringNamespace,
+		},
+		Subjects: []rbacv1.Subject{{
+			Kind:      rbacv1.ServiceAccountKind,
+			Name:      "monitoring-plugin",
+			Namespace: k8s.ClusterMonitoringNamespace,
+		}},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "Role",
+			Name:     pluginARCWriteRole,
+		},
+	}
+
+	cleanup := func(ctx context.Context) error {
+		var errs []error
+		if err := f.Clientset.RbacV1().RoleBindings(k8s.ClusterMonitoringNamespace).Delete(ctx, pluginARCWriteRole, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+			errs = append(errs, fmt.Errorf("deleting role binding %s/%s: %w", k8s.ClusterMonitoringNamespace, pluginARCWriteRole, err))
+		}
+		if err := f.Clientset.RbacV1().Roles(k8s.ClusterMonitoringNamespace).Delete(ctx, pluginARCWriteRole, metav1.DeleteOptions{}); err != nil && !apierrors.IsNotFound(err) {
+			errs = append(errs, fmt.Errorf("deleting role %s/%s: %w", k8s.ClusterMonitoringNamespace, pluginARCWriteRole, err))
+		}
+		return errors.Join(errs...)
+	}
+
+	err := framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		_, err := f.Clientset.RbacV1().Roles(k8s.ClusterMonitoringNamespace).Create(pollCtx, role, metav1.CreateOptions{})
+		if apierrors.IsAlreadyExists(err) {
+			return nil
+		}
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating role %s/%s: %w", k8s.ClusterMonitoringNamespace, pluginARCWriteRole, err)
+	}
+
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		_, err := f.Clientset.RbacV1().RoleBindings(k8s.ClusterMonitoringNamespace).Create(pollCtx, binding, metav1.CreateOptions{})
+		if apierrors.IsAlreadyExists(err) {
+			return nil
+		}
+		return err
+	})
+	if err != nil {
+		rollbackCtx, rollbackCancel := context.WithTimeout(context.Background(), orphanARCGCOpTimeout)
+		defer rollbackCancel()
+		return nil, errors.Join(
+			fmt.Errorf("creating role binding %s/%s: %w", k8s.ClusterMonitoringNamespace, pluginARCWriteRole, err),
+			cleanup(rollbackCtx),
+		)
+	}
+
+	return cleanup, nil
 }
 
 func createAlertRelabelConfig(ctx context.Context, f *framework.Framework, name string, annotations, labels map[string]string) error {
@@ -197,9 +289,9 @@ func createAlertRelabelConfig(ctx context.Context, f *framework.Framework, name 
 		},
 	}
 
-	return framework.Poll(time.Second, 20*time.Second, func() error {
+	return framework.PollWithContext(ctx, time.Second, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
 		_, err := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Create(
-			ctx, arc, metav1.CreateOptions{},
+			pollCtx, arc, metav1.CreateOptions{},
 		)
 		if err == nil || apierrors.IsAlreadyExists(err) {
 			return nil
@@ -229,4 +321,23 @@ func alertRelabelConfigExists(ctx context.Context, f *framework.Framework, name 
 		return false, err
 	}
 	return true, nil
+}
+
+func triggerOrphanARCGC(ctx context.Context, f *framework.Framework, namespace, name, marker string) error {
+	return framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		current, getErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(namespace).Get(
+			pollCtx, name, metav1.GetOptions{},
+		)
+		if getErr != nil {
+			return getErr
+		}
+		if current.Annotations == nil {
+			current.Annotations = map[string]string{}
+		}
+		current.Annotations["e2e.monitoring.openshift.io/gc-sync"] = marker
+		_, updateErr := f.Monitoringv1clientset.MonitoringV1().PrometheusRules(namespace).Update(
+			pollCtx, current, metav1.UpdateOptions{},
+		)
+		return updateErr
+	})
 }
