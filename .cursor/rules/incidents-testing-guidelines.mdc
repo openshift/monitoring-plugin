@@ -100,11 +100,10 @@ Verifies: OU-XXX
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
-import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from "../../../support/operators";
 
 describe('Regression: <Section Name>', () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO();
   });
 
   beforeEach(() => {
@@ -126,8 +125,7 @@ describe('Regression: <Section Name>', () => {
 ### Required Elements
 - File header comment with purpose and issue reference (e.g., "Verifies: OU-XXX")
 - Import `incidentsPage` from relative path
-- Standard CLUSTER_OBSERVABILITY_OPERATOR/CLUSTER_MONITORING_OPERATOR configuration blocks
-- Use `cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR)` in `before()` hook
+- Use `cy.beforeBlockCOO()` in `before()` hook
 - Use `incidentsPage.goTo()` in `beforeEach()`
 - Use `cy.mockIncidentFixture()` for test data
 

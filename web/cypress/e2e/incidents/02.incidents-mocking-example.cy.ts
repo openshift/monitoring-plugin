@@ -7,15 +7,11 @@ This test showcases different mocking approaches:
 3. Demonstrating empty state handling
 */
 
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+    cy.beforeBlockCOO({
       dashboards: false,
       troubleshootingPanel: false,
     });

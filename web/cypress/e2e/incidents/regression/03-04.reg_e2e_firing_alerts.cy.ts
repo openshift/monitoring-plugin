@@ -17,10 +17,6 @@ Both tests require continuously firing alerts and cannot be tested with mocked d
 Verifies: OU-XXX (time-based resolution bugs)
 */
 
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 describe(
@@ -30,7 +26,7 @@ describe(
     let currentAlertName: string;
 
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: false,
         troubleshootingPanel: false,
       });

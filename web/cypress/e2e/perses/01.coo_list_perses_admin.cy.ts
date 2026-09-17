@@ -5,10 +5,6 @@ import {
   testCOOListPersesDuplicateDashboard,
 } from '../../support/perses/01.coo_list_perses_admin.cy';
 import { testCOOListPersesNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
@@ -16,7 +12,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -42,7 +38,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });

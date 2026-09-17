@@ -8,15 +8,11 @@ Uses elements defined in incidents-page.ts for all interactions.
 Verifies: OU-727
 */
 
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+    cy.beforeBlockCOO({
       dashboards: false,
       troubleshootingPanel: false,
     });

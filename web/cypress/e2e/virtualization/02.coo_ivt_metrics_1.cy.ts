@@ -1,8 +1,4 @@
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-  KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { alerts } from '../../fixtures/monitoring/alert';
 import { testMetricsRegression1 } from '../../support/monitoring/02.reg_metrics_1.cy';
 import { testMetricsRegressionNamespace1 } from '../../support/monitoring/05.reg_metrics_namespace_1.cy';
@@ -16,7 +12,7 @@ describe(
   { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {
@@ -30,7 +26,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.beforeBlockVirtualization();
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

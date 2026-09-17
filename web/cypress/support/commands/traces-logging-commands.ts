@@ -3,6 +3,12 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
+import {
+  CLUSTER_LOGGING_OPERATOR,
+  LOKI_OPERATOR,
+  OPENTELEMETRY_OPERATOR,
+  TEMPO_OPERATOR,
+} from '../operators';
 
 export {};
 
@@ -10,27 +16,27 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlockOtel(OTEL: { namespace: string; packageName: string });
-      beforeBlockTempo(TEMPO: { namespace: string; packageName: string });
+      beforeBlockOtel();
+      beforeBlockTempo();
       configureBase();
       configureTracingApps();
       installDistributeTracingUIPlugin();
       waitForDistributeTracingUIPluginReady();
 
-      beforeBlockLoki(LOKI: { namespace: string; packageName: string });
-      beforeBlockLogging(CLO: { namespace: string; packageName: string });
+      beforeBlockLoki();
+      beforeBlockLogging();
       configureLoggingLoki();
       installLoggingUIPlugin();
       waitForLoggingUIPluginReady();
 
-      cleanupOtel(OTEL: { namespace: string; packageName: string });
-      cleanupTempo(TEMPO: { namespace: string; packageName: string });
+      cleanupOtel();
+      cleanupTempo();
       cleanupBase();
       cleanupTracingApps();
       cleanupTempoLokiThanosPersesGlobalDatasource();
       cleanupDistributeTracingUIPlugin();
-      cleanupLoki(LOKI: { namespace: string; packageName: string });
-      cleanupLogging(CLO: { namespace: string; packageName: string });
+      cleanupLoki();
+      cleanupLogging();
       cleanupLoggingLoki();
       cleanupLoggingUIPlugin();
       cleanupChainsawNamespaces();
@@ -63,14 +69,14 @@ const LOGGING_PLUGIN = {
 };
 
 const tracesUtils = {
-  installOtel(OTEL: { namespace: string; packageName: string }): void {
+  installOtel(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping OpenTelemetry Operator installation.');
       return;
     }
 
     cy.log('Install Red Hat build of OpenTelemetry');
-    operatorHubPage.installOperator(OTEL.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(OPENTELEMETRY_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -81,7 +87,7 @@ const tracesUtils = {
     });
   },
 
-  waitForOtelReady(OTEL: { namespace: string }): void {
+  waitForOtelReady(): void {
     cy.log('Check OpenTelemetry Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -89,7 +95,8 @@ const tracesUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${OTEL.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${OPENTELEMETRY_OPERATOR.namespace} -o name ` +
+              `--kubeconfig ${kubeconfig} ` +
               '| grep opentelemetry',
             { failOnNonZeroExit: false },
           )
@@ -97,12 +104,14 @@ const tracesUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `OpenTelemetry operator pod not found in namespace ${OTEL.namespace}`,
+        errorMsg:
+          `OpenTelemetry operator pod not found in namespace ` +
+          `${OPENTELEMETRY_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${OTEL.namespace} -o name --kubeconfig ${kubeconfig} ` +
+      `oc get pods -n ${OPENTELEMETRY_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
         '| grep opentelemetry',
     )
       .its('stdout')
@@ -110,13 +119,16 @@ const tracesUtils = {
         const podName = podOutput.trim().split('\n')[0];
         cy.log(`Found OpenTelemetry pod: ${podName}`);
 
-        cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${OTEL.namespace} ` +
-            `--timeout=120s --kubeconfig ${kubeconfig}`,
+        cy.adminCLI(
+          `oc wait --for=condition=Ready ${podName} -n ${OPENTELEMETRY_OPERATOR.namespace} ` +
+            `--timeout=120s`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`OpenTelemetry operator pod is now running in namespace: ${OTEL.namespace}`);
+          cy.log(
+            `OpenTelemetry operator pod is now running in namespace: ` +
+              `${OPENTELEMETRY_OPERATOR.namespace}`,
+          );
         });
       });
 
@@ -131,7 +143,7 @@ const tracesUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  cleanupOtel(OTEL: { namespace: string }): void {
+  cleanupOtel(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping OpenTelemetry Operator cleanup.');
       return;
@@ -140,17 +152,19 @@ const tracesUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Remove OpenTelemetry Operator');
-    cy.executeAndDelete(`oc delete namespace ${OTEL.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${OPENTELEMETRY_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
   },
 
-  installTempo(TEMPO: { namespace: string; packageName: string }): void {
+  installTempo(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tempo Operator installation.');
       return;
     }
 
     cy.log('Install Tempo Operator');
-    operatorHubPage.installOperator(TEMPO.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(TEMPO_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -161,7 +175,7 @@ const tracesUtils = {
     });
   },
 
-  waitForTempoReady(TEMPO: { namespace: string }): void {
+  waitForTempoReady(): void {
     cy.log('Check Tempo Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -169,7 +183,7 @@ const tracesUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${TEMPO.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${TEMPO_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
               '| grep tempo',
             { failOnNonZeroExit: false },
           )
@@ -177,25 +191,25 @@ const tracesUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Tempo operator pod not found in namespace ${TEMPO.namespace}`,
+        errorMsg: `Tempo operator pod not found in namespace ${TEMPO_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${TEMPO.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep tempo',
+      `oc get pods -n ${TEMPO_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep tempo',
     )
       .its('stdout')
       .then((podOutput) => {
         const podName = podOutput.trim().split('\n')[0];
         cy.log(`Found Tempo pod: ${podName}`);
 
-        cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${TEMPO.namespace} ` +
-            `--timeout=120s --kubeconfig ${kubeconfig}`,
+        cy.adminCLI(
+          `oc wait --for=condition=Ready ${podName} -n ${TEMPO_OPERATOR.namespace} --timeout=120s`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Tempo operator pod is now running in namespace: ${TEMPO.namespace}`);
+          cy.log(`Tempo operator pod is now running in namespace: ${TEMPO_OPERATOR.namespace}`);
         });
       });
 
@@ -210,7 +224,7 @@ const tracesUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  cleanupTempo(TEMPO: { namespace: string }): void {
+  cleanupTempo(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tempo Operator cleanup.');
       return;
@@ -219,10 +233,12 @@ const tracesUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Tempo Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${TEMPO.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${TEMPO_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Tempo Operator resource');
-    cy.exec(`oc delete operator tempo-product.${TEMPO.namespace} --kubeconfig ${kubeconfig}`, {
+    cy.adminCLI(`oc delete operator tempo-product.${TEMPO_OPERATOR.namespace}`, {
       timeout: readyTimeoutMilliseconds,
       failOnNonZeroExit: false,
     });
@@ -238,16 +254,14 @@ const tracesUtils = {
           ` --kubeconfig ${kubeconfig} 2>/dev/null' || true`,
         { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: false },
       );
-      cy.exec(
-        `oc patch crd ${cr} -p '{"metadata":{"finalizers":[]}}' ` +
-          `--type=merge --kubeconfig ${kubeconfig}`,
-        { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: false },
-      );
-      cy.exec(
-        `oc delete crd ${cr} --force --grace-period=0 ` +
-          `--wait=false --ignore-not-found --kubeconfig ${kubeconfig}`,
-        { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: false },
-      );
+      cy.adminCLI(`oc patch crd ${cr} -p '{"metadata":{"finalizers":[]}}' --type=merge`, {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: false,
+      });
+      cy.adminCLI(`oc delete crd ${cr} --force --grace-period=0 --wait=false --ignore-not-found`, {
+        timeout: readyTimeoutMilliseconds,
+        failOnNonZeroExit: false,
+      });
     });
   },
 
@@ -273,11 +287,7 @@ const tracesUtils = {
 
   installDistributeTracingUIPlugin(): void {
     cy.log('Create Distributed Tracing UI Plugin instance.');
-    cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/traces/tracing-ui-plugin.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-    );
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/traces/tracing-ui-plugin.yaml`);
     cy.exec(
       // eslint-disable-next-line max-len
       `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${
@@ -313,12 +323,7 @@ const tracesUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Distributed Tracing UI Plugin cleanup.');
       return;
     }
-    cy.exec(
-      `oc delete ${DTP.config.kind} ${DTP.config.name} --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc delete ${DTP.config.kind} ${DTP.config.name}`, { failOnNonZeroExit: false });
     cy.log('Cleanup Distributed Tracing UI Plugin completed');
   },
 
@@ -328,13 +333,12 @@ const tracesUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tempo configuration.');
       return;
     }
-    const kc = Cypress.env('KUBECONFIG_PATH');
     const savedStatePath = 'cypress/fixtures/coo/traces/.original-monitoring-config.json';
 
     // Read and store the existing enableUserWorkload value, then patch
-    cy.exec(
+    cy.adminCLI(
       `oc get configmap cluster-monitoring-config -n openshift-monitoring
-      -o jsonpath='{.data["config.yaml"]}' --kubeconfig ${kc}`,
+      -o jsonpath='{.data["config.yaml"]}'`,
       { failOnNonZeroExit: false },
     ).then((result) => {
       const configMapExists = result.code === 0;
@@ -348,9 +352,9 @@ const tracesUtils = {
 
       if (!configMapExists) {
         // ConfigMap doesn't exist, create it with just the needed setting
-        cy.exec(
+        cy.adminCLI(
           `oc create configmap cluster-monitoring-config -n openshift-monitoring ` +
-            `--from-literal=config.yaml='enableUserWorkload: true' --kubeconfig ${kc}`,
+            `--from-literal=config.yaml='enableUserWorkload: true'`,
           { failOnNonZeroExit: false },
         );
       } else if (!originalConfigYaml.includes('enableUserWorkload: true')) {
@@ -369,16 +373,16 @@ const tracesUtils = {
         const patch = JSON.stringify({
           data: { 'config.yaml': newConfig },
         });
-        cy.exec(
+        cy.adminCLI(
           `oc patch configmap cluster-monitoring-config -n openshift-monitoring ` +
-            `--type merge -p '${patch}' --kubeconfig ${kc}`,
+            `--type merge -p '${patch}'`,
           { failOnNonZeroExit: false },
         );
       }
     });
 
     // Apply the rest of base.yaml (no longer contains cluster-monitoring-config)
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/traces/base.yaml --kubeconfig ${kc}`, {
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/traces/base.yaml`, {
       failOnNonZeroExit: false,
     });
   },
@@ -388,7 +392,6 @@ const tracesUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Base cleanup.');
       return;
     }
-    const kc = Cypress.env('KUBECONFIG_PATH');
     const savedStatePath = 'cypress/fixtures/coo/traces/.original-monitoring-config.json';
 
     // Restore cluster-monitoring-config if we saved its original state
@@ -399,9 +402,9 @@ const tracesUtils = {
         cy.readFile(savedStatePath).then((original: { existed: boolean; configYaml: string }) => {
           if (!original.existed) {
             // ConfigMap didn't exist before we created it, so delete it
-            cy.exec(
+            cy.adminCLI(
               `oc delete configmap cluster-monitoring-config
-              -n openshift-monitoring --kubeconfig ${kc}`,
+              -n openshift-monitoring`,
               { failOnNonZeroExit: false },
             );
           } else {
@@ -409,9 +412,9 @@ const tracesUtils = {
             const patch = JSON.stringify({
               data: { 'config.yaml': original.configYaml },
             });
-            cy.exec(
+            cy.adminCLI(
               `oc patch configmap cluster-monitoring-config -n openshift-monitoring ` +
-                `--type merge -p '${patch}' --kubeconfig ${kc}`,
+                `--type merge -p '${patch}'`,
               { failOnNonZeroExit: false },
             );
           }
@@ -424,7 +427,7 @@ const tracesUtils = {
     });
 
     // Delete the rest of base.yaml resources
-    cy.exec(`oc delete -f ./cypress/fixtures/coo/traces/base.yaml --kubeconfig ${kc}`, {
+    cy.adminCLI(`oc delete -f ./cypress/fixtures/coo/traces/base.yaml`, {
       failOnNonZeroExit: false,
       timeout: installTimeoutMilliseconds,
     });
@@ -449,24 +452,21 @@ const tracesUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Tracing Apps cleanup.');
       return;
     }
-    cy.exec(
-      `oc delete -f ./cypress/fixtures/coo/traces/tracing-apps.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc delete -f ./cypress/fixtures/coo/traces/tracing-apps.yaml`, {
+      failOnNonZeroExit: false,
+    });
   },
 };
 
 const loggingUtils = {
-  installLoki(LOKI: { namespace: string; packageName: string }): void {
+  installLoki(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Loki Operator installation.');
       return;
     }
 
     cy.log('Install Loki Operator');
-    operatorHubPage.installOperator(LOKI.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(LOKI_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -477,7 +477,7 @@ const loggingUtils = {
     });
   },
 
-  cleanupLoki(LOKI: { namespace: string }): void {
+  cleanupLoki(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Loki Operator cleanup.');
       return;
@@ -486,11 +486,13 @@ const loggingUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Loki Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${LOKI.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${LOKI_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Loki Operator resource');
     cy.executeAndDelete(
-      `oc delete operator loki-operator.${LOKI.namespace} --kubeconfig ${kubeconfig}`,
+      `oc delete operator loki-operator.${LOKI_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
     );
 
     cy.log('Delete Loki CustomResourceDefinitions');
@@ -505,14 +507,14 @@ const loggingUtils = {
     );
   },
 
-  installLogging(CLO: { namespace: string; packageName: string }): void {
+  installLogging(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Operator installation.');
       return;
     }
 
     cy.log('Install Logging Operator');
-    operatorHubPage.installOperator(CLO.packageName, 'redhat-operators');
+    operatorHubPage.installOperator(CLUSTER_LOGGING_OPERATOR.packageName, 'redhat-operators');
     cy.get('.co-clusterserviceversion-install__heading', {
       timeout: installTimeoutMilliseconds,
     }).should(($el) => {
@@ -523,7 +525,7 @@ const loggingUtils = {
     });
   },
 
-  cleanupLogging(CLO: { namespace: string }): void {
+  cleanupLogging(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Operator cleanup.');
       return;
@@ -532,11 +534,14 @@ const loggingUtils = {
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
     cy.log('Delete Logging Operator namespace');
-    cy.executeAndDelete(`oc delete namespace ${CLO.namespace} --kubeconfig ${kubeconfig}`);
+    cy.executeAndDelete(
+      `oc delete namespace ${CLUSTER_LOGGING_OPERATOR.namespace} --kubeconfig ${kubeconfig}`,
+    );
 
     cy.log('Delete Logging Operator resource');
     cy.executeAndDelete(
-      `oc delete operator cluster-logging.${CLO.namespace} --kubeconfig ${kubeconfig}`,
+      `oc delete operator cluster-logging.${CLUSTER_LOGGING_OPERATOR.namespace} ` +
+        `--kubeconfig ${kubeconfig}`,
     );
 
     cy.log('Delete Logging CustomResourceDefinitions');
@@ -551,7 +556,7 @@ const loggingUtils = {
     );
   },
 
-  waitForLokiReady(LOKI: { namespace: string }): void {
+  waitForLokiReady(): void {
     cy.log('Check Loki Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -559,30 +564,33 @@ const loggingUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${LOKI.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep loki',
+            `oc get pods -n ${LOKI_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+              '| grep loki',
             { failOnNonZeroExit: false },
           )
           .then((result) => result.code === 0 && result.stdout.trim().length > 0),
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Loki operator pod not found in namespace ${LOKI.namespace}`,
+        errorMsg: `Loki operator pod not found in namespace ${LOKI_OPERATOR.namespace}`,
       },
     );
 
-    cy.exec(`oc get pods -n ${LOKI.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep loki')
+    cy.exec(
+      `oc get pods -n ${LOKI_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep loki',
+    )
       .its('stdout')
       .then((podOutput) => {
         const podName = podOutput.trim().split('\n')[0];
         cy.log(`Found Loki pod: ${podName}`);
 
-        cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${LOKI.namespace} ` +
-            `--timeout=120s --kubeconfig ${kubeconfig}`,
+        cy.adminCLI(
+          `oc wait --for=condition=Ready ${podName} -n ${LOKI_OPERATOR.namespace} --timeout=120s`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Loki operator pod is now running in namespace: ${LOKI.namespace}`);
+          cy.log(`Loki operator pod is now running in namespace: ${LOKI_OPERATOR.namespace}`);
         });
       });
 
@@ -597,7 +605,7 @@ const loggingUtils = {
       .should('contain.text', 'Succeeded');
   },
 
-  waitForLoggingReady(CLO: { namespace: string }): void {
+  waitForLoggingReady(): void {
     cy.log('Check Logging Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
@@ -605,7 +613,8 @@ const loggingUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${CLO.namespace} -o name --kubeconfig ${kubeconfig} ` +
+            `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name ` +
+              `--kubeconfig ${kubeconfig} ` +
               '| grep logging',
             { failOnNonZeroExit: false },
           )
@@ -613,25 +622,30 @@ const loggingUtils = {
       {
         timeout: readyTimeoutMilliseconds,
         interval: 10000,
-        errorMsg: `Logging operator pod not found in namespace ${CLO.namespace}`,
+        errorMsg:
+          `Logging operator pod not found in namespace ` + `${CLUSTER_LOGGING_OPERATOR.namespace}`,
       },
     );
 
     cy.exec(
-      `oc get pods -n ${CLO.namespace} -o name --kubeconfig ${kubeconfig} ` + '| grep logging',
+      `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name --kubeconfig ${kubeconfig} ` +
+        '| grep logging',
     )
       .its('stdout')
       .then((podOutput) => {
         const podName = podOutput.trim().split('\n')[0];
         cy.log(`Found Logging pod: ${podName}`);
 
-        cy.exec(
-          `oc wait --for=condition=Ready ${podName} -n ${CLO.namespace} ` +
-            `--timeout=120s --kubeconfig ${kubeconfig}`,
+        cy.adminCLI(
+          `oc wait --for=condition=Ready ${podName} -n ${CLUSTER_LOGGING_OPERATOR.namespace} ` +
+            `--timeout=120s`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
-          cy.log(`Logging operator pod is now running in namespace: ${CLO.namespace}`);
+          cy.log(
+            `Logging operator pod is now running in namespace: ` +
+              `${CLUSTER_LOGGING_OPERATOR.namespace}`,
+          );
         });
       });
 
@@ -648,11 +662,7 @@ const loggingUtils = {
 
   installLoggingUIPlugin(): void {
     cy.log('Install Logging UI Plugin');
-    cy.exec(
-      `oc apply -f ./cypress/fixtures/coo/logging/logging-ui-plugin.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-    );
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/logging/logging-ui-plugin.yaml`);
     cy.log('Install Logging UI Plugin completed');
 
     cy.exec(
@@ -685,12 +695,9 @@ const loggingUtils = {
 
   cleanupLoggingUIPlugin(): void {
     cy.log('Cleanup Logging UI Plugin');
-    cy.exec(
-      `oc delete ${LOGGING_PLUGIN.config.kind} ${
-        LOGGING_PLUGIN.config.name
-      } --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc delete ${LOGGING_PLUGIN.config.kind} ${LOGGING_PLUGIN.config.name}`, {
+      failOnNonZeroExit: false,
+    });
     cy.log('Cleanup Logging UI Plugin completed');
   },
 
@@ -700,34 +707,26 @@ const loggingUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Loki configuration.');
       return;
     }
-    const kc = Cypress.env('KUBECONFIG_PATH');
-    cy.exec(`oc apply -f ./cypress/fixtures/coo/logging/base.yaml --kubeconfig ${kc}`, {
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/logging/base.yaml`, {
       failOnNonZeroExit: false,
     });
-    cy.exec(`oc project openshift-logging --kubeconfig ${kc}`);
-    cy.exec(`oc create sa collector -n openshift-logging --kubeconfig ${kc}`, {
+    cy.adminCLI(`oc project openshift-logging`);
+    cy.adminCLI(`oc create sa collector -n openshift-logging`, {
       failOnNonZeroExit: false,
     });
-    cy.exec(
-      `oc adm policy add-cluster-role-to-user logging-collector-logs-writer ` +
-        `-z collector --kubeconfig ${kc}`,
+    cy.adminCLI(
+      `oc adm policy add-cluster-role-to-user logging-collector-logs-writer -z collector`,
       { failOnNonZeroExit: false },
     );
-    cy.exec(
-      `oc adm policy add-cluster-role-to-user collect-application-logs ` +
-        `-z collector --kubeconfig ${kc}`,
-      { failOnNonZeroExit: false },
-    );
-    cy.exec(
-      `oc adm policy add-cluster-role-to-user collect-audit-logs ` +
-        `-z collector --kubeconfig ${kc}`,
-      { failOnNonZeroExit: false },
-    );
-    cy.exec(
-      `oc adm policy add-cluster-role-to-user collect-infrastructure-logs ` +
-        `-z collector --kubeconfig ${kc}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc adm policy add-cluster-role-to-user collect-application-logs -z collector`, {
+      failOnNonZeroExit: false,
+    });
+    cy.adminCLI(`oc adm policy add-cluster-role-to-user collect-audit-logs -z collector`, {
+      failOnNonZeroExit: false,
+    });
+    cy.adminCLI(`oc adm policy add-cluster-role-to-user collect-infrastructure-logs -z collector`, {
+      failOnNonZeroExit: false,
+    });
 
     cy.exec(`./cypress/fixtures/coo/logging/make-resources.sh`, {
       env: {
@@ -746,12 +745,9 @@ const loggingUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Logging Loki cleanup.');
       return;
     }
-    cy.exec(
-      `oc delete -f ./cypress/fixtures/coo/logging/base.yaml --kubeconfig ${Cypress.env(
-        'KUBECONFIG_PATH',
-      )}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc delete -f ./cypress/fixtures/coo/logging/base.yaml`, {
+      failOnNonZeroExit: false,
+    });
     cy.exec(`./cypress/fixtures/coo/logging/make-clean-resources.sh`, {
       env: {
         KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
@@ -766,11 +762,9 @@ const loggingUtils = {
 const persesUtils = {
   createTempoLokiThanosPersesGlobalDatasource(): void {
     cy.log('Create Tempo Loki Thanos Perses Global Datasource');
-    const kc = Cypress.env('KUBECONFIG_PATH');
-    cy.exec(
-      `oc apply -f ./cypress/fixtures/perses/perses-global-datasources.yaml --kubeconfig ${kc}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/perses/perses-global-datasources.yaml`, {
+      failOnNonZeroExit: false,
+    });
   },
 
   cleanupTempoLokiThanosPersesGlobalDatasource(): void {
@@ -780,27 +774,28 @@ const persesUtils = {
       );
       return;
     }
-    const kc = Cypress.env('KUBECONFIG_PATH');
-    cy.exec(
-      `oc delete -f ./cypress/fixtures/perses/perses-global-datasources.yaml --kubeconfig ${kc}`,
-      { failOnNonZeroExit: false },
-    );
+    cy.adminCLI(`oc delete -f ./cypress/fixtures/perses/perses-global-datasources.yaml`, {
+      failOnNonZeroExit: false,
+    });
   },
 };
 
 // ── Cypress commands ───────────────────────────────────────────────
 
-Cypress.Commands.add('beforeBlockOtel', (OTEL: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockOtel', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('otel', OTEL);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
+      'otel',
+      OPENTELEMETRY_OPERATOR,
+    );
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block OpenTelemetry (session)');
-        cy.cleanupOtel(OTEL);
+        cy.cleanupOtel();
         operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installOtel(OTEL);
-        tracesUtils.waitForOtelReady(OTEL);
+        tracesUtils.installOtel();
+        tracesUtils.waitForOtelReady();
         cy.log('Before block OpenTelemetry (session) completed');
       },
       {
@@ -812,17 +807,17 @@ Cypress.Commands.add('beforeBlockOtel', (OTEL: { namespace: string; packageName:
     );
   } else {
     cy.log('Before block OpenTelemetry (no session)');
-    cy.cleanupOtel(OTEL);
+    cy.cleanupOtel();
     operatorAuthUtils.loginAndAuth();
-    tracesUtils.installOtel(OTEL);
-    tracesUtils.waitForOtelReady(OTEL);
+    tracesUtils.installOtel();
+    tracesUtils.waitForOtelReady();
     cy.log('Before block OpenTelemetry (no session) completed');
   }
 });
 
-Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockTempo', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('tempo', TEMPO);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('tempo', TEMPO_OPERATOR);
     cy.session(
       sessionKey,
       () => {
@@ -830,11 +825,11 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
         cy.cleanupTempoLokiThanosPersesGlobalDatasource();
         cy.cleanupBase();
         cy.cleanupTracingApps();
-        cy.cleanupTempo(TEMPO);
+        cy.cleanupTempo();
         tracesUtils.cleanupChainsawNamespaces();
         operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installTempo(TEMPO);
-        tracesUtils.waitForTempoReady(TEMPO);
+        tracesUtils.installTempo();
+        tracesUtils.waitForTempoReady();
         cy.log('Before block Tempo (session) completed');
       },
       {
@@ -849,27 +844,27 @@ Cypress.Commands.add('beforeBlockTempo', (TEMPO: { namespace: string; packageNam
     cy.cleanupTempoLokiThanosPersesGlobalDatasource();
     cy.cleanupBase();
     cy.cleanupTracingApps();
-    cy.cleanupTempo(TEMPO);
+    cy.cleanupTempo();
     tracesUtils.cleanupChainsawNamespaces();
     operatorAuthUtils.loginAndAuth();
-    tracesUtils.installTempo(TEMPO);
-    tracesUtils.waitForTempoReady(TEMPO);
+    tracesUtils.installTempo();
+    tracesUtils.waitForTempoReady();
     cy.log('Before block Tempo (no session) completed');
   }
 });
 
-Cypress.Commands.add('beforeBlockLoki', (LOKI: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockLoki', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('loki', LOKI);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('loki', LOKI_OPERATOR);
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block Loki (session)');
         cy.cleanupLoggingLoki();
-        cy.cleanupLoki(LOKI);
+        cy.cleanupLoki();
         operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLoki(LOKI);
-        loggingUtils.waitForLokiReady(LOKI);
+        loggingUtils.installLoki();
+        loggingUtils.waitForLokiReady();
         cy.log('Before block Loki (session) completed');
       },
       {
@@ -882,26 +877,29 @@ Cypress.Commands.add('beforeBlockLoki', (LOKI: { namespace: string; packageName:
   } else {
     cy.log('Before block Loki (no session)');
     cy.cleanupLoggingLoki();
-    cy.cleanupLoki(LOKI);
+    cy.cleanupLoki();
     operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLoki(LOKI);
-    loggingUtils.waitForLokiReady(LOKI);
+    loggingUtils.installLoki();
+    loggingUtils.waitForLokiReady();
     cy.log('Before block Loki (no session) completed');
   }
 });
 
-Cypress.Commands.add('beforeBlockLogging', (CLO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('beforeBlockLogging', () => {
   if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('logging', CLO);
+    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
+      'logging',
+      CLUSTER_LOGGING_OPERATOR,
+    );
     cy.session(
       sessionKey,
       () => {
         cy.log('Before block Logging (session)');
-        cy.cleanupLogging(CLO);
+        cy.cleanupLogging();
         cy.cleanupLoggingLoki();
         operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLogging(CLO);
-        loggingUtils.waitForLoggingReady(CLO);
+        loggingUtils.installLogging();
+        loggingUtils.waitForLoggingReady();
         cy.log('Before block Logging (session) completed');
       },
       {
@@ -913,36 +911,36 @@ Cypress.Commands.add('beforeBlockLogging', (CLO: { namespace: string; packageNam
     );
   } else {
     cy.log('Before block Logging (no session)');
-    cy.cleanupLogging(CLO);
+    cy.cleanupLogging();
     cy.cleanupLoggingLoki();
     operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLogging(CLO);
-    loggingUtils.waitForLoggingReady(CLO);
+    loggingUtils.installLogging();
+    loggingUtils.waitForLoggingReady();
     cy.log('Before block Logging (no session) completed');
   }
 });
 
-Cypress.Commands.add('cleanupOtel', (OTEL: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupOtel', () => {
   cy.log('Cleanup OpenTelemetry');
-  tracesUtils.cleanupOtel(OTEL);
+  tracesUtils.cleanupOtel();
   cy.log('Cleanup OpenTelemetry completed');
 });
 
-Cypress.Commands.add('cleanupTempo', (TEMPO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupTempo', () => {
   cy.log('Cleanup Tempo');
-  tracesUtils.cleanupTempo(TEMPO);
+  tracesUtils.cleanupTempo();
   cy.log('Cleanup Tempo completed');
 });
 
-Cypress.Commands.add('cleanupLoki', (LOKI: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupLoki', () => {
   cy.log('Cleanup Loki');
-  loggingUtils.cleanupLoki(LOKI);
+  loggingUtils.cleanupLoki();
   cy.log('Cleanup Loki completed');
 });
 
-Cypress.Commands.add('cleanupLogging', (CLO: { namespace: string; packageName: string }) => {
+Cypress.Commands.add('cleanupLogging', () => {
   cy.log('Cleanup Logging Operator');
-  loggingUtils.cleanupLogging(CLO);
+  loggingUtils.cleanupLogging();
   cy.log('Cleanup Logging Operator completed');
 });
 

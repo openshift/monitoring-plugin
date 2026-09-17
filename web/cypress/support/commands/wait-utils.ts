@@ -15,15 +15,14 @@ export function waitForPodsReady(
   timeoutMs?: number,
   intervalMs: number = 5000,
 ): void {
-  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
   const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>
       cy
-        .exec(
+        .adminCLI(
           `oc wait --for=condition=Ready pods --selector=${selector} ` +
-            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
+            `-n ${namespace} --timeout=10s`,
           { failOnNonZeroExit: false, timeout: 20000 },
         )
         .then((result) => result.code === 0),
@@ -47,15 +46,14 @@ export function waitForPodsReadyOrAbsent(
   timeoutMs?: number,
   intervalMs: number = 5000,
 ): void {
-  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
   const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>
       cy
-        .exec(
+        .adminCLI(
           `oc wait --for=condition=Ready pods --selector=${selector} ` +
-            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
+            `-n ${namespace} --timeout=10s`,
           { failOnNonZeroExit: false, timeout: 20000 },
         )
         .then(
@@ -82,17 +80,15 @@ export function waitForResourceCondition(
   timeoutMs?: number,
   intervalMs: number = 5000,
 ): void {
-  const kubeconfig = Cypress.env('KUBECONFIG_PATH');
   const timeout = timeoutMs ?? readyTimeoutMilliseconds;
 
   cy.waitUntil(
     () =>
       cy
-        .exec(
-          `oc wait --for=${condition} ${resource} ` +
-            `-n ${namespace} --timeout=10s --kubeconfig ${kubeconfig}`,
-          { failOnNonZeroExit: false, timeout: 20000 },
-        )
+        .adminCLI(`oc wait --for=${condition} ${resource} ` + `-n ${namespace} --timeout=10s`, {
+          failOnNonZeroExit: false,
+          timeout: 20000,
+        })
         .then((result) => result.code === 0),
     {
       timeout,

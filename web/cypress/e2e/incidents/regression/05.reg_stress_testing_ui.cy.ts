@@ -11,10 +11,6 @@ test is independent of timeline length. See WIP.stress-test-1000-alerts.cy.ts to
 the overflow with the original 5d timeline.
 */
 
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../../support/operators';
 import { incidentsPage } from '../../../views/incidents-page';
 
 const MAX_GAP_STANDARD = 250;
@@ -22,7 +18,7 @@ const MAX_GAP_RELAXED = 500;
 
 describe('Regression: Stress Testing UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+    cy.beforeBlockCOO({
       dashboards: false,
       troubleshootingPanel: false,
     });
