@@ -290,6 +290,9 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+		router.Path("/metrics").Handler(k8s.AlertRelabelConfigGCMetricsHandler())
+	} else {
+		router.Path("/metrics").Handler(k8s.EmptyMetricsHandler())
 	}
 
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
