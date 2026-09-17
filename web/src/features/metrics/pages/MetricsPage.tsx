@@ -1037,6 +1037,35 @@ const QueryBrowserWrapper: FC<{
     }
   }, [customDataSourceName, dispatch, queryParams, queryStrings, setQueryParams]);
 
+  const handleZoom = useCallback(
+    (from: number, to: number) => {
+      setQueryParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set(QueryParams.Start, String(Math.floor(from)));
+        next.set(QueryParams.End, String(Math.floor(to)));
+        return next;
+      });
+    },
+    [setQueryParams],
+  );
+
+  const handleSpanChange = useCallback(() => {
+    setQueryParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete(QueryParams.Start);
+      next.delete(QueryParams.End);
+      return next;
+    });
+  }, [setQueryParams]);
+
+  const urlStart = Number(queryParams.get(QueryParams.Start));
+  const urlEnd = Number(queryParams.get(QueryParams.End));
+  const urlTimespan =
+    Number.isFinite(urlStart) && Number.isFinite(urlEnd) && urlEnd > urlStart
+      ? urlEnd - urlStart
+      : undefined;
+  const urlEndTime = urlTimespan ? urlEnd : undefined;
+
   if (hideGraphs) {
     return null;
   }
@@ -1099,7 +1128,11 @@ const QueryBrowserWrapper: FC<{
     <QueryBrowser
       customDataSource={customDataSource}
       disabledSeries={disabledSeries}
+      fixedEndTime={urlEndTime}
+      onSpanChange={handleSpanChange}
+      onZoom={handleZoom}
       queries={queryStrings}
+      timespan={urlTimespan}
       units={units}
       showStackedControl
       showDisconnectedControl
