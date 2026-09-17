@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	authv1 "k8s.io/api/authentication/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
@@ -55,6 +56,12 @@ func TestLoadE2EConfigMergesKubeconfigFiles(t *testing.T) {
 
 func TestCreateAnonymousUserCleanupReturnsDeleteError(t *testing.T) {
 	client := fake.NewClientset()
+	client.PrependReactor("create", "serviceaccounts", func(action k8stesting.Action) (bool, runtime.Object, error) {
+		if action.GetSubresource() != "token" {
+			return false, nil, nil
+		}
+		return true, &authv1.TokenRequest{Status: authv1.TokenRequestStatus{Token: "test-token"}}, nil
+	})
 	f := &Framework{Clientset: client}
 	user, err := f.CreateAnonymousUser(context.Background(), "anonymous", "default")
 	if err != nil {

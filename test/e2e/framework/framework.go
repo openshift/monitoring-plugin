@@ -29,7 +29,7 @@ import (
 var f *Framework
 
 type Framework struct {
-	Clientset             *kubernetes.Clientset
+	Clientset             kubernetes.Interface
 	Monitoringv1clientset *monitoringv1client.Clientset
 	Osmv1clientset        *osmv1client.Clientset
 
@@ -39,6 +39,8 @@ type Framework struct {
 }
 
 type CleanupFunc func() error
+
+const namespaceCleanupTimeout = 20 * time.Second
 
 func e2eEnvironment() (string, string, error) {
 	kubeConfigPath := strings.TrimSpace(os.Getenv("KUBECONFIG"))
@@ -161,7 +163,9 @@ func (f *Framework) createNamespace(ctx context.Context, name string, isClusterM
 	}
 
 	return testNamespace, func() error {
-		return f.Clientset.CoreV1().Namespaces().Delete(ctx, testNamespace, metav1.DeleteOptions{})
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), namespaceCleanupTimeout)
+		defer cancel()
+		return f.Clientset.CoreV1().Namespaces().Delete(cleanupCtx, testNamespace, metav1.DeleteOptions{})
 	}, nil
 }
 
