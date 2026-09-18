@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
-import { testCOORBACPersesTestsDevUser5 } from '../../support/perses/99.coo_rbac_perses_user5.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { nav } from '../../../views/nav';
+import { testCOORBACPersesTestsDevUser4 } from '../../../support/perses/99.coo_rbac_perses_user4.cy';
+import { operatorAuthUtils } from '../../../support/commands/auth-commands';
 
 describe(
-  'RBAC User5: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -47,8 +47,8 @@ describe(
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
-        Cypress.env('LOGIN_USERNAME5'),
-        Cypress.env('LOGIN_PASSWORD5'),
+        Cypress.env('LOGIN_USERNAME4'),
+        Cypress.env('LOGIN_PASSWORD4'),
       );
       cy.validateLogin();
       cy.closeOnboardingModalIfPresent();
@@ -68,6 +68,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    testCOORBACPersesTestsDevUser5(CustomerPerspectiveName.CorePlatform);
+    testCOORBACPersesTestsDevUser4(CustomerPerspectiveName.CorePlatform);
   },
 );
