@@ -26,7 +26,7 @@ describe(
     let currentAlertName: string;
 
     before(() => {
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: false,
         troubleshootingPanel: false,
       });

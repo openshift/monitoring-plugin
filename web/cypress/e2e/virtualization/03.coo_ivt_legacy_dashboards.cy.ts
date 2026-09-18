@@ -11,7 +11,7 @@ describe(
   { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO();
+      cy.ensureMonitoringConsolePlugin();
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },

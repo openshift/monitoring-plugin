@@ -48,7 +48,7 @@ declare global {
 
 const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 
-const DTP = {
+const DISTRIBUTING_TRACING_PLUGIN = {
   namespace: Cypress.env('COO_NAMESPACE'),
   packageName: 'cluster-observability-operator',
   operatorName: 'Cluster Observability Operator',
@@ -291,7 +291,7 @@ const tracesUtils = {
     cy.exec(
       // eslint-disable-next-line max-len
       `sleep 15 && oc wait --for=condition=Ready pods --selector=app.kubernetes.io/instance=distributed-tracing -n ${
-        DTP.namespace
+        DISTRIBUTING_TRACING_PLUGIN.namespace
       } --timeout=60s --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
       {
         timeout: 80000,
@@ -300,7 +300,8 @@ const tracesUtils = {
     ).then((result) => {
       expect(result.code).to.eq(0);
       cy.log(
-        `Distributed Tracing Console plugin pod is now running in namespace: ${DTP.namespace}`,
+        `Distributed Tracing Console plugin pod is now running in namespace: ` +
+          `${DISTRIBUTING_TRACING_PLUGIN.namespace}`,
       );
     });
     // Check for web console update alert for up to 2 minutes
@@ -323,7 +324,11 @@ const tracesUtils = {
       cy.log('SKIP_COO_INSTALL is set. Skipping Distributed Tracing UI Plugin cleanup.');
       return;
     }
-    cy.adminCLI(`oc delete ${DTP.config.kind} ${DTP.config.name}`, { failOnNonZeroExit: false });
+    cy.adminCLI(
+      `oc delete ${DISTRIBUTING_TRACING_PLUGIN.config.kind} ` +
+        `${DISTRIBUTING_TRACING_PLUGIN.config.name}`,
+      { failOnNonZeroExit: false },
+    );
     cy.log('Cleanup Distributed Tracing UI Plugin completed');
   },
 
@@ -613,9 +618,8 @@ const loggingUtils = {
       () =>
         cy
           .exec(
-            `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name ` +
-              `--kubeconfig ${kubeconfig} ` +
-              '| grep logging',
+            `oc get pods -n ${CLUSTER_LOGGING_OPERATOR.namespace} -o name --kubeconfig ` +
+              `${kubeconfig} | grep logging`,
             { failOnNonZeroExit: false },
           )
           .then((result) => result.code === 0 && result.stdout.trim().length > 0),

@@ -11,7 +11,7 @@ import { incidentsPage } from '../../views/incidents-page';
 
 describe('BVT: Incidents - UI', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO({
+    cy.ensureMonitoringConsolePlugin({
       dashboards: false,
       troubleshootingPanel: false,
     });

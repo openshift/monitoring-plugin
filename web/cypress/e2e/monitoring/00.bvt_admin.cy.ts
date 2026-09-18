@@ -10,7 +10,7 @@ describe(
   { tags: ['@alerting', '@legacy-dashboards', '@metrics', '@targets'] },
   () => {
     before(() => {
-      cy.beforeBlock();
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {

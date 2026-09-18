@@ -11,13 +11,13 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.beforeBlock();
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {
-      // When running only this file, beforeBlock changes the namespace to openshift-monitoring so
-      // we need to change it back to All Projects before landing to Dashboards page in order to
-      // have API Performance dashboard loaded by default
+      // When running only this file, ensureMonitoringPlugin changes the namespace to
+      // openshift-monitoring so we need to change it back to All Projects before
+      //  landing to Dashboards page in order to have API Performance dashboard loaded by default
       nav.sidenav.clickNavLink(['Observe', 'Metrics']);
       commonPages.titleShouldHaveText('Metrics');
       cy.changeNamespace('All Projects');
@@ -37,7 +37,7 @@ describe(
   { tags: ['@legacy-dashboards'] },
   () => {
     before(() => {
-      cy.beforeBlock();
+      cy.ensureMonitoringPlugin();
     });
 
     beforeEach(() => {

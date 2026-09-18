@@ -31,8 +31,8 @@ declare global {
       ): Chainable<JQuery<HTMLElement>>;
       byTestSectionHeading(selector: string): Chainable<JQuery<HTMLElement>>;
       byTestOperandLink(selector: string): Chainable<JQuery<HTMLElement>>;
-      byOUIAID(selector: string): Chainable<Element>;
-      byClass(selector: string): Chainable<Element>;
+      byOUIAID(selector: string): Chainable<JQuery<HTMLElement>>;
+      byClass(selector: string): Chainable<JQuery<HTMLElement>>;
       bySemanticElement(element: string, text?: string): Chainable<JQuery<HTMLElement>>;
       byAriaLabel(
         label: string,
