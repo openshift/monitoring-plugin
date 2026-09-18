@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import { Classes, DataTestIDs, IDs } from '@/shared/constants/data-test';
 import {
   GraphTimespan,
@@ -9,7 +9,7 @@ import {
   MetricsPageQueryKebabDropdown,
   MetricsPageUnits,
   MonitoringRefreshInterval,
-} from '../fixtures/shared/cluster-monitoring-operator/constants';
+} from '../../fixtures/shared/cluster-monitoring-operator/constants';
 
 export const metricsPage = {
   shouldBeLoaded: () => {

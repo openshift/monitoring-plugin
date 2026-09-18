@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../../views/nav';
+import { nav } from '../../../views/shared/nav';
 import { operatorAuthUtils } from '../../../support/shared/commands/auth-commands';
 import { testCOORBACPersesTestsDevUser2 } from '../../../support/perses/rbac/perses_user2.cy';
 

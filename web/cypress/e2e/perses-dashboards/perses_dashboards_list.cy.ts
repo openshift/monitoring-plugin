@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 import {
   testCOOListPerses,
   testCOOListPersesDuplicateDashboard,

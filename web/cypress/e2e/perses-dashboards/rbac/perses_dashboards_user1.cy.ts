@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../../views/nav';
+import { nav } from '../../../views/shared/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../../support/perses/rbac/perses_user1.cy';
 
 describe(

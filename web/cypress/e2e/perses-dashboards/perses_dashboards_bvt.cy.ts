@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 //TODO: rename after customizable-dashboards gets merged
 import { testBVTCOOPerses1 } from '../../support/perses/perses_bvt_admin.cy';
 

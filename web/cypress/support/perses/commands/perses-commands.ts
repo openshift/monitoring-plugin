@@ -1,7 +1,7 @@
 export {};
 
-import { nav } from '../../../views/nav';
-import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
+import { nav } from '../../../views/shared/nav';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards/perses-dashboards-list-dashboards';
 import { listPersesDashboardsOUIAIDs } from '@/shared/constants/data-test';
 import {
   PERSES_E2E_DASHBOARDS_DIR,

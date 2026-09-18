@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import {
   editPersesDashboardsAddDatasource,
   IDs,
@@ -8,7 +8,7 @@ import {
 import {
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesDashboardsEditDatasources = {
   shouldBeLoaded: () => {

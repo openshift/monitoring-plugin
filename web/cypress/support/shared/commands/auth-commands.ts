@@ -1,5 +1,5 @@
-import { nav } from '../../../views/nav';
-import { guidedTour } from '../../../views/tour';
+import { nav } from '../../../views/shared/nav';
+import { guidedTour } from '../../../views/shared/tour';
 import {
   CLUSTER_MONITORING_OPERATOR,
   CLUSTER_OBSERVABILITY_OPERATOR,

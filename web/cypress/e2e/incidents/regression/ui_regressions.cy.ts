@@ -10,7 +10,7 @@ This test loads comprehensive test data covering:
 
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 const ARROW_HEIGHT = 12;
 const ALLOWED_MARGIN = 8;
