@@ -7,6 +7,7 @@ export const FEATURE_TAGS = [
   '@legacy-dashboards',
   '@metrics',
   '@targets',
+  '@overview',
   '@perses-dashboards',
   '@cluster-health-analyzer',
 ] as const;
