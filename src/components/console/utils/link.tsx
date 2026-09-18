@@ -1,11 +1,17 @@
 import * as React from 'react';
 import Linkify from 'react-linkify';
 
-export const ExternalLink: React.FC<ExternalLinkProps> = ({ href, text }) => (
-  <a className="co-external-link" href={href} target="_blank" rel="noopener noreferrer">
-    {text}
-  </a>
-);
+export const ExternalLink: React.FC<ExternalLinkProps> = ({ href, text }) => {
+  if (!isSafeExternalURL(href)) {
+    return <>{text}</>;
+  }
+
+  return (
+    <a className="co-external-link" href={href} target="_blank" rel="noopener noreferrer">
+      {text}
+    </a>
+  );
+};
 
 // Open links in a new window and set noopener/noreferrer.
 export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -15,4 +21,13 @@ export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({ child
 type ExternalLinkProps = {
   href: string;
   text?: React.ReactNode;
+};
+
+const isSafeExternalURL = (value: string): boolean => {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
 };
