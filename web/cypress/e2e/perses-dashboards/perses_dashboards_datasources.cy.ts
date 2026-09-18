@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { testCOOCreateImportPerses } from '../../support/perses/05.coo_create_import_perses_admin.cy';
+import { testCOOCreateImportPerses } from '../../support/perses/perses_create_import_admin.cy';
 import { nav } from '../../views/nav';
 
 describe(

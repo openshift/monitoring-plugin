@@ -1,5 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { testBVTMonitoring } from '../../support/monitoring/00.bvt_monitoring.cy';
+import { testBVTAlerts } from '../../support/alerts/alerts_bvt.cy';
 import { guidedTour } from '../../views/tour';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { nav } from '../../views/nav';
@@ -34,6 +34,6 @@ describe(
       alerts.interceptWatchdogAlert();
     });
 
-    testBVTMonitoring(CustomerPerspectiveName.Virtualization);
+    testBVTAlerts(CustomerPerspectiveName.Virtualization);
   },
 );

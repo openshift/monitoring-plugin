@@ -1,11 +1,11 @@
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
-import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
+import { persesDashboardsPage } from '../../../views/perses-dashboards';
+import { listPersesDashboardsPage } from '../../../views/perses-dashboards-list-dashboards';
+import { persesCreateDashboardsPage } from '../../../views/perses-dashboards-create-dashboard';
+import { persesImportDashboardsPage } from '../../../views/perses-dashboards-import-dashboard';
 import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
-} from '../../fixtures/perses/constants';
+} from '../../../fixtures/perses/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**

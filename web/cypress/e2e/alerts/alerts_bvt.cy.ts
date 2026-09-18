@@ -1,9 +1,9 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
-import { testBVTMonitoringTestsNamespace } from '../../support/monitoring/00.bvt_monitoring_namespace.cy';
+import { testBVTMonitoringTestsNamespace } from '../../support/alerts/alerts_bvt_namespaced.cy';
 import { commonPages } from '../../views/common';
-import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/shared/operators';
 
 describe('BVT: Monitoring - Namespaced', { tags: ['@alerting', '@metrics'] }, () => {
   before(() => {

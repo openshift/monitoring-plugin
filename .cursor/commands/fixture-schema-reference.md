@@ -189,16 +189,16 @@ cy.mockIncidentFixture(
 ### CLI Validation
 
 ```bash
-cd web/cypress/support/incidents_prometheus_query_mocks
-node validate-fixtures.js --all
-node validate-fixtures.js specific-file.yaml
+cd web
+npm run ts-node -- cypress/support/incidents/schema/validate-fixtures.ts --all
+npm run ts-node -- cypress/support/incidents/schema/validate-fixtures.ts cypress/fixtures/incidents/scenarios/single-incident-firing-critical-and-warning-alerts.yaml
 ```
 
 ### Schema Files
 
-- Schema: `web/cypress/support/incidents_prometheus_query_mocks/fixture-schema.json`
-- Validator: `web/cypress/support/incidents_prometheus_query_mocks/schema-validator.ts`
-- CLI Tool: `web/cypress/support/incidents_prometheus_query_mocks/validate-fixtures.js`
+- Schema: `web/cypress/support/incidents/schema/fixture-schema.json`
+- Validator: `web/cypress/support/incidents/schema/schema-validator.ts`
+- CLI Tool: `web/cypress/support/incidents/schema/validate-fixtures.ts`
 
 ## Best Practices
 

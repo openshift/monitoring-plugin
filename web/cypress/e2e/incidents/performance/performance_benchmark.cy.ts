@@ -15,7 +15,7 @@ Verifies: OBSINTA-1006
 */
 
 import { incidentsPage } from '../../../views/incidents-page';
-import { BenchmarkCollector } from '../../../support/benchmark-utils';
+import { BenchmarkCollector } from '../../../support/shared/commands/benchmark-utils';
 
 // Wall-clock thresholds in ms. Includes Cypress overhead (navigation, intercept
 // wait, command scheduling). Set conservatively for initial calibration — tighten
@@ -35,7 +35,7 @@ const THRESHOLDS = {
   INCIDENTS_CHART_MIXED_12: 5_000,
 };
 
-const collector = new BenchmarkCollector('01.performance_benchmark.cy.ts');
+const collector = new BenchmarkCollector('performance_benchmark.cy.ts');
 
 describe(
   'Regression: Performance Benchmark',
