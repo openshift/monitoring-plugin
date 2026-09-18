@@ -70,7 +70,7 @@ const virtualizationUtils = {
       );
       cy.log('Install Openshift Virtualization');
 
-      cy.exec('./cypress/fixtures/virtualization/virtualization_stage.sh', {
+      cy.exec('./cypress/fixtures/shared/virtualization/virtualization_stage.sh', {
         env: {
           FBC_STAGE_CNV_IMAGE: Cypress.env('FBC_STAGE_CNV_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH'),
@@ -146,7 +146,7 @@ const virtualizationUtils = {
         });
     } else {
       cy.log('Create Hyperconverged instance.');
-      cy.adminCLI(`oc apply -f ./cypress/fixtures/virtualization/hyperconverged.yaml `);
+      cy.adminCLI(`oc apply -f ./cypress/fixtures/shared/virtualization/hyperconverged.yaml `);
       cy.exec(
         `sleep 15 && oc wait --for=condition=Available --selector=app=kubevirt-hyperconverged -n ${
           KUBEVIRT_HYPERCONVERGED_OPERATOR.namespace

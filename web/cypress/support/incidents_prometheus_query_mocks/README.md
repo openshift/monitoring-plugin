@@ -5,6 +5,7 @@ This directory contains the Prometheus query mocking system for incident scenari
 ## Overview
 
 The mocking system allows you to:
+
 - Define incident scenarios using YAML fixtures with schema validation
 - Mock Prometheus `query_range` API calls for both incident health data and alert details
 - Support complex timelines with severity changes and resolved/ongoing incidents
@@ -16,7 +17,7 @@ The mocking system allows you to:
 
 ```typescript
 // Load a YAML fixture
-cy.mockIncidentFixture('cypress/fixtures/incident-scenarios/critical-monitoring-issues.yaml');
+cy.mockIncidentFixture('cypress/fixtures/incidents/scenarios/critical-monitoring-issues.yaml');
 ```
 
 ### Using Direct Incident Definitions
@@ -32,10 +33,10 @@ const incidents: IncidentDefinition[] = [
       {
         name: 'AlertmanagerReceiversNotConfigured',
         namespace: 'openshift-monitoring',
-        severity: 'warning'
-      }
-    ]
-  }
+        severity: 'warning',
+      },
+    ],
+  },
 ];
 
 cy.mockIncidents(incidents);
@@ -87,6 +88,7 @@ The `.cursor/commands/` directory contains custom commands for working with inci
 - **`fixture-schema-reference.md`** - Quick reference for schema structure, valid values, and common patterns
 
 These commands help with:
+
 - Creating new incident scenarios from descriptions or screenshots
 - Validating fixture files before committing
 - Understanding schema structure and valid values
@@ -109,7 +111,7 @@ Set the timezone for incident timeline calculations:
 
 ```bash
 export CYPRESS_TIMEZONE="America/New_York"
-export CYPRESS_TIMEZONE="Europe/London" 
+export CYPRESS_TIMEZONE="Europe/London"
 export CYPRESS_TIMEZONE="Asia/Tokyo"
 ```
 
@@ -124,10 +126,12 @@ export CYPRESS_MOCK_NEW_METRICS=true
 ```
 
 When enabled, `cy.transformMetrics()` will intercept Prometheus queries and transform both request and response:
-- **Request**: `cluster:health:components:map` → `cluster_health_components_map` 
+
+- **Request**: `cluster:health:components:map` → `cluster_health_components_map`
 - **Response**: `cluster:health:components:map` → `cluster_health_components_map`
 
 **Usage:**
+
 ```typescript
 // Call before visiting pages that make Prometheus queries
 cy.transformMetrics();
@@ -135,6 +139,7 @@ cy.visit('/monitoring/incidents');
 ```
 
 **Use Cases:**
+
 - **`CYPRESS_MOCK_NEW_METRICS=false`** (default): Test against current release/backend
 - **`CYPRESS_MOCK_NEW_METRICS=true`**: Test against locally built instances with new metric format
 
@@ -143,19 +148,19 @@ Default: `false` (if `CYPRESS_MOCK_NEW_METRICS` is not set)
 ## YAML Fixture Format
 
 ```yaml
-name: "Scenario Name"
-description: "Detailed description"
+name: 'Scenario Name'
+description: 'Detailed description'
 incidents:
-  - id: "unique-incident-id"
-    component: "monitoring|storage|network|compute|api-server|etcd|version|Others"
-    layer: "core|Others"
+  - id: 'unique-incident-id'
+    component: 'monitoring|storage|network|compute|api-server|etcd|version|Others'
+    layer: 'core|Others'
     timeline:
-      start: "2h"  # Duration format: 30m, 2h, 7d
-      end: "1h"    # Optional, omit for ongoing incidents
+      start: '2h' # Duration format: 30m, 2h, 7d
+      end: '1h' # Optional, omit for ongoing incidents
     alerts:
-      - name: "AlertName"
-        namespace: "openshift-namespace"
-        severity: "critical|warning|info"
+      - name: 'AlertName'
+        namespace: 'openshift-namespace'
+        severity: 'critical|warning|info'
         firing: true|false
         silenced: true|false # Optional; when true, mock adds silenced/src_silenced labels
 ```

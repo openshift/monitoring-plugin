@@ -1,6 +1,7 @@
 # Fixture Schema Reference
 
 ## Overview
+
 Quick reference for the YAML fixture schema structure, valid values, and common patterns.
 
 ## Schema Structure
@@ -27,6 +28,7 @@ incidents: array                # Required: Array of incident objects
 ## Valid Values
 
 ### Components
+
 - `monitoring` - Monitoring infrastructure
 - `storage` - Storage systems
 - `network` - Network components
@@ -37,15 +39,18 @@ incidents: array                # Required: Array of incident objects
 - `Others` - Other components
 
 ### Layers
+
 - `core` - Core OpenShift components
 - `Others` - Non-core components
 
 ### Severities
+
 - `critical` - Critical alerts
 - `warning` - Warning alerts
 - `info` - Informational alerts
 
 ### Duration Format
+
 - Pattern: `^\d+[smhd]$`
 - Examples: `"30m"`, `"2h"`, `"7d"`, `"1h"`
 - Units: `s` (seconds), `m` (minutes), `h` (hours), `d` (days)
@@ -53,6 +58,7 @@ incidents: array                # Required: Array of incident objects
 ## Common Alert Names
 
 ### Monitoring Component
+
 ```yaml
 - name: "AlertmanagerReceiversNotConfigured"
   namespace: "openshift-monitoring"
@@ -76,6 +82,7 @@ incidents: array                # Required: Array of incident objects
 ```
 
 ### Storage Component
+
 ```yaml
 - name: "KubePersistentVolumeFillingUp"
   namespace: "openshift-storage"
@@ -91,6 +98,7 @@ incidents: array                # Required: Array of incident objects
 ```
 
 ### Network Component
+
 ```yaml
 - name: "NetworkLatencyHigh"
   namespace: "openshift-network"
@@ -102,6 +110,7 @@ incidents: array                # Required: Array of incident objects
 ```
 
 ### Compute Component
+
 ```yaml
 - name: "NodeNotReady"
   namespace: "openshift-machine-api"
@@ -115,43 +124,49 @@ incidents: array                # Required: Array of incident objects
 ## Timeline Patterns
 
 ### Simple Ongoing Incident
+
 ```yaml
 timeline:
-  start: "2h"  # Started 2 hours ago
+  start: "2h" # Started 2 hours ago
 ```
 
 ### Resolved Incident
+
 ```yaml
 timeline:
-  start: "4h"   # Started 4 hours ago
-  end: "1h"     # Resolved 1 hour ago
+  start: "4h" # Started 4 hours ago
+  end: "1h" # Resolved 1 hour ago
 ```
 
 ### Severity Escalation
+
 ```yaml
 timeline:
-  start: "3h"   # Started 3 hours ago
+  start: "3h" # Started 3 hours ago
   severityChanges:
-    - time: "3h"   # Started as warning
+    - time: "3h" # Started as warning
       severity: "warning"
-    - time: "1h"   # Escalated to critical 1 hour ago
+    - time: "1h" # Escalated to critical 1 hour ago
       severity: "critical"
 ```
 
 ## Validation Rules
 
 ### Required Fields
+
 - Root: `name`, `description`, `incidents`
 - Incident: `id`, `component`, `layer`, `alerts`
 - Alert: `name`, `namespace`, `severity`
 - Timeline: `start`
 
 ### Format Constraints
+
 - Incident ID: Pattern `^[a-zA-Z0-9-_]+$`
 - Duration: Pattern `^\d+[smhd]$`
 - Component/Layer/Severity: Must be valid enum values
 
 ### Array Constraints
+
 - Incidents: `minItems: 0`
 - Alerts: `minItems: 1` per incident
 
@@ -159,15 +174,20 @@ timeline:
 
 ```typescript
 // Load YAML fixture
-cy.mockIncidentFixture('cypress/fixtures/incident-scenarios/critical-monitoring-issues.yaml');
+cy.mockIncidentFixture(
+  "cypress/fixtures/incidents/scenarios/critical-monitoring-issues.yaml",
+);
 
 // Load JSON fixture (backward compatibility)
-cy.mockIncidentFixture('cypress/fixtures/incident-scenarios/some-scenario.json');
+cy.mockIncidentFixture(
+  "cypress/fixtures/incidents/scenarios/some-scenario.json",
+);
 ```
 
 ## Validation Tools
 
 ### CLI Validation
+
 ```bash
 cd web/cypress/support/incidents_prometheus_query_mocks
 node validate-fixtures.js --all
@@ -175,6 +195,7 @@ node validate-fixtures.js specific-file.yaml
 ```
 
 ### Schema Files
+
 - Schema: `web/cypress/support/incidents_prometheus_query_mocks/fixture-schema.json`
 - Validator: `web/cypress/support/incidents_prometheus_query_mocks/schema-validator.ts`
 - CLI Tool: `web/cypress/support/incidents_prometheus_query_mocks/validate-fixtures.js`

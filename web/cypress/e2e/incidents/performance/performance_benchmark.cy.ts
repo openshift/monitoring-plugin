@@ -64,7 +64,7 @@ describe(
         label: string,
         days: '1 day' | '3 days' | '7 days' | '15 days' = '1 day',
       ) => {
-        cy.mockIncidentFixture(`incident-scenarios/${fixture}`);
+        cy.mockIncidentFixture(`incidents/scenarios/${fixture}`);
 
         collector.markStart(label);
 
@@ -77,7 +77,7 @@ describe(
 
       cy.log('6.1.1 Incidents chart with 100 alerts (single incident)');
       benchmarkIncidentsChart(
-        '15-stress-test-100-alerts.yaml',
+        'stress-test-100-alerts.yaml',
         1,
         THRESHOLDS.INCIDENTS_CHART_100_ALERTS,
         'Incidents chart - 100 alerts',
@@ -85,7 +85,7 @@ describe(
 
       cy.log('6.1.2 Incidents chart with 200 alerts (single incident)');
       benchmarkIncidentsChart(
-        '16-stress-test-200-alerts.yaml',
+        'stress-test-200-alerts.yaml',
         1,
         THRESHOLDS.INCIDENTS_CHART_200_ALERTS,
         'Incidents chart - 200 alerts',
@@ -93,7 +93,7 @@ describe(
 
       cy.log('6.1.3 Incidents chart with 500 alerts (single incident)');
       benchmarkIncidentsChart(
-        '17-stress-test-500-alerts.yaml',
+        'stress-test-500-alerts.yaml',
         1,
         THRESHOLDS.INCIDENTS_CHART_500_ALERTS,
         'Incidents chart - 500 alerts',
@@ -110,7 +110,7 @@ describe(
         label: string,
         days: '1 day' | '3 days' | '7 days' | '15 days' = '1 day',
       ) => {
-        cy.mockIncidentFixture(`incident-scenarios/${fixture}`);
+        cy.mockIncidentFixture(`incidents/scenarios/${fixture}`);
         incidentsPage.clearAllFilters();
         incidentsPage.setDays(days);
         incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 1);
@@ -127,7 +127,7 @@ describe(
 
       cy.log('6.2.1 Alerts chart after selecting incident with 100 alerts');
       benchmarkAlertsChart(
-        '15-stress-test-100-alerts.yaml',
+        'stress-test-100-alerts.yaml',
         'cluster-wide-failure-100-alerts',
         THRESHOLDS.ALERTS_CHART_100_ALERTS,
         'Alerts chart - 100 alerts',
@@ -135,7 +135,7 @@ describe(
 
       cy.log('6.2.2 Alerts chart after selecting incident with 200 alerts');
       benchmarkAlertsChart(
-        '16-stress-test-200-alerts.yaml',
+        'stress-test-200-alerts.yaml',
         'cluster-wide-failure-200-alerts',
         THRESHOLDS.ALERTS_CHART_200_ALERTS,
         'Alerts chart - 200 alerts',
@@ -143,7 +143,7 @@ describe(
 
       cy.log('6.2.3 Alerts chart after selecting incident with 500 alerts');
       benchmarkAlertsChart(
-        '17-stress-test-500-alerts.yaml',
+        'stress-test-500-alerts.yaml',
         'cluster-wide-failure-500-alerts',
         THRESHOLDS.ALERTS_CHART_500_ALERTS,
         'Alerts chart - 500 alerts',
@@ -153,7 +153,7 @@ describe(
     it('6.3 Benchmark: Multi-incident chart render time (20 uniform incidents)', () => {
       cy.wait(10000);
 
-      cy.mockIncidentFixture('incident-scenarios/22-benchmark-20-incidents.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/benchmark-20-incidents.yaml');
 
       collector.markStart('Incidents chart - 20 uniform incidents');
 
@@ -170,7 +170,7 @@ describe(
     it('6.4 Benchmark: Mixed-size incidents chart render time (12 heterogeneous incidents)', () => {
       cy.wait(10000);
 
-      cy.mockIncidentFixture('incident-scenarios/23-benchmark-mixed-size-incidents.yaml');
+      cy.mockIncidentFixture('incidents/scenarios/benchmark-mixed-size-incidents.yaml');
 
       collector.markStart('Incidents chart - 12 mixed-size incidents (67 alerts)');
 

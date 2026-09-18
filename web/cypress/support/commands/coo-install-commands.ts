@@ -140,7 +140,10 @@ export const cooInstallUtils = {
         'KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.',
       );
       cy.log('Install Cluster Observability Operator');
-      cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
+      cy.adminCLI(
+        `oc apply -f ` +
+          `./cypress/fixtures/shared/cluster-observability-operator/imagecontentsourcepolicy.yaml`,
+      );
       cy.exec(
         `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
           `"${Cypress.env(
@@ -165,7 +168,10 @@ export const cooInstallUtils = {
         'CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.',
       );
       cy.log('Install Cluster Observability Operator');
-      cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
+      cy.adminCLI(
+        `oc apply -f ` +
+          `./cypress/fixtures/shared/cluster-observability-operator/imagecontentsourcepolicy.yaml`,
+      );
       cy.log(`Creating namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
       cy.exec(
         `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
@@ -191,8 +197,11 @@ export const cooInstallUtils = {
     } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
       cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
       cy.log('Install Cluster Observability Operator');
-      cy.adminCLI(`oc  apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
-      cy.exec('./cypress/fixtures/coo/coo_stage.sh', {
+      cy.adminCLI(
+        `oc apply -f ` +
+          `./cypress/fixtures/shared/cluster-observability-operator/imagecontentsourcepolicy.yaml`,
+      );
+      cy.exec('./cypress/fixtures/shared/cluster-observability-operator/coo_stage.sh', {
         env: {
           FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
           KUBECONFIG: Cypress.env('KUBECONFIG_PATH') as string,
@@ -449,7 +458,7 @@ export const cooInstallUtils = {
 
                 return cy
                   .exec(
-                    `./cypress/fixtures/coo/force_delete_ns.sh ${
+                    `./cypress/fixtures/shared/cluster-observability-operator/force_delete_ns.sh ${
                       CLUSTER_OBSERVABILITY_OPERATOR.namespace
                     } "${Cypress.env('KUBECONFIG_PATH')}"`,
                     { failOnNonZeroExit: false, timeout: installTimeoutMilliseconds },
