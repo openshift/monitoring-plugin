@@ -15,7 +15,6 @@ import {
   RequirementStatus,
 } from '@/features/overview/types/types';
 import {
-  buildClusterCreateResourcePath,
   buildNamespacedCreateResourcePath,
   editResourceKindPath,
   findInstalledOperator,
@@ -198,14 +197,6 @@ describe('getNamespaceFromAlmExamples', () => {
 });
 
 describe('getCreateResourceURL', () => {
-  it('builds a cluster-scoped create URL when configured', () => {
-    expect(
-      getCreateResourceURL(buildCustomResourceConfig({ clusterScoped: true }), [
-        buildRequiredOperator(),
-      ]),
-    ).toEqual(buildClusterCreateResourcePath(monitoringStackGVK));
-  });
-
   it('uses alm-examples before the catalog default namespace', () => {
     const operator = buildRequiredOperator({
       csv: {

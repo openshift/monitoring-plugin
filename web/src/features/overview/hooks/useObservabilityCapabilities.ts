@@ -32,7 +32,7 @@ export const useObservabilityCapabilities = (
   csvResults: WatchK8sResult<K8sResourceKind[]>,
 ): {
   observabilityCapabilities: ObservabilityCapability[];
-  monitoringPlugin: K8sResourceKind;
+  monitoringPlugin: K8sResourceKind | undefined;
   loaded: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   loadError: any;

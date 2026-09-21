@@ -46,8 +46,6 @@ export type RequiredConfig = {
   requiredOperatorId?: string;
   /** Catalog default when CSV examples and existing instances do not specify a namespace. */
   createNamespace?: string;
-  /** When true, links to a cluster-scoped ~new form instead of a namespaced one. */
-  clusterScoped?: boolean;
   status?: RequirementStatus;
   isRequiredOperatorInstalled?: boolean;
 };
@@ -88,7 +86,6 @@ export type RequiredConfigDefinition = {
   requiredOperatorId?: string;
   featureName?: string;
   createNamespace?: string;
-  clusterScoped?: boolean;
 };
 
 export type CapabilityDefinition = {

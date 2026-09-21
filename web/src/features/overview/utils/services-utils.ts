@@ -112,9 +112,6 @@ export const buildNamespacedCreateResourcePath = (
   groupVersionKind: K8sGroupVersionKind,
 ): string => `/k8s/ns/${namespace}/${groupVersionKindToPath(groupVersionKind)}/~new`;
 
-export const buildClusterCreateResourcePath = (groupVersionKind: K8sGroupVersionKind): string =>
-  `/k8s/cluster/${groupVersionKindToPath(groupVersionKind)}/~new`;
-
 const findOwningOperator = (
   config: RequiredConfig,
   requiredOperators: RequiredOperator[],
@@ -130,10 +127,9 @@ const findOwningOperator = (
  * Resolves a Console URL for creating a required custom resource.
  *
  * Fallback order:
- * 1. Cluster-scoped CRD (`config.clusterScoped`)
- * 2. Namespace from the owning operator CSV's `alm-examples`
- * 3. Catalog default (`config.createNamespace`)
- * 4. Owning operator CSV details page (user creates from the operator UI)
+ * 1. Namespace from the owning operator CSV's `alm-examples`
+ * 2. Catalog default (`config.createNamespace`)
+ * 3. Owning operator CSV details page (user creates from the operator UI)
  */
 export const getCreateResourceURL = (
   config: RequiredConfig,
@@ -144,10 +140,6 @@ export const getCreateResourceURL = (
   }
 
   const { groupVersionKind } = config;
-
-  if (config.clusterScoped) {
-    return buildClusterCreateResourcePath(groupVersionKind);
-  }
 
   const owningOperator = findOwningOperator(config, requiredOperators);
   const almExampleNamespace = getNamespaceFromAlmExamples(
@@ -295,7 +287,6 @@ export const getObservabilityCapability = (
     featureName: config.featureName,
     requiredOperatorId: config.requiredOperatorId,
     createNamespace: config.createNamespace,
-    clusterScoped: config.clusterScoped,
     status: getRequiredConfigStatus(config, requirementResources),
     isRequiredOperatorInstalled: config.requiredOperatorId
       ? isOperatorInstalled(

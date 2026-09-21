@@ -29,7 +29,6 @@ const customResourceConfig = (
   groupVersionKind: RequirementKind,
   requiredOperatorId: string,
   createNamespace?: string,
-  clusterScoped?: boolean,
 ): RequiredConfigDefinition => ({
   id,
   title,
@@ -37,7 +36,6 @@ const customResourceConfig = (
   groupVersionKind,
   requiredOperatorId,
   createNamespace,
-  clusterScoped,
 });
 
 const monitoringFeatureConfig = (
@@ -236,8 +234,6 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
           t('FlowCollector CR'),
           RequirementKind.FlowCollector,
           'network-observability',
-          '',
-          true,
         ),
       ],
     },
@@ -251,16 +247,8 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
       ),
       learnMoreUrl:
         'https://docs.redhat.com/en/documentation/red_hat_openshift_cluster_observability_operator/1-latest/html/ui_plugins_for_red_hat_openshift_cluster_observability_operator/troubleshooting-ui-plugin',
-      requiredOperators: [
-        clusterObservabilityOperator,
-        csvOperator('korrel8r', t('Korrel8r Operator'), 'korrel8r', 'korrel8r', COO_NAME),
-      ],
+      requiredOperators: [clusterObservabilityOperator],
       requiredConfigs: [
-        uiPluginConfig(
-          'tracing-plugin',
-          t('COO Distributed Tracing UI Plugin CR'),
-          'DistributedTracing',
-        ),
         uiPluginConfig(
           'troubleshooting-panel',
           t('COO Troubleshooting Panel UI Plugin CR'),
