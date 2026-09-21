@@ -1,6 +1,6 @@
 import { MemoryRouter } from 'react-router';
 
-import CapabilityCard from '@/features/overview/components/capabilities/CapabilityCard';
+import { CapabilityCard } from '@/features/overview/components/capabilities/CapabilityCard';
 import {
   CapabilityStatus,
   ObservabilityCapability,

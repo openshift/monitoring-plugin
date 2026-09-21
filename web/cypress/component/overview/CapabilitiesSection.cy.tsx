@@ -1,7 +1,7 @@
 import { MemoryRouter } from 'react-router';
 
-import AdvancedSection from '@/features/overview/components/capabilities/AdvancedSection';
-import CapabilitiesSection from '@/features/overview/components/capabilities/CapabilitiesSection';
+import { AdvancedSection } from '@/features/overview/components/capabilities/AdvancedSection';
+import { CapabilitiesSection } from '@/features/overview/components/capabilities/CapabilitiesSection';
 import { ObservabilityCapability } from '@/features/overview/types/types';
 import { DataTestIDs } from '@/shared/constants/data-test';
 

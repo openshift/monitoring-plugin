@@ -3,7 +3,7 @@ import { Content, ContentVariants, Flex, FlexItem, Spinner } from '@patternfly/r
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import CapabilitiesCatalog from '@/features/overview/components/capabilities/CapabilitiesCatalog';
+import { CapabilitiesCatalog } from '@/features/overview/components/capabilities/CapabilitiesCatalog';
 import { ObservabilityCapability } from '@/features/overview/types/types';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
@@ -13,7 +13,7 @@ type CapabilitiesSectionProps = {
   loaded: boolean;
 };
 
-const CapabilitiesSection: FC<CapabilitiesSectionProps> = ({
+export const CapabilitiesSection: FC<CapabilitiesSectionProps> = ({
   capabilities,
   monitoringPlugin,
   loaded,
@@ -41,5 +41,3 @@ const CapabilitiesSection: FC<CapabilitiesSectionProps> = ({
     </Flex>
   );
 };
-
-export default CapabilitiesSection;

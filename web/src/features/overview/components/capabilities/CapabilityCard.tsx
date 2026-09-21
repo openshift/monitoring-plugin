@@ -83,7 +83,7 @@ export type CapabilityCardProps = {
   monitoringPlugin: K8sResourceKind;
 };
 
-const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoringPlugin }) => {
+export const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoringPlugin }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const coo = capability.requiredOperators.find((capability) => capability.id === COO_ID)?.csv;
@@ -279,5 +279,3 @@ const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoringPlugin 
     </Card>
   );
 };
-
-export default CapabilityCard;

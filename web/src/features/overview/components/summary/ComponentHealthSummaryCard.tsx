@@ -15,7 +15,7 @@ type ComponentHealthSummaryCardProps = {
   observabilityCapabilities: ObservabilityCapability[];
 };
 
-const ComponentHealthSummaryCard: FC<ComponentHealthSummaryCardProps> = ({
+export const ComponentHealthSummaryCard: FC<ComponentHealthSummaryCardProps> = ({
   observabilityCapabilities,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -56,5 +56,3 @@ const ComponentHealthSummaryCard: FC<ComponentHealthSummaryCardProps> = ({
     />
   );
 };
-
-export default ComponentHealthSummaryCard;

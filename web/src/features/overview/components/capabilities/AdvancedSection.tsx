@@ -3,7 +3,7 @@ import { Content, ContentVariants, Flex, FlexItem, Spinner } from '@patternfly/r
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import CapabilitiesCatalog from '@/features/overview/components/capabilities/CapabilitiesCatalog';
+import { CapabilitiesCatalog } from '@/features/overview/components/capabilities/CapabilitiesCatalog';
 import { ObservabilityCapability } from '@/features/overview/types/types';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
@@ -13,7 +13,11 @@ type AdvancedSectionProps = {
   loaded: boolean;
 };
 
-const AdvancedSection: FC<AdvancedSectionProps> = ({ capabilities, monitoringPlugin, loaded }) => {
+export const AdvancedSection: FC<AdvancedSectionProps> = ({
+  capabilities,
+  monitoringPlugin,
+  loaded,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -37,5 +41,3 @@ const AdvancedSection: FC<AdvancedSectionProps> = ({ capabilities, monitoringPlu
     </Flex>
   );
 };
-
-export default AdvancedSection;

@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import OverviewPageContent from '@/features/overview/components/pages/OverviewPageContent';
+import { OverviewPageContent } from '@/features/overview/components/pages/OverviewPageContent';
 import { ClusterServiceVersionGroupVersionKind } from '@/features/overview/constants/const';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';

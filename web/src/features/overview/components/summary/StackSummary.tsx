@@ -9,8 +9,8 @@ import {
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import CapabilitiesSummaryCard from '@/features/overview/components/summary/CapabilitiesSummaryCard';
-import ComponentHealthSummaryCard from '@/features/overview/components/summary/ComponentHealthSummaryCard';
+import { CapabilitiesSummaryCard } from '@/features/overview/components/summary/CapabilitiesSummaryCard';
+import { ComponentHealthSummaryCard } from '@/features/overview/components/summary/ComponentHealthSummaryCard';
 import { ObservabilityCapability } from '@/features/overview/types/types';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
@@ -19,7 +19,7 @@ type StackSummaryProps = {
   loaded: boolean;
 };
 
-const StackSummary: FC<StackSummaryProps> = ({ observabilityCapabilities, loaded }) => {
+export const StackSummary: FC<StackSummaryProps> = ({ observabilityCapabilities, loaded }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
@@ -50,5 +50,3 @@ const StackSummary: FC<StackSummaryProps> = ({ observabilityCapabilities, loaded
     </Flex>
   );
 };
-
-export default StackSummary;

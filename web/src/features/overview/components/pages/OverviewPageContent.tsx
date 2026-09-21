@@ -3,9 +3,9 @@ import { Alert, PageSection } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import AdvancedSection from '@/features/overview/components/capabilities/AdvancedSection';
-import CapabilitiesSection from '@/features/overview/components/capabilities/CapabilitiesSection';
-import StackSummary from '@/features/overview/components/summary/StackSummary';
+import { AdvancedSection } from '@/features/overview/components/capabilities/AdvancedSection';
+import { CapabilitiesSection } from '@/features/overview/components/capabilities/CapabilitiesSection';
+import { StackSummary } from '@/features/overview/components/summary/StackSummary';
 import { useObservabilityCapabilities } from '@/features/overview/hooks/useObservabilityCapabilities';
 import { ObservabilityCapability } from '@/features/overview/types/types';
 
@@ -16,7 +16,7 @@ interface OverviewPageContentProps {
   csvResults: WatchK8sResult<K8sResourceKind[]>;
 }
 
-const OverviewPageContent: FC<OverviewPageContentProps> = ({ csvResults }) => {
+export const OverviewPageContent: FC<OverviewPageContentProps> = ({ csvResults }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [, , csvsLoadError] = csvResults;
   const { observabilityCapabilities, monitoringPlugin, loaded, loadError } =
@@ -73,5 +73,3 @@ const OverviewPageContent: FC<OverviewPageContentProps> = ({ csvResults }) => {
     </>
   );
 };
-
-export default OverviewPageContent;

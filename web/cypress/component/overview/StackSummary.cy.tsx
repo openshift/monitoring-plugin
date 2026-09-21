@@ -1,4 +1,4 @@
-import StackSummary from '@/features/overview/components/summary/StackSummary';
+import { StackSummary } from '@/features/overview/components/summary/StackSummary';
 import {
   CapabilityStatus,
   ObservabilityCapability,

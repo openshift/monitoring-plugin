@@ -8,7 +8,7 @@ type CapabilitiesSummaryCardProps = {
   observabilityCapabilities: ObservabilityCapability[];
 };
 
-const CapabilitiesSummaryCard: FC<CapabilitiesSummaryCardProps> = ({
+export const CapabilitiesSummaryCard: FC<CapabilitiesSummaryCardProps> = ({
   observabilityCapabilities,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -27,5 +27,3 @@ const CapabilitiesSummaryCard: FC<CapabilitiesSummaryCardProps> = ({
     />
   );
 };
-
-export default CapabilitiesSummaryCard;
