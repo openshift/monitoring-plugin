@@ -83,6 +83,48 @@ func alertRuleSpecToMonitoringV1(spec AlertRuleSpec) monitoringv1.Rule {
 	return rule
 }
 
+// monitoringV1RuleToAlertRuleSpec maps a prometheus-operator Rule to the API AlertRuleSpec.
+func monitoringV1RuleToAlertRuleSpec(rule monitoringv1.Rule) AlertRuleSpec {
+	spec := AlertRuleSpec{}
+	if rule.Alert != "" {
+		alert := rule.Alert
+		spec.Alert = &alert
+	}
+	if rule.Record != "" {
+		record := rule.Record
+		spec.Record = &record
+	}
+	if rule.Expr.String() != "" {
+		expr := rule.Expr.String()
+		spec.Expr = &expr
+	}
+	if rule.For != nil {
+		forDuration := string(*rule.For)
+		spec.For = &forDuration
+	}
+	if rule.KeepFiringFor != nil {
+		keep := string(*rule.KeepFiringFor)
+		spec.KeepFiringFor = &keep
+	}
+	if len(rule.Labels) > 0 {
+		labels := copyStringMapForAPI(rule.Labels)
+		spec.Labels = &labels
+	}
+	if len(rule.Annotations) > 0 {
+		annotations := copyStringMapForAPI(rule.Annotations)
+		spec.Annotations = &annotations
+	}
+	return spec
+}
+
+func copyStringMapForAPI(in map[string]string) map[string]string {
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
 // prometheusRuleTargetToOptions maps the API-defined PrometheusRuleTarget to
 // the management layer's PrometheusRuleOptions.
 func prometheusRuleTargetToOptions(target PrometheusRuleTarget) management.PrometheusRuleOptions {
