@@ -1,1 +1,0 @@
-../../.cursor/commands/generate-incident-fixture.md

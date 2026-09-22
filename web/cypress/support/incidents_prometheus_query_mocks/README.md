@@ -78,15 +78,18 @@ cy.visit('/monitoring/incidents');
 
 ## Development Tools
 
-### Custom Cursor Commands
+### Agent Skills
 
-The `.cursor/commands/` directory contains custom commands for working with incident fixtures:
+Shared workflows under `.agents/skills/` help with incident fixtures:
 
-- **`generate-incident-fixture.md`** - Generate valid YAML incident fixtures from text descriptions or UI screenshots
-- **`validate-incident-fixtures.md`** - Validate existing YAML fixture files against the JSON Schema
-- **`fixture-schema-reference.md`** - Quick reference for schema structure, valid values, and common patterns
+- **`generate-incident-fixture`** - Generate valid YAML incident fixtures from text descriptions or UI screenshots
+- **`validate-incident-fixtures`** - Validate existing YAML fixture files against the JSON Schema
+- **`fixture-schema-reference`** - Explain schema structure, valid values, and common patterns
 
-These commands help with:
+Invoke them with `$skill-name` in Codex or `/skill-name` in Claude Code and
+Cursor. Clients without skill discovery can read the matching `SKILL.md`
+directly. These workflows help with:
+
 - Creating new incident scenarios from descriptions or screenshots
 - Validating fixture files before committing
 - Understanding schema structure and valid values

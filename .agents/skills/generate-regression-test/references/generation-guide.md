@@ -1,10 +1,6 @@
----
-description: Generate automated regression test from test documentation
----
-
 # Generate Regression Test
 
-Generate automated regression tests from test documentation in [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/), following the style of existing tests in `@incidents/` and using `@incidents-page.ts` Page Object Model.
+Generate automated regression tests from test documentation in `docs/incident_detection/tests/`, following nearby tests in `web/cypress/e2e/incidents/regression/` and the `web/cypress/views/incidents-page.ts` page object.
 
 ## Process
 
@@ -14,7 +10,7 @@ Generate automated regression tests from test documentation in [`docs/incident_d
 
 **Actions**:
 
-- Read test flow files from [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/) (e.g., `1.filtering_flows.md`, `2.ui_display_flows.md`)
+- Read test flow files from `docs/incident_detection/tests/` (for example, `1.filtering_flows.md` or `2.ui_display_flows.md`)
 - Locate the specified section by number
 - Extract:
   - Section title and description
@@ -61,13 +57,13 @@ Generate automated regression tests from test documentation in [`docs/incident_d
    Required test data:
    - [List incidents, alerts, severities needed]
 
-   Should I create a fixture using the generate-incident-fixture command?
+   Should I create a fixture using the generate-incident-fixture skill?
    ```
-3. If user approves, delegate to `generate-incident-fixture` command
+3. If the user approves, read `.agents/skills/generate-incident-fixture/SKILL.md` and follow it
 4. **Preference**: Use single scenario per test file for focused regression testing
 5. Validate created fixture against schema
 
-**Reference**: See `.cursor/commands/generate-incident-fixture.md` for fixture creation
+**Reference**: Use the `generate-incident-fixture` skill for fixture creation.
 
 ### 4. Generate Test File
 
@@ -468,7 +464,7 @@ Continue? (y/n/specify)
 
 ### 8. Refactoring
 
-**Note on Refactoring**: Initial test generation focuses on functionality and coverage. After manual verification, use the `/refactor-regression-test` command to clean up duplications and improve readability by extracting helper functions.
+**Note on Refactoring**: Initial test generation focuses on functionality and coverage. After manual verification, use the `refactor-regression-test` skill to clean up duplication and improve readability by extracting helper functions.
 
 ### 9. Validation Before Output
 
@@ -656,6 +652,6 @@ Provide:
 
 **Recommended workflow**:
 
-1. Use this command to generate initial test from documentation
+1. Use this skill to generate the initial test from documentation
 2. Manually verify the test works (using `cy.pause()` points)
-3. Once verified, use `/refactor-regression-test` to clean up and improve code quality
+3. Once verified, use the `refactor-regression-test` skill to clean up and improve code quality
