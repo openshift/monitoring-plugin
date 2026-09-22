@@ -76,6 +76,20 @@ describe('getCSVPackageName', () => {
     expect(getCSVPackageName({ metadata: {} })).toBeUndefined();
     expect(getCSVPackageName(undefined)).toBeUndefined();
   });
+
+  it('derives the package name from olm.properties when the operator label is absent', () => {
+    expect(
+      getCSVPackageName({
+        metadata: {
+          name: 'some-unrelated-name',
+          annotations: {
+            'olm.properties':
+              '[{"type":"olm.package","value":{"packageName":"cluster-observability-operator","version":"1.2.0"}}]',
+          },
+        },
+      }),
+    ).toEqual('cluster-observability-operator');
+  });
 });
 
 describe('isUiPluginInstalled', () => {
@@ -116,6 +130,42 @@ describe('findInstalledOperator', () => {
     expect(findInstalledOperator('cluster-observability-operator', [copied])).toBeUndefined();
   });
 
+  it('ignores CSVs with the olm.copiedFrom label even when reason is not Copied', () => {
+    const copied: K8sResourceKind = {
+      ...cooCSV(),
+      status: { phase: 'Succeeded' },
+      metadata: {
+        ...cooCSV().metadata,
+        labels: {
+          ...cooCSV().metadata.labels,
+          'olm.copiedFrom': 'openshift-cluster-observability-operator',
+        },
+      },
+    };
+    expect(findInstalledOperator('cluster-observability-operator', [copied])).toBeUndefined();
+  });
+
+  it('ignores non-standalone dependency CSVs unless they failed', () => {
+    const dependency: K8sResourceKind = {
+      ...cooCSV(),
+      metadata: {
+        ...cooCSV().metadata,
+        annotations: {
+          'operators.operatorframework.io/operator-type': 'non-standalone',
+        },
+      },
+    };
+    expect(findInstalledOperator('cluster-observability-operator', [dependency])).toBeUndefined();
+
+    const failedDependency: K8sResourceKind = {
+      ...dependency,
+      status: { phase: 'Failed', message: 'install failed' },
+    };
+    expect(findInstalledOperator('cluster-observability-operator', [failedDependency])).toBe(
+      failedDependency,
+    );
+  });
+
   it('prefers a Succeeded CSV over other candidates', () => {
     const installing = cooCSV('Installing');
     const succeeded = cooCSV('Succeeded');
@@ -124,9 +174,27 @@ describe('findInstalledOperator', () => {
     );
   });
 
-  it('falls back to the last candidate when none have succeeded', () => {
-    const installing = cooCSV('Installing');
-    const failed = cooCSV('Failed');
+  it('prefers the newest Succeeded CSV when several match', () => {
+    const older: K8sResourceKind = {
+      ...cooCSV('Succeeded'),
+      status: { phase: 'Succeeded', lastUpdateTime: '2024-01-01T00:00:00Z' },
+    };
+    const newer: K8sResourceKind = {
+      ...cooCSV('Succeeded'),
+      status: { phase: 'Succeeded', lastUpdateTime: '2024-06-01T00:00:00Z' },
+    };
+    expect(findInstalledOperator('cluster-observability-operator', [older, newer])).toBe(newer);
+  });
+
+  it('falls back to the newest candidate when none have succeeded', () => {
+    const installing: K8sResourceKind = {
+      ...cooCSV('Installing'),
+      status: { phase: 'Installing', lastUpdateTime: '2024-01-01T00:00:00Z' },
+    };
+    const failed: K8sResourceKind = {
+      ...cooCSV('Failed'),
+      status: { phase: 'Failed', lastUpdateTime: '2024-06-01T00:00:00Z' },
+    };
     expect(findInstalledOperator('cluster-observability-operator', [installing, failed])).toBe(
       failed,
     );

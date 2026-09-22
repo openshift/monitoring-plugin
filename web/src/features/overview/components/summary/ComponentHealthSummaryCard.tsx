@@ -51,7 +51,7 @@ export const ComponentHealthSummaryCard: FC<ComponentHealthSummaryCardProps> = (
       cardId="component-health"
       count={degradedCount || healthyCount}
       title={t('Component health')}
-      status={degradedCount || !healthyCount ? 'danger' : 'success'}
+      status={degradedCount ? 'danger' : healthyCount ? 'success' : undefined}
       footer={degradedCount || !healthyCount ? t('Degraded') : t('Healthy')}
     />
   );

@@ -4,6 +4,8 @@ import {
   ContentVariants,
   Flex,
   FlexItem,
+  Grid,
+  GridItem,
   Spinner,
 } from '@patternfly/react-core';
 import { type FC } from 'react';
@@ -37,14 +39,14 @@ export const StackSummary: FC<StackSummaryProps> = ({ observabilityCapabilities,
             <Spinner aria-label={t('Loading stack summary data')} />
           </Bullseye>
         ) : (
-          <Flex flexWrap={{ default: 'wrap' }} spaceItems={{ default: 'spaceItemsMd' }}>
-            <FlexItem flex={{ default: 'flex_1' }}>
+          <Grid hasGutter>
+            <GridItem sm={6}>
               <CapabilitiesSummaryCard observabilityCapabilities={observabilityCapabilities} />
-            </FlexItem>
-            <FlexItem flex={{ default: 'flex_1' }}>
+            </GridItem>
+            <GridItem sm={6}>
               <ComponentHealthSummaryCard observabilityCapabilities={observabilityCapabilities} />
-            </FlexItem>
-          </Flex>
+            </GridItem>
+          </Grid>
         )}
       </FlexItem>
     </Flex>

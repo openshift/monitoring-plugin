@@ -246,7 +246,7 @@ export const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoring
           ) : null}
           {!isEmpty(capability.requiredConfigs) ? (
             <StackItem>
-              <Content component="h4">{t('Required configurations')}</Content>
+              <Content component="h4">{t('Configurations')}</Content>
               <List isPlain>
                 {capability.requiredConfigs.map((config) => (
                   <ListItem key={config.title}>

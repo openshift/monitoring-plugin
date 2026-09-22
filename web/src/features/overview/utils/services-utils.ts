@@ -23,6 +23,45 @@ export type RequirementResources = Record<
   [K8sResourceKind[] | undefined, boolean, unknown]
 >;
 
+const OLM_COPIED_FROM_LABEL = 'olm.copiedFrom';
+const OLM_PROPERTIES_ANNOTATION = 'olm.properties';
+const OPERATOR_TYPE_ANNOTATION = 'operators.operatorframework.io/operator-type';
+const NON_STANDALONE_OPERATOR_TYPE = 'non-standalone';
+const CSV_PHASE_FAILED = 'Failed';
+const CSV_PHASE_SUCCEEDED = 'Succeeded';
+const CSV_REASON_COPIED = 'Copied';
+
+const packageNameFromOlmProperties = (olmProperties: string): string | undefined => {
+  try {
+    const props: { type: string; value?: { packageName?: string } }[] = JSON.parse(olmProperties);
+    const packageProp = props.find(
+      (property) => property.type === 'olm.package' && property.value?.packageName,
+    );
+    return packageProp?.value?.packageName;
+  } catch {
+    return undefined;
+  }
+};
+
+export const isCopiedCSV = (csv: K8sResourceKind): boolean =>
+  csv?.status?.reason === CSV_REASON_COPIED ||
+  Boolean(csv?.metadata?.labels?.[OLM_COPIED_FROM_LABEL]);
+
+/** Matches OLM Installed Operators list: hide dependency CSVs unless they failed. */
+export const isStandaloneCSV = (csv: K8sResourceKind): boolean =>
+  csv?.metadata?.annotations?.[OPERATOR_TYPE_ANNOTATION] !== NON_STANDALONE_OPERATOR_TYPE ||
+  csv?.status?.phase === CSV_PHASE_FAILED;
+
+const csvRecencyTimestamp = (csv: K8sResourceKind): number => {
+  const timestamp = csv?.status?.lastUpdateTime ?? csv?.metadata?.creationTimestamp;
+  return timestamp ? Date.parse(timestamp) : 0;
+};
+
+const pickNewestCSV = (candidates: K8sResourceKind[]): K8sResourceKind =>
+  candidates.reduce((newest, candidate) =>
+    csvRecencyTimestamp(candidate) > csvRecencyTimestamp(newest) ? candidate : newest,
+  );
+
 export const getCSVPackageName = (csv: K8sResourceKind): string | undefined => {
   const operatorLabel = Object.keys(csv?.metadata?.labels ?? {}).find((label) =>
     label.startsWith('operators.coreos.com/'),
@@ -30,6 +69,14 @@ export const getCSVPackageName = (csv: K8sResourceKind): string | undefined => {
 
   if (operatorLabel) {
     return operatorLabel.replace('operators.coreos.com/', '').split('.')[0];
+  }
+
+  const olmProperties = csv?.metadata?.annotations?.[OLM_PROPERTIES_ANNOTATION];
+  if (olmProperties) {
+    const packageName = packageNameFromOlmProperties(olmProperties);
+    if (packageName) {
+      return packageName;
+    }
   }
 
   return csv?.metadata?.name?.split('.')[0];
@@ -49,14 +96,22 @@ export const findInstalledOperator = (
   const candidates =
     csvs?.filter(
       (candidate) =>
-        candidate.status?.reason !== 'Copied' && getCSVPackageName(candidate) === packageName,
+        !isCopiedCSV(candidate) &&
+        isStandaloneCSV(candidate) &&
+        getCSVPackageName(candidate) === packageName,
     ) ?? [];
   if (!candidates.length) {
     return undefined;
   }
 
-  const runningOperator = candidates.find((candidate) => candidate.status?.phase === 'Succeeded');
-  return runningOperator ?? candidates[candidates.length - 1];
+  const succeeded = candidates.filter(
+    (candidate) => candidate.status?.phase === CSV_PHASE_SUCCEEDED,
+  );
+  if (succeeded.length) {
+    return pickNewestCSV(succeeded);
+  }
+
+  return pickNewestCSV(candidates);
 };
 
 export const groupVersionKindToPath = (gvk: K8sGroupVersionKind): string =>
