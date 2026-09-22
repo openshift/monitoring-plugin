@@ -5,13 +5,13 @@ WORKDIR /opt/app-root
 USER 0
 
 ENV HUSKY=0
-
-COPY Makefile Makefile
-COPY web/ web/
-
 ENV CONSOLE_PLUGIN_NAME="monitoring-console-plugin"
 
+COPY web/package*.json web/
+COPY Makefile Makefile
 RUN make install-frontend-ci
+
+COPY web/ web/
 RUN make build-frontend
 
 FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.26-openshift-5.0 AS go-builder
@@ -44,10 +44,9 @@ USER 1001
 
 COPY --from=web-builder /opt/app-root/web/dist /opt/app-root/web/dist
 COPY --from=go-builder /opt/app-root/plugin-backend /opt/app-root
-COPY --from=web-builder /opt/app-root/config /opt/app-root/config
 COPY config/ /opt/app-root/config
 
-ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist", -config-path", "/opt/app-root/config"]
+ENTRYPOINT ["/opt/app-root/plugin-backend", "-static-path", "/opt/app-root/web/dist", "-config-path", "/opt/app-root/config"]
 
 ARG VERSION=v1.0.0
 LABEL version="${VERSION}" \
