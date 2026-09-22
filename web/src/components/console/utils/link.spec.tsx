@@ -13,7 +13,7 @@ jest.mock('@patternfly/react-icons', () => ({
   ExternalLinkAltIcon: () => null,
 }));
 
-jest.mock('react-linkify', () => ({ children }) => <>{children}</>);
+jest.mock('linkify-react', () => ({ children }) => <>{children}</>);
 
 import { ExternalLink } from './link';
 
