@@ -40,6 +40,8 @@ type Framework struct {
 
 type CleanupFunc func() error
 
+const namespaceCleanupTimeout = 20 * time.Second
+
 // New creates a Framework backed by a real Kubernetes cluster. It reads
 // KUBECONFIG and PLUGIN_URL from the environment and returns a singleton
 // so that expensive client setup happens only once per test binary.
@@ -142,7 +144,9 @@ func (f *Framework) createNamespace(ctx context.Context, name string, isClusterM
 	}
 
 	return testNamespace, func() error {
-		return f.Clientset.CoreV1().Namespaces().Delete(ctx, testNamespace, metav1.DeleteOptions{})
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), namespaceCleanupTimeout)
+		defer cancel()
+		return f.Clientset.CoreV1().Namespaces().Delete(cleanupCtx, testNamespace, metav1.DeleteOptions{})
 	}, nil
 }
 
