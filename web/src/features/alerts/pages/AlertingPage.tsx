@@ -69,7 +69,7 @@ const AlertingPage: FC = () => {
   const [perspective] = useActivePerspective();
   const { setNamespace } = useMonitoringNamespace();
 
-  const { plugin, prometheus } = useMonitoring();
+  const { plugin, prometheus, useAlertsTenancy } = useMonitoring();
 
   const { pathname } = useLocation();
 
@@ -106,7 +106,9 @@ const AlertingPage: FC = () => {
       {namespacedPages.includes(pathname) && (
         <NamespaceBar
           onNamespaceChange={(namespace) => {
-            dispatch(alertingClearSelectorData(prometheus, namespace));
+            if (useAlertsTenancy) {
+              dispatch(alertingClearSelectorData(prometheus, namespace));
+            }
             setNamespace(namespace);
           }}
         />
