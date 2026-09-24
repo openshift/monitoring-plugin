@@ -30,6 +30,11 @@ const (
 	serviceHealthTimeout   = 5 * time.Second
 	serviceRequestTimeout  = 10 * time.Second
 	maxTenancyProbeTargets = 3
+
+	// serviceCAFileEnv points at the test cluster service CA when the
+	// plugin runs outside that cluster (e2e-management-api). The default
+	// in-cluster path is optional; an explicit path must be readable.
+	serviceCAFileEnv = "MONITORING_PLUGIN_SERVICE_CA_FILE"
 )
 
 type namespaceCache struct {
@@ -842,12 +847,12 @@ func (pa *prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool = x509.NewCertPool()
 	}
 
+	// Kubeconfig CA (API server) and the OpenShift service CA sign different
+	// certificates. Out-of-cluster kubeconfigs set CAData, so the service CA
+	// must still be appended or thanos-querier TLS fails closed.
 	if len(pa.config.CAData) > 0 {
 		caCertPool.AppendCertsFromPEM(pa.config.CAData)
-		return caCertPool, nil
-	}
-
-	if pa.config.CAFile != "" {
+	} else if pa.config.CAFile != "" {
 		caCert, err := os.ReadFile(pa.config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("read CA cert file: %w", err)
@@ -855,12 +860,36 @@ func (pa *prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool.AppendCertsFromPEM(caCert)
 	}
 
-	// OpenShift service CA bundle for in-cluster service certs.
-	if serviceCA, err := os.ReadFile(ServiceCAPath); err == nil {
-		caCertPool.AppendCertsFromPEM(serviceCA)
+	if err := appendServiceCA(caCertPool); err != nil {
+		return nil, err
 	}
 
 	return caCertPool, nil
+}
+
+func serviceCAFilePath() (string, bool) {
+	if path := strings.TrimSpace(os.Getenv(serviceCAFileEnv)); path != "" {
+		return path, true
+	}
+	return ServiceCAPath, false
+}
+
+func appendServiceCA(pool *x509.CertPool) error {
+	path, required := serviceCAFilePath()
+	pemBytes, err := os.ReadFile(path)
+	if err != nil {
+		if !required {
+			return nil
+		}
+		return fmt.Errorf("read service CA file %s: %w", path, err)
+	}
+	if !pool.AppendCertsFromPEM(pemBytes) {
+		if !required {
+			return nil
+		}
+		return fmt.Errorf("parse service CA file %s", path)
+	}
+	return nil
 }
 
 func copyStringSlice(in []string) []string {

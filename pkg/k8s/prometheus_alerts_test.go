@@ -1,10 +1,21 @@
 package k8s
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
+	"math/big"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"k8s.io/client-go/rest"
 )
 
 // --- parseAlertmanagerResponse ---
@@ -490,4 +501,104 @@ func TestMergeRuleFetchResults(t *testing.T) {
 			t.Errorf("expected user error, got %v", err)
 		}
 	})
+}
+
+func TestLoadCACertPool_TrustsServiceCAAlongsideKubeconfigCA(t *testing.T) {
+	kubeLeaf := mustLeafSignedBy(t, "kube")
+	serviceLeaf := mustLeafSignedBy(t, "service")
+
+	servicePath := filepath.Join(t.TempDir(), "service-ca.crt")
+	if err := os.WriteFile(servicePath, serviceLeaf.caPEM, 0o600); err != nil {
+		t.Fatalf("write service CA: %v", err)
+	}
+	t.Setenv(serviceCAFileEnv, servicePath)
+
+	pa := &prometheusAlerts{config: &rest.Config{
+		TLSClientConfig: rest.TLSClientConfig{CAData: kubeLeaf.caPEM},
+	}}
+	pool, err := pa.loadCACertPool()
+	if err != nil {
+		t.Fatalf("load CA pool: %v", err)
+	}
+	if _, err := kubeLeaf.leaf.Verify(x509.VerifyOptions{Roots: pool}); err != nil {
+		t.Fatalf("kube API CA not trusted: %v", err)
+	}
+	if _, err := serviceLeaf.leaf.Verify(x509.VerifyOptions{Roots: pool}); err != nil {
+		t.Fatalf("service CA not trusted: %v", err)
+	}
+}
+
+func TestLoadCACertPool_ExplicitServiceCAMustExist(t *testing.T) {
+	t.Setenv(serviceCAFileEnv, filepath.Join(t.TempDir(), "missing.crt"))
+	pa := &prometheusAlerts{config: &rest.Config{}}
+	if _, err := pa.loadCACertPool(); err == nil {
+		t.Fatal("expected error when MONITORING_PLUGIN_SERVICE_CA_FILE is missing")
+	}
+}
+
+func TestLoadCACertPool_MissingDefaultServiceCAIsOptional(t *testing.T) {
+	t.Setenv(serviceCAFileEnv, "")
+	pa := &prometheusAlerts{config: &rest.Config{}}
+	pool, err := pa.loadCACertPool()
+	if err != nil {
+		t.Fatalf("missing default service CA should be ignored: %v", err)
+	}
+	if pool == nil {
+		t.Fatal("expected cert pool")
+	}
+}
+
+type signedLeaf struct {
+	caPEM []byte
+	leaf  *x509.Certificate
+}
+
+func mustLeafSignedBy(t *testing.T, commonName string) signedLeaf {
+	t.Helper()
+	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("generate CA key: %v", err)
+	}
+	caTemplate := &x509.Certificate{
+		SerialNumber:          big.NewInt(1),
+		Subject:               pkix.Name{CommonName: commonName + "-ca"},
+		NotBefore:             time.Now().Add(-time.Hour),
+		NotAfter:              time.Now().Add(time.Hour),
+		IsCA:                  true,
+		BasicConstraintsValid: true,
+		KeyUsage:              x509.KeyUsageCertSign,
+	}
+	caDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caKey.PublicKey, caKey)
+	if err != nil {
+		t.Fatalf("create CA certificate: %v", err)
+	}
+	caCert, err := x509.ParseCertificate(caDER)
+	if err != nil {
+		t.Fatalf("parse CA certificate: %v", err)
+	}
+
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("generate leaf key: %v", err)
+	}
+	leafTemplate := &x509.Certificate{
+		SerialNumber: big.NewInt(2),
+		Subject:      pkix.Name{CommonName: commonName + "-leaf"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	leafDER, err := x509.CreateCertificate(rand.Reader, leafTemplate, caCert, &leafKey.PublicKey, caKey)
+	if err != nil {
+		t.Fatalf("create leaf certificate: %v", err)
+	}
+	leaf, err := x509.ParseCertificate(leafDER)
+	if err != nil {
+		t.Fatalf("parse leaf certificate: %v", err)
+	}
+	return signedLeaf{
+		caPEM: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDER}),
+		leaf:  leaf,
+	}
 }
