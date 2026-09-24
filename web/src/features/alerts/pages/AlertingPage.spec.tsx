@@ -8,6 +8,7 @@ import { MpCmoAlertingPage } from '@/features/alerts/pages/AlertingPage';
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
   setNamespace: vi.fn(),
+  namespace: 'namespace-a',
   useAlertsTenancy: false,
 }));
 
@@ -45,15 +46,30 @@ vi.mock('@/shared/hooks/useMonitoring', () => ({
 }));
 
 vi.mock('@/shared/hooks/useMonitoringNamespace', () => ({
-  useMonitoringNamespace: () => ({ setNamespace: mocks.setNamespace }),
+  useMonitoringNamespace: () => ({ namespace: mocks.namespace, setNamespace: mocks.setNamespace }),
 }));
 
 describe('AlertingPage namespace changes', () => {
   beforeEach(() => {
     mocks.dispatch.mockClear();
     mocks.setNamespace.mockClear();
+    mocks.namespace = 'namespace-a';
     mocks.useAlertsTenancy = false;
   });
+
+  it.each([false, true])(
+    'does not clear or set the same namespace when tenancy is %s',
+    (useAlertsTenancy) => {
+      mocks.namespace = '#ALL_NS#';
+      mocks.useAlertsTenancy = useAlertsTenancy;
+      render(<MpCmoAlertingPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Select All Projects' }));
+
+      expect(mocks.dispatch).not.toHaveBeenCalled();
+      expect(mocks.setNamespace).not.toHaveBeenCalled();
+    },
+  );
 
   it('preserves shared alert data when tenancy is disabled', () => {
     render(<MpCmoAlertingPage />);
