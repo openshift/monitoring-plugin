@@ -1,12 +1,3 @@
----
-alwaysApply: true
-description: "Development guidelines for Incidents page Cypress tests"
-globs:
-  - "web/cypress/e2e/incidents/**/*.cy.ts"
-  - "web/cypress/views/incidents-page.ts"
-  - "web/cypress/fixtures/incident-scenarios/**/*.yaml"
----
-
 # Incidents Testing Development Guidelines
 
 Guidelines for developing and maintaining Cypress tests for the Incidents page, including regression tests, page object patterns, and fixture management.
@@ -251,7 +242,7 @@ cy.mockIncidents([]);
 ```
 
 ### Creating Fixtures
-- Use `generate-incident-fixture` command for new fixtures
+- Read `.agents/skills/generate-incident-fixture/SKILL.md` when creating a new fixture
 - Follow schema from `web/cypress/support/incidents_prometheus_query_mocks/schema/fixture-schema.json`
 - Validate fixtures before committing
 - Prefer single scenario per test file for focused regression testing

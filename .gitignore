@@ -15,6 +15,7 @@ dist/
 .devspace
 web/po-files/
 .claude/commands/configs
+.agents/local/
 .claude/settings.local.json
 _output/
 .tokensave/

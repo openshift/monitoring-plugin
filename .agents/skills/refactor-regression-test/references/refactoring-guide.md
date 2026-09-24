@@ -1,14 +1,10 @@
----
-description: Refactor and clean up existing regression test for improved readability and maintainability
----
-
 # Refactor Regression Test
 
-Refactor an existing regression test to improve code quality, eliminate duplication, and enhance readability. This command should be run after initial test generation and manual verification.
+Refactor an existing regression test to improve code quality, eliminate duplication, and enhance readability. Use this workflow after initial test generation and manual verification.
 
 ## Purpose
 
-After generating and verifying a regression test works correctly, this command:
+After generating and verifying a regression test works correctly, this workflow:
 - Extracts repetitive patterns into helper functions
 - Improves test readability (makes `it()` blocks read like user stories)
 - Consolidates similar assertions
@@ -423,4 +419,3 @@ Before outputting refactored test:
 - **Keep helpers simple**: Each helper should have a single, clear purpose
 - **Test-specific vs. reusable**: Keep test-specific helpers in test file, suggest page object additions for reusable functionality
 - **Respect user's verification process**: Don't remove `cy.pause()` unless explicitly asked
-
