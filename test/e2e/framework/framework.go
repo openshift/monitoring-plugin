@@ -40,6 +40,30 @@ type Framework struct {
 
 type CleanupFunc func() error
 
+func e2eEnvironment() (string, string, error) {
+	kubeConfigPath := strings.TrimSpace(os.Getenv("KUBECONFIG"))
+	if kubeConfigPath == "" {
+		return "", "", fmt.Errorf("KUBECONFIG environment variable is not set")
+	}
+	pluginURL := strings.TrimSpace(os.Getenv("PLUGIN_URL"))
+	if pluginURL == "" {
+		return "", "", fmt.Errorf("PLUGIN_URL environment variable is not set")
+	}
+	return kubeConfigPath, pluginURL, nil
+}
+
+func loadE2EConfig() (*rest.Config, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		loadingRules,
+		&clientcmd.ConfigOverrides{},
+	).ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("build kubeconfig: %w", err)
+	}
+	return config, nil
+}
+
 // New creates a Framework backed by a real Kubernetes cluster. It reads
 // KUBECONFIG and PLUGIN_URL from the environment and returns a singleton
 // so that expensive client setup happens only once per test binary.
@@ -48,19 +72,14 @@ func New() (*Framework, error) {
 		return f, nil
 	}
 
-	kubeConfigPath := os.Getenv("KUBECONFIG")
-	if kubeConfigPath == "" {
-		return nil, fmt.Errorf("KUBECONFIG environment variable is not set")
-	}
-
-	pluginURL := os.Getenv("PLUGIN_URL")
-	if pluginURL == "" {
-		return nil, fmt.Errorf("PLUGIN_URL environment variable is not set")
-	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
+	_, pluginURL, err := e2eEnvironment()
 	if err != nil {
-		return nil, fmt.Errorf("failed to build config: %w", err)
+		return nil, err
+	}
+
+	config, err := loadE2EConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
@@ -427,7 +446,10 @@ func (f *Framework) CreateAnonymousUser(ctx context.Context, name, namespace str
 		user = &ScopedUser{
 			Token: token,
 			Cleanup: func() error {
-				_ = f.Clientset.CoreV1().ServiceAccounts(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+				err := f.Clientset.CoreV1().ServiceAccounts(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+				if err != nil && !apierrors.IsNotFound(err) {
+					return fmt.Errorf("deleting service account %s/%s: %w", namespace, name, err)
+				}
 				return nil
 			},
 		}

@@ -181,17 +181,32 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 	}
 	defer func() { _ = cleanup() }()
 
-	keepID := mustCreateRule(ctx, t, f, ns, "KeepSingleAlert", "e2e-delete-single-pr")
+	// KeepSingleAlert stays on the PrometheusRule and is checked by name
+	// after the other rule is deleted.
+	mustCreateRule(ctx, t, f, ns, "KeepSingleAlert", "e2e-delete-single-pr")
 	deleteID := mustCreateRule(ctx, t, f, ns, "DeleteSingleAlert", "e2e-delete-single-pr")
-	_ = keepID
+
+	anonymousUser, err := f.CreateAnonymousUser(ctx, "e2e-delete-single-a", "default")
+	if err != nil {
+		t.Fatalf("Failed to create anonymous user: %v", err)
+	}
+	defer func() {
+		if err := anonymousUser.Cleanup(); err != nil {
+			t.Logf("cleanup anonymous user failed: %v", err)
+		}
+	}()
+
+	// 404 means the rule is not in the cache yet. Do not treat that as a
+	// successful delete. Probe with a token that cannot delete the rule.
+	waitForDeniedSingleDelete(ctx, t, f, anonymousUser.Token, deleteID)
 
 	err = framework.Poll(time.Second, time.Minute, func() error {
 		status, err := tryDeleteAlertRuleSingle(ctx, f, f.BearerToken, deleteID)
 		if err != nil {
 			return err
 		}
-		if status != http.StatusNoContent && status != http.StatusNotFound {
-			return fmt.Errorf("expected 204 or 404, got %d", status)
+		if status != http.StatusNoContent {
+			return fmt.Errorf("expected 204, got %d", status)
 		}
 		return nil
 	})
@@ -261,7 +276,7 @@ func TestRBAC_DeleteAlertRule_Single(t *testing.T) {
 	ruleInY2 := mustCreateRule(ctx, t, f, nsY, "RBACDel1AlertY2", "e2e-rbac-del1-pr")
 
 	for _, ruleID := range []string{ruleInY, ruleInY2, ruleInZ} {
-		waitForSingleDeleteCacheSync(ctx, t, f, anonymousUser.Token, ruleID)
+		waitForDeniedSingleDelete(ctx, t, f, anonymousUser.Token, ruleID)
 	}
 
 	cases := []struct {
@@ -318,7 +333,12 @@ func waitForSingleUpdateCacheSync(ctx context.Context, t *testing.T, f *framewor
 	}
 }
 
-func waitForSingleDeleteCacheSync(ctx context.Context, t *testing.T, f *framework.Framework, token, ruleID string) {
+// waitForDeniedSingleDelete polls DELETE /rules/{id} until it returns 403.
+// token must not be allowed to delete the rule. 403 means the rule is in
+// the relabeled-rules cache and RBAC denied the call. 404 means the cache
+// has not observed the PrometheusRule yet. A token that can delete the
+// rule would remove it.
+func waitForDeniedSingleDelete(ctx context.Context, t *testing.T, f *framework.Framework, token, ruleID string) {
 	t.Helper()
 	err := framework.Poll(time.Second, 30*time.Second, func() error {
 		status, err := tryDeleteAlertRuleSingle(ctx, f, token, ruleID)
@@ -331,7 +351,7 @@ func waitForSingleDeleteCacheSync(ctx context.Context, t *testing.T, f *framewor
 		return fmt.Errorf("HTTP status %d, waiting for cache sync", status)
 	})
 	if err != nil {
-		t.Fatalf("single-delete cache sync timed out for %s: %v", ruleID, err)
+		t.Fatalf("denied single-delete probe timed out for %s: %v", ruleID, err)
 	}
 }
 
