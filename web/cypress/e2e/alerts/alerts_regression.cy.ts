@@ -3,7 +3,7 @@ import {
   testAlertsCorePlatformHeaderRegression,
   testAlertsRegression,
 } from '../../support/monitoring/01.reg_alerts.cy';
-import { alerts } from '../../fixtures/monitoring/alert';
+import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
 import { testAlertsRegressionNamespace } from '../../support/monitoring/04.reg_alerts_namespace.cy';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';

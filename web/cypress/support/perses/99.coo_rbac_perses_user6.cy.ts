@@ -40,7 +40,7 @@ export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspect
     listPersesDashboardsPage.clickImportButton();
     persesImportDashboardsPage.importDashboardShouldBeLoaded();
     persesImportDashboardsPage.uploadFile(
-      './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
+      './cypress/fixtures/perses/dashboards/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     cy.byPFRole('dialog').find('button').contains('Import').should('be.disabled');
