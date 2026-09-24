@@ -154,6 +154,22 @@ export const DataTestIDs = {
     EndCell: 'incidents-details-end-cell',
     AlertRuleLink: 'incidents-details-alert-rule-link',
   },
+
+  // Overview Page Test IDs
+  OverviewPage: {
+    InfoAlert: 'overview-info-alert',
+    InfoAlertClose: 'overview-info-alert-close',
+    SummarySection: 'overview-observability-stack-summary',
+    SummaryCard: 'overview-summary-card',
+    SummaryCardCount: 'overview-summary-card-count',
+    SummaryCardError: 'overview-summary-card-error',
+    SummaryCardLoading: 'overview-summary-card-loading',
+    CapabilitiesSection: 'overview-installed-capabilities',
+    AdvancedSection: 'overview-recommended-capabilities',
+    InstalledLoading: 'overview-installed-loading',
+    RecommendedLoading: 'overview-recommended-loading',
+    CapabilityCard: 'overview-service-card',
+  },
 };
 
 export const FilterOUIAIDs = {

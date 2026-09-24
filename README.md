@@ -16,6 +16,7 @@ Feature flags should be added to the Feature enum [here](pkg/server/server.go) a
 | legacy-dashboards   | 5.0+        |
 | metrics             | 5.0+        |
 | targets             | 5.0+        |
+| overview            | 5.0+        |
 
 ## monitoring-plugin
 
@@ -170,7 +171,7 @@ $ make start-console
 $ make start-coo-backend
 ```
 
-`make start-coo-backend` will inject the `alerting,targets,legacy-dashboards,metrics,incidents,perses-dashboards` features.
+`make start-coo-backend` will inject the `alerting,targets,overview,legacy-dashboards,metrics,incidents,perses-dashboards` features.
 
 #### Local Development with Perses Proxy
 
