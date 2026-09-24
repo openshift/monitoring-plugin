@@ -26,7 +26,7 @@ describe(
   { tags: ['@cluster-health-analyzer', '@coo'], numTestsKeptInMemory: 0 },
   () => {
     before(() => {
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: false,
         troubleshootingPanel: false,
       });

@@ -12,8 +12,8 @@ import {
   testAlertsRegression,
 } from 'cypress/support/monitoring/01.reg_alerts.cy';
 import { listPage } from 'cypress/views/list-page';
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { CLUSTER_MONITORING_OPERATOR } from 'cypress/support/operators';
 
 const expectedAlerts = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 

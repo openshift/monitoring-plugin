@@ -94,7 +94,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 
 describe("Regression: [Section Name]", () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {
@@ -475,7 +475,7 @@ Continue? (y/n/specify)
 **Automated checks (AI should verify):**
 
 - [ ] File naming matches `XX.reg_<section-name>.cy.ts`
-- [ ] Uses `cy.beforeBlockCOO()` in `before()` hook
+- [ ] Uses `cy.ensureMonitoringConsolePlugin()` in `before()` hook
 - [ ] Uses `incidentsPage.goTo()` in `beforeEach()`
 - [ ] Uses `cy.mockIncidentFixture()` with valid fixture path
 - [ ] No emojis in cy.log() statements
@@ -526,7 +526,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 
 describe("Regression: Tooltip Positioning", () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {

@@ -12,7 +12,7 @@ describe(
   { tags: ['@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO();
+      cy.ensureMonitoringConsolePlugin();
     });
 
     it('1. Installation: COO and setting up Monitoring Plugin', () => {

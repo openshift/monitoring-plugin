@@ -8,7 +8,7 @@ describe('BVT: Incidents - e2e', { tags: ['@cluster-health-analyzer', '@coo', '@
   let currentAlertName: string;
 
   before(() => {
-    cy.beforeBlockCOO({
+    cy.ensureMonitoringConsolePlugin({
       dashboards: false,
       troubleshootingPanel: false,
     });

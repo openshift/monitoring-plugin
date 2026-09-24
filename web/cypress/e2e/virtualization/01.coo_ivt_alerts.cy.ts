@@ -1,5 +1,4 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-
 import { alerts } from '../../fixtures/monitoring/alert';
 import { testAlertsRegression } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
@@ -11,7 +10,7 @@ describe(
   { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO();
+      cy.ensureMonitoringConsolePlugin();
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },

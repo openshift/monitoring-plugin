@@ -20,7 +20,7 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupExtraDashboards();
 
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: true,
         troubleshootingPanel: false,
       });

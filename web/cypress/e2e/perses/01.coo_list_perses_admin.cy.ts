@@ -12,7 +12,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO({
+      cy.ensureMonitoringConsolePlugin({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -38,7 +38,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO();
+      cy.ensureMonitoringConsolePlugin();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
