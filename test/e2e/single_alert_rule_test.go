@@ -185,13 +185,23 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 	deleteID := mustCreateRule(ctx, t, f, ns, "DeleteSingleAlert", "e2e-delete-single-pr")
 	_ = keepID
 
+	anonymousUser, err := f.CreateAnonymousUser(ctx, "e2e-delete-single-a", "default")
+	if err != nil {
+		t.Fatalf("Failed to create anonymous user: %v", err)
+	}
+	defer func() { _ = anonymousUser.Cleanup() }()
+
+	// 404 means the rule is not in the cache yet. Do not treat that as a
+	// successful delete; probe with a token that cannot mutate the rule.
+	waitForSingleDeleteCacheSync(ctx, t, f, anonymousUser.Token, deleteID)
+
 	err = framework.Poll(time.Second, time.Minute, func() error {
 		status, err := tryDeleteAlertRuleSingle(ctx, f, f.BearerToken, deleteID)
 		if err != nil {
 			return err
 		}
-		if status != http.StatusNoContent && status != http.StatusNotFound {
-			return fmt.Errorf("expected 204 or 404, got %d", status)
+		if status != http.StatusNoContent {
+			return fmt.Errorf("expected 204, got %d", status)
 		}
 		return nil
 	})
