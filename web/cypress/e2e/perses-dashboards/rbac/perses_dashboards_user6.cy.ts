@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import { nav } from '../../views/nav';
-import { testCOORBACPersesTestsDevUser2 } from '../../support/perses/99.coo_rbac_perses_user2.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
+import { nav } from '../../../views/nav';
+import { testCOORBACPersesTestsDevUser6 } from '../../../support/perses/99.coo_rbac_perses_user6.cy';
+import { operatorAuthUtils } from '../../../support/commands/auth-commands';
 
 describe(
-  'RBAC User2: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC User6: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -47,8 +47,8 @@ describe(
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
-        Cypress.env('LOGIN_USERNAME2'),
-        Cypress.env('LOGIN_PASSWORD2'),
+        Cypress.env('LOGIN_USERNAME6'),
+        Cypress.env('LOGIN_PASSWORD6'),
       );
       cy.validateLogin();
       cy.closeOnboardingModalIfPresent();
@@ -59,8 +59,6 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      cy.wait(2000);
-      cy.changeNamespace('All Projects');
     });
 
     after(() => {
@@ -68,6 +66,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    testCOORBACPersesTestsDevUser2(CustomerPerspectiveName.CorePlatform);
+    testCOORBACPersesTestsDevUser6(CustomerPerspectiveName.CorePlatform);
   },
 );
