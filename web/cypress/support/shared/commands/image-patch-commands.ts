@@ -1,5 +1,5 @@
 import { waitForPodsReady, waitForPodsReadyOrAbsent } from './wait-utils';
-import { readyTimeoutMilliseconds } from '../timeouts';
+import { readyTimeoutMilliseconds } from '../../timeouts';
 import { CLUSTER_MONITORING_OPERATOR, CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};

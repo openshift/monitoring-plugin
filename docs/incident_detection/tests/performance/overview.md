@@ -1,15 +1,18 @@
 # Performance Testing - Incidents Page
 
+TODO: UPDATE THIS WITH NEW STRUCTURE
+
 Location: `web/cypress/e2e/incidents/performance/`
 Verifies: OBSINTA-1006
 
 ## Test Suite
 
-### 01. Performance Benchmark (`01.performance_benchmark.cy.ts`)
+### 01. Performance Benchmark (`performance_benchmark.cy.ts`)
 
 Measures wall-clock render time for chart operations under escalating data loads. Uses `performance.mark()`/`performance.measure()` for timing.
 
 **What it tests:**
+
 - Incidents chart render: 100, 200, 500 alerts (single incident)
 - Alerts detail chart render after incident selection: 100, 200, 500 alerts
 - Multi-incident chart: 20 uniform incidents, 12 mixed-size incidents (67 alerts)
@@ -19,8 +22,8 @@ Measures wall-clock render time for chart operations under escalating data loads
 **Known limitation:** 1000-alert tests are disabled — mocking that volume triggers a maximum call stack error in the mock generator, though equivalent non-mocked simulated data renders without issue. To re-enable, apply:
 
 ```diff
---- a/web/cypress/e2e/incidents/performance/01.performance_benchmark.cy.ts
-+++ b/web/cypress/e2e/incidents/performance/01.performance_benchmark.cy.ts
+--- a/web/cypress/e2e/incidents/performance/performance_benchmark.cy.ts
++++ b/web/cypress/e2e/incidents/performance/performance_benchmark.cy.ts
 @@ end of it('6.1 ...')
 +    cy.log('6.1.4 Incidents chart with 1000 alerts (single incident)');
 +    benchmarkIncidentsChart(
@@ -42,11 +45,12 @@ Measures wall-clock render time for chart operations under escalating data loads
 +    );
 ```
 
-### 02. Interactive Walkthrough (`02.performance_walkthrough.cy.ts`)
+### 02. Interactive Walkthrough (`performance_walkthrough.cy.ts`)
 
 Measures incremental re-render cost during a realistic user session (as opposed to 01 which measures initial render).
 
 **What it tests:**
+
 - Filter apply/clear cycle times with 20 incidents loaded
 - Time range switching (1d → 3d → 7d → 15d → 1d)
 - Table row expansion with 100 and 500 alerts
@@ -71,12 +75,12 @@ Cypress captures a full DOM snapshot for every logged command (to enable time-tr
 
 ### Mitigation attempts and findings
 
-| Approach | Result |
-|----------|--------|
-| `{ log: false }` on commands | ~20% total time reduction, ~34% faster by cycle 100. Gap widens over time, confirming snapshot accumulation contributes. But `.should()` assertions have no `log` option and still snapshot. |
-| `numTestsKeptInMemory: 0` | Only purges between `it()` blocks, not within a single long-running test. |
-| Split into multiple `it()` blocks | `testIsolation: false` preserves page state, but fixture/mock setup between blocks adds complexity and the shared state management is fragile. |
-| Override `Cypress.log` with no-op | Cypress internally chains `.snapshot()`, `.end()`, `.set()` on the log return value. Stubbing all methods is brittle across Cypress versions. |
+| Approach                          | Result                                                                                                                                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{ log: false }` on commands      | ~20% total time reduction, ~34% faster by cycle 100. Gap widens over time, confirming snapshot accumulation contributes. But `.should()` assertions have no `log` option and still snapshot. |
+| `numTestsKeptInMemory: 0`         | Only purges between `it()` blocks, not within a single long-running test.                                                                                                                    |
+| Split into multiple `it()` blocks | `testIsolation: false` preserves page state, but fixture/mock setup between blocks adds complexity and the shared state management is fragile.                                               |
+| Override `Cypress.log` with no-op | Cypress internally chains `.snapshot()`, `.end()`, `.set()` on the log return value. Stubbing all methods is brittle across Cypress versions.                                                |
 
 ### Implication for the endurance test
 

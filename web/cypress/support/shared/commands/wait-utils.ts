@@ -1,5 +1,5 @@
 import 'cypress-wait-until';
-import { readyTimeoutMilliseconds } from '../timeouts';
+import { readyTimeoutMilliseconds } from '../../timeouts';
 
 /**
  * Poll until pods matching a label selector reach the Ready condition.
