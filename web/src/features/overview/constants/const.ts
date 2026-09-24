@@ -59,6 +59,11 @@ export const RequirementGroupVersionKinds: Record<RequirementKind, K8sGroupVersi
     version: 'v1beta2',
     kind: 'FlowCollector',
   },
+  [RequirementKind.Subscription]: {
+    group: 'operators.coreos.com',
+    version: 'v1alpha1',
+    kind: 'Subscription',
+  },
 };
 
 export const ClusterServiceVersionGroupVersionKind =

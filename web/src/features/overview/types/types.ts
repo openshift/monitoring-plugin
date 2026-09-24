@@ -11,6 +11,7 @@ export enum RequirementKind {
   TempoStack = 'TempoStack',
   OpenTelemetryCollector = 'OpenTelemetryCollector',
   FlowCollector = 'FlowCollector',
+  Subscription = 'Subscription',
 }
 
 export enum RequirementStatus {
@@ -27,7 +28,7 @@ export type RequiredOperator = {
   status: RequirementStatus;
   message?: string;
   csv?: K8sResourceKind;
-  missingPrerequisite?: boolean;
+  subscription?: K8sResourceKind;
 };
 
 export enum RequiredConfigType {
@@ -74,7 +75,6 @@ export type RequiredOperatorDefinition = {
   title: string;
   operatorName: string;
   keywords: string;
-  preRequisiteOperator?: string;
 };
 
 export type RequiredConfigDefinition = {

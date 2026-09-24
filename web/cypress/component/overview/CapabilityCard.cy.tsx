@@ -113,37 +113,6 @@ describe('CapabilityCard', () => {
       );
     });
 
-    it('withholds the Install link when a prerequisite operator is missing', () => {
-      mountCard(
-        buildCapability({
-          status: CapabilityStatus.Available,
-          requiredOperators: [
-            buildOperator({ status: RequirementStatus.Missing, csv: undefined }),
-            buildOperator({
-              id: 'loki-operator',
-              title: 'Loki Operator',
-              status: RequirementStatus.Missing,
-              csv: undefined,
-              keywords: 'loki operator',
-              missingPrerequisite: true,
-            }),
-          ],
-          requiredConfigs: [],
-        }),
-        monitoringPlugin,
-      );
-
-      card('monitoring')
-        .find('a')
-        .filter((_, el) => (el.textContent || '').trim() === 'Install')
-        .should('have.length', 1);
-      cy.contains('Cluster Observability Operator')
-        .closest('li')
-        .contains('a', 'Install')
-        .should('exist');
-      cy.contains('Loki Operator').closest('li').find('a').should('not.exist');
-    });
-
     it('offers a Details link to the CSV when the operator is degraded', () => {
       mountCard(
         buildCapability({
@@ -160,6 +129,40 @@ describe('CapabilityCard', () => {
           'operators.coreos.com~v1alpha1~ClusterServiceVersion/' +
           'cluster-observability-operator.v1.2.0',
       );
+    });
+
+    it('offers an Installing link to the Subscription when the operator is not yet installed', () => {
+      const lokiSubscription = {
+        metadata: { name: 'loki-operator', namespace: 'openshift-operators' },
+        spec: { startingCSV: 'loki-operator.v3.2.1' },
+      };
+
+      mountCard(
+        buildCapability({
+          status: CapabilityStatus.Partial,
+          requiredOperators: [
+            buildOperator({ status: RequirementStatus.Success }),
+            buildOperator({
+              id: 'loki-operator',
+              title: 'Loki Operator',
+              keywords: 'loki operator',
+              status: RequirementStatus.Degraded,
+              csv: undefined,
+              subscription: lokiSubscription,
+            }),
+          ],
+        }),
+        monitoringPlugin,
+      );
+
+      cy.contains('Loki Operator')
+        .closest('li')
+        .contains('a', 'Installing')
+        .should(
+          'have.attr',
+          'href',
+          '/k8s/ns/openshift-operators/operators.coreos.com~v1alpha1~Subscription/loki-operator',
+        );
     });
   });
 

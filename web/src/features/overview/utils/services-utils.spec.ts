@@ -20,6 +20,7 @@ import {
   findInstalledOperator,
   getCreateResourceURL,
   getCSVPackageName,
+  getInstallingSubscriptions,
   getNamespaceFromAlmExamples,
   getNewPluginURL,
   getObservabilityCapability,
@@ -198,6 +199,40 @@ describe('findInstalledOperator', () => {
     expect(findInstalledOperator('cluster-observability-operator', [installing, failed])).toBe(
       failed,
     );
+  });
+});
+
+describe('getInstallingSubscriptions', () => {
+  const lokiSubscription: K8sResourceKind = {
+    metadata: { name: 'loki-operator', namespace: 'openshift-operators' },
+    spec: { startingCSV: 'loki-operator.v3.2.1' },
+    status: { currentCSV: 'loki-operator.v3.2.1' },
+  };
+
+  it('returns subscriptions that have no installed CSV and no matching cluster CSV yet', () => {
+    expect(getInstallingSubscriptions([lokiSubscription], [])).toEqual([lokiSubscription]);
+  });
+
+  it('excludes subscriptions that already report an installed CSV', () => {
+    const installed: K8sResourceKind = {
+      ...lokiSubscription,
+      status: { ...lokiSubscription.status, installedCSV: 'loki-operator.v3.2.1' },
+    };
+
+    expect(getInstallingSubscriptions([installed], [])).toEqual([]);
+  });
+
+  it('excludes subscriptions when a CSV matches currentCSV or startingCSV', () => {
+    const csv: K8sResourceKind = {
+      metadata: { name: 'loki-operator.v3.2.1', namespace: 'openshift-operators' },
+      status: { phase: 'Installing' },
+    };
+
+    expect(getInstallingSubscriptions([lokiSubscription], [csv])).toEqual([]);
+  });
+
+  it('returns an empty list when subscriptions are undefined', () => {
+    expect(getInstallingSubscriptions(undefined, [])).toEqual([]);
   });
 });
 
@@ -693,51 +728,87 @@ describe('getObservabilityCapability', () => {
     expect(capability.learnMoreUrl).toEqual('https://docs.redhat.com/monitoring-ui-plugin');
   });
 
-  describe('preRequisiteOperator', () => {
+  describe('installing operators (Subscription)', () => {
+    const lokiOperatorDefinition = {
+      id: 'loki-operator',
+      title: 'Loki Operator',
+      operatorName: 'loki-operator',
+      keywords: 'loki operator',
+    };
+
     const loggingDefinition: CapabilityDefinition = {
       id: 'logging',
       title: 'Logging',
       description: 'Collect and forward logs across cluster workloads.',
-      requiredOperators: [
-        cooOperatorDefinition,
-        {
-          id: 'loki-operator',
-          title: 'Loki Operator',
-          operatorName: 'loki-operator',
-          keywords: 'loki operator',
-          preRequisiteOperator: COO_NAME,
-        },
-      ],
+      requiredOperators: [lokiOperatorDefinition],
       requiredConfigs: [],
+    };
+
+    const lokiSubscription: K8sResourceKind = {
+      metadata: { name: 'loki-operator', namespace: 'openshift-operators' },
+      spec: { startingCSV: 'loki-operator.v3.2.1' },
     };
 
     const lokiOperator = (capability: ReturnType<typeof getObservabilityCapability>) =>
       capability.requiredOperators.find((operator) => operator.id === 'loki-operator');
 
-    it('marks a dependent operator when its prerequisite is not installed', () => {
-      const capability = getObservabilityCapability(loggingDefinition, buildRequirementResources());
+    const withInstallingSubscriptions = (
+      subscriptions: K8sResourceKind[],
+      csvs: K8sResourceKind[] = [],
+    ) =>
+      buildRequirementResources({
+        [RequirementKind.ClusterServiceVersion]: [csvs, true, undefined],
+        [RequirementKind.Subscription]: [
+          getInstallingSubscriptions(subscriptions, csvs),
+          true,
+          undefined,
+        ],
+      });
 
-      expect(lokiOperator(capability)?.missingPrerequisite).toBe(true);
-      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Missing);
-    });
-
-    it('clears missingPrerequisite once the prerequisite operator is installed', () => {
+    it('reports Degraded and attaches the subscription when install is in progress', () => {
       const capability = getObservabilityCapability(
         loggingDefinition,
-        buildRequirementResources({
-          [RequirementKind.ClusterServiceVersion]: [[cooCSV()], true, undefined],
-        }),
+        withInstallingSubscriptions([lokiSubscription]),
       );
 
-      expect(lokiOperator(capability)?.missingPrerequisite).toBe(false);
-      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Missing);
+      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Degraded);
+      expect(lokiOperator(capability)?.subscription).toEqual(lokiSubscription);
+      expect(lokiOperator(capability)?.csv).toBeUndefined();
+      expect(capability.status).toEqual(CapabilityStatus.Partial);
     });
 
-    it('does not set missingPrerequisite on operators that declare no prerequisite', () => {
-      const capability = getObservabilityCapability(loggingDefinition, buildRequirementResources());
+    it('ignores subscriptions whose startingCSV targets a different package', () => {
+      const capability = getObservabilityCapability(
+        loggingDefinition,
+        withInstallingSubscriptions([
+          { ...lokiSubscription, spec: { startingCSV: 'tempo-operator.v1.0.0' } },
+        ]),
+      );
 
-      const coo = capability.requiredOperators.find((operator) => operator.id === COO_ID);
-      expect(coo?.missingPrerequisite).toBeFalsy();
+      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Missing);
+      expect(lokiOperator(capability)?.subscription).toBeUndefined();
+      expect(capability.status).toEqual(CapabilityStatus.Available);
+    });
+
+    it('treats a succeeded CSV as installed when the subscription is no longer installing', () => {
+      const lokiCSV: K8sResourceKind = {
+        metadata: {
+          name: 'loki-operator.v3.2.1',
+          namespace: 'openshift-operators',
+          labels: { 'operators.coreos.com/loki-operator.openshift-operators': '' },
+        },
+        status: { phase: 'Succeeded' },
+      };
+
+      const capability = getObservabilityCapability(
+        loggingDefinition,
+        withInstallingSubscriptions([lokiSubscription], [lokiCSV]),
+      );
+
+      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Success);
+      expect(lokiOperator(capability)?.csv).toEqual(lokiCSV);
+      expect(lokiOperator(capability)?.subscription).toBeUndefined();
+      expect(capability.status).toEqual(CapabilityStatus.Ready);
     });
   });
 });

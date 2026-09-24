@@ -8,25 +8,37 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { getCapabilityDefinitions } from '@/features/overview/assets/capabilities-definitions';
-import { COO_NAME, RequirementGroupVersionKinds } from '@/features/overview/constants/const';
+import { RequirementGroupVersionKinds } from '@/features/overview/constants/const';
 import { ObservabilityCapability, RequirementKind } from '@/features/overview/types/types';
 import {
-  findInstalledOperator,
+  getInstallingSubscriptions,
   getObservabilityCapability,
 } from '@/features/overview/utils/services-utils';
 
 const NO_MODEL_MESSAGE = new NoModelError().message;
 
-const useWatchedRequirement = (requirementKind: RequirementKind, enabled = false) =>
-  useK8sWatchResource<K8sResourceKind[]>(
-    enabled
-      ? {
-          isList: true,
-          groupVersionKind: RequirementGroupVersionKinds[requirementKind],
-          optional: true,
-        }
-      : null,
-  );
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type WatchedRequirementResults = [K8sResourceKind[], boolean, any];
+
+const useWatchedRequirement = (requirementKind: RequirementKind) =>
+  useK8sWatchResource<K8sResourceKind[]>({
+    isList: true,
+    groupVersionKind: RequirementGroupVersionKinds[requirementKind],
+    optional: true,
+  });
+
+const getInstalledSubscriptionsResults = (
+  csvResults: WatchedRequirementResults,
+  subscriptionResults: WatchedRequirementResults,
+): WatchedRequirementResults => {
+  const [csvs, csvsLoaded, csvsError] = csvResults;
+  const [subscriptions, subscriptionsLoaded, subscriptionsError] = subscriptionResults;
+
+  const loaded = csvsLoaded && subscriptionsLoaded;
+  const error = csvsError || subscriptionsError;
+
+  return [getInstallingSubscriptions(subscriptions, csvs), loaded, error];
+};
 
 export const useObservabilityCapabilities = (
   csvResults: WatchK8sResult<K8sResourceKind[]>,
@@ -38,31 +50,30 @@ export const useObservabilityCapabilities = (
   loadError: any;
 } => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [csvs, csvsLoaded] = csvResults;
-  const enabled = csvsLoaded ? Boolean(findInstalledOperator(COO_NAME, csvs ?? [])) : false;
 
-  const uiPluginResults = useWatchedRequirement(RequirementKind.UIPlugin, enabled);
-  const alertManagerResults = useWatchedRequirement(RequirementKind.Alertmanager, enabled);
-  const monitoringStackResults = useWatchedRequirement(RequirementKind.MonitoringStack, enabled);
-  const prometheusResults = useWatchedRequirement(RequirementKind.Prometheus, enabled);
-  const lokiStackResults = useWatchedRequirement(RequirementKind.LokiStack, enabled);
-  const clusterLogForwarderResults = useWatchedRequirement(
-    RequirementKind.ClusterLogForwarder,
-    enabled,
-  );
-  const tempoStackResults = useWatchedRequirement(RequirementKind.TempoStack, enabled);
+  const subscriptionResults = useWatchedRequirement(RequirementKind.Subscription);
+  const uiPluginResults = useWatchedRequirement(RequirementKind.UIPlugin);
+  const alertManagerResults = useWatchedRequirement(RequirementKind.Alertmanager);
+  const monitoringStackResults = useWatchedRequirement(RequirementKind.MonitoringStack);
+  const prometheusResults = useWatchedRequirement(RequirementKind.Prometheus);
+  const lokiStackResults = useWatchedRequirement(RequirementKind.LokiStack);
+  const clusterLogForwarderResults = useWatchedRequirement(RequirementKind.ClusterLogForwarder);
+  const tempoStackResults = useWatchedRequirement(RequirementKind.TempoStack);
   const openTelemetryCollectorResults = useWatchedRequirement(
     RequirementKind.OpenTelemetryCollector,
-    enabled,
   );
-  const flowCollectorResults = useWatchedRequirement(RequirementKind.FlowCollector, enabled);
+  const flowCollectorResults = useWatchedRequirement(RequirementKind.FlowCollector);
 
   const requirementResources: Record<
     RequirementKind,
     ReturnType<typeof useWatchedRequirement>
   > = useMemo(
     () => ({
-      [RequirementKind.ClusterServiceVersion]: enabled ? csvResults : [[], true, false],
+      [RequirementKind.ClusterServiceVersion]: csvResults,
+      [RequirementKind.Subscription]: getInstalledSubscriptionsResults(
+        csvResults,
+        subscriptionResults,
+      ),
       [RequirementKind.UIPlugin]: uiPluginResults,
       [RequirementKind.Alertmanager]: alertManagerResults,
       [RequirementKind.MonitoringStack]: monitoringStackResults,
@@ -74,7 +85,6 @@ export const useObservabilityCapabilities = (
       [RequirementKind.FlowCollector]: flowCollectorResults,
     }),
     [
-      enabled,
       alertManagerResults,
       clusterLogForwarderResults,
       csvResults,
@@ -83,6 +93,7 @@ export const useObservabilityCapabilities = (
       monitoringStackResults,
       openTelemetryCollectorResults,
       prometheusResults,
+      subscriptionResults,
       tempoStackResults,
       uiPluginResults,
     ],

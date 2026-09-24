@@ -222,6 +222,7 @@
   "Insert example query": "Insert example query",
   "Inspect": "Inspect",
   "Install": "Install",
+  "Installing": "Installing",
   "Invalid {{format}}: {{error}}": "Invalid {{format}}: {{error}}",
   "Invalid date / time": "Invalid date / time",
   "Invalid file type. Please upload a JSON or YAML file (.json, .yaml, .yml)": "Invalid file type. Please upload a JSON or YAML file (.json, .yaml, .yml)",

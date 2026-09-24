@@ -80,6 +80,7 @@ const emptyRequirementResources: Record<
   [RequirementKind.TempoStack]: [[], true, null],
   [RequirementKind.OpenTelemetryCollector]: [[], true, null],
   [RequirementKind.FlowCollector]: [[], true, null],
+  [RequirementKind.Subscription]: [[], true, null],
 };
 
 export const buildEmptyObservabilityCapabilitiesResult = () => ({

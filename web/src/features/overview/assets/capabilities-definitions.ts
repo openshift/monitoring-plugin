@@ -14,13 +14,11 @@ const csvOperator = (
   title: string,
   operatorName: string,
   keywords: string,
-  preRequisiteOperator?: string,
 ): RequiredOperatorDefinition => ({
   id,
   title,
   operatorName,
   keywords,
-  preRequisiteOperator,
 });
 
 const customResourceConfig = (
@@ -117,19 +115,12 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
         'https://docs.redhat.com/en/documentation/red_hat_openshift_cluster_observability_operator/1-latest/html/ui_plugins_for_red_hat_openshift_cluster_observability_operator/logging-ui-plugin',
       requiredOperators: [
         clusterObservabilityOperator,
-        csvOperator(
-          'loki-operator',
-          t('Loki Operator'),
-          'loki-operator',
-          'loki operator',
-          COO_NAME,
-        ),
+        csvOperator('loki-operator', t('Loki Operator'), 'loki-operator', 'loki operator'),
         csvOperator(
           'clo-operator',
           t('CLO Operator'),
           'cluster-logging-operator',
           'cluster logging operator',
-          COO_NAME,
         ),
       ],
       requiredConfigs: [
@@ -160,19 +151,12 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
         'https://docs.redhat.com/en/documentation/red_hat_openshift_cluster_observability_operator/1-latest/html/ui_plugins_for_red_hat_openshift_cluster_observability_operator/distributed-tracing-ui-plugin',
       requiredOperators: [
         clusterObservabilityOperator,
-        csvOperator(
-          'tempo-operator',
-          t('Tempo Operator'),
-          'tempo-operator',
-          'tempo operator',
-          COO_NAME,
-        ),
+        csvOperator('tempo-operator', t('Tempo Operator'), 'tempo-operator', 'tempo operator'),
         csvOperator(
           'otel-operator',
           t('OTEL Operator'),
           'opentelemetry-operator',
           'opentelemetry operator',
-          COO_NAME,
         ),
       ],
       requiredConfigs: [

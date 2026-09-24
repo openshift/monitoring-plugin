@@ -1,5 +1,5 @@
 import { K8sGroupVersionKind, K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
-import { isEmpty } from 'lodash-es';
+import { get, isEmpty, isNil } from 'lodash-es';
 
 import {
   CSV_GROUP_VERSION_KIND,
@@ -114,6 +114,19 @@ export const findInstalledOperator = (
   return pickNewestCSV(candidates);
 };
 
+/** Subscriptions that are actively installing and do not yet have a matching CSV in the cluster. */
+export const getInstallingSubscriptions = (
+  subscriptions: K8sResourceKind[] | undefined,
+  csvs: K8sResourceKind[] | undefined,
+): K8sResourceKind[] =>
+  subscriptions?.filter(
+    (sub) =>
+      isNil(get(sub, 'status.installedCSV')) &&
+      !csvs?.find(({ metadata }) =>
+        [sub?.status?.currentCSV, sub?.spec?.startingCSV].includes(metadata?.name),
+      ),
+  ) ?? [];
+
 export const groupVersionKindToPath = (gvk: K8sGroupVersionKind): string =>
   `${gvk.group}~${gvk.version}~${gvk.kind}`;
 
@@ -211,8 +224,14 @@ export const getCreateResourceURL = (
   );
 };
 
-const getRequiredOperatorStatus = (operator?: K8sResourceKind): RequirementStatus => {
+const getRequiredOperatorStatus = (
+  operator?: K8sResourceKind,
+  subscription?: K8sResourceKind,
+): RequirementStatus => {
   if (!operator) {
+    if (subscription) {
+      return RequirementStatus.Degraded;
+    }
     return RequirementStatus.Missing;
   }
   if (operator.status?.phase === 'Succeeded') {
@@ -307,16 +326,17 @@ export const getObservabilityCapability = (
   requirementResources: RequirementResources,
 ): ObservabilityCapability => {
   const [csvs] = requirementResources[RequirementKind.ClusterServiceVersion];
+  const [subscriptions] = requirementResources[RequirementKind.Subscription];
 
   const requiredOperators: RequiredOperator[] = definition.requiredOperators.map((operator) => {
     const installedOperator = findInstalledOperator(operator.operatorName, csvs);
-    const missingPrerequisite = Boolean(
-      operator.preRequisiteOperator &&
-      findInstalledOperator(operator.preRequisiteOperator, csvs) === undefined,
+    const subscription = subscriptions.find(
+      (sub) =>
+        sub.spec?.name === operator.operatorName ||
+        sub.status?.currentCSV?.startsWith(`${operator.operatorName}.`) ||
+        sub.spec?.startingCSV?.startsWith(`${operator.operatorName}.`),
     );
-    const status = missingPrerequisite
-      ? RequirementStatus.Missing
-      : getRequiredOperatorStatus(installedOperator);
+    const status = getRequiredOperatorStatus(installedOperator, subscription);
 
     return {
       id: operator.id,
@@ -327,7 +347,7 @@ export const getObservabilityCapability = (
       message:
         status === RequirementStatus.Degraded ? installedOperator?.status?.message : undefined,
       csv: installedOperator,
-      missingPrerequisite,
+      subscription,
     };
   });
 

@@ -26,13 +26,14 @@ import { type FC, Fragment, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { COO_ID } from '@/features/overview/constants/const';
+import { COO_ID, RequirementGroupVersionKinds } from '@/features/overview/constants/const';
 import {
   CapabilityStatus,
   ObservabilityCapability,
   RequiredConfig,
   RequiredConfigType,
   RequiredOperator,
+  RequirementKind,
   RequirementStatus,
 } from '@/features/overview/types/types';
 import {
@@ -120,10 +121,6 @@ export const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoring
   );
 
   const renderOperatorLink = (operator: RequiredOperator) => {
-    if (operator.missingPrerequisite) {
-      return null;
-    }
-
     if (operator.status === RequirementStatus.Missing) {
       return (
         <Link className="pf-v6-u-ml-lg" to={`/catalog/all-namespaces?keyword=${operator.keywords}`}>
@@ -145,6 +142,18 @@ export const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoring
       );
     }
 
+    if (operator.subscription) {
+      const path =
+        `/k8s/ns/${operator.subscription.metadata.namespace}/` +
+        `${groupVersionKindToPath(RequirementGroupVersionKinds[RequirementKind.Subscription])}/` +
+        `${operator.subscription.metadata.name}`;
+
+      return (
+        <Link className="pf-v6-u-ml-lg" to={path}>
+          {t('Installing')}
+        </Link>
+      );
+    }
     return null;
   };
 
