@@ -1,6 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { testCOOCreateImportPerses } from '../../support/perses/perses_create_import_admin.cy';
-import { nav } from '../../views/nav';
+import { nav } from '../../views/shared/nav';
 
 describe(
   'COO - Dashboards (Perses) - Perses Global Datasources with Tempo and Loki',

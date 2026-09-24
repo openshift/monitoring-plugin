@@ -17,7 +17,7 @@ Both tests require continuously firing alerts and cannot be tested with mocked d
 Verifies: OU-XXX (time-based resolution bugs)
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 describe(
   'Regression: Time-Based Alert Resolution (E2E with Firing Alerts)',

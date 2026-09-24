@@ -13,8 +13,8 @@ Tests:
 Verifies: OU-1020, OU-706, OU-1213
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
-import { nav } from '../../../views/nav';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
+import { nav } from '../../../views/shared/nav';
 
 describe(
   'Regression: Silences Not Applied Correctly',

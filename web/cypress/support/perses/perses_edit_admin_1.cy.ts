@@ -3,13 +3,13 @@ import {
   persesDashboardsDashboardDropdownCOO,
   persesDashboardsDashboardDropdownPersesDev,
 } from '../../fixtures/perses/constants';
-import { commonPages } from '../../views/common';
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
-import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
-import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
-import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { commonPages } from '../../views/shared/common';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
+import { persesDashboardsEditVariables } from '../../views/perses-dashboards/perses-dashboards-edit-variables';
+import { persesDashboardsPanel } from '../../views/perses-dashboards/perses-dashboards-panel';
+import { persesDashboardsPanelGroup } from '../../views/perses-dashboards/perses-dashboards-panelgroup';
 
 export function testCOOEditPerses1(
   perspectiveName: CustomerPerspective,

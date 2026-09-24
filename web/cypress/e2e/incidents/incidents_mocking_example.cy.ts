@@ -7,7 +7,7 @@ This test showcases different mocking approaches:
 3. Demonstrating empty state handling
 */
 
-import { incidentsPage } from '../../views/incidents-page';
+import { incidentsPage } from '../../views/incidents/incidents-page';
 
 describe('Incidents - Mocking Examples', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {

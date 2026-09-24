@@ -8,7 +8,7 @@ Uses elements defined in incidents-page.ts for all interactions.
 Verifies: OU-727
 */
 
-import { incidentsPage } from '../../../views/incidents-page';
+import { incidentsPage } from '../../../views/incidents/incidents-page';
 
 describe('Regression: Incidents Filtering', { tags: ['@cluster-health-analyzer', '@coo'] }, () => {
   before(() => {

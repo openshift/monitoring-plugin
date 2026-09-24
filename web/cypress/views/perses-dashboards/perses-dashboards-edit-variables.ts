@@ -1,4 +1,4 @@
-import { commonPages } from './common';
+import { commonPages } from '../shared/common';
 import {
   editPersesDashboardsAddVariable,
   IDs,
@@ -10,7 +10,7 @@ import {
   persesDashboardsAddListVariableSource,
   persesDashboardsModalTitles,
   persesDashboardsRequiredFields,
-} from '../fixtures/perses/constants';
+} from '../../fixtures/perses/constants';
 
 export const persesDashboardsEditVariables = {
   shouldBeLoaded: () => {

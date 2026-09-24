@@ -1,11 +1,11 @@
-import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import { persesDashboardsPage } from '../../views/perses-dashboards';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-list-dashboards';
+import { persesDashboardsPage } from '../../views/perses-dashboards/perses-dashboards';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
-import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
-import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
-import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
-import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
+import { persesCreateDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-create-dashboard';
+import { persesDashboardsPanelGroup } from '../../views/perses-dashboards/perses-dashboards-panelgroup';
+import { persesDashboardsPanel } from '../../views/perses-dashboards/perses-dashboards-panel';
+import { persesImportDashboardsPage } from '../../views/perses-dashboards/perses-dashboards-import-dashboard';
 
 export function testCOOCreateImportPerses(
   perspectiveName: CustomerPerspective,

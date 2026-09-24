@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { testBVTAlerts } from '../../support/alerts/alerts_bvt.cy';
-import { guidedTour } from '../../views/tour';
+import { guidedTour } from '../../views/shared/tour';
 import { alerts } from '../../fixtures/alerts/interceptWatchdogAlert';
-import { nav } from '../../views/nav';
-import { commonPages } from '../../views/common';
-import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
+import { nav } from '../../views/shared/nav';
+import { commonPages } from '../../views/shared/common';
+import { troubleshootingPanelPage } from '../../views/shared/troubleshooting-panel';
 
 describe(
   'IVT: Monitoring + Virtualization',
