@@ -1,1 +1,0 @@
-../../.cursor/commands/fixture-schema-reference.md

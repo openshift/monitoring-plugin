@@ -49,6 +49,17 @@
 - Hub cluster aggregation
 - Thanos/Alertmanager integration
 
+### When working on Incidents Cypress tests:
+
+Before editing incident specs, the incidents page object, incident fixtures, or
+their schema/mock support code, read
+`.agents/references/incidents-testing-guidelines.md`. This applies to:
+
+- `web/cypress/e2e/incidents/`
+- `web/cypress/views/incidents-page.ts`
+- `web/cypress/fixtures/incident-scenarios/`
+- `web/cypress/support/incidents_prometheus_query_mocks/`
+
 ## Important Decision Points
 
 ### Choosing Between Plugins:
@@ -376,18 +387,38 @@ describe('MyComponent', () => {
 
 ## Skills
 
+Reusable workflows live under `.agents/skills/`. Invoke them with
+`$skill-name` in Codex or `/skill-name` in Claude Code and Cursor. If a client
+does not discover Agent Skills, ask it to read the corresponding
+`.agents/skills/<name>/SKILL.md` explicitly.
+
+| Skill | Purpose |
+| --- | --- |
+| `backport` | Backport a commit with release-branch adaptations. |
+| `build-images` | Build both plugin development images with a unique tag. |
+| `run-perses-dev` | Start the integrated plugin/Perses tmux environment. |
+| `cypress-setup` | Install and configure the Cypress environment. |
+| `cypress-run` | Select and run Cypress tests. |
+| `generate-incident-fixture` | Create a schema-valid incident fixture. |
+| `validate-incident-fixtures` | Validate one or all incident fixtures. |
+| `fixture-schema-reference` | Explain the incident fixture schema. |
+| `generate-regression-test` | Generate an Incidents regression test from documented flows. |
+| `refactor-regression-test` | Refactor an existing Incidents regression test. |
+
 ### Feature Backporting
 
-For backporting features from `main` to release branches (e.g., `release-4.x`, `release-coo-x.y`), use the `/backport` slash command:
+For backporting features from `main` to release branches (for example,
+`release-4.x` or `release-coo-x.y`), invoke the shared `backport` skill:
 
-```bash
-/backport <target-branch> [commit-hash]
-# Examples:
-/backport release-4.18
-/backport release-coo-0.4 abc123
+```text
+# Codex
+$backport release-4.18 [commit-hash]
+
+# Claude Code or Cursor
+/backport release-coo-0.4 [commit-hash]
 ```
 
-The command is located at `.claude/commands/backport.md` and handles:
+The canonical workflow is `.agents/skills/backport/SKILL.md` and handles:
 
 - PatternFly v6 → v5 component transformations
 - React Router v6 → v5 hook adaptations

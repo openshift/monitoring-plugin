@@ -5,6 +5,7 @@ Thank you for your interest in contributing to the OpenShift Monitoring Plugin! 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Agent Workflows](#agent-workflows)
 - [Pull Request Process](#pull-request-process)
   - [PR Requirements](#pr-requirements)
   - [Labels and Review Process](#labels-and-review-process)
@@ -55,6 +56,23 @@ Before you start contributing, ensure you have the following tools installed:
    ```
 
 For detailed setup instructions, see [README.md](./README.md#local-development).
+
+---
+
+## Agent Workflows
+
+Shared AI-agent workflows are stored as Agent Skills under `.agents/skills/`.
+Use `$skill-name` in Codex and `/skill-name` in Claude Code or Cursor. For
+example:
+
+```text
+$backport release-4.18 abc123
+/cypress-run headless incidents
+```
+
+Clients without skill discovery can be directed to read
+`.agents/skills/<name>/SKILL.md`. Tool permissions, approvals, and native
+invocation syntax remain client-specific; the workflow body is shared.
 
 ---
 
