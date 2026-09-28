@@ -116,12 +116,7 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
       requiredOperators: [
         clusterObservabilityOperator,
         csvOperator('loki-operator', t('Loki Operator'), 'loki-operator', 'loki operator'),
-        csvOperator(
-          'clo-operator',
-          t('CLO Operator'),
-          'cluster-logging-operator',
-          'cluster logging operator',
-        ),
+        csvOperator('clo-operator', t('CLO Operator'), 'cluster-logging', 'openshift logging'),
       ],
       requiredConfigs: [
         customResourceConfig(
@@ -151,13 +146,8 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
         'https://docs.redhat.com/en/documentation/red_hat_openshift_cluster_observability_operator/1-latest/html/ui_plugins_for_red_hat_openshift_cluster_observability_operator/distributed-tracing-ui-plugin',
       requiredOperators: [
         clusterObservabilityOperator,
-        csvOperator('tempo-operator', t('Tempo Operator'), 'tempo-operator', 'tempo operator'),
-        csvOperator(
-          'otel-operator',
-          t('OTEL Operator'),
-          'opentelemetry-operator',
-          'opentelemetry operator',
-        ),
+        csvOperator('tempo-operator', t('Tempo Operator'), 'tempo-product', 'tempo operator'),
+        csvOperator('otel-operator', t('OTEL Operator'), 'opentelemetry-product', 'opentelemetry'),
       ],
       requiredConfigs: [
         customResourceConfig(
@@ -208,7 +198,7 @@ export const getCapabilityDefinitions = (t: TFunction): CapabilityDefinition[] =
         csvOperator(
           'network-observability',
           t('Network Observability Operator'),
-          'network-observability-operator',
+          'netobserv-operator',
           'network observability',
         ),
       ],

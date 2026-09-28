@@ -123,7 +123,10 @@ export const CapabilityCard: FC<CapabilityCardProps> = ({ capability, monitoring
   const renderOperatorLink = (operator: RequiredOperator) => {
     if (operator.status === RequirementStatus.Missing) {
       return (
-        <Link className="pf-v6-u-ml-lg" to={`/catalog/all-namespaces?keyword=${operator.keywords}`}>
+        <Link
+          className="pf-v6-u-ml-lg"
+          to={`/catalog/all-namespaces?category=observability&keyword=${operator.keywords}`}
+        >
           {t('Install')}
         </Link>
       );

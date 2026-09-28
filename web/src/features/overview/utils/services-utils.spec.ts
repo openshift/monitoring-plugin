@@ -17,6 +17,8 @@ import {
 import {
   buildNamespacedCreateResourcePath,
   editResourceKindPath,
+  filterCSVsForOperatorDiscovery,
+  findCSVForSubscription,
   findInstalledOperator,
   getCreateResourceURL,
   getCSVPackageName,
@@ -200,6 +202,86 @@ describe('findInstalledOperator', () => {
       failed,
     );
   });
+
+  it('finds Red Hat product operators by olm.package when copied CSVs use a different label package', () => {
+    const copiedProjection: K8sResourceKind = {
+      metadata: {
+        name: 'opentelemetry-product.v0.127.1-0',
+        namespace: 'openshift',
+        labels: {
+          'operators.coreos.com/openshift-opentelemetry-operator.openshift': '',
+        },
+      },
+      status: { phase: 'Succeeded', reason: 'Copied' },
+    };
+    const installed: K8sResourceKind = {
+      metadata: {
+        name: 'opentelemetry-product.v0.127.1-0',
+        namespace: 'openshift-opentelemetry-operator',
+        annotations: {
+          'olm.properties':
+            '[{"type":"olm.package","value":{"packageName":"opentelemetry-product","version":"0.127.1-0"}}]',
+        },
+      },
+      status: { phase: 'Succeeded' },
+    };
+
+    expect(findInstalledOperator('opentelemetry-product', [copiedProjection, installed])).toBe(
+      installed,
+    );
+  });
+});
+
+describe('filterCSVsForOperatorDiscovery', () => {
+  it('excludes copied and non-standalone CSVs', () => {
+    const copied: K8sResourceKind = {
+      ...cooCSV(),
+      status: { phase: 'Succeeded', reason: 'Copied' },
+    };
+    const dependency: K8sResourceKind = {
+      ...cooCSV(),
+      metadata: {
+        ...cooCSV().metadata,
+        annotations: {
+          'operators.operatorframework.io/operator-type': 'non-standalone',
+        },
+      },
+    };
+
+    expect(filterCSVsForOperatorDiscovery([copied, dependency, cooCSV()])).toEqual([cooCSV()]);
+  });
+});
+
+describe('findCSVForSubscription', () => {
+  it('returns the installed CSV in the subscription namespace', () => {
+    const subscription: K8sResourceKind = {
+      metadata: { name: 'opentelemetry-product', namespace: 'openshift-opentelemetry-operator' },
+      spec: { name: 'opentelemetry-product' },
+      status: { installedCSV: 'opentelemetry-product.v0.127.1-0' },
+    };
+    const csv: K8sResourceKind = {
+      metadata: {
+        name: 'opentelemetry-product.v0.127.1-0',
+        namespace: 'openshift-opentelemetry-operator',
+      },
+      status: { phase: 'Succeeded' },
+    };
+
+    expect(findCSVForSubscription(subscription, [csv])).toEqual(csv);
+  });
+
+  it('ignores a copied CSV with the same name in openshift', () => {
+    const subscription: K8sResourceKind = {
+      metadata: { name: 'loki-operator', namespace: 'openshift-operators' },
+      status: { installedCSV: 'loki-operator.v3.2.1' },
+    };
+    const copied: K8sResourceKind = {
+      metadata: { name: 'loki-operator.v3.2.1', namespace: 'openshift' },
+      status: { phase: 'Succeeded', reason: 'Copied' },
+    };
+
+    expect(findCSVForSubscription(subscription, [copied])).toBeUndefined();
+  });
 });
 
 describe('getInstallingSubscriptions', () => {
@@ -222,13 +304,24 @@ describe('getInstallingSubscriptions', () => {
     expect(getInstallingSubscriptions([installed], [])).toEqual([]);
   });
 
-  it('excludes subscriptions when a CSV matches currentCSV or startingCSV', () => {
+  it('excludes subscriptions when a CSV matches currentCSV or startingCSV in the subscription namespace', () => {
     const csv: K8sResourceKind = {
       metadata: { name: 'loki-operator.v3.2.1', namespace: 'openshift-operators' },
       status: { phase: 'Installing' },
     };
 
     expect(getInstallingSubscriptions([lokiSubscription], [csv])).toEqual([]);
+  });
+
+  it('still treats a subscription as installing when a same-named CSV exists only in another namespace', () => {
+    const csvInOpenshift: K8sResourceKind = {
+      metadata: { name: 'loki-operator.v3.2.1', namespace: 'openshift' },
+      status: { phase: 'Installing' },
+    };
+
+    expect(getInstallingSubscriptions([lokiSubscription], [csvInOpenshift])).toEqual([
+      lokiSubscription,
+    ]);
   });
 
   it('returns an empty list when subscriptions are undefined', () => {
@@ -758,11 +851,7 @@ describe('getObservabilityCapability', () => {
     ) =>
       buildRequirementResources({
         [RequirementKind.ClusterServiceVersion]: [csvs, true, undefined],
-        [RequirementKind.Subscription]: [
-          getInstallingSubscriptions(subscriptions, csvs),
-          true,
-          undefined,
-        ],
+        [RequirementKind.Subscription]: [subscriptions, true, undefined],
       });
 
     it('reports Degraded and attaches the subscription when install is in progress', () => {
@@ -781,7 +870,7 @@ describe('getObservabilityCapability', () => {
       const capability = getObservabilityCapability(
         loggingDefinition,
         withInstallingSubscriptions([
-          { ...lokiSubscription, spec: { startingCSV: 'tempo-operator.v1.0.0' } },
+          { ...lokiSubscription, spec: { startingCSV: 'tempo-product.v1.0.0' } },
         ]),
       );
 
@@ -809,6 +898,173 @@ describe('getObservabilityCapability', () => {
       expect(lokiOperator(capability)?.csv).toEqual(lokiCSV);
       expect(lokiOperator(capability)?.subscription).toBeUndefined();
       expect(capability.status).toEqual(CapabilityStatus.Ready);
+    });
+
+    it('uses a later matching subscription when an earlier match has no discovery-eligible installed CSV', () => {
+      const otelOperatorDefinition = {
+        id: 'otel-operator',
+        title: 'OTEL Operator',
+        operatorName: 'opentelemetry-product',
+        keywords: 'opentelemetry',
+      };
+      const tracingDefinition: CapabilityDefinition = {
+        id: 'tracing',
+        title: 'Tracing',
+        description: 'Collect and analyze distributed traces.',
+        requiredOperators: [otelOperatorDefinition],
+        requiredConfigs: [],
+      };
+      const openshiftSubscription: K8sResourceKind = {
+        metadata: { name: 'opentelemetry-product', namespace: 'openshift' },
+        spec: { name: 'opentelemetry-product' },
+        status: { installedCSV: 'opentelemetry-product.v0.127.1-0' },
+      };
+      const operatorSubscription: K8sResourceKind = {
+        metadata: { name: 'opentelemetry-product', namespace: 'openshift-opentelemetry-operator' },
+        spec: { name: 'opentelemetry-product' },
+        status: { installedCSV: 'opentelemetry-product.v0.127.1-0' },
+      };
+      const copiedProjection: K8sResourceKind = {
+        metadata: {
+          name: 'opentelemetry-product.v0.127.1-0',
+          namespace: 'openshift',
+        },
+        status: { phase: 'Succeeded', reason: 'Copied' },
+      };
+      const installedCSV: K8sResourceKind = {
+        metadata: {
+          name: 'opentelemetry-product.v0.127.1-0',
+          namespace: 'openshift-opentelemetry-operator',
+          labels: {
+            'operators.coreos.com/openshift-opentelemetry-operator.openshift-opentelemetry-operator':
+              '',
+          },
+        },
+        status: { phase: 'Succeeded' },
+      };
+
+      const capability = getObservabilityCapability(
+        tracingDefinition,
+        withInstallingSubscriptions(
+          [openshiftSubscription, operatorSubscription],
+          [copiedProjection, installedCSV],
+        ),
+      );
+
+      const otelOperator = capability.requiredOperators.find(
+        (operator) => operator.id === 'otel-operator',
+      );
+      expect(otelOperator?.status).toEqual(RequirementStatus.Success);
+      expect(otelOperator?.csv).toEqual(installedCSV);
+    });
+
+    it('resolves product package operators via subscription installedCSV when CSV labels use a different package', () => {
+      const otelOperatorDefinition = {
+        id: 'otel-operator',
+        title: 'OTEL Operator',
+        operatorName: 'opentelemetry-product',
+        keywords: 'opentelemetry',
+      };
+      const tracingDefinition: CapabilityDefinition = {
+        id: 'tracing',
+        title: 'Tracing',
+        description: 'Collect and analyze distributed traces.',
+        requiredOperators: [otelOperatorDefinition],
+        requiredConfigs: [],
+      };
+      const subscription: K8sResourceKind = {
+        metadata: { name: 'opentelemetry-product', namespace: 'openshift-opentelemetry-operator' },
+        spec: { name: 'opentelemetry-product' },
+        status: { installedCSV: 'opentelemetry-product.v0.127.1-0' },
+      };
+      const csv: K8sResourceKind = {
+        metadata: {
+          name: 'opentelemetry-product.v0.127.1-0',
+          namespace: 'openshift-opentelemetry-operator',
+          labels: {
+            'operators.coreos.com/openshift-opentelemetry-operator.openshift-opentelemetry-operator':
+              '',
+          },
+        },
+        status: { phase: 'Succeeded' },
+      };
+
+      const capability = getObservabilityCapability(
+        tracingDefinition,
+        withInstallingSubscriptions([subscription], [csv]),
+      );
+
+      const otelOperator = capability.requiredOperators.find(
+        (operator) => operator.id === 'otel-operator',
+      );
+      expect(otelOperator?.status).toEqual(RequirementStatus.Success);
+      expect(otelOperator?.csv).toEqual(csv);
+      expect(otelOperator?.subscription).toBeUndefined();
+      expect(capability.status).toEqual(CapabilityStatus.Ready);
+    });
+
+    it('drops the subscription once an in-progress CSV appears in the subscription namespace', () => {
+      const installingCSV: K8sResourceKind = {
+        metadata: {
+          name: 'loki-operator.v3.2.1',
+          namespace: 'openshift-operators',
+          labels: { 'operators.coreos.com/loki-operator.openshift-operators': '' },
+        },
+        status: { phase: 'Installing' },
+      };
+
+      const capability = getObservabilityCapability(
+        loggingDefinition,
+        withInstallingSubscriptions([lokiSubscription], [installingCSV]),
+      );
+
+      expect(lokiOperator(capability)?.status).toEqual(RequirementStatus.Degraded);
+      expect(lokiOperator(capability)?.csv).toEqual(installingCSV);
+      expect(lokiOperator(capability)?.subscription).toBeUndefined();
+    });
+
+    it('resolves an in-progress CSV from currentCSV when installedCSV is unset and labels use a different package', () => {
+      const otelOperatorDefinition = {
+        id: 'otel-operator',
+        title: 'OTEL Operator',
+        operatorName: 'opentelemetry-product',
+        keywords: 'opentelemetry',
+      };
+      const tracingDefinition: CapabilityDefinition = {
+        id: 'tracing',
+        title: 'Tracing',
+        description: 'Collect and analyze distributed traces.',
+        requiredOperators: [otelOperatorDefinition],
+        requiredConfigs: [],
+      };
+      const subscription: K8sResourceKind = {
+        metadata: { name: 'opentelemetry-product', namespace: 'openshift-opentelemetry-operator' },
+        spec: { name: 'opentelemetry-product', startingCSV: 'opentelemetry-product.v0.127.1-0' },
+        status: { currentCSV: 'opentelemetry-product.v0.127.1-0' },
+      };
+      const installingCSV: K8sResourceKind = {
+        metadata: {
+          name: 'opentelemetry-product.v0.127.1-0',
+          namespace: 'openshift-opentelemetry-operator',
+          labels: {
+            'operators.coreos.com/openshift-opentelemetry-operator.openshift-opentelemetry-operator':
+              '',
+          },
+        },
+        status: { phase: 'Installing' },
+      };
+
+      const capability = getObservabilityCapability(
+        tracingDefinition,
+        withInstallingSubscriptions([subscription], [installingCSV]),
+      );
+
+      const otelOperator = capability.requiredOperators.find(
+        (operator) => operator.id === 'otel-operator',
+      );
+      expect(otelOperator?.status).toEqual(RequirementStatus.Degraded);
+      expect(otelOperator?.csv).toEqual(installingCSV);
+      expect(otelOperator?.subscription).toBeUndefined();
     });
   });
 });

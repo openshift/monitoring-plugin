@@ -10,15 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { getCapabilityDefinitions } from '@/features/overview/assets/capabilities-definitions';
 import { RequirementGroupVersionKinds } from '@/features/overview/constants/const';
 import { ObservabilityCapability, RequirementKind } from '@/features/overview/types/types';
-import {
-  getInstallingSubscriptions,
-  getObservabilityCapability,
-} from '@/features/overview/utils/services-utils';
+import { getObservabilityCapability } from '@/features/overview/utils/services-utils';
 
 const NO_MODEL_MESSAGE = new NoModelError().message;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type WatchedRequirementResults = [K8sResourceKind[], boolean, any];
 
 const useWatchedRequirement = (requirementKind: RequirementKind) =>
   useK8sWatchResource<K8sResourceKind[]>({
@@ -26,19 +20,6 @@ const useWatchedRequirement = (requirementKind: RequirementKind) =>
     groupVersionKind: RequirementGroupVersionKinds[requirementKind],
     optional: true,
   });
-
-const getInstalledSubscriptionsResults = (
-  csvResults: WatchedRequirementResults,
-  subscriptionResults: WatchedRequirementResults,
-): WatchedRequirementResults => {
-  const [csvs, csvsLoaded, csvsError] = csvResults;
-  const [subscriptions, subscriptionsLoaded, subscriptionsError] = subscriptionResults;
-
-  const loaded = csvsLoaded && subscriptionsLoaded;
-  const error = csvsError || subscriptionsError;
-
-  return [getInstallingSubscriptions(subscriptions, csvs), loaded, error];
-};
 
 export const useObservabilityCapabilities = (
   csvResults: WatchK8sResult<K8sResourceKind[]>,
@@ -70,10 +51,7 @@ export const useObservabilityCapabilities = (
   > = useMemo(
     () => ({
       [RequirementKind.ClusterServiceVersion]: csvResults,
-      [RequirementKind.Subscription]: getInstalledSubscriptionsResults(
-        csvResults,
-        subscriptionResults,
-      ),
+      [RequirementKind.Subscription]: subscriptionResults,
       [RequirementKind.UIPlugin]: uiPluginResults,
       [RequirementKind.Alertmanager]: alertManagerResults,
       [RequirementKind.MonitoringStack]: monitoringStackResults,

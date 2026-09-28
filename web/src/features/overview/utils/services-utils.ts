@@ -52,6 +52,11 @@ export const isStandaloneCSV = (csv: K8sResourceKind): boolean =>
   csv?.metadata?.annotations?.[OPERATOR_TYPE_ANNOTATION] !== NON_STANDALONE_OPERATOR_TYPE ||
   csv?.status?.phase === CSV_PHASE_FAILED;
 
+/** CSVs suitable for cluster-wide operator discovery (matches console all-namespaces list). */
+export const filterCSVsForOperatorDiscovery = (
+  csvs: K8sResourceKind[] | undefined,
+): K8sResourceKind[] => csvs?.filter((csv) => !isCopiedCSV(csv) && isStandaloneCSV(csv)) ?? [];
+
 const csvRecencyTimestamp = (csv: K8sResourceKind): number => {
   const timestamp = csv?.status?.lastUpdateTime ?? csv?.metadata?.creationTimestamp;
   return timestamp ? Date.parse(timestamp) : 0;
@@ -89,17 +94,47 @@ export const isUiPluginInstalled = (
   Boolean(pluginType) &&
   uiPlugins.some((plugin) => plugin.spec?.type?.toLowerCase() === pluginType.toLowerCase());
 
+export const findCSVForSubscription = (
+  subscription: K8sResourceKind | undefined,
+  csvs: K8sResourceKind[] | undefined,
+): K8sResourceKind | undefined => {
+  const installedCSVName = subscription?.status?.installedCSV;
+  const subscriptionNamespace = subscription?.metadata?.namespace;
+  if (!installedCSVName || !subscriptionNamespace) {
+    return undefined;
+  }
+
+  return filterCSVsForOperatorDiscovery(csvs).find(
+    (csv) =>
+      csv.metadata?.name === installedCSVName && csv.metadata?.namespace === subscriptionNamespace,
+  );
+};
+
+const csvMatchesSubscriptionInstallProgress = (
+  csv: K8sResourceKind,
+  subscription: K8sResourceKind,
+): boolean => {
+  const targetNames = [subscription?.status?.currentCSV, subscription?.spec?.startingCSV];
+  return (
+    targetNames.includes(csv?.metadata?.name) &&
+    csv?.metadata?.namespace === subscription?.metadata?.namespace &&
+    !isCopiedCSV(csv)
+  );
+};
+
+export const findCSVForSubscriptionInstallProgress = (
+  subscription: K8sResourceKind | undefined,
+  csvs: K8sResourceKind[] | undefined,
+): K8sResourceKind | undefined =>
+  csvs?.find((csv) => subscription && csvMatchesSubscriptionInstallProgress(csv, subscription));
+
 export const findInstalledOperator = (
   packageName: string,
-  csvs: K8sResourceKind[],
+  csvs: K8sResourceKind[] | undefined,
 ): K8sResourceKind | undefined => {
-  const candidates =
-    csvs?.filter(
-      (candidate) =>
-        !isCopiedCSV(candidate) &&
-        isStandaloneCSV(candidate) &&
-        getCSVPackageName(candidate) === packageName,
-    ) ?? [];
+  const candidates = filterCSVsForOperatorDiscovery(csvs).filter(
+    (candidate) => getCSVPackageName(candidate) === packageName,
+  );
   if (!candidates.length) {
     return undefined;
   }
@@ -114,17 +149,22 @@ export const findInstalledOperator = (
   return pickNewestCSV(candidates);
 };
 
+const subscriptionHasResolvableCSV = (
+  subscription: K8sResourceKind,
+  csvs: K8sResourceKind[] | undefined,
+): boolean =>
+  Boolean(
+    findCSVForSubscription(subscription, csvs) ||
+    findCSVForSubscriptionInstallProgress(subscription, csvs),
+  );
+
 /** Subscriptions that are actively installing and do not yet have a matching CSV in the cluster. */
 export const getInstallingSubscriptions = (
   subscriptions: K8sResourceKind[] | undefined,
   csvs: K8sResourceKind[] | undefined,
 ): K8sResourceKind[] =>
   subscriptions?.filter(
-    (sub) =>
-      isNil(get(sub, 'status.installedCSV')) &&
-      !csvs?.find(({ metadata }) =>
-        [sub?.status?.currentCSV, sub?.spec?.startingCSV].includes(metadata?.name),
-      ),
+    (sub) => isNil(get(sub, 'status.installedCSV')) && !subscriptionHasResolvableCSV(sub, csvs),
   ) ?? [];
 
 export const groupVersionKindToPath = (gvk: K8sGroupVersionKind): string =>
@@ -329,12 +369,23 @@ export const getObservabilityCapability = (
   const [subscriptions] = requirementResources[RequirementKind.Subscription];
 
   const requiredOperators: RequiredOperator[] = definition.requiredOperators.map((operator) => {
-    const installedOperator = findInstalledOperator(operator.operatorName, csvs);
-    const subscription = subscriptions.find(
-      (sub) =>
-        sub.spec?.name === operator.operatorName ||
-        sub.status?.currentCSV?.startsWith(`${operator.operatorName}.`) ||
-        sub.spec?.startingCSV?.startsWith(`${operator.operatorName}.`),
+    const matchesOperatorSubscription = (sub: K8sResourceKind) =>
+      sub.spec?.name === operator.operatorName ||
+      sub.status?.currentCSV?.startsWith(`${operator.operatorName}.`) ||
+      sub.spec?.startingCSV?.startsWith(`${operator.operatorName}.`);
+
+    const resolveCSVFromSubscription = (sub: K8sResourceKind) =>
+      findCSVForSubscription(sub, csvs) ?? findCSVForSubscriptionInstallProgress(sub, csvs);
+
+    const installedOperator =
+      findInstalledOperator(operator.operatorName, csvs) ??
+      subscriptions
+        ?.filter(matchesOperatorSubscription)
+        .map((sub) => resolveCSVFromSubscription(sub))
+        .find((csv) => csv !== undefined);
+
+    const subscription = getInstallingSubscriptions(subscriptions, csvs).find(
+      matchesOperatorSubscription,
     );
     const status = getRequiredOperatorStatus(installedOperator, subscription);
 
