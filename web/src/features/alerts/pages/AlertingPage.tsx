@@ -67,9 +67,9 @@ const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const [perspective] = useActivePerspective();
-  const { setNamespace } = useMonitoringNamespace();
+  const { setNamespace, namespace } = useMonitoringNamespace();
 
-  const { plugin, prometheus } = useMonitoring();
+  const { plugin, prometheus, useAlertsTenancy } = useMonitoring();
 
   const { pathname } = useLocation();
 
@@ -105,9 +105,14 @@ const AlertingPage: FC = () => {
     <>
       {namespacedPages.includes(pathname) && (
         <NamespaceBar
-          onNamespaceChange={(namespace) => {
-            dispatch(alertingClearSelectorData(prometheus, namespace));
-            setNamespace(namespace);
+          onNamespaceChange={(newNamespace) => {
+            if (newNamespace === namespace) {
+              return;
+            }
+            if (useAlertsTenancy) {
+              dispatch(alertingClearSelectorData(prometheus, newNamespace));
+            }
+            setNamespace(newNamespace);
           }}
         />
       )}
