@@ -63,7 +63,6 @@ export const useAgenticRunCheck = (alert: Alert) => {
     const matchesFp = (p: K8sResourceCommon) =>
       p.metadata?.labels?.[AGENTIC_RUN_LABEL_FINGERPRINT] === alertFingerprint;
 
-    // Most recent first. Runs without a creationTimestamp sort to the end.
     const createdAt = (p: K8sResourceCommon) => {
       const ts = p.metadata?.creationTimestamp;
       const parsed = ts ? Date.parse(ts) : NaN;
