@@ -51,9 +51,15 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     legacyDashboardsPage.exportAsCSV(true, 'graphData.csv');
 
     cy.log('2.2 Empty state');
+    // An unused namespace can still return quota series; explicitly exercise an empty response.
+    cy.intercept('GET', '**/api/v1/query_range*', {
+      status: 'success',
+      data: { resultType: 'matrix', result: [] },
+    }).as('emptyDashboardQueries');
     cy.changeNamespace('default');
+    cy.wait('@emptyDashboardQueries');
     legacyDashboardsPage.shouldBeLoaded();
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible').and('contain', 'No datapoints found.');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
     cy.byPFRole('menuitem').should('have.attr', 'disabled');

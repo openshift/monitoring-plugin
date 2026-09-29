@@ -103,13 +103,13 @@ export const metricsPage = {
 
   clickUnitsDropdown: (units: MetricsPageUnits) => {
     cy.log('metricsPage.clickUnitsDropdown');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).find('button').should('be.visible').click();
     cy.get(Classes.MenuItem).contains(units).should('be.visible').click();
   },
 
   unitsDropdownAssertion: () => {
     cy.log('metricsPage.unitsDropdownAssertion');
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).find('button').should('be.visible').click();
 
     const units = Object.values(MetricsPageUnits);
     units.forEach((unit) => {
@@ -117,7 +117,7 @@ export const metricsPage = {
       cy.get(Classes.MenuItem).contains(unit).should('be.visible');
     });
 
-    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).should('be.visible').click();
+    cy.byTestID(DataTestIDs.MetricGraphUnitsDropDown).find('button').should('be.visible').click();
   },
 
   unitsAxisYAssertion: (unit: MetricsPageUnits) => {
