@@ -12,7 +12,6 @@ import {
   ModalVariant,
   TimePicker,
 } from '@patternfly/react-core';
-import * as _ from 'lodash-es';
 import type { FC, MouseEventHandler } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +19,7 @@ import { NumberParam, useQueryParam } from 'use-query-params';
 
 import { TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import { QueryParams } from '@/shared/constants/query-params';
+import { parseLocalDateTime } from '@/shared/utils/utils';
 
 const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 
@@ -27,11 +27,8 @@ const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
 const toISODateString = (date: Date): string =>
   `${date.getFullYear()}-${zeroPad(date.getMonth() + 1)}-${zeroPad(date.getDate())}`;
 
-// Get HH:MM time string for a date object
 const toISOTimeString = (date: Date): string =>
-  new Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).format(
-    date,
-  );
+  `${zeroPad(date.getHours())}:${zeroPad(date.getMinutes())}`;
 
 type CustomTimeRangeModalProps = {
   isOpen: boolean;
@@ -60,9 +57,9 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   const [toTime, setToTime] = useState(endTime ? toISOTimeString(new Date(endTime)) : '23:59');
 
   const submit: MouseEventHandler<HTMLButtonElement> = () => {
-    const from = Date.parse(`${fromDate} ${fromTime}`);
-    const to = Date.parse(`${toDate} ${toTime}`);
-    if (_.isInteger(from) && _.isInteger(to)) {
+    const from = parseLocalDateTime(fromDate, fromTime);
+    const to = parseLocalDateTime(toDate, toTime);
+    if (Number.isFinite(from) && Number.isFinite(to)) {
       setEndTimeParam(to);
       setTimeRangeParam(to - from);
       setClosed();
