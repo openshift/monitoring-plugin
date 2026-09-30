@@ -107,11 +107,11 @@ build-dev-mcp-image:
 
 .PHONY: start-devspace-backend
 start-devspace-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
+	air -c /opt/app-root/.air.toml -- -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
 
 .PHONY: start-devspace-mcp-backend
 start-devspace-mcp-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
+	air -c /opt/app-root/.air.toml -- -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
 
 .PHONY: podman-cross-build
 podman-cross-build:

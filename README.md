@@ -51,7 +51,7 @@ NOTE: If you have a Mac with Apple silicon, you will need to add the flag `--pla
 
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
 
-Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration works by running the go backend normally in the devspace pod, and then syncing the changes from your `web/dist` folder to the `/opt/app-root/web/dist` folder which is where the go backend serves the frontend files from.
+Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration syncs `web/dist` to `/opt/app-root/web/dist`, where the Go backend serves the frontend files from, and syncs the `cmd`, `pkg`, and `config` directories into the pod. Air watches the Go source files and JSON config patches, rebuilding and restarting the backend when they change.
 
 By running the webpack dev server locally any changes to your frontend files they will be rebuilt and then copied into the pod. You will need to disable your network cache in your dev tools to allow for overriding the previous webpack chunks and then perform a page refresh to see your changes.
 

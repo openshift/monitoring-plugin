@@ -19,3 +19,4 @@ web/po-files/
 .claude/settings.local.json
 _output/
 .tokensave/
+tasks/
