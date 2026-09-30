@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import {
-  alertingRuleSource,
   AlertStateIcon,
   getAlertStateKey,
   SilencesNotLoadedWarning,
@@ -50,6 +49,7 @@ import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
+import { alertingRuleSource } from '@/shared/utils/alerts/alert-source';
 import { alertingRuleStateSort, RuleResource, severitySort } from '@/shared/utils/utils';
 
 const AlertRulesPage_: FC = () => {

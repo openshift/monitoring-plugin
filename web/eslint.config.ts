@@ -211,7 +211,12 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/features/**/*.ts', 'src/features/**/*.tsx'],
+    files: [
+      'src/features/**/*.ts',
+      'src/features/**/*.tsx',
+      'src/shared/**/*.ts',
+      'src/shared/**/*.tsx',
+    ],
     plugins: {
       import: fixupPluginRules(importPlugin as any),
     },

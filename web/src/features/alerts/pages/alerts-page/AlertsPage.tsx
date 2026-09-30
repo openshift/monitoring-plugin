@@ -11,10 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
 import AggregateAlertTableRow from '@/features/alerts/pages/alerts-page/AggregateAlertTableRow';
-import {
-  AggregatedAlert,
-  getAggregateAlertsLists,
-} from '@/features/alerts/pages/alerts-page/alerts-aggregates';
+import { getAggregateAlertsLists } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import DownloadCSVButton from '@/features/alerts/pages/alerts-page/DownloadCSVButton';
 import {
   AggregatedAlertFilters,
@@ -42,7 +39,7 @@ import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { usePerspective } from '@/shared/hooks/usePerspective';
-import { AlertSource } from '@/shared/types/types';
+import { AggregatedAlert, AlertSource } from '@/shared/types/types';
 import { ALL_NAMESPACES_KEY, severitySort } from '@/shared/utils/utils';
 
 const AlertsPage_: FC = () => {

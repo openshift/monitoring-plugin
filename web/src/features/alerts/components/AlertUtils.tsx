@@ -3,14 +3,9 @@ import {
   Alert,
   AlertSeverity,
   AlertStates,
-  PrometheusAlert,
   PrometheusLabels,
-  PrometheusRule,
   RowFilter,
   Rule,
-  RuleStates,
-  Silence,
-  SilenceStates,
   Timestamp,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -54,36 +49,7 @@ import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { NamespaceModel } from '@/shared/console/models';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getQueryBrowserUrl, usePerspective } from '@/shared/hooks/usePerspective';
-import { AlertSource } from '@/shared/types/types';
 
-export const getAdditionalSources = <T extends Alert | Rule>(
-  data: Array<T>,
-  itemSource: (item: T) => string,
-) => {
-  if (data) {
-    const additionalSources = new Set<string>();
-    data.forEach((item) => {
-      const source = itemSource(item);
-      if (source !== AlertSource.Platform && source !== AlertSource.User) {
-        additionalSources.add(source);
-      }
-    });
-    return Array.from(additionalSources).map((item) => ({ value: item, label: _.startCase(item) }));
-  }
-  return [];
-};
-
-export const alertingRuleSource = (rule: Rule): AlertSource | string => {
-  if (rule.sourceId === undefined || rule.sourceId === 'prometheus') {
-    return rule.labels?.prometheus === 'openshift-monitoring/k8s'
-      ? AlertSource.Platform
-      : AlertSource.User;
-  }
-
-  return rule.sourceId;
-};
-
-export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -387,148 +353,4 @@ export const NamespaceGroupVersionKind = {
   group: 'core',
   kind: NamespaceModel.kind,
   version: null,
-};
-
-// This function looks to take a alerts and rules and then apply a set of silences to them
-// This function mutates the arrays in place and then returns them
-export const applySilences = ({
-  alerts,
-  silences,
-  rules,
-}: {
-  silences: Array<Silence>;
-  alerts: Array<Alert>;
-  rules: Array<Rule>;
-}): { silences: Array<Silence>; alerts: Array<Alert>; rules: Array<Rule> } => {
-  // We only need to check alerts that are either firing or silenced for if they are still silenced
-  const firingAlerts = alerts.filter(isAlertFiring);
-  applySilencesToAlerts({ firingAlerts, silences });
-
-  // Only check rules that are firing, silenced or pending to see if they are still silenced
-  const firingRules = rules.filter(isRuleFiring);
-  applySilencesToRules({ firingRules, silences });
-
-  // Add each alert that is being effected by a silence to the firingAlerts list on the silence
-  const appliedSilences = silences.map((silence) => {
-    silence.firingAlerts = firingAlerts.filter((firingAlert) =>
-      isAlertSilenced(firingAlert, silence),
-    );
-    return silence;
-  });
-  return { alerts, silences: appliedSilences, rules };
-};
-
-// This fucntion mutates the firingAlerts parameter in place to set silence fields on each alert
-const applySilencesToAlerts = ({
-  firingAlerts,
-  silences,
-}: {
-  silences: Array<Silence>;
-  firingAlerts: Array<Alert>;
-}) => {
-  // For each firing alert, store a list of the Silences that are silencing it
-  // and set its state to show it is silenced
-  firingAlerts.forEach((firingAlert) => {
-    firingAlert.silencedBy = silences.filter(
-      (silence) =>
-        silence.status?.state === SilenceStates.Active && isAlertSilenced(firingAlert, silence),
-    );
-
-    if (firingAlert.silencedBy.length) {
-      firingAlert.state = AlertStates.Silenced;
-      // Also set the state of Alerts in `rule.alerts`
-
-      firingAlert.rule.alerts.forEach((ruleAlert) => {
-        if (firingAlert.silencedBy?.some((silence) => isAlertSilenced(ruleAlert, silence))) {
-          ruleAlert.state = AlertStates.Silenced;
-        }
-      });
-
-      if (
-        firingAlert.rule.alerts.length !== 0 &&
-        firingAlert.rule.alerts.every((alert) => alert.state === AlertStates.Silenced)
-      ) {
-        firingAlert.rule.state = RuleStates.Silenced;
-
-        firingAlert.rule.silencedBy = silences.filter(
-          (silence) =>
-            silence.status?.state === SilenceStates.Active &&
-            firingAlert.rule.alerts.some((alert) => isAlertSilenced(alert, silence)),
-        );
-      }
-    }
-  });
-
-  return firingAlerts;
-};
-
-// This fucntion mutates the firingRules parameter in place to set silence fields on each rule
-const applySilencesToRules = ({
-  firingRules,
-  silences,
-}: {
-  silences: Array<Silence>;
-  firingRules: Array<Rule>;
-}) => {
-  // For each firing alert, store a list of the Silences that are silencing it
-  // and set its state to show it is silenced
-  firingRules.forEach((firingRule) => {
-    firingRule.silencedBy = silences.filter(
-      (silence) =>
-        silence.status?.state === SilenceStates.Active && isRuleSilenced(firingRule, silence),
-    );
-
-    if (firingRule.silencedBy.length) {
-      firingRule.state = RuleStates.Silenced;
-
-      firingRule.alerts.forEach((ruleAlert) => {
-        if (firingRule.silencedBy?.some((silence) => isAlertSilenced(ruleAlert, silence))) {
-          ruleAlert.state = AlertStates.Silenced;
-        }
-      });
-
-      if (
-        firingRule.alerts.length !== 0 &&
-        firingRule.alerts.every((alert) => alert.state === AlertStates.Silenced)
-      ) {
-        firingRule.state = RuleStates.Silenced;
-
-        firingRule.silencedBy = silences.filter(
-          (silence) =>
-            silence.status?.state === SilenceStates.Active &&
-            firingRule.alerts.some((alert) => isAlertSilenced(alert, silence)),
-        );
-      }
-    }
-  });
-
-  return firingRules;
-};
-
-const isAlertFiring = (alert: PrometheusAlert) =>
-  alert?.state === AlertStates.Firing || alert?.state === AlertStates.Silenced;
-
-const isRuleFiring = (rule: PrometheusRule) =>
-  rule?.state === RuleStates.Firing ||
-  rule?.state === RuleStates.Silenced ||
-  rule?.state === RuleStates.Pending;
-
-// Determine if an Alert is silenced by a Silence (if all of the Silence's matchers match one of the
-// Alert's labels)
-const isAlertSilenced = (alert: PrometheusAlert, silence: Silence): boolean => {
-  return (
-    isAlertFiring(alert) &&
-    silence.matchers.every((matcher) => {
-      const alertValue = alert.labels[matcher.name] ?? '';
-      const isMatch = matcher.isRegex
-        ? new RegExp(`^${matcher.value}$`).test(alertValue)
-        : alertValue === matcher.value;
-      return matcher.isEqual === false && alertValue ? !isMatch : isMatch;
-    })
-  );
-};
-
-// Determine if an Rule is silenced by a Silence (if all alerts for a rule are silenced)
-export const isRuleSilenced = (rule: PrometheusRule, silence: Silence): boolean => {
-  return isRuleFiring(rule) && rule.alerts.every((alert) => isAlertSilenced(alert, silence));
 };

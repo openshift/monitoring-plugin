@@ -28,29 +28,25 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { StringParam, useQueryParam } from 'use-query-params';
 
-import {
-  DEFAULT_GRAPH_SAMPLES,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-  TimeRangeParam,
-} from '@/features/legacy-dashboards/utils/utils';
-import type { Variable } from '@/features/legacy-dashboards/utils/variable-utils';
+import { DEFAULT_GRAPH_SAMPLES, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import {
   evaluateVariableTemplate,
   isIntervalVariable,
 } from '@/features/legacy-dashboards/utils/variable-utils';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { SingleTypeaheadDropdown } from '@/shared/console/utils/SingleTypeaheadDropdown';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/shared/constants/legacy-dashboards';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { getObserveState, usePerspective } from '@/shared/hooks/usePerspective';
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
+import type { Variable } from '@/shared/types/types';
 import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '@/shared/utils/utils';
 
 export { evaluateVariableTemplate } from '@/features/legacy-dashboards/utils/variable-utils';
-export type { Variable } from '@/features/legacy-dashboards/utils/variable-utils';
 
 const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }: SelectOptionProps) =>
   isIntervalVariable(String(value)) ? (
