@@ -2,7 +2,6 @@ import {
   Action,
   Alert,
   AlertSeverity,
-  AlertStates,
   PrometheusLabels,
   RowFilter,
   Rule,
@@ -20,11 +19,9 @@ import {
 } from '@patternfly/react-core';
 import {
   BellIcon,
-  BellSlashIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InfoCircleIcon,
-  OutlinedBellIcon,
   SeverityUndefinedIcon,
 } from '@patternfly/react-icons';
 import {
@@ -32,12 +29,9 @@ import {
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
-  t_global_icon_color_disabled,
   t_global_icon_color_severity_undefined_default,
-  t_global_text_color_disabled,
   t_global_text_color_subtle,
 } from '@patternfly/react-tokens';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
 import { memo } from 'react';
@@ -92,56 +86,6 @@ export const SeverityIcon = memo(({ severity }: { severity: string }) => {
 });
 
 SeverityIcon.displayName = 'SeverityIcon';
-
-export const AlertState = memo(({ state }: AlertStateProps) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const icon = <AlertStateIcon state={state} />;
-
-  return icon ? (
-    <span
-      style={{
-        color: state === AlertStates.Silenced ? t_global_text_color_disabled.var : undefined,
-      }}
-    >
-      {icon} {getAlertStateKey(state, t)}
-    </span>
-  ) : null;
-});
-
-AlertState.displayName = 'AlertState';
-
-type AlertStateProps = {
-  state: AlertStates;
-};
-
-export const AlertStateIcon = memo(({ state }: { state: string }) => {
-  switch (state) {
-    case AlertStates.Firing:
-      return <BellIcon />;
-    case AlertStates.Pending:
-      return <OutlinedBellIcon />;
-    case AlertStates.Silenced:
-      return <BellSlashIcon color={t_global_icon_color_disabled.var} />;
-    default:
-      return null;
-  }
-});
-
-AlertStateIcon.displayName = 'AlertStateIcon';
-
-export const getAlertStateKey = (state, t) => {
-  switch (state) {
-    case AlertStates.Firing:
-      return t('Firing');
-    case AlertStates.Pending:
-      return t('Pending');
-    case AlertStates.Silenced:
-      return t('Silenced');
-    default:
-      return t('Not Firing');
-  }
-};
 
 export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -291,17 +235,6 @@ export const SourceHelp: FC = () => {
       </DescriptionListGroup>
     </DescriptionList>
   );
-};
-
-export const getSourceKey = (source, t: TFunction) => {
-  switch (source) {
-    case 'Platform':
-      return t('Platform');
-    case 'User':
-      return t('User');
-    default:
-      return source;
-  }
 };
 
 export const SeverityCounts: FC<{ alerts: Alert[] }> = ({ alerts }) => {

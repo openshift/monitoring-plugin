@@ -9,28 +9,74 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-export const applySilences = ({
-  alerts,
-  silences,
-  rules,
-}: {
-  silences: Array<Silence>;
-  alerts: Array<Alert>;
-  rules: Array<Rule>;
-}): { silences: Array<Silence>; alerts: Array<Alert>; rules: Array<Rule> } => {
+type AlertingData = {
+  alerts: Alert[];
+  rules: Rule[];
+  silences: Silence[];
+};
+
+const cloneAlert = (alert: Alert): PrometheusAlert => ({
+  ...alert,
+  annotations: { ...alert.annotations },
+  labels: { ...alert.labels },
+  state: alert.state,
+});
+
+const cloneRule = (rule: Rule): Rule => ({
+  ...rule,
+  annotations: { ...rule.annotations },
+  labels: { ...rule.labels },
+  alerts: rule.alerts.map(cloneAlert),
+});
+
+const cloneAlertingData = ({ alerts, rules, silences }: AlertingData): AlertingData => {
+  const clonedRules = rules.map(cloneRule);
+  const ruleKey = (rule: Rule) => JSON.stringify([rule.sourceId ?? 'prometheus', rule.id]);
+  const rulesBySource = new Map(
+    clonedRules.map((rule, index) => [ruleKey(rule), clonedRules[index]]),
+  );
+
+  const getClonedRule = (rule: Rule) => {
+    const key = ruleKey(rule);
+    let clonedRule = rulesBySource.get(key);
+    if (!clonedRule) {
+      clonedRule = cloneRule(rule);
+      rulesBySource.set(key, clonedRule);
+    }
+    return clonedRule;
+  };
+
+  return {
+    rules: clonedRules,
+    alerts: alerts.map((alert) => ({
+      ...cloneAlert(alert),
+      rule: getClonedRule(alert.rule),
+    })),
+    silences: silences.map((silence) => ({
+      ...silence,
+      matchers: silence.matchers.map((matcher) => ({ ...matcher })),
+      status: { ...silence.status },
+    })),
+  };
+};
+
+// Apply silences to alerts and rules without modifying the data in place
+export const applySilences = (data: AlertingData): AlertingData => {
+  const { alerts, rules, silences } = cloneAlertingData(data);
   const firingAlerts = alerts.filter(isAlertFiring);
-  applySilencesToAlerts({ firingAlerts, silences });
-
   const firingRules = rules.filter(isRuleFiring);
-  applySilencesToRules({ firingRules, silences });
 
-  const appliedSilences = silences.map((silence) => {
-    silence.firingAlerts = firingAlerts.filter((firingAlert) =>
-      isAlertSilenced(firingAlert, silence),
-    );
-    return silence;
-  });
-  return { alerts, silences: appliedSilences, rules };
+  applySilencesToAlerts({ silences, firingAlerts });
+  applySilencesToRules({ silences, firingRules });
+
+  return {
+    alerts,
+    rules,
+    silences: silences.map((silence) => ({
+      ...silence,
+      firingAlerts: firingAlerts.filter((alert) => isAlertSilenced(alert, silence)),
+    })),
+  };
 };
 
 const applySilencesToAlerts = ({
@@ -60,6 +106,7 @@ const applySilencesToAlerts = ({
         firingAlert.rule.alerts.every((alert) => alert.state === AlertStates.Silenced)
       ) {
         firingAlert.rule.state = RuleStates.Silenced;
+
         firingAlert.rule.silencedBy = silences.filter(
           (silence) =>
             silence.status?.state === SilenceStates.Active &&
@@ -99,6 +146,7 @@ const applySilencesToRules = ({
         firingRule.alerts.every((alert) => alert.state === AlertStates.Silenced)
       ) {
         firingRule.state = RuleStates.Silenced;
+
         firingRule.silencedBy = silences.filter(
           (silence) =>
             silence.status?.state === SilenceStates.Active &&

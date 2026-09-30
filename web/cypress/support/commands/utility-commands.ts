@@ -383,7 +383,7 @@ Cypress.Commands.add('dynamicPluginWorkConsoleAround', () => {
       cy.log('Checking for loading state');
       while (
         $body.find('[data-test^="loading"]').length > 0 &&
-        $body.find('button:contains("Refresh")').length === 0 &&
+        $body.find('button:contains("Refresh off")').length === 0 &&
         i < 6
       ) {
         cy.log('Refresh button not found. Waiting for 10 seconds and trying again.');
@@ -392,9 +392,9 @@ Cypress.Commands.add('dynamicPluginWorkConsoleAround', () => {
       }
       i = 0;
       cy.log('Checking for refresh button');
-      while ($body.find('button:contains("Refresh")').length > 0 && i < 6) {
+      while ($body.find('button:contains("Refresh off")').length > 0 && i < 6) {
         cy.log('Refresh button found. Clicking it.');
-        cy.bySemanticElement('button', 'Refresh').click();
+        cy.bySemanticElement('button', 'Refresh off').click();
         cy.wait(10000);
         i++;
       }

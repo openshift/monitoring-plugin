@@ -1,9 +1,3 @@
-vi.mock('../../components/AlertUtils', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alertSource: (alert: any) =>
-    alert.rule?.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
-}));
-
 import { Alert, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
 import {

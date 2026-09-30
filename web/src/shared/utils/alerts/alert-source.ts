@@ -1,4 +1,5 @@
 import { Alert, Rule } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 
 import { AlertSource } from '@/shared/types/types';
@@ -31,3 +32,14 @@ export const alertingRuleSource = (rule: Rule): AlertSource | string => {
 };
 
 export const alertSource = (alert: Alert): AlertSource | string => alertingRuleSource(alert.rule);
+
+export const getSourceKey = (source: string, t: TFunction) => {
+  switch (source) {
+    case 'Platform':
+      return t('Platform');
+    case 'User':
+      return t('User');
+    default:
+      return source;
+  }
+};

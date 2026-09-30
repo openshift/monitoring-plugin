@@ -46,10 +46,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import {
-  AlertState,
   AlertStateDescription,
-  AlertStateIcon,
-  getSourceKey,
   Graph,
   isActionWithCallback,
   isActionWithHref,
@@ -57,6 +54,7 @@ import {
   SourceHelp,
 } from '@/features/alerts/components/AlertUtils';
 import { SilencedByList } from '@/features/alerts/components/SilencedByTable';
+import { AlertState, AlertStateIcon } from '@/shared/components/AlertState';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
@@ -86,7 +84,7 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
-import { alertSource } from '@/shared/utils/alerts/alert-source';
+import { alertSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { AlertResource, alertState, RuleResource } from '@/shared/utils/utils';
 
 const AlertsDetailsPage_: FC = () => {
