@@ -1,8 +1,6 @@
-import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/features/legacy-dashboards/utils/utils';
-import {
-  evaluateVariableTemplate,
-  Variable,
-} from '@/features/legacy-dashboards/utils/variable-utils';
+import { evaluateVariableTemplate } from '@/features/legacy-dashboards/utils/variable-utils';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/shared/constants/legacy-dashboards';
+import type { Variable } from '@/shared/types/types';
 
 const timespan = 30 * 60 * 1000; // 30 minutes
 const makeVariables = (

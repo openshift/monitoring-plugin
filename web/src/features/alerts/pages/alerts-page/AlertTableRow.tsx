@@ -22,7 +22,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
 import {
-  alertSource,
   AlertState,
   AlertStateDescription,
   isActionWithCallback,
@@ -37,6 +36,7 @@ import { DataTestIDs } from '@/shared/constants/data-test';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
+import { alertSource } from '@/shared/utils/alerts/alert-source';
 import { AlertResource, alertState } from '@/shared/utils/utils';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {

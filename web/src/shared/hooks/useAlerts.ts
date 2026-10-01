@@ -8,11 +8,6 @@ import {
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import {
-  alertingRuleSource,
-  alertSource,
-  getAdditionalSources,
-} from '@/features/alerts/components/AlertUtils';
 import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
@@ -20,6 +15,11 @@ import { getObserveState } from '@/shared/hooks/usePerspective';
 import { AppDispatch } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import { fetchAlertingData } from '@/shared/store/thunks';
+import {
+  alertingRuleSource,
+  alertSource,
+  getAdditionalSources,
+} from '@/shared/utils/alerts/alert-source';
 import {
   ALL_NAMESPACES_KEY,
   buildPrometheusUrl,

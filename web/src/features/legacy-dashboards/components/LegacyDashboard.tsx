@@ -30,10 +30,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import { useQueryParam } from 'use-query-params';
 
-import {
-  evaluateVariableTemplate,
-  Variable,
-} from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
+import { evaluateVariableTemplate } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
 import BarChart from '@/features/legacy-dashboards/components/panels/BarChart';
 import Graph from '@/features/legacy-dashboards/components/panels/Graph';
 import SingleStat from '@/features/legacy-dashboards/components/panels/SingleStat';
@@ -54,6 +51,7 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
+import type { Variable } from '@/shared/types/types';
 import { GraphUnits } from '@/shared/utils/units';
 
 const QueryBrowserLink = ({

@@ -1,5 +1,11 @@
 import { RuleStates, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
+import type {
+  DaysFilters,
+  IncidentSeverityFilters,
+  IncidentStateFilters,
+} from '@/shared/types/types';
+
 export type Timestamps = [number, string];
 
 export type SpanDates = Array<number>;
@@ -51,12 +57,6 @@ export type Alert = {
   values: Array<Timestamps>;
   alertsExpandedRowData?: Array<Alert>;
 };
-
-export type DaysFilters = '1 day' | '3 days' | '7 days' | '15 days';
-
-export type IncidentStateFilters = 'Resolved' | 'Firing';
-
-export type IncidentSeverityFilters = 'Critical' | 'Warning' | 'Informative';
 
 export type Severity = 'critical' | 'warning' | 'info';
 

@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { AlertState } from '@/features/alerts/components/AlertUtils';
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import AlertTableRow from '@/features/alerts/pages/alerts-page/AlertTableRow';
 import {
   AggregatedAlertFilters,
@@ -16,6 +15,7 @@ import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AggregatedAlert } from '@/shared/types/types';
 import { RuleResource } from '@/shared/utils/utils';
 
 type AggregateAlertTableRowProps = {

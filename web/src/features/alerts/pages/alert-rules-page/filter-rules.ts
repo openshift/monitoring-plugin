@@ -1,8 +1,8 @@
 import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { isEmpty, some } from 'lodash-es';
 
-import { alertingRuleSource } from '@/features/alerts/components/AlertUtils';
 import { AlertSource } from '@/shared/types/types';
+import { alertingRuleSource } from '@/shared/utils/alerts/alert-source';
 import { fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 export const enum AlertRulesFilterOptions {
