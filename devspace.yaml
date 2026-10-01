@@ -41,10 +41,13 @@ dev:
     namespace: openshift-monitoring
     labelSelector:
       app.kubernetes.io/component: monitoring-plugin
-    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
+      - path: ./cmd:/opt/app-root/cmd
+      - path: ./pkg:/opt/app-root/pkg
+      - path: ./config:/opt/app-root/config
     command: ["sh", "-c"]
     args:
       - until test -f /opt/app-root/web/dist/plugin-manifest.json; do sleep 1; done; exec make start-devspace-backend
@@ -56,7 +59,7 @@ dev:
     labelSelector:
       app.kubernetes.io/instance: monitoring
       app.kubernetes.io/managed-by: observability-operator
-    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace-5.0
+    devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace
     patches:
       - op: replace
         path: spec.containers[0].imagePullPolicy
@@ -64,6 +67,9 @@ dev:
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true
+      - path: ./cmd:/opt/app-root/cmd
+      - path: ./pkg:/opt/app-root/pkg
+      - path: ./config:/opt/app-root/config
     command: ["sh", "-c"]
     args:
       - until test -f /opt/app-root/web/dist/plugin-manifest.json; do sleep 1; done; exec make start-devspace-mcp-backend
