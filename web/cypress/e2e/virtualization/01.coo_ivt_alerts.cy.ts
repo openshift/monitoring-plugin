@@ -68,7 +68,6 @@ describe(
   { tags: ['@virtualization', '@alerts'] },
   () => {
     beforeEach(() => {
-      cy.visit('/');
       cy.validateLogin();
       cy.switchPerspective('Virtualization');
       guidedTour.closeKubevirtTour();
