@@ -1,35 +1,22 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { testCOORBACPersesTestsDevUser2 } from '../../support/perses/99.coo_rbac_perses_user2.cy';
-import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
-  'RBAC User2: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC Group containing user2: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
-      // Step 1: Grant temporary cluster-admin role to dev user for COO/Perses installation
-      // cy.log('Granting temporary cluster-admin role to dev user for setup');
-      // cy.adminCLI(
-      //   `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
-      // );
-
-      // Step 2: Setup COO and Perses dashboards (requires admin privileges)
-      operatorAuthUtils.loginAndAuth();
+      // Setup COO and Perses dashboards (requires admin privileges)
+      cy.beforeBlockCOO({
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
 
-      //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
-      // Step 3: Remove cluster-admin role - dev user now has limited permissions
-      // cy.log('Removing cluster-admin role from dev user');
-      // cy.adminCLI(
-      //   `oc adm policy remove-cluster-role-from-user cluster-admin ` +
-      //     `${Cypress.env('LOGIN_USERNAME')}`,
-      // );
-
-      // Step 4: Clear Cypress session cache and logout
+      // Clear Cypress session cache and logout
       // This is critical because beforeBlockCOO uses cy.session() which caches the login state
       cy.log('Clearing Cypress session cache to ensure fresh login');
       cy.then(() => {
@@ -41,7 +28,7 @@ describe(
       cy.clearAllLocalStorage();
       cy.clearAllSessionStorage();
 
-      // Step 5: Re-login as dev user (now without cluster-admin role)
+      // Re-login as dev user (now without cluster-admin role)
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(

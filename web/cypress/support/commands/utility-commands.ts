@@ -66,11 +66,11 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible')
         .click({ force: true });
@@ -257,22 +257,17 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
-        .scrollIntoView()
+        .find(Classes.NamespaceDropdown)
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
-        .scrollIntoView()
+        .find(Classes.NamespaceDropdown)
         .should('be.visible')
         .click({ force: true });
     } else {
-      cy.get(Classes.NamespaceDropdown).scrollIntoView().should('be.visible');
+      cy.get(Classes.NamespaceDropdown).should('be.visible');
       cy.waitUntil(
         () => {
-          cy.get(Classes.NamespaceDropdown)
-            .scrollIntoView()
-            .should('be.visible')
-            .click({ force: true });
+          cy.get(Classes.NamespaceDropdown).should('be.visible').click({ force: true });
           return cy
             .get('body')
             .then(
@@ -318,20 +313,15 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
-        .scrollIntoView()
+        .find(Classes.NamespaceDropdown)
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
-        .scrollIntoView()
+        .find(Classes.NamespaceDropdown)
         .should('be.visible')
         .click({ force: true });
     } else {
-      cy.get(Classes.NamespaceDropdownExpanded).scrollIntoView().should('be.visible');
-      cy.get(Classes.NamespaceDropdownExpanded)
-        .scrollIntoView()
-        .should('be.visible')
-        .click({ force: true });
+      cy.get(Classes.NamespaceDropdownExpanded).should('be.visible');
+      cy.get(Classes.NamespaceDropdownExpanded).should('be.visible').click({ force: true });
     }
   });
 });

@@ -1,10 +1,10 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
-import { testCOORBACPersesTestsDevUser4 } from '../../support/perses/99.coo_rbac_perses_user4.cy';
+import { testCOORBACPersesTestsDevUser5 } from '../../support/perses/99.coo_rbac_perses_user5.cy';
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
-  'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC Group containing User5: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -19,7 +19,7 @@ describe(
       operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
 
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
       // Step 3: Remove cluster-admin role - dev user now has limited permissions
@@ -46,8 +46,8 @@ describe(
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
-        Cypress.env('LOGIN_USERNAME4'),
-        Cypress.env('LOGIN_PASSWORD4'),
+        Cypress.env('LOGIN_USERNAME5'),
+        Cypress.env('LOGIN_PASSWORD5'),
       );
       cy.validateLogin();
       cy.closeOnboardingModalIfPresent();
@@ -65,6 +65,6 @@ describe(
     });
 
     //TODO: rename after customizable-dashboards gets merged
-    testCOORBACPersesTestsDevUser4(CustomerPerspectiveName.CorePlatform);
+    testCOORBACPersesTestsDevUser5(CustomerPerspectiveName.CorePlatform);
   },
 );
