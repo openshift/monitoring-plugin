@@ -4,7 +4,7 @@ import { testCOORBACPersesTestsDevUser4 } from '../../support/perses/99.coo_rbac
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
-  'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC Group containing User4: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -19,7 +19,7 @@ describe(
       operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
 
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
       // Step 3: Remove cluster-admin role - dev user now has limited permissions
@@ -45,7 +45,7 @@ describe(
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
 
       /**
-       * RBAC permissions for dev user4 (bound directly to the user, no group)
+       * RBAC permissions for Group4 (perses-e2e-group4 / dev user4)
        * - Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
        * - empty-namespace4: view, persesdashboard-viewer-role, persesdatasource-viewer-role
        * - openshift-monitoring: view

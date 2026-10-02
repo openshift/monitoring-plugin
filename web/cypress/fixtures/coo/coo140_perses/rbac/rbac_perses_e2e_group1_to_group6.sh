@@ -1,22 +1,23 @@
 #!/bin/bash
-
-# Perses RBAC test users — permissions summary
-# (direct user bindings; mirrored via group membership in
-# rbac_perses_e2e_group1_to_group6.sh)
+# Perses RBAC test groups — permissions summary
+# (mirrors rbac_perses_e2e_ci_users.sh, but granted via group membership
+# instead of direct user bindings)
 #
-# | User  | Cluster-wide ClusterRoleBindings                                 | Namespace                                | Built-in Role | Perses Dashboard Role       | Perses Datasource Role       |
-# |-------|------------------------------------------------------------------|------------------------------------------|---------------|-----------------------------|------------------------------|
-# | user1 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | observ-test                              | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
-# |       |                                                                  | openshift-cluster-observability-operator | view          | persesdashboard-editor-role | persesdatasource-editor-role |
-# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
-# | user2 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | perses-dev                               | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
-# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
-# | user3 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace3                         | view          | persesdashboard-editor-role | persesdatasource-editor-role |
-# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
-# | user4 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace4                         | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
-# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
-# | user5 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | openshift-monitoring                     | admin         | -                           | -                            |
-# | user6 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | -                                        | -             | -                           | -                            |
+# | Group  | Cluster-wide ClusterRoleBindings                                 | Namespace                                | Built-in Role | Perses Dashboard Role       | Perses Datasource Role       |
+# |--------|------------------------------------------------------------------|------------------------------------------|---------------|-----------------------------|------------------------------|
+# | group1 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | observ-test                              | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |        |                                                                  | openshift-cluster-observability-operator | view          | persesdashboard-editor-role | persesdatasource-editor-role |
+# |        |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | group2 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | perses-dev                               | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |        |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | group3 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace3                         | view          | persesdashboard-editor-role | persesdatasource-editor-role |
+# |        |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | group4 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace4                         | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |        |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | group5 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | openshift-monitoring                     | admin         | -                           | -                            |
+# | group6 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | -                                        | -             | -                           | -                            |
+ 
+set -euo pipefail
 
 # User variables (passed as arguments)
 USER1="${USER1}"
@@ -30,6 +31,30 @@ oc create namespace perses-dev 2>/dev/null || true
 oc create namespace observ-test 2>/dev/null || true 
 oc create namespace empty-namespace3 2>/dev/null || true
 oc create namespace empty-namespace4 2>/dev/null || true
+
+# Group variables: one group per user, each granted the same RBAC the
+# corresponding user gets in rbac_perses_e2e_ci_users.sh, but via group membership
+# instead of a direct user binding.
+GROUP1="perses-e2e-group1"
+GROUP2="perses-e2e-group2"
+GROUP3="perses-e2e-group3"
+GROUP4="perses-e2e-group4"
+GROUP5="perses-e2e-group5"
+GROUP6="perses-e2e-group6"
+
+oc adm groups new "${GROUP1}" 2>/dev/null || true
+oc adm groups new "${GROUP2}" 2>/dev/null || true
+oc adm groups new "${GROUP3}" 2>/dev/null || true
+oc adm groups new "${GROUP4}" 2>/dev/null || true
+oc adm groups new "${GROUP5}" 2>/dev/null || true
+oc adm groups new "${GROUP6}" 2>/dev/null || true
+
+oc adm groups add-users "${GROUP1}" "${USER1}"
+oc adm groups add-users "${GROUP2}" "${USER2}"
+oc adm groups add-users "${GROUP3}" "${USER3}"
+oc adm groups add-users "${GROUP4}" "${USER4}"
+oc adm groups add-users "${GROUP5}" "${USER5}"
+oc adm groups add-users "${GROUP6}" "${USER6}"
 
 oc apply -f - <<EOF
 kind: ClusterRole
@@ -1067,11 +1092,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-perses-prometheus-api-editor
+  name: group1-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1082,11 +1107,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user2-perses-prometheus-api-editor
+  name: group2-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER2}
+    name: ${GROUP2}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1097,11 +1122,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user3-perses-prometheus-api-editor
+  name: group3-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER3}
+    name: ${GROUP3}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1112,11 +1137,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user4-perses-prometheus-api-editor
+  name: group4-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER4}
+    name: ${GROUP4}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1127,11 +1152,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user5-perses-prometheus-api-editor
+  name: group5-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER5}
+    name: ${GROUP5}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1142,11 +1167,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user6-perses-prometheus-api-editor
+  name: group6-perses-prometheus-api-editor
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER6}
+    name: ${GROUP6}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1158,11 +1183,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-persesglobaldatasource-viewer
+  name: group1-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1173,11 +1198,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user2-persesglobaldatasource-viewer
+  name: group2-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER2}
+    name: ${GROUP2}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1188,11 +1213,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user3-persesglobaldatasource-viewer
+  name: group3-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER3}
+    name: ${GROUP3}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1203,11 +1228,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user4-persesglobaldatasource-viewer
+  name: group4-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER4}
+    name: ${GROUP4}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1218,11 +1243,11 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user5-persesglobaldatasource-viewer
+  name: group5-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER5}
+    name: ${GROUP5}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1233,27 +1258,33 @@ oc apply -f - <<EOF
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user6-persesglobaldatasource-viewer
+  name: group6-persesglobaldatasource-viewer
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER6}
+    name: ${GROUP6}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: persesglobaldatasource-viewer-role
 EOF
+
+oc -n observ-test policy add-role-to-group view "${GROUP1}"
+oc -n openshift-cluster-observability-operator policy add-role-to-group view "${GROUP1}"
+oc -n perses-dev policy add-role-to-group view "${GROUP2}"
+oc -n empty-namespace3 policy add-role-to-group view "${GROUP3}"
+oc -n empty-namespace4 policy add-role-to-group view "${GROUP4}"
 
 oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-viewer-dashboard-observ-test
+  name: group1-viewer-dashboard-observ-test
   namespace: observ-test
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1264,12 +1295,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-editor-dashboard
+  name: group1-editor-dashboard
   namespace: openshift-cluster-observability-operator
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1280,12 +1311,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user2-viewer-dashboard
+  name: group2-viewer-dashboard
   namespace: perses-dev
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER2}
+    name: ${GROUP2}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1296,12 +1327,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user3-editor-dashboard
+  name: group3-editor-dashboard
   namespace: empty-namespace3
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER3}
+    name: ${GROUP3}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1312,12 +1343,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user4-viewer-dashboard
+  name: group4-viewer-dashboard
   namespace: empty-namespace4
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER4}
+    name: ${GROUP4}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1328,12 +1359,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-editor-datasource
+  name: group1-editor-datasource
   namespace: openshift-cluster-observability-operator
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1344,12 +1375,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user1-viewer-datasource
+  name: group1-viewer-datasource
   namespace: observ-test
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER1}
+    name: ${GROUP1}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1360,12 +1391,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user2-viewer-datasource
+  name: group2-viewer-datasource
   namespace: perses-dev
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER2}
+    name: ${GROUP2}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1376,12 +1407,12 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user3-editor-datasource
+  name: group3-editor-datasource
   namespace: empty-namespace3
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER3}
+    name: ${GROUP3}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -1392,26 +1423,72 @@ oc apply -f - <<EOF
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: user4-viewer-datasource
+  name: group4-viewer-datasource
   namespace: empty-namespace4
 subjects:
-  - kind: User
+  - kind: Group
     apiGroup: rbac.authorization.k8s.io
-    name: ${USER4}
+    name: ${GROUP4}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: persesdatasource-viewer-role
 EOF
 
-oc -n observ-test policy add-role-to-user view ${USER1}
-oc -n openshift-cluster-observability-operator policy add-role-to-user view ${USER1}
-oc -n perses-dev policy add-role-to-user view ${USER2}
-oc -n empty-namespace3 policy add-role-to-user view ${USER3}
-oc -n empty-namespace4 policy add-role-to-user view ${USER4}
+oc -n openshift-monitoring policy add-role-to-group view "${GROUP1}"
+oc -n openshift-monitoring policy add-role-to-group view "${GROUP2}"
+oc -n openshift-monitoring policy add-role-to-group view "${GROUP3}"
+oc -n openshift-monitoring policy add-role-to-group view "${GROUP4}"
+oc -n openshift-monitoring policy add-role-to-group admin "${GROUP5}"
 
-oc -n openshift-monitoring policy add-role-to-user view ${USER1}
-oc -n openshift-monitoring policy add-role-to-user view ${USER2}
-oc -n openshift-monitoring policy add-role-to-user view ${USER3}
-oc -n openshift-monitoring policy add-role-to-user view ${USER4}
-oc -n openshift-monitoring policy add-role-to-user admin ${USER5}
+# ---------------------------------------------------------------------------
+# Remove the direct-to-user RBAC grants created by rbac_perses_e2e_ci_users.sh
+# now that USER1..USER6 get the same permissions through GROUP1..GROUP6
+# above. This leaves each user with permissions granted exclusively via
+# their group, with nothing bound directly to the user.
+# ---------------------------------------------------------------------------
+
+# ClusterRoleBindings bound directly to each user
+oc delete clusterrolebinding user1-perses-prometheus-api-editor --ignore-not-found
+oc delete clusterrolebinding user2-perses-prometheus-api-editor --ignore-not-found
+oc delete clusterrolebinding user3-perses-prometheus-api-editor --ignore-not-found
+oc delete clusterrolebinding user4-perses-prometheus-api-editor --ignore-not-found
+oc delete clusterrolebinding user5-perses-prometheus-api-editor --ignore-not-found
+oc delete clusterrolebinding user6-perses-prometheus-api-editor --ignore-not-found
+
+oc delete clusterrolebinding user1-persesglobaldatasource-viewer --ignore-not-found
+oc delete clusterrolebinding user2-persesglobaldatasource-viewer --ignore-not-found
+oc delete clusterrolebinding user3-persesglobaldatasource-viewer --ignore-not-found
+oc delete clusterrolebinding user4-persesglobaldatasource-viewer --ignore-not-found
+oc delete clusterrolebinding user5-persesglobaldatasource-viewer --ignore-not-found
+oc delete clusterrolebinding user6-persesglobaldatasource-viewer --ignore-not-found
+
+# RoleBindings bound directly to each user
+oc -n observ-test delete rolebinding user1-viewer-dashboard-observ-test --ignore-not-found
+oc -n openshift-cluster-observability-operator delete rolebinding user1-editor-dashboard --ignore-not-found
+oc -n perses-dev delete rolebinding user2-viewer-dashboard --ignore-not-found
+oc -n empty-namespace3 delete rolebinding user3-editor-dashboard --ignore-not-found
+oc -n empty-namespace4 delete rolebinding user4-viewer-dashboard --ignore-not-found
+oc -n openshift-cluster-observability-operator delete rolebinding user1-editor-datasource --ignore-not-found
+oc -n observ-test delete rolebinding user1-viewer-datasource --ignore-not-found
+oc -n perses-dev delete rolebinding user2-viewer-datasource --ignore-not-found
+oc -n empty-namespace3 delete rolebinding user3-editor-datasource --ignore-not-found
+oc -n empty-namespace4 delete rolebinding user4-viewer-datasource --ignore-not-found
+
+# Policy-based grants (oc policy add-role-to-user) bound directly to each user.
+# `|| true` makes this tolerant of rbac_perses_e2e_ci_users.sh never having
+# run (so the user was never actually a subject on these RoleBindings) -
+# oc adm policy remove-role-from-user exits non-zero with
+# "unable to find target" when there's nothing to remove, which is the
+# desired end state, not a real failure.
+oc -n observ-test policy remove-role-from-user view "${USER1}" || true
+oc -n openshift-cluster-observability-operator policy remove-role-from-user view "${USER1}" || true
+oc -n perses-dev policy remove-role-from-user view "${USER2}" || true
+oc -n empty-namespace3 policy remove-role-from-user view "${USER3}" || true
+oc -n empty-namespace4 policy remove-role-from-user view "${USER4}" || true
+
+oc -n openshift-monitoring policy remove-role-from-user view "${USER1}" || true
+oc -n openshift-monitoring policy remove-role-from-user view "${USER2}" || true
+oc -n openshift-monitoring policy remove-role-from-user view "${USER3}" || true
+oc -n openshift-monitoring policy remove-role-from-user view "${USER4}" || true
+oc -n openshift-monitoring policy remove-role-from-user admin "${USER5}" || true
