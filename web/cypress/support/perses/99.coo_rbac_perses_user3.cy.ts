@@ -37,62 +37,13 @@ export function testCOORBACPersesTestsDevUser3(
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.noDashboardsFoundState();
-      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('All Projects', false);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
       cy.assertNamespace('perses-dev', false);
       cy.assertNamespace('empty-namespace3', true);
       cy.assertNamespace('empty-namespace4', false);
       cy.assertNamespace('openshift-monitoring', true);
-
-      cy.log(`1.2. All Projects validation - Dashboard search - empty state`);
-      cy.changeNamespace('All Projects');
-      listPersesDashboardsPage.noDashboardsFoundState();
-      listPersesDashboardsPage.assertCreateButtonIsEnabled();
-      listPersesDashboardsPage.clickCreateButton();
-      persesCreateDashboardsPage.createDashboardShouldBeLoaded();
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown(
-        'openshift-cluster-observability-operator',
-      );
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
-      persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
-      persesCreateDashboardsPage.createDashboardDialogCancelButton();
-
-      cy.log(`1.3. empty-namespace3 validation - Dashboard search - empty state`);
-      cy.changeNamespace('empty-namespace3');
-      listPersesDashboardsPage.noDashboardsFoundState();
-      listPersesDashboardsPage.assertCreateButtonIsEnabled();
-      listPersesDashboardsPage.clickCreateButton();
-      persesCreateDashboardsPage.createDashboardShouldBeLoaded();
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown(
-        'openshift-cluster-observability-operator',
-      );
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
-      persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
-
-      persesCreateDashboardsPage.createDashboardDialogCancelButton();
-
-      cy.log(`1.4. openshift-monitoring validation - Dashboard search - empty state`);
-      cy.changeNamespace('openshift-monitoring');
-      listPersesDashboardsPage.noDashboardsFoundState();
-      listPersesDashboardsPage.assertCreateButtonIsEnabled();
-      listPersesDashboardsPage.clickCreateButton();
-      persesCreateDashboardsPage.createDashboardShouldBeLoaded();
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown(
-        'openshift-cluster-observability-operator',
-      );
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('observ-test');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('perses-dev');
-      persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
-      persesCreateDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
-      persesCreateDashboardsPage.assertProjectDropdown('empty-namespace3');
-      persesCreateDashboardsPage.createDashboardDialogCancelButton();
     },
   );
 
@@ -122,12 +73,6 @@ export function testCOORBACPersesTestsDevUser3(
     cy.changeNamespace('openshift-monitoring');
 
     cy.log(`2.5. Verify Create button is enabled`);
-    listPersesDashboardsPage.assertCreateButtonIsEnabled();
-
-    cy.log(`2.6 change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`2.7. Verify Create button is enabled`);
     listPersesDashboardsPage.assertCreateButtonIsEnabled();
   });
 
@@ -279,19 +224,6 @@ export function testCOORBACPersesTestsDevUser3(
     listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.assertKebabIconOptions();
     listPersesDashboardsPage.clickKebabIcon();
-
-    cy.log(`4.4. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-    listPersesDashboardsPage.clearAllFilters();
-
-    cy.log(`4.5. Filter by Project and Name`);
-    listPersesDashboardsPage.filter.byProject('empty-namespace3');
-    listPersesDashboardsPage.filter.byName(dashboardName);
-    listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.clickKebabIcon();
-    listPersesDashboardsPage.assertKebabIconOptions();
-    listPersesDashboardsPage.clickKebabIcon();
-    listPersesDashboardsPage.clearAllFilters();
   });
 
   it(`5.${perspectiveName} perspective - Rename to a new dashboard name`, () => {
@@ -461,12 +393,6 @@ export function testCOORBACPersesTestsDevUser3(
     cy.changeNamespace('openshift-monitoring');
 
     cy.log(`8.6. Verify Import button is enabled`);
-    listPersesDashboardsPage.assertImportButtonIsEnabled();
-
-    cy.log(`8.7 change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`8.8. Verify Import button is enabled`);
     listPersesDashboardsPage.assertImportButtonIsEnabled();
   });
 

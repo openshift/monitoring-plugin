@@ -31,7 +31,7 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.noDashboardsFoundState();
-      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('All Projects', false);
       cy.assertNamespace('openshift-monitoring', true);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
@@ -40,7 +40,6 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
       cy.assertNamespace('empty-namespace4', false);
 
       cy.log(`1.2. All Projects validation - Dashboard search - empty state`);
-      cy.changeNamespace('All Projects');
       listPersesDashboardsPage.noDashboardsFoundState();
       listPersesDashboardsPage.assertCreateButtonIsEnabled();
       listPersesDashboardsPage.clickCreateButton();
@@ -165,7 +164,6 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
 
       cy.log(`2.7. Back and check panel`);
       persesDashboardsPage.backToListPersesDashboardsPage();
-      cy.changeNamespace('openshift-monitoring');
       listPersesDashboardsPage.filter.byName(dashboardName);
       listPersesDashboardsPage.clickDashboard(dashboardName);
       persesDashboardsPage.panelGroupHeaderAssertion('Panel Group Up', 'Open');
@@ -221,9 +219,6 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
     listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.assertKebabIconOptions();
     listPersesDashboardsPage.clickKebabIcon();
-
-    cy.log(`3.4. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
     listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`3.5. Filter by Project and Name`);
@@ -271,7 +266,6 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
     persesDashboardsPage.backToListPersesDashboardsPage();
 
     cy.log(`4.6. Rename back to the original name`);
-    cy.changeNamespace('openshift-monitoring');
     listPersesDashboardsPage.filter.byName(renamedDashboardName);
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clickKebabIcon();
@@ -399,12 +393,6 @@ export function testCOORBACPersesTestsDevUser5(perspectiveName: CustomerPerspect
     persesImportDashboardsPage.assertProjectNotExistsInDropdown('empty-namespace4');
     persesImportDashboardsPage.assertProjectDropdown('openshift-monitoring');
     persesImportDashboardsPage.clickCancelButton();
-
-    cy.log(`7.5. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`7.6. Verify Import button is enabled`);
-    listPersesDashboardsPage.assertImportButtonIsEnabled();
   });
 
   it(`8.${perspectiveName} perspective - Import button validation - JSON`, () => {

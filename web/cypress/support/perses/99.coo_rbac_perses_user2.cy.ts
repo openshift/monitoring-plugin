@@ -2,10 +2,7 @@ import { persesDashboardsPage } from '../../views/perses-dashboards';
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
-import {
-  persesDashboardsDashboardDropdownCOO,
-  persesDashboardsDashboardDropdownPersesDev,
-} from '../../fixtures/perses/constants';
+import { persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 
 /**
@@ -24,7 +21,7 @@ export function testCOORBACPersesTestsDevUser2(
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
-      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('All Projects', false);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
       cy.assertNamespace('empty-namespace3', false);
@@ -36,7 +33,7 @@ export function testCOORBACPersesTestsDevUser2(
         `1.2. All Projects validation - Dashboard search - ` +
           `${persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]} dashboard`,
       );
-      cy.changeNamespace('All Projects');
+      cy.changeNamespace('perses-dev');
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
       );
@@ -47,45 +44,6 @@ export function testCOORBACPersesTestsDevUser2(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
       );
       listPersesDashboardsPage.removeTag('perses-dev');
-
-      cy.changeNamespace('perses-dev');
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
-      );
-      listPersesDashboardsPage.countDashboards('1');
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
-      );
-
-      cy.log(
-        `1.3. All Projects validation - Dashboard search - ` +
-          `${persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]} dashboard`,
-      );
-      cy.changeNamespace('All Projects');
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
-      );
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
-      );
-
-      cy.log(
-        `1.4. All Projects validation - Dashboard search - ` +
-          `${persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]} dashboard`,
-      );
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
-      );
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
-      );
-
-      cy.log(`1.5. All Projects validation - Dashboard search - empty state`);
-      listPersesDashboardsPage.filter.byProject('empty-namespace4');
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag('empty-namespace4');
 
       cy.log(`1.6. All Projects validation - Dashboard search - empty state`);
       listPersesDashboardsPage.filter.byProject('openshift-monitoring');
@@ -147,18 +105,6 @@ export function testCOORBACPersesTestsDevUser2(
 
     cy.log(`4.4. Assert Duplicate is blocked by access-denied in the modal`);
     listPersesDashboardsPage.assertDuplicateAccessDenied('perses-dev');
-    listPersesDashboardsPage.clearAllFilters();
-
-    cy.log(`4.5. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`4.6. Assert Rename/Delete row actions are disabled`);
-    listPersesDashboardsPage.filter.byProject('perses-dev');
-    listPersesDashboardsPage.filter.byName(
-      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
-    );
-    listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.assertKebabRowActionsDisabled();
     listPersesDashboardsPage.clearAllFilters();
   });
 

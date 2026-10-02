@@ -4,7 +4,7 @@ import { testCOORBACPersesTestsDevUser4 } from '../../support/perses/99.coo_rbac
 import { operatorAuthUtils } from '../../support/commands/auth-commands';
 
 describe(
-  'RBAC User4: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC Group containing User4: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -19,7 +19,7 @@ describe(
       operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
 
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
       // Step 3: Remove cluster-admin role - dev user now has limited permissions

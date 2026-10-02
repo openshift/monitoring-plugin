@@ -342,8 +342,8 @@ Cypress.Commands.add('relogin', (provider: string, username: string, password: s
     const oauthorigin = oauthurl.origin;
     cy.log(`OAuth origin: ${oauthorigin}`);
 
-    // Now perform login using cy.origin() for cross-origin OAuth
-    cy.clearCookie('openshift-session-token');
+    // // Now perform login using cy.origin() for cross-origin OAuth
+    // cy.clearCookie('openshift-session-token');
     cy.visit(Cypress.config('baseUrl'));
 
     // Use cy.origin() for cross-origin login (OAuth is on a different domain)
@@ -382,9 +382,10 @@ Cypress.Commands.add('uiLogout', () => {
       return;
     }
     cy.log('Log out UI');
-    cy.byTestID('username').click();
-    cy.wait(5000);
-    cy.byTestID('log-out').click({ force: true });
+    cy.byTestID('username').should('be.visible').click();
+    // Let Cypress retry until the menu item is actually actionable instead of
+    // guessing with a fixed wait, and avoid force: true so we get a real click.
+    cy.byTestID('log-out').should('be.visible').should('not.be.disabled').click();
   });
 });
 

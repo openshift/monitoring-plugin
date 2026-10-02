@@ -10,7 +10,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       byTestID(
-        selector: string,
+        selector: string | string[],
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
       ): Chainable<Element>;
       byTestActionID(selector: string): Chainable<JQuery<HTMLElement>>;
@@ -35,7 +35,7 @@ declare global {
       byClass(selector: string): Chainable<Element>;
       bySemanticElement(element: string, text?: string): Chainable<JQuery<HTMLElement>>;
       byAriaLabel(
-        label: string,
+        label: string | string[],
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
       ): Chainable<JQuery<HTMLElement>>;
       byPFRole(
@@ -48,8 +48,12 @@ declare global {
 
 Cypress.Commands.add(
   'byTestID',
-  (selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
-    cy.get(`[data-test="${selector}"]`, options);
+  (
+    selector: string | string[],
+    options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
+  ) => {
+    const selectors = Array.isArray(selector) ? selector : [selector];
+    cy.get(selectors.map((s) => `[data-test="${s}"]`).join(', '), options);
   },
 );
 
@@ -111,8 +115,9 @@ Cypress.Commands.add('bySemanticElement', (element: string, text?: string) => {
 
 Cypress.Commands.add(
   'byAriaLabel',
-  (label: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
-    return cy.get(`[aria-label="${label}"]`, options);
+  (label: string | string[], options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => {
+    const labels = Array.isArray(label) ? label : [label];
+    return cy.get(labels.map((l) => `[aria-label="${l}"]`).join(', '), options);
   },
 );
 

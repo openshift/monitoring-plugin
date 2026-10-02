@@ -153,7 +153,7 @@ export const persesImportDashboardsPage = {
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
     cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
-    cy.byPFRole('dialog').find('button').contains('Import').should('be.disabled');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDuplicateImportButton).should('be.disabled');
   },
 
   assertFailedToMigrateGrafanaDashboard: () => {
