@@ -22,13 +22,13 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
 import {
-  AlertState,
   AlertStateDescription,
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
 } from '@/features/alerts/components/AlertUtils';
 import { useAgenticRunCheck } from '@/features/alerts/pages/alerts-page/agentic-runs/useAgenticRunCheck';
+import { AlertState } from '@/shared/components/AlertState';
 import CustomIcon from '@/shared/components/CustomIcon';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';

@@ -59,7 +59,7 @@ const renderQueryKebab = (text?: string, onCreateAlert = vi.fn()) => {
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', { name: 'toggle menu' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Menu toggle' }));
 
   return onCreateAlert;
 };

@@ -5,12 +5,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { AlertState } from '@/features/alerts/components/AlertUtils';
 import AlertTableRow from '@/features/alerts/pages/alerts-page/AlertTableRow';
 import {
   AggregatedAlertFilters,
   filterAlerts,
 } from '@/features/alerts/pages/alerts-page/filter-alerts';
+import { AlertState } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';

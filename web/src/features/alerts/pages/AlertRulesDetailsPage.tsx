@@ -41,13 +41,8 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 
-import {
-  AlertState,
-  getSourceKey,
-  Graph,
-  SeverityHelp,
-  SourceHelp,
-} from '@/features/alerts/components/AlertUtils';
+import { Graph, SeverityHelp, SourceHelp } from '@/features/alerts/components/AlertUtils';
+import { AlertState } from '@/shared/components/AlertState';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
@@ -67,7 +62,7 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { alertingRuleSource } from '@/shared/utils/alerts/alert-source';
+import { alertingRuleSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { alertDescription, RuleResource } from '@/shared/utils/utils';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains

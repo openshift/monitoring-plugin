@@ -17,16 +17,13 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import {
-  AlertStateIcon,
-  getAlertStateKey,
-  SilencesNotLoadedWarning,
-} from '@/features/alerts/components/AlertUtils';
+import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
 import { filterRules } from '@/features/alerts/pages/alert-rules-page/filter-rules';
 import {
   AlertRulesFilterOptions,
   AlertRulesFilters,
 } from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import { AlertStateIcon, getAlertStateKey } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';

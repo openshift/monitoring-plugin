@@ -12,6 +12,10 @@ export const DataTestIDs = {
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
   AlertingRuleCluster: 'alerting-rule-cluster',
+  TimeRangeSelect: {
+    CustomRangeFromInput: 'custom-time-range-from',
+    CustomRangeToInput: 'custom-time-range-to',
+  },
   LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
@@ -198,8 +202,6 @@ export const LegacyDashboardPageTestIDs = {
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
   DashboardDropdown: 'dashboard-dropdown', //div
-  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
-  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
   Graph: 'graph',
 };
 
