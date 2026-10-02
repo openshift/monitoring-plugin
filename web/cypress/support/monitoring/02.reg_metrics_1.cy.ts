@@ -183,12 +183,16 @@ export function testMetricsRegression1(perspective: PerspectiveConfig) {
     cy.log('4.11 Stacked Checkbox');
     metricsPage.clickStackedCheckboxAndAssert();
 
+    cy.log('4.12 Delete All Queries');
+    metricsPage.clickActionsDeleteAllQueries();
+
   });
 
   //https://issues.redhat.com/browse/OU-974 - [Metrics] - Units - undefined showing in Y axis and tooltip
   it(`${perspective.name} perspective - Metrics > Units`, () => {
     cy.log('5.1 Preparation to test Units dropdown');
     metricsPage.clickInsertExampleQuery();
+    metricsPage.shouldBeLoadedWithGraph();
     metricsPage.unitsDropdownAssertion();
 
     cy.log('5.2 Units dropdown');
