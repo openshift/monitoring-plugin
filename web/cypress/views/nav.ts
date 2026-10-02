@@ -8,25 +8,18 @@ export const nav = {
     },
     switcher: {
       changePerspectiveTo: (...perspectives: string[]) => {
-        cy.get('body').then((body) => {
-          if (body.find('button[data-test-id="perspective-switcher-toggle"]:visible').length > 0) {
-            cy.byLegacyTestID('perspective-switcher-toggle')
-              .scrollIntoView()
-              .click({ force: true });
-
-            cy.get('[data-test-id="perspective-switcher-menu-option"]').then(($options) => {
-              const foundPerspective = perspectives.find((p) => $options.text().includes(p));
-              if (foundPerspective) {
-                cy.byLegacyTestID('perspective-switcher-menu-option')
-                  .contains(foundPerspective)
-                  .click({ force: true });
-              } else {
-                cy.log('No matching perspective found');
-                cy.get('body').type('{esc}');
-              }
-            });
-          }
-        });
+        const perspectivePattern = new RegExp(
+          `^(?:${perspectives.map(Cypress._.escapeRegExp).join('|')})$`,
+          'i',
+        );
+        cy.byLegacyTestID('perspective-switcher-toggle')
+          .should('be.visible')
+          .scrollIntoView()
+          .click({ force: true });
+        cy.byLegacyTestID('perspective-switcher-menu-option', { timeout: 30000 })
+          .contains(perspectivePattern, { timeout: 30000 })
+          .should('be.visible')
+          .click({ force: true });
         cy.wait(2000);
       },
       shouldHaveText: (perspective: string) => {
