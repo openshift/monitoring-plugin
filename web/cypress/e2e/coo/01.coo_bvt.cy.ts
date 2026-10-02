@@ -1,3 +1,4 @@
+import { overview } from '../../views/overview';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
@@ -11,6 +12,9 @@ describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
     cy.log('Admin perspective - Observe Menu and verify all submenus');
     cy.reload(true);
     cy.wait(10000);
+    nav.sidenav.clickNavLink(['Observe', 'Observability services']);
+    commonPages.titleShouldHaveText('Observability services');
+    overview.shouldBeLoaded();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');
