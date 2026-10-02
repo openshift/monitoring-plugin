@@ -260,14 +260,14 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({ id, name 
     // Wait to set variable and query values until all options have been loaded
     if (variable?.value !== queryParam && options?.length > 0) {
       // Default to using the query param to allow for sharable links
-      if (queryParam) {
+      if (queryParam && options?.includes(queryParam)) {
         dispatch(dashboardsPatchVariable(name, { value: queryParam }));
         // set the url if it isn't set
       } else if (variable?.value && shouldSetQueryParam) {
         setQueryParam(variable?.value);
       }
     }
-  }, [name, variable?.value, queryParam, setQueryParam, dispatch, shouldSetQueryParam]);
+  }, [name, variable?.value, queryParam, setQueryParam, dispatch, shouldSetQueryParam, options]);
 
   const onChange = useCallback(
     (v: string) => {

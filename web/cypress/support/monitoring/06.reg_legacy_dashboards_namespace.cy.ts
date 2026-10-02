@@ -51,13 +51,20 @@ export function testLegacyDashboardsRegressionNamespace(perspective: Perspective
     legacyDashboardsPage.exportAsCSV(true, 'graphData.csv');
 
     cy.log('2.2 Empty state');
+    cy.intercept('GET', '**/api/v1/query_range*', {
+      body: { status: 'success', data: { resultType: 'matrix', result: [] } },
+    }).as('emptyDashboardQuery');
     cy.changeNamespace('default');
+    cy.wait('@emptyDashboardQuery');
     legacyDashboardsPage.shouldBeLoaded();
-    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound).eq(0).scrollIntoView().should('be.visible');
+    cy.byTestID(DataTestIDs.MetricGraphNoDatapointsFound)
+      .eq(0)
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain.text', 'No datapoints found.');
     legacyDashboardsPage.clickKebabDropdown(0);
     cy.byTestID(LegacyDashboardPageTestIDs.ExportAsCsv).should('be.visible');
     cy.byPFRole('menuitem').should('have.attr', 'disabled');
-    
   });
 
   it(`${perspective.name} perspective - Dashboards (legacy) - No kebab dropdown`, () => {
