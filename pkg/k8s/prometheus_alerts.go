@@ -26,10 +26,20 @@ import (
 var prometheusLog = logrus.WithField("module", "k8s-prometheus")
 
 const (
-	namespaceCacheTTL      = 30 * time.Second
-	serviceHealthTimeout   = 5 * time.Second
-	serviceRequestTimeout  = 10 * time.Second
+	namespaceCacheTTL     = 30 * time.Second
+	serviceHealthTimeout  = 5 * time.Second
+	serviceRequestTimeout = 10 * time.Second
+	// serviceCACacheTTL is how long an out-of-cluster tenancy client
+	// reuses the service CA from openshift-config-managed. The cache
+	// skips a ConfigMap read on every request, and the bound is short
+	// so a rotated CA is picked up without restarting the plugin.
+	serviceCACacheTTL      = time.Minute
 	maxTenancyProbeTargets = 3
+
+	// serviceCAFileEnv points at the test cluster service CA when the
+	// plugin runs outside that cluster (e2e-management-api). The default
+	// in-cluster path is optional; an explicit path must be readable.
+	serviceCAFileEnv = "MONITORING_PLUGIN_SERVICE_CA_FILE"
 )
 
 type namespaceCache struct {
@@ -70,11 +80,16 @@ func (c *namespaceCache) set(namespaces []string) {
 }
 
 type prometheusAlerts struct {
-	routeClient routeclient.Interface
-	coreClient  corev1client.CoreV1Interface
-	config      *rest.Config
-	ruleManager PrometheusRuleInterface
-	nsCache     *namespaceCache
+	routeClient        routeclient.Interface
+	coreClient         corev1client.CoreV1Interface
+	config             *rest.Config
+	ruleManager        PrometheusRuleInterface
+	nsCache            *namespaceCache
+	tunnel             thanosPortForward
+	serviceCAMu        sync.Mutex
+	serviceCAWarn      sync.Once
+	serviceCAPEM       []byte
+	serviceCAExpiresAt time.Time
 }
 
 // GetAlertsRequest holds parameters for filtering alerts
@@ -175,7 +190,14 @@ func (pa *prometheusAlerts) FetchRules(ctx context.Context, req GetRulesRequest)
 	namespaceScoped := namespaceFromLabels(req.Labels) != ""
 
 	platformRules, platformErr := pa.getRulesViaProxy(ctx, ClusterMonitoringNamespace, PlatformRouteName, AlertSourcePlatform)
+	// An RBAC-denied source has no rules visible to this caller.
+	if isForbiddenResponse(platformErr) {
+		platformErr = nil
+	}
 	userRules, userErr := pa.getUserWorkloadRules(ctx, req)
+	if isForbiddenResponse(userErr) {
+		userErr = nil
+	}
 	groups, warnings, err := mergeRuleFetchResults(platformRules, platformErr, userRules, userErr, namespaceScoped)
 	if err != nil {
 		return nil, nil, err
@@ -292,6 +314,10 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string) ([]PrometheusAlert, error) {
 	amAlerts, amErr := pa.getAlertmanagerAlerts(ctx, namespace, amRouteName, source)
 	promAlerts, promErr := pa.getAlertsViaProxy(ctx, namespace, promRouteName, source)
+	// A caller denied by both backends has no visible alerts from this source.
+	if isForbiddenResponse(amErr) && isForbiddenResponse(promErr) {
+		return nil, nil
+	}
 
 	if amErr == nil {
 		pending := filterAlertsByState(promAlerts, "pending")
@@ -317,10 +343,10 @@ func (pa *prometheusAlerts) getUserWorkloadAlerts(ctx context.Context, req GetAl
 	namespace := namespaceFromLabels(req.Labels)
 	if namespace != "" {
 		alerts, err := pa.getAlertsViaThanosTenancy(ctx, namespace, AlertSourceUser)
-		if err == nil {
-			return alerts, nil
+		if isForbiddenResponse(err) {
+			return nil, nil
 		}
-		prometheusLog.Warnf("failed to get user workload alerts via thanos tenancy: %v", err)
+		return alerts, err
 	}
 
 	userNamespaces := pa.userRuleNamespaces(ctx)
@@ -625,15 +651,18 @@ func (pa *prometheusAlerts) allNonPlatformNamespaces(ctx context.Context) []stri
 	return out
 }
 
-// fanOutThanosTenancy calls fetch for each namespace, accumulates results, and
-// returns combined results (or the last error if nothing succeeded).
+// fanOutThanosTenancy calls fetch for each namespace and accumulates visible
+// results. A forbidden namespace contributes no results; other failures are
+// returned when no namespace yields results.
 func fanOutThanosTenancy[T any](namespaces []string, fetch func(string) ([]T, error)) ([]T, error) {
 	var out []T
 	var lastErr error
 	for _, namespace := range namespaces {
 		results, err := fetch(namespace)
 		if err != nil {
-			lastErr = err
+			if !isForbiddenResponse(err) {
+				lastErr = err
+			}
 			continue
 		}
 		out = append(out, results...)
@@ -714,7 +743,7 @@ func (pa *prometheusAlerts) getThanosTenancyResponse(ctx context.Context, path s
 	baseURL := fmt.Sprintf("https://%s.%s.svc:%d", ThanosQuerierServiceName, ClusterMonitoringNamespace, DefaultThanosQuerierTenancyRulesPort)
 	requestURL := fmt.Sprintf("%s%s?namespace=%s", baseURL, path, url.QueryEscape(namespace))
 
-	client, err := pa.createHTTPClient()
+	client, err := pa.tenancyHTTPClient(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -842,12 +871,12 @@ func (pa *prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool = x509.NewCertPool()
 	}
 
+	// Kubeconfig CA (API server) and the OpenShift service CA sign different
+	// certificates. Out-of-cluster kubeconfigs set CAData, so the service CA
+	// must still be appended or thanos-querier TLS fails closed.
 	if len(pa.config.CAData) > 0 {
 		caCertPool.AppendCertsFromPEM(pa.config.CAData)
-		return caCertPool, nil
-	}
-
-	if pa.config.CAFile != "" {
+	} else if pa.config.CAFile != "" {
 		caCert, err := os.ReadFile(pa.config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("read CA cert file: %w", err)
@@ -855,12 +884,36 @@ func (pa *prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
 		caCertPool.AppendCertsFromPEM(caCert)
 	}
 
-	// OpenShift service CA bundle for in-cluster service certs.
-	if serviceCA, err := os.ReadFile(ServiceCAPath); err == nil {
-		caCertPool.AppendCertsFromPEM(serviceCA)
+	if err := appendServiceCA(caCertPool); err != nil {
+		return nil, err
 	}
 
 	return caCertPool, nil
+}
+
+func serviceCAFilePath() (string, bool) {
+	if path := strings.TrimSpace(os.Getenv(serviceCAFileEnv)); path != "" {
+		return path, true
+	}
+	return ServiceCAPath, false
+}
+
+func appendServiceCA(pool *x509.CertPool) error {
+	path, required := serviceCAFilePath()
+	pemBytes, err := os.ReadFile(path)
+	if err != nil {
+		if !required {
+			return nil
+		}
+		return fmt.Errorf("read service CA file %s: %w", path, err)
+	}
+	if !pool.AppendCertsFromPEM(pemBytes) {
+		if !required {
+			return nil
+		}
+		return fmt.Errorf("parse service CA file %s", path)
+	}
+	return nil
 }
 
 func copyStringSlice(in []string) []string {
@@ -931,8 +984,22 @@ func (pa *prometheusAlerts) performRequest(client *http.Client, req *http.Reques
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
+		return nil, &upstreamHTTPError{statusCode: resp.StatusCode, body: string(body)}
 	}
 
 	return body, nil
+}
+
+type upstreamHTTPError struct {
+	statusCode int
+	body       string
+}
+
+func (e *upstreamHTTPError) Error() string {
+	return fmt.Sprintf("unexpected status %d: %s", e.statusCode, e.body)
+}
+
+func isForbiddenResponse(err error) bool {
+	httpErr, ok := err.(*upstreamHTTPError)
+	return ok && httpErr.statusCode == http.StatusForbidden
 }
