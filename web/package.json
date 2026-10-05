@@ -92,7 +92,7 @@
     "i18next": "^25.10.5",
     "i18next-http-backend": "^3.0.2",
     "immer": "^10.1.3",
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "linkify-react": "^4.3.3",
     "linkifyjs": "^4.3.3",
     "lodash-es": "^4.17.21",
@@ -132,7 +132,7 @@
     "ajv": "8.20.0",
     "copy-webpack-plugin": "^14.0.0",
     "css-loader": "7.1.5",
-    "cypress": "^14.2.1",
+    "cypress": "14.5.4",
     "cypress-multi-reporters": "^2.0.5",
     "cypress-wait-until": "^3.0.2",
     "esbuild": "0.28.2",
@@ -151,7 +151,7 @@
     "i18next-conv": "17.0.0",
     "jsdom": "29.1.1",
     "mocha-junit-reporter": "^1.23.3",
-    "mochawesome": "^7.1.3",
+    "mochawesome": "^8.1.1",
     "mochawesome-merge": "^4.1.0",
     "mochawesome-report-generator": "^6.2.0",
     "picomatch": "^4.0.3",
@@ -173,15 +173,8 @@
   },
   "overrides": {
     "echarts": "^5.6.0",
-    "qs": "6.16.0",
-    "dompurify": "3.4.13",
-    "fast-uri": "3.1.7",
-    "@istanbuljs/load-nyc-config": {
-      "js-yaml": "3.15.1"
-    },
-    "postcss-selector-parser": "7.1.3",
-    "shell-quote": "1.9.0",
-    "adm-zip": "0.6.1"
+    "dompurify": "3.4.16",
+    "qs": "6.16.0"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
