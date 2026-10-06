@@ -26,7 +26,7 @@ import { DataTestIDs } from '@/shared/constants/data-test';
 import { QueryParams } from '@/shared/constants/query-params';
 import { TimeRangeParam } from '@/shared/constants/timespan';
 import { useBoolean } from '@/shared/hooks/useBoolean';
-import { padNumber } from '@/shared/utils/date';
+import { padNumber, parseLocalDateTime } from '@/shared/utils/date';
 
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
@@ -128,9 +128,7 @@ const toISODateString = (date: Date): string =>
   `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 
 const toISOTimeString = (date: Date): string =>
-  new Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).format(
-    date,
-  );
+  `${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 
 type CustomTimeRangeModalProps = {
   isOpen: boolean;
@@ -159,11 +157,13 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   const [fromTime, setFromTime] = useState(defaultFrom ? toISOTimeString(defaultFrom) : '00:00');
   const [toDate, setToDate] = useState(toISODateString(endTime ? new Date(endTime) : now));
   const [toTime, setToTime] = useState(endTime ? toISOTimeString(new Date(endTime)) : '23:59');
-  const from = Date.parse(`${fromDate} ${fromTime}`);
-  const to = Date.parse(`${toDate} ${toTime}`);
+  const from = parseLocalDateTime(fromDate, fromTime);
+  const to = parseLocalDateTime(toDate, toTime);
+
+  const isValid = Number.isInteger(from) && Number.isInteger(to) && to > from;
 
   const submit: MouseEventHandler<HTMLButtonElement> = () => {
-    if (Number.isInteger(from) && Number.isInteger(to)) {
+    if (isValid) {
       setQueryParams({
         [QueryParams.EndTime]: to,
         [QueryParams.TimeRange]: to - from,
@@ -233,11 +233,7 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
         </Form>
       </ModalBody>
       <ModalFooter>
-        <Button
-          variant="primary"
-          onClick={submit}
-          isAriaDisabled={!(Number.isInteger(from) && Number.isInteger(to) && to > from)}
-        >
+        <Button variant="primary" onClick={submit} isAriaDisabled={!isValid}>
           {t('Save')}
         </Button>
         <Button variant="secondary" onClick={setClosed}>
