@@ -1,6 +1,8 @@
 import { Overview } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { FC } from 'react';
+import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 import { LoadingInline } from '../../console/console-shared/src/components/loading/LoadingInline';
 import { PersesWrapper } from './PersesWrapper';
 import { DashboardSkeleton } from './dashboard-skeleton';
@@ -64,7 +66,9 @@ const MonitoringDashboardsPage_: FC = () => {
 const MonitoringDashboardsPageWrapper: FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <MonitoringDashboardsPage_ />
+      <QueryParamProvider adapter={ReactRouter5Adapter}>
+        <MonitoringDashboardsPage_ />
+      </QueryParamProvider>
     </QueryClientProvider>
   );
 };

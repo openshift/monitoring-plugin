@@ -1,4 +1,5 @@
 import { Classes, DataTestIDs, LegacyTestIDs } from "../../../src/components/data-test";
+import { guidedTour } from '../../views/tour';
 export {};
 
 declare global {
@@ -89,6 +90,7 @@ Cypress.Commands.add('waitUntilWithCustomTimeout', (
   Cypress.Commands.add('aboutModal', () => {
     cy.log('Getting OCP version');
     if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
+      guidedTour.close();
       cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible');
       cy.byTestID(DataTestIDs.MastHeadHelpIcon).should('be.visible').click({force: true});
       cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('About').should('be.visible').click();
