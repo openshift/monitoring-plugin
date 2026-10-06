@@ -66,11 +66,11 @@ Cypress.Commands.add('changeNamespace', (namespace: string) => {
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible')
         .click({ force: true });
@@ -257,11 +257,11 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible')
         .click({ force: true });
@@ -318,11 +318,11 @@ Cypress.Commands.add('assertNamespace', (namespace: string, exists: boolean) => 
       $body.find('[data-test-id="' + LegacyTestIDs.NamespaceBarDropdown + '"]').length > 0;
     if (hasNamespaceBarDropdown) {
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible');
       cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown)
-        .find('button')
+        .find(Classes.NamespaceDropdown)
         .scrollIntoView()
         .should('be.visible')
         .click({ force: true });

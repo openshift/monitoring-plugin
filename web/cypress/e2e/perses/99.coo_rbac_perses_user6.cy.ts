@@ -43,6 +43,15 @@ describe(
 
       // Step 5: Re-login as dev user (now without cluster-admin role)
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
+
+      /**
+       * RBAC permissions for dev user6 (bound directly to the user, no group)
+       * Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
+       * No namespace-scoped RBAC permissions: no RoleBindings and no
+       * `oc policy add-role-to-user` grants exist for this user in
+       * rbac_perses_e2e_ci_users.sh, so it has no visible namespaces at all
+       * (not even openshift-monitoring).
+       */
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),

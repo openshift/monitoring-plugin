@@ -3,7 +3,7 @@ import { nav } from '../../views/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
 
 describe(
-  'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
+  'RBAC Group containing User1: COO - Dashboards (Perses) - Administrator perspective',
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
@@ -14,7 +14,7 @@ describe(
       });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
 
       // Clear Cypress session cache and logout
       // This is critical because beforeBlockCOO uses cy.session() which caches the login state
@@ -32,7 +32,7 @@ describe(
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
 
       /**
-       * RBAC permissions for dev user1 (bound directly to the user, no group)
+       * RBAC permissions for Group1 (perses-e2e-group1 / dev user1)
        * - Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
        * - observ-test: view, persesdashboard-viewer-role, persesdatasource-viewer-role
        * - openshift-cluster-observability-operator: view, persesdashboard-editor-role,

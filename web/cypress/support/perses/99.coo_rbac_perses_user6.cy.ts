@@ -2,6 +2,7 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 import type { CustomerPerspective } from '@/shared/constants/perspective';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
+import { Classes } from '@/shared/constants/data-test';
 
 /**
  * User6 has access to:
@@ -14,7 +15,7 @@ export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspect
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.noDashboardsFoundState();
-      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('All Projects', false);
       cy.assertNamespace('openshift-monitoring', false);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
@@ -26,7 +27,7 @@ export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspect
       listPersesDashboardsPage.assertCreateButtonIsEnabled();
       listPersesDashboardsPage.clickCreateButton();
       persesCreateDashboardsPage.createDashboardShouldBeLoaded();
-      cy.byPFRole('dialog').find('button').contains('Create').should('be.disabled');
+      cy.byPFRole('dialog').find(Classes.PersesCreateDuplicateImportButton).should('be.disabled');
       persesCreateDashboardsPage.createDashboardDialogCancelButton();
     },
   );
@@ -43,7 +44,7 @@ export function testCOORBACPersesTestsDevUser6(perspectiveName: CustomerPerspect
       './cypress/fixtures/coo/coo140_perses/import/testing-perses-dashboard.json',
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
-    cy.byPFRole('dialog').find('button').contains('Import').should('be.disabled');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDuplicateImportButton).should('be.disabled');
     persesImportDashboardsPage.clickCancelButton();
   });
 }

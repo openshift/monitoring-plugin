@@ -38,9 +38,35 @@ declare global {
       cleanupExtraDashboards(): Chainable<void>;
       /** Delete test Perses dashboards via UI (list page). Call before Perses tests. */
       cleanupPersesTestDashboardsBeforeTests(): Chainable<void>;
+      setupPersesRBACandExtraDashboardsForGroup(): Chainable<void>;
     }
   }
 }
+
+Cypress.Commands.add('setupPersesRBACandExtraDashboardsForGroup', () => {
+  cy.log('Setup perses RBAC and extra dashboards for group.');
+  if (
+    `${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' &&
+    Cypress.env('LOGIN_USERNAME2') !== undefined
+  ) {
+    cy.exec('./cypress/fixtures/coo/coo140_perses/rbac/rbac_perses_e2e_group1_to_group6.sh', {
+      env: {
+        USER1: `${Cypress.env('LOGIN_USERNAME1')}`,
+        USER2: `${Cypress.env('LOGIN_USERNAME2')}`,
+        USER3: `${Cypress.env('LOGIN_USERNAME3')}`,
+        USER4: `${Cypress.env('LOGIN_USERNAME4')}`,
+        USER5: `${Cypress.env('LOGIN_USERNAME5')}`,
+        USER6: `${Cypress.env('LOGIN_USERNAME6')}`,
+      },
+      // This script makes significantly more `oc` CLI round-trips than
+      // rbac_perses_e2e_ci_users.sh (group creation/membership, re-applied
+      // ClusterRoles, group RoleBindings, plus the cleanup of direct-to-user
+      // bindings), so the default 60s execTimeout isn't enough.
+      timeout: 180000,
+    });
+  }
+  cy.setupPersesExtraDashboards();
+});
 
 Cypress.Commands.add('setupPersesRBACandExtraDashboards', () => {
   if (

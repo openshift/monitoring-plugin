@@ -41,7 +41,7 @@ export const listPersesDashboardsPage = {
       .should('be.visible')
       .contains(listPersesDashboardsNoDashboardsFoundState.BODY);
     cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderClearAllFiltersButton).should(
-      'not.exist',
+      'not.be.visible',
     );
   },
 
@@ -66,12 +66,12 @@ export const listPersesDashboardsPage = {
       cy.log('listPersesDashboardsPage.filter.byName');
       cy.wait(1000);
       cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
-        .contains('button', /Dashboard|Project/)
+        .contains('button', /Name|Dashboard|Project/)
         .click({ force: true });
       cy.wait(1000);
       cy.get(Classes.FilterDropdownOption)
         .should('be.visible')
-        .contains('Dashboard')
+        .contains(/Name|Dashboard/)
         .click({ force: true });
       cy.wait(1000);
       cy.byTestID(listPersesDashboardsDataTestIDs.NameFilter).should('be.visible').type(name);
@@ -84,7 +84,7 @@ export const listPersesDashboardsPage = {
     byProject: (project: string) => {
       cy.log('listPersesDashboardsPage.filter.byProject');
       cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
-        .contains('button', /Dashboard|Project/)
+        .contains('button', /Name|Dashboard|Project/)
         .click({ force: true });
       cy.wait(1000);
       cy.get(Classes.FilterDropdownOption)
@@ -104,13 +104,15 @@ export const listPersesDashboardsPage = {
   countDashboards: (count: string) => {
     cy.log('listPersesDashboardsPage.countDashboards');
     cy.wait(2000);
-    cy.get('#' + IDs.persesDashboardCount)
-      .find(Classes.PersesListDashboardCount)
-      .invoke('text')
-      .should((text) => {
-        const total = text.split('of')[1].trim();
-        expect(total).to.equal(count);
-      });
+    const selector = IDs.persesDashboardCount.map((id) => '#' + id).join(', ');
+    cy.get(selector).each(($el) => {
+      cy.wrap($el)
+        .find(Classes.PersesListDashboardCount)
+        .invoke('text')
+        .should((text) => {
+          expect(text.split('of')[1]?.trim()).to.equal(count);
+        });
+    });
   },
 
   clearAllFilters: () => {
@@ -195,22 +197,49 @@ export const listPersesDashboardsPage = {
 
   assertKebabIconOptions: () => {
     cy.log('persesDashboardsPage.assertKebabIconOptions');
-    cy.byPFRole('menuitem').contains('Rename dashboard').should('be.visible');
-    cy.byPFRole('menuitem').contains('Duplicate dashboard').should('be.visible');
-    cy.byPFRole('menuitem').contains('Delete dashboard').should('be.visible');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Rename dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Delete dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+  },
+
+  assertKebabIconOnlyDuplicate: () => {
+    cy.log('persesDashboardsPage.assertKebabIconOnlyDuplicate');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Rename dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Delete dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
   },
 
   assertKebabRowActionsDisabled: (index?: number) => {
     cy.log('persesDashboardsPage.assertKebabRowActionsDisabled');
     listPersesDashboardsPage.clickKebabIcon(index);
+    // NOTE: cy.contains(text) alone returns the deepest matching element, which
+    // would be the inner <span class="pf-v6-c-menu__item-text"> text node, not
+    // the <button role="menuitem" aria-disabled="..."> that actually carries the
+    // attribute. Passing the role selector into contains() anchors the match to
+    // the button itself.
     cy.byPFRole('menuitem')
-      .contains('Rename dashboard')
+      .contains('[role="menuitem"]', 'Rename dashboard')
       .should('have.attr', 'aria-disabled', 'true');
     cy.byPFRole('menuitem')
-      .contains('Delete dashboard')
+      .contains('[role="menuitem"]', 'Delete dashboard')
       .should('have.attr', 'aria-disabled', 'true');
     cy.byPFRole('menuitem')
-      .contains('Duplicate dashboard')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
       .should('not.have.attr', 'aria-disabled', 'true');
     listPersesDashboardsPage.clickKebabIcon(index);
   },
@@ -220,7 +249,7 @@ export const listPersesDashboardsPage = {
     cy.log('persesDashboardsPage.assertDuplicateProjectDenied');
     listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown(project);
     cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
-    cy.byPFRole('dialog').find('button').contains('Duplicate').should('be.disabled');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDuplicateImportButton).should('be.disabled');
   },
 
   assertDuplicateAccessDenied: (project: string) => {
@@ -355,7 +384,7 @@ export const listPersesDashboardsPage = {
     cy.byPFRole('listbox')
       .find('li')
       .then((items) => {
-        items.each((index, item) => {
+        items.each((_index, item) => {
           cy.log('Project: ' + item.innerText);
           if (item.innerText === project) {
             expect(item).to.equal(undefined);

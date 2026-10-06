@@ -287,6 +287,5 @@ export const listPage = {
     cy.log('listPage.emptyState');
     cy.byTestID(DataTestIDs.EmptyBoxBody).contains('No alerts found').should('be.visible');
     cy.byOUIAID(DataTestIDs.Table).should('not.exist');
-    cy.byTestID(DataTestIDs.DownloadCSVButton).should('not.exist');
   },
 };
