@@ -102,7 +102,7 @@
     "ws": "^8.17.1",
     "braces": "^3.0.3",
     "cross-spawn": "^7.0.5",
-    "fast-uri": "3.1.5"
+    "fast-uri": "3.1.7"
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
