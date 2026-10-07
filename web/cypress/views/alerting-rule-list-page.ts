@@ -1,4 +1,4 @@
-import { DataTestIDs, Classes } from '../../src/components/data-test';
+import { DataTestIDs, Classes, FilterOUIAIDs } from '../../src/components/data-test';
 import { Source } from '../fixtures/monitoring/constants';
 import { listPage } from './list-page';
 
@@ -22,6 +22,25 @@ export const alertingRuleListPage = {
       cy.log('alertingRuleListPage.filter.assertNoclearAllFilters');
       try {
         cy.byOUIAID('DataViewToolbar-clear-all-filters').should('not.be.visible');
+      } catch (error) {
+        cy.log(`${error.message}`);
+        throw error;
+      }
+    },
+
+    byName: (name: string, ouiaId: string = FilterOUIAIDs.RuleNameFilter) => {
+      cy.log('listPage.filter.byName');
+      try {
+        listPage.filter.selectAttribute('Name');
+        cy.byOUIAID(`${ouiaId}-input`)
+          .find('input')
+          .scrollIntoView()
+          .as('input')
+          .should('be.visible');
+        cy.get('@input', { timeout: 10000 })
+          .scrollIntoView()
+          .type(name + '{enter}');
+        cy.get('@input', { timeout: 10000 }).scrollIntoView().should('have.attr', 'value', name);
       } catch (error) {
         cy.log(`${error.message}`);
         throw error;
