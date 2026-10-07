@@ -282,16 +282,22 @@ const operatorUtils = {
   waitForCOOReady(MCP: { namespace: string }): void {
     cy.log('Check Cluster Observability Operator status');
 
-    cy.exec(`sleep 60 && oc get pods -n ${MCP.namespace} | grep observability-operator | awk '{print $1}'`, { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true })
-    .its('stdout') // Get the captured output string
-    .then((podName) => {
-      // Trim any extra whitespace (newline, etc.)
-      const COO_POD_NAME = podName.trim();
-      cy.log(`Successfully retrieved Pod Name: ${COO_POD_NAME}`);
+    cy.waitUntil(
+      () => cy.exec(
+        `oc get pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} -o name --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
+      ).then((result) => result.stdout.trim()),
+      {
+        timeout: installTimeoutMilliseconds,
+        interval: 5000,
+        errorMsg: `No observability-operator pods appeared in namespace ${MCP.namespace}`,
+      },
+    ).then((podNames) => {
+      cy.log(`Successfully retrieved Pod Names: ${podNames}`);
       cy.exec(
-        `sleep 15 && oc wait --for=condition=Ready pods ${COO_POD_NAME} -n ${MCP.namespace} --timeout=60s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+        `oc wait --for=condition=Ready pods --selector=app.kubernetes.io/name=observability-operator -n ${MCP.namespace} --timeout=${installTimeoutMilliseconds / 1000}s --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
         {
-          timeout: readyTimeoutMilliseconds,
+          timeout: installTimeoutMilliseconds + 10000,
           failOnNonZeroExit: true
         }
       ).then((result) => {
@@ -425,7 +431,8 @@ const operatorUtils = {
       cy.log(`Korrel8r pod is now running in namespace: ${MCP.namespace}`);
     });
 
-    cy.reload(true);
+    cy.visit('/monitoring/v2/dashboards');
+    cy.byTestID('username', { timeout: readyTimeoutMilliseconds }).should('be.visible');
     cy.byLegacyTestID(LegacyTestIDs.ApplicationLauncher).should('be.visible').click();
     cy.byTestID(DataTestIDs.MastHeadApplicationItem).contains('Signal Correlation').should('be.visible');
   },
