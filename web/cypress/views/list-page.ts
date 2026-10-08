@@ -109,7 +109,7 @@ export const listPage = {
         cy.get(Classes.FilterDropdown).contains('Filter').scrollIntoView().should('be.visible').click();
       }
       if (toClose) {
-        cy.get(Classes.FilterDropdownExpanded).contains('Filter').should('be.visible').click();
+        cy.get(Classes.FilterDropdownExpanded).contains('Filter').scrollIntoView().should('be.visible').click();
       }
     },
 
@@ -124,7 +124,7 @@ export const listPage = {
       if (open) {
         listPage.filter.clickFilter(open, false);
       };
-      cy.get(Classes.FilterDropdownOption).contains(option).should('be.visible').click();
+      cy.get(Classes.FilterDropdownOption).contains(option).scrollIntoView().should('be.visible').click();
       if (close) {
         listPage.filter.clickFilter(false, close);
       };
