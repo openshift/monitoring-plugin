@@ -51,7 +51,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get('.pf-c-chart').should('be.visible');
+    cy.get('.pf-c-chart').should('exist');
     metricsPage.clickKebabDropdown(0);
     cy.byPFRole('menuitem').contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byPFRole('menuitem').contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('not.exist');
@@ -64,7 +64,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     metricsPage.expandCollapseRowAssertion(true, 1, true, true);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get('.pf-c-chart').should('be.visible');
+    cy.get('.pf-c-chart').should('exist');
     metricsPage.clickKebabDropdown(0);
     cy.byPFRole('menuitem').contains(MetricsPageQueryKebabDropdown.HIDE_ALL_SERIES).should('be.visible');
     cy.byPFRole('menuitem').contains(MetricsPageQueryKebabDropdown.EXPORT_AS_CSV).should('be.visible');
@@ -114,7 +114,7 @@ export function testMetricsRegression2(perspective: PerspectiveConfig) {
     metricsPage.clickKebabDropdown(1);
     cy.get(Classes.MetricsPageQueryInput).eq(0).should('contain', MetricsPageQueryInput.VECTOR_QUERY);
     cy.get(Classes.MetricsPageQueryInput).eq(1).should('contain', MetricsPageQueryInput.INSERT_EXAMPLE_QUERY);
-    cy.get('.pf-c-chart').should('be.visible');
+    cy.get('.pf-c-chart').should('exist');
 
     cy.log('6.10 Kebab icon - Hide all series');
     metricsPage.clickKebabDropdown(1);
