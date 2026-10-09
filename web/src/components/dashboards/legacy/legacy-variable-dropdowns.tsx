@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { SingleTypeaheadDropdown } from '../../console/utils/single-typeahead-dropdown';
-import { getPrometheusBasePath, buildPrometheusUrl, ALL_NAMESPACES_KEY } from '../../utils';
+import { getPrometheusBasePath, buildPrometheusUrl } from '../../utils';
 import { useSafeFetch } from '../../console/utils/safe-fetch-hook';
 
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '../../../store/actions';
@@ -43,59 +43,10 @@ import {
 import { useMonitoring } from '../../../hooks/useMonitoring';
 import { useDeepMemo } from '../../hooks/useDeepMemo';
 import { StringParam, useQueryParam } from 'use-query-params';
-
-const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
-
-const isIntervalVariable = (itemKey: string): boolean =>
-  _.some(intervalVariableRegExps, (re) => itemKey?.match(new RegExp(`\\$${re}`, 'g')));
-
-export const evaluateVariableTemplate = (
-  template: string,
-  variables: any,
-  timespan: number,
-  namespace: string,
-): string => {
-  if (_.isEmpty(template)) {
-    return undefined;
-  }
-
-  const range: Variable = { value: `${Math.floor(timespan / 1000)}s` };
-  const allVariables = {
-    ...variables,
-    __range: range,
-    __range_ms: range,
-    __range_s: range,
-  };
-
-  // Handle the special "interval" variables
-  const intervalMS = timespan / DEFAULT_GRAPH_SAMPLES;
-  const intervalMinutes = Math.floor(intervalMS / 1000 / 60);
-  // Use a minimum of 5m to make sure we have enough data to perform `irate` calculations, which
-  // require 2 data points each. Otherwise, there could be gaps in the graph.
-  const interval: Variable = { value: `${Math.max(intervalMinutes, 5)}m` };
-  // Add these last to ensure they are applied after other variable substitutions (because the other
-  // variable substitutions may result in interval variables like $__interval being inserted)
-  intervalVariableRegExps.forEach((k) => (allVariables[k] = interval));
-
-  let result = template;
-  _.each(allVariables, (v, k) => {
-    const re = new RegExp(`\\$${k}`, 'g');
-    if (result.match(re)) {
-      if (v.isLoading) {
-        result = undefined;
-        return false;
-      }
-      let replacement =
-        v.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY ? '.+' : v.value || '';
-      if (v.name === 'namespace' && namespace !== ALL_NAMESPACES_KEY) {
-        replacement = namespace;
-      }
-      result = result.replace(re, replacement);
-    }
-  });
-
-  return result;
-};
+import type { Variable } from './variable-utils';
+import { evaluateVariableTemplate, isIntervalVariable } from './variable-utils';
+export { evaluateVariableTemplate } from './variable-utils';
+export type { Variable } from './variable-utils';
 
 const LegacyDashboardsVariableOption = ({ value, isSelected, ...rest }) =>
   isIntervalVariable(String(value)) ? (
@@ -373,16 +324,6 @@ export const LegacyDashboardsAllVariableDropdowns: FC<{ dashboardName: string }>
       ))}
     </Split>
   );
-};
-
-export type Variable = {
-  isHidden?: boolean;
-  isLoading?: boolean;
-  includeAll?: boolean;
-  options?: string[];
-  query?: string;
-  value?: string;
-  datasource?: any;
 };
 
 type VariableDropdownProps = {
