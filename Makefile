@@ -52,6 +52,10 @@ lint-frontend:
 install-backend:
 	go mod download
 
+.PHONY: generate-backend
+generate-backend:
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
+
 .PHONY: build-backend
 build-backend:
 	go build $(BUILD_OPTS) -mod=readonly -o plugin-backend cmd/plugin-backend.go
@@ -66,7 +70,15 @@ start-coo-backend:
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	go test ./pkg/... ./internal/... -v
+
+.PHONY: build-e2e
+build-e2e:
+	go test -c -tags e2e ./test/e2e
+
+.PHONY: test-e2e
+test-e2e:
+	go test -tags e2e -v -timeout=150m -count=1 ./test/e2e
 
 .PHONY: test-frontend
 test-frontend:
