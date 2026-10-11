@@ -1,6 +1,6 @@
 import { AlertSeverity, AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
-import { alertingRuleStateSort, severitySort } from '@/shared/utils/utils';
+import { alertingRuleStateSort, severitySort } from '@/shared/utils/alerts/formatting';
 
 const makeRule = (alerts: { state: AlertStates }[]): Rule => ({ alerts }) as unknown as Rule;
 

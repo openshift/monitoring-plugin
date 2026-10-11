@@ -63,7 +63,9 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { alertingRuleSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
-import { alertDescription, RuleResource } from '@/shared/utils/utils';
+import { alertDescription } from '@/shared/utils/alerts/formatting';
+import { startCase } from '@/shared/utils/strings';
+import { RuleResource } from '@/shared/utils/utils';
 
 // Renders Prometheus template text and highlights any {{ ... }} tags that it contains
 const PrometheusTemplate = ({ text }: { text: string }) => (
@@ -290,7 +292,7 @@ const AlertRulesDetailsPage_: FC = () => {
                       </Popover>
                     </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      {rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}
+                      {rule && getSourceKey(startCase(alertingRuleSource(rule)), t)}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   {_.isInteger(rule?.duration) && (

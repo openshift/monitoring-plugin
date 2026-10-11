@@ -14,7 +14,7 @@ import {
   TimePicker,
 } from '@patternfly/react-core';
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
-import { FC, MouseEventHandler, useCallback, useMemo, useState } from 'react';
+import { MouseEventHandler, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NumberParam, useQueryParams } from 'use-query-params';
 
@@ -31,28 +31,38 @@ import { padNumber, parseLocalDateTime } from '@/shared/utils/date';
 const CUSTOM_TIME_RANGE_KEY = 'CUSTOM_TIME_RANGE_KEY';
 const DEFAULT_TIMERANGE = '30m';
 
-type Props = {
+type TimeRangeSelectProps = {
   id?: string;
+  includeAnyTime?: boolean;
   toggleWidth?: string;
   toggleProps?: MenuToggleProps;
   dataTest?: string;
 };
 
-export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Props) => {
+export function TimeRangeSelect({
+  id,
+  includeAnyTime,
+  toggleWidth,
+  toggleProps,
+  dataTest,
+}: TimeRangeSelectProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const [isModalOpen, , setModalOpen, setModalClosed] = useBoolean(false);
 
   const [queryParams, setQueryParams] = useQueryParams({
-    [QueryParams.TimeRange]: TimeRangeParam,
+    [QueryParams.TimeRange]: includeAnyTime ? NumberParam : TimeRangeParam,
     [QueryParams.EndTime]: NumberParam,
   });
-  const timeRange = queryParams[QueryParams.TimeRange];
+  const timeRange =
+    queryParams[QueryParams.TimeRange] ??
+    (includeAnyTime ? 0 : parsePrometheusDuration(DEFAULT_TIMERANGE));
   const endTime = queryParams[QueryParams.EndTime];
   const selectedKey = endTime ? CUSTOM_TIME_RANGE_KEY : formatPrometheusDuration(timeRange);
 
   const options = useMemo<SimpleSelectOption[]>(() => {
     const choices = [
+      ...(includeAnyTime ? [{ content: t('Any time'), value: '' }] : []),
       { content: t('Custom time range'), value: CUSTOM_TIME_RANGE_KEY },
       { content: t('Last {{count}} minute', { count: 5 }), value: '5m' },
       { content: t('Last {{count}} minute', { count: 15 }), value: '15m' },
@@ -67,7 +77,10 @@ export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Prop
       { content: t('Last {{count}} week', { count: 2 }), value: '2w' },
     ];
 
-    if (selectedKey === '' || (selectedKey === DEFAULT_TIMERANGE && !timeRange)) {
+    if (
+      !includeAnyTime &&
+      (selectedKey === '' || (selectedKey === DEFAULT_TIMERANGE && !timeRange))
+    ) {
       setQueryParams({
         [QueryParams.TimeRange]: parsePrometheusDuration(DEFAULT_TIMERANGE),
         [QueryParams.EndTime]: undefined,
@@ -75,7 +88,7 @@ export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Prop
     }
 
     return choices.map((choice) => ({ ...choice, selected: choice.value === selectedKey }));
-  }, [selectedKey, t, setQueryParams, timeRange]);
+  }, [selectedKey, t, setQueryParams, timeRange, includeAnyTime]);
 
   const onChange = useCallback(
     (v: string) => {
@@ -83,7 +96,7 @@ export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Prop
         setModalOpen();
       } else {
         setQueryParams({
-          [QueryParams.TimeRange]: parsePrometheusDuration(v),
+          [QueryParams.TimeRange]: v === '' ? undefined : parsePrometheusDuration(v),
           [QueryParams.EndTime]: undefined,
         });
       }
@@ -103,11 +116,11 @@ export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Prop
         id={id}
         initialOptions={options}
         onSelect={(_event, selection) => {
-          if (selection) {
+          if (selection !== undefined) {
             onChange(String(selection));
           }
         }}
-        placeholder={t('Last {{count}} minute', { count: 30 })}
+        placeholder={includeAnyTime ? t('Any time') : t('Last {{count}} minute', { count: 30 })}
         toggleWidth={toggleWidth}
         toggleProps={toggleProps}
         data-test={dataTest}
@@ -122,7 +135,7 @@ export const TimeRangeSelect = ({ id, toggleWidth, toggleProps, dataTest }: Prop
       )}
     </>
   );
-};
+}
 
 const toISODateString = (date: Date): string =>
   `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
@@ -137,12 +150,7 @@ type CustomTimeRangeModalProps = {
   endTime?: number;
 };
 
-const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
-  isOpen,
-  setClosed,
-  timespan,
-  endTime,
-}) => {
+function CustomTimeRangeModal({ isOpen, setClosed, timespan, endTime }: CustomTimeRangeModalProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [, setQueryParams] = useQueryParams({
     [QueryParams.TimeRange]: TimeRangeParam,
@@ -191,6 +199,7 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
             <InputGroup>
               <InputGroupItem>
                 <DatePicker
+                  inputProps={{ id: DataTestIDs.TimeRangeSelect.CustomRangeFromInput }}
                   onChange={(event, str) => setFromDate(str)}
                   value={fromDate}
                   appendTo={() => document.body}
@@ -215,6 +224,7 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
             <InputGroup>
               <InputGroupItem>
                 <DatePicker
+                  inputProps={{ id: DataTestIDs.TimeRangeSelect.CustomRangeToInput }}
                   onChange={(event, str) => setToDate(str)}
                   value={toDate}
                   appendTo={() => document.body}
@@ -242,4 +252,4 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
       </ModalFooter>
     </Modal>
   );
-};
+}

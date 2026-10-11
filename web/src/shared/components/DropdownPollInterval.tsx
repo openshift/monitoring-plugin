@@ -1,5 +1,5 @@
 import { SimpleSelect, SimpleSelectOption } from '@patternfly/react-templates';
-import type { FunctionComponent } from 'react';
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,16 +13,20 @@ type DropDownPollIntervalProps = {
   setInterval: (v: number) => void;
   selectedInterval: number;
   id?: string;
+  formatToggleContent?: (label: ReactNode, interval: number) => ReactNode;
+  toggleWidth?: string;
 };
 
 export const DEFAULT_REFRESH_INTERVAL = parsePrometheusDuration('30s');
 const OFF_KEY = 'OFF_KEY';
 
-export const DropDownPollInterval: FunctionComponent<DropDownPollIntervalProps> = ({
+export function DropDownPollInterval({
   id,
   setInterval,
   selectedInterval,
-}) => {
+  formatToggleContent,
+  toggleWidth = '150px',
+}: DropDownPollIntervalProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const selectedKey = selectedInterval ? formatPrometheusDuration(selectedInterval) : OFF_KEY;
@@ -49,9 +53,13 @@ export const DropDownPollInterval: FunctionComponent<DropDownPollIntervalProps> 
     <SimpleSelect
       id={id}
       initialOptions={initialOptions}
+      toggleContent={formatToggleContent?.(
+        initialOptions.find((option) => option.value === selectedKey)?.content,
+        selectedInterval,
+      )}
       onSelect={(_ev, selection) => onSelect(_ev, selection)}
-      toggleWidth="150px"
+      toggleWidth={toggleWidth}
       data-test={LegacyDashboardPageTestIDs.PollIntervalDropdownOptions}
     />
   );
-};
+}

@@ -36,7 +36,7 @@ const (
 
 var defaultFeatures = map[Feature]bool{
 	Alerting:           true,
-	AlertingManagement: true,
+	AlertManagementAPI: true,
 	Metrics:            true,
 	LegacyDashboards:   true,
 	Targets:            true,

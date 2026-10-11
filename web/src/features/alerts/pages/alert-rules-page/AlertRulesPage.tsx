@@ -47,7 +47,8 @@ import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
 import { alertingRuleSource } from '@/shared/utils/alerts/alert-source';
-import { alertingRuleStateSort, RuleResource, severitySort } from '@/shared/utils/utils';
+import { alertingRuleStateSort, severitySort } from '@/shared/utils/alerts/formatting';
+import { RuleResource } from '@/shared/utils/utils';
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
