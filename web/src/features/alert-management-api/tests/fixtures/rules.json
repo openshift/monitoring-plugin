@@ -1,0 +1,99 @@
+{
+  "status": "success",
+  "data": {
+    "groups": [
+      {
+        "name": "platform-alerts",
+        "file": "platform-alerts-mock",
+        "rules": [
+          {
+            "state": "pending",
+            "name": "ClusterNotUpgradeable",
+            "query": "cluster_operator_conditions{condition=\"Upgradeable\"} == 0",
+            "duration": 3600,
+            "labels": {
+              "managed_cluster": "mock-cluster-1",
+              "prometheus": "openshift-monitoring/k8s",
+              "severity": "info"
+            },
+            "annotations": {},
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "ClusterNotUpgradeable",
+                  "namespace": "openshift-cluster-version",
+                  "severity": "info"
+                },
+                "annotations": {
+                  "summary": "A cluster operator is blocking an upgrade."
+                },
+                "state": "pending",
+                "activeAt": "2026-09-29T12:56:04Z",
+                "value": "0"
+              }
+            ],
+            "type": "alerting"
+          },
+          {
+            "state": "firing",
+            "name": "Watchdog",
+            "query": "vector(1)",
+            "duration": 0,
+            "labels": {
+              "managed_cluster": "mock-cluster-1",
+              "namespace": "openshift-monitoring",
+              "prometheus": "openshift-monitoring/k8s",
+              "severity": "none"
+            },
+            "annotations": {},
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "Watchdog",
+                  "namespace": "openshift-monitoring",
+                  "severity": "none"
+                },
+                "annotations": {
+                  "summary": "The alerting pipeline is functioning."
+                },
+                "state": "firing",
+                "activeAt": "2026-09-29T12:39:18Z",
+                "value": "1"
+              }
+            ],
+            "type": "alerting"
+          },
+          {
+            "state": "firing",
+            "name": "AlertmanagerReceiversNotConfigured",
+            "query": "cluster:alertmanager_integrations:max == 0",
+            "duration": 600,
+            "labels": {
+              "managed_cluster": "mock-cluster-1",
+              "namespace": "openshift-monitoring",
+              "prometheus": "openshift-monitoring/k8s",
+              "severity": "warning"
+            },
+            "annotations": {},
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "AlertmanagerReceiversNotConfigured",
+                  "namespace": "openshift-monitoring",
+                  "severity": "warning"
+                },
+                "annotations": {
+                  "summary": "Alertmanager has no notification receivers configured."
+                },
+                "state": "firing",
+                "activeAt": "2026-09-29T12:40:02Z",
+                "value": "0"
+              }
+            ],
+            "type": "alerting"
+          }
+        ]
+      }
+    ]
+  }
+}

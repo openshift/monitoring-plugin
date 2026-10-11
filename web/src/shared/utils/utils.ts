@@ -1,34 +1,16 @@
-import {
-  Alert,
-  AlertSeverity,
-  AlertStates,
-  PrometheusAlert,
-  PrometheusEndpoint,
-  PrometheusLabels,
-  PrometheusRule,
-  PrometheusRulesResponse,
-  Rule,
-  Silence,
-  SilenceStates,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusEndpoint, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
 import fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
-import { murmur3 } from 'murmurhash-js';
 
 import { QueryParams } from '@/shared/constants/query-params';
-import {
-  AggregatedAlert,
-  AlertSource,
-  MonitoringResource,
-  Target,
-  TimeRange,
-} from '@/shared/types/types';
+import { AlertSource, MonitoringResource, Target, TimeRange } from '@/shared/types/types';
 
 export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
 const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
+const ALERT_MANAGEMENT_API_BASE_PATH = '/api/v1/alerting';
 
 export const ALERTMANAGER_BASE_PATH = window.SERVER_FLAGS.alertManagerBaseURL;
 export const ALERTMANAGER_TENANCY_BASE_PATH = '/api/alertmanager-tenancy'; // remove it once it get added to SERVER_FLAGS
@@ -71,97 +53,6 @@ export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
 export const labelsToParams = (labels: PrometheusLabels) =>
   _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 
-export const getAlertsAndRules = (
-  data: PrometheusRulesResponse['data'],
-): { alerts: Alert[]; rules: Rule[] } => {
-  // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
-  // are the only ones we will be using and add a unique ID to each rule.
-  const groups = _.get(data, 'groups') as PrometheusRulesResponse['data']['groups'];
-  const rules = _.flatMap(groups, (g) => {
-    const addID = (r: PrometheusRule): Rule => {
-      const key = [
-        g.file,
-        g.name,
-        r.name,
-        r.duration,
-        r.query,
-        ..._.map(r.labels, (k, v) => `${k}=${v}`),
-      ].join(',');
-      return { ...r, id: String(murmur3(key, 'monitoring-salt')) };
-    };
-
-    return _.filter(g.rules, { type: 'alerting' }).map(addID);
-  });
-
-  // The console codebase and developer perspective actions don't expect the external labels to be
-  // included on the alerts
-  // Add external labels to all `rules[].alerts[].labels`
-  rules.forEach((rule) => {
-    rule.alerts.forEach((alert) => (alert.labels = { ...rule.labels, ...alert.labels }));
-  });
-
-  // Add `rule` object to each alert
-  const alerts = _.flatMap(rules, (rule) => rule.alerts.map((a) => ({ rule, ...a })));
-
-  return { alerts, rules };
-};
-
-export const alertState = (a: Alert): AlertStates => a?.state;
-export const silenceState = (s: Silence): SilenceStates => s?.status?.state;
-export const silenceCluster = (s: Silence): string =>
-  s?.matchers.find((label) => label.name === 'cluster')?.value ?? '';
-
-export const silenceMatcherEqualitySymbol = (isEqual: boolean, isRegex: boolean): string => {
-  if (isRegex) {
-    return isEqual ? '=~' : '!~';
-  }
-  return isEqual ? '=' : '!=';
-};
-
-export const getSilenceName = (silence: Silence) => {
-  const name = _.get(_.find(silence.matchers, { name: 'alertname' }), 'value');
-  return name
-    ? name
-    : // No alertname, so fall back to displaying the other matchers
-      silence.matchers
-        .map((m) => `${m.name}${silenceMatcherEqualitySymbol(m.isEqual, m.isRegex)}${m.value}`)
-        .join(', ');
-};
-
-export const alertDescription = (alert: PrometheusAlert | Rule): string =>
-  alert.annotations?.description || alert.annotations?.message || alert.labels?.alertname;
-
-export const alertingRuleStateSort = (a: Rule, b: Rule): number => {
-  const countsA = _.countBy(a.alerts, 'state');
-  const countsB = _.countBy(b.alerts, 'state');
-  for (const state of [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced]) {
-    const diff = (countsB[state] ?? 0) - (countsA[state] ?? 0);
-    if (diff !== 0) return diff;
-  }
-  return 0;
-};
-
-export const severitySort = (
-  a: Alert | Rule | AggregatedAlert,
-  b: Alert | Rule | AggregatedAlert,
-): number => {
-  const severityA = (('severity' in a ? a.severity : a.labels?.severity) ?? '').toLowerCase();
-  const severityB = (('severity' in b ? b.severity : b.labels?.severity) ?? '').toLowerCase();
-
-  const rank = new Map<string, number>([
-    [AlertSeverity.None, 0],
-    [AlertSeverity.Info, 1],
-    [AlertSeverity.Warning, 2],
-    [AlertSeverity.Critical, 3],
-  ]);
-
-  const rankA = rank.get(severityA) ?? -1;
-  const rankB = rank.get(severityB) ?? -1;
-  if (rankA !== rankB) return rankB - rankA;
-
-  return severityA.localeCompare(severityB, undefined, { sensitivity: 'base' });
-};
-
 export const targetSource = (target: Target): AlertSource =>
   target.labels?.prometheus === 'openshift-monitoring/k8s'
     ? AlertSource.Platform
@@ -200,7 +91,7 @@ export const ALL_NAMESPACES_KEY = '#ALL_NS#';
 const DEFAULT_PROMETHEUS_SAMPLES = 60;
 const DEFAULT_PROMETHEUS_TIMESPAN = 60 * 60 * 1000;
 
-export type Prometheus = 'acm' | 'cmo';
+export type Prometheus = 'acm' | 'cmo' | 'alert-management-api';
 
 // Range vector queries require end, start, and step search params
 const getRangeVectorSearchParams = (
@@ -246,7 +137,9 @@ export const getPrometheusBasePath = ({
     return basePathOverride;
   }
 
-  if (prometheus === 'acm') {
+  if (prometheus === 'alert-management-api') {
+    return ALERT_MANAGEMENT_API_BASE_PATH;
+  } else if (prometheus === 'acm') {
     return PROMETHEUS_PROXY_PATH;
   } else if (useTenancyPath) {
     return PROMETHEUS_TENANCY_BASE_PATH;

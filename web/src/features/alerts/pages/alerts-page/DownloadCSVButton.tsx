@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { usePerspective } from '@/shared/hooks/usePerspective';
 import { AggregatedAlert } from '@/shared/types/types';
+import { formatCsv } from '@/shared/utils/csv';
 
 type DownloadCSVButtonProps = {
   loaded: boolean;
@@ -39,16 +40,9 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
     return [csvColumns, ...getCsvRows()];
   };
 
-  const formatToCsv = (tableData, delimiter = ',') =>
-    tableData
-      ?.map((row) =>
-        row?.map((rowItem) => (isNaN(rowItem) ? `"${rowItem}"` : rowItem)).join(delimiter),
-      )
-      ?.join('\n');
-
   let csvData: string;
   if (loaded) {
-    csvData = formatToCsv(getTableData()) ?? undefined;
+    csvData = formatCsv(getTableData()) ?? undefined;
   }
 
   const downloadCsv = () => {

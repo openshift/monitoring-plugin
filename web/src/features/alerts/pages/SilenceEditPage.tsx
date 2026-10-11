@@ -9,8 +9,9 @@ import { StatusBox } from '@/shared/console/console-shared/src/components/status
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
+import { silenceState } from '@/shared/utils/alerts/formatting';
 import { formatSilenceDate } from '@/shared/utils/date';
-import { SilenceResource, silenceState } from '@/shared/utils/utils';
+import { SilenceResource } from '@/shared/utils/utils';
 
 const EditInfo = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

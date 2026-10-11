@@ -1,10 +1,34 @@
 import { AlertSeverity } from '@openshift-console/dynamic-plugin-sdk';
 import { Label } from '@patternfly/react-core';
-import { SeverityUndefinedIcon } from '@patternfly/react-icons';
+import {
+  RhUiErrorFillIcon,
+  RhUiInformationFillIcon,
+  RhUiWarningFillIcon,
+  SeverityUndefinedIcon,
+} from '@patternfly/react-icons';
 import { t_global_icon_color_severity_undefined_default } from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+
+const severityIcons: Record<string, typeof RhUiErrorFillIcon> = {
+  [AlertSeverity.Critical]: RhUiErrorFillIcon,
+  [AlertSeverity.Warning]: RhUiWarningFillIcon,
+  [AlertSeverity.Info]: RhUiInformationFillIcon,
+};
+
+export const SeverityIcon = memo(function SeverityIcon({
+  severity,
+  color,
+  'aria-hidden': ariaHidden,
+}: {
+  severity: string;
+  color?: string;
+  'aria-hidden'?: boolean;
+}) {
+  const Icon = severityIcons[severity] ?? SeverityUndefinedIcon;
+  return <Icon aria-hidden={ariaHidden} color={color} />;
+});
 
 const getSeverityKey = (severity: string, t) => {
   switch (severity) {

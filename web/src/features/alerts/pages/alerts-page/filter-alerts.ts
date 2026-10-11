@@ -3,7 +3,8 @@ import { Alert } from '@openshift-console/dynamic-plugin-sdk';
 import type { Perspective } from '@/shared/constants/perspective';
 import { AlertSource } from '@/shared/types/types';
 import { alertSource } from '@/shared/utils/alerts/alert-source';
-import { alertState, ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@/shared/utils/utils';
+import { alertState } from '@/shared/utils/alerts/formatting';
+import { ALL_NAMESPACES_KEY, fuzzyCaseInsensitive } from '@/shared/utils/utils';
 
 export const enum AlertFilterOptions {
   NAME = 'name',
