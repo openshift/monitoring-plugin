@@ -7,7 +7,7 @@ export function formatCsv(
 ): string | undefined {
   return tableData
     ?.map((row) =>
-      row?.map((rowItem) => (isNaN(rowItem as number) ? `"${rowItem}"` : rowItem)).join(delimiter),
+      row?.map((rowItem) => `"'${String(rowItem ?? '').replaceAll('"', '""')}"`).join(delimiter),
     )
     ?.join('\n');
 }
