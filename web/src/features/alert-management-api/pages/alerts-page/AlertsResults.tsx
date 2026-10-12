@@ -96,7 +96,10 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   }, [filterKey, groupBy, aggregatedAlerts.length, page, perPage, onSetPage]);
 
   const saveColumns = (newColumns: Set<OptionalAlertColumn>) => {
-    if (!newColumns.has(sort.column as OptionalAlertColumn)) {
+    if (
+      !newColumns.has(sort.column as OptionalAlertColumn) &&
+      !['name', 'severity'].includes(sort.column)
+    ) {
       setSort(defaultAlertSort);
     }
     setVisibleColumns(newColumns);
