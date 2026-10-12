@@ -62,7 +62,6 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   const [isManageColumnsOpen, setManageColumnsOpen] = useState(false);
 
   const [selectedAlertKeys, setSelectedAlertKeys] = useState<Set<string>>(() => new Set());
-  const selectedAlerts = alerts.filter((alert) => selectedAlertKeys.has(getAlertStableKey(alert)));
 
   const { sort, setSort } = useAlertManagementSort();
   const { column, direction } = sort;
@@ -80,6 +79,10 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   const aggregatedAlerts = groups.flatMap((group) => group.rows);
   const pageGroups = paginateAlertGroups(groups, page, perPage);
   const pageAlerts = pageGroups.flatMap((group) => group.rows);
+
+  const selectedAlerts = filteredAlerts.filter((alert) =>
+    selectedAlertKeys.has(getAlertStableKey(alert)),
+  );
 
   useEffect(() => {
     if (previousFilters.current !== filterKey || previousGroupBy.current !== groupBy) {
