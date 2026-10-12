@@ -210,16 +210,18 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
             variant="bottom"
           />
         )}
-        <ManageColumnsModal
-          isOpen={isManageColumnsOpen}
-          isAggregated={isAggregated}
-          columns={visibleColumns}
-          onSave={(columns) => {
-            saveColumns(columns);
-            setManageColumnsOpen(false);
-          }}
-          onClose={() => setManageColumnsOpen(false)}
-        />
+        {isManageColumnsOpen && (
+          <ManageColumnsModal
+            isOpen={isManageColumnsOpen}
+            isAggregated={isAggregated}
+            columns={visibleColumns}
+            onSave={(columns) => {
+              saveColumns(columns);
+              setManageColumnsOpen(false);
+            }}
+            onClose={() => setManageColumnsOpen(false)}
+          />
+        )}
       </PanelMainBody>
     </PanelMain>
   );
