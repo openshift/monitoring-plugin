@@ -57,7 +57,7 @@ export function ManageColumnsModal({ isOpen, isAggregated, columns, onSave, onCl
       <ModalHeader
         title={t('Manage columns')}
         labelId={DataTestIDs.AlertManagementAPI.ColumnsModalTitle}
-        description={t('Selected categories will be deployed in the table.')}
+        description={t('Selected categories will be displayed in the table.')}
         descriptorId={DataTestIDs.AlertManagementAPI.ColumnsModalDescription}
       />
       <ModalBody>
