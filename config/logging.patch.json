@@ -1,0 +1,148 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": true,
+        "path": "/monitoring/logs",
+        "component": {
+          "$codeRef": "LogsPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "monitoring-logs",
+        "name": "%plugin__monitoring-console-plugin~Logs%",
+        "href": "/monitoring/logs",
+        "perspective": "admin",
+        "section": "observe"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.tab/horizontalNav",
+      "properties": {
+        "page": {
+          "name": "%plugin__monitoring-console-plugin~Aggregated Logs%",
+          "href": "aggregated-logs"
+        },
+        "model": {
+          "group": "core",
+          "version": "v1",
+          "kind": "Pod"
+        },
+        "component": {
+          "$codeRef": "LogsDetailPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.tab",
+      "properties": {
+        "contextId": "dev-console-observe",
+        "name": "%plugin__monitoring-console-plugin~Logs%",
+        "href": "logs",
+        "component": {
+          "$codeRef": "LogsDevPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-source",
+      "properties": {
+        "id": "user",
+        "contextId": "observe-alerting",
+        "getAlertingRules": {
+          "$codeRef": "getUserAlertingRules"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-source",
+      "properties": {
+        "id": "user",
+        "contextId": "dev-observe-alerting",
+        "getAlertingRules": {
+          "$codeRef": "getUserAlertingRules"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-chart",
+      "properties": {
+        "sourceId": "user",
+        "chart": {
+          "$codeRef": "LogsAlertMetrics"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-source",
+      "properties": {
+        "id": "platform",
+        "contextId": "observe-alerting",
+        "getAlertingRules": {
+          "$codeRef": "getPlatformAlertingRules"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-source",
+      "properties": {
+        "id": "platform",
+        "contextId": "dev-observe-alerting",
+        "getAlertingRules": {
+          "$codeRef": "getPlatformAlertingRules"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/-",
+    "value": {
+      "type": "console.alerts/rules-chart",
+      "properties": {
+        "sourceId": "platform",
+        "chart": {
+          "$codeRef": "LogsAlertMetrics"
+        }
+      }
+    }
+  }
+]

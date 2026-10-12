@@ -51,7 +51,9 @@
     "test-cypress-perses-ivt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@perses-dashboards --@acm --@virtualization --@ols --@flaky --@xfail'",
     "test-cypress-perses-ols": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@ols --@acm --@xfail'",
     "test-cypress-acm": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@acm --@xfail'",
-    "test-cypress-overview": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@overview --@flaky --@demo --@xfail'"
+    "test-cypress-overview": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@overview --@flaky --@demo --@xfail'",
+    "start:logging-tests": "npm run ts-node node_modules/.bin/webpack serve -- --config webpack.logging.config.ts",
+    "test:logging-cypress": "cypress run --config-file cypress.logging.config.ts --browser electron"
   },
   "engines": {
     "node": ">=22.x"
@@ -107,7 +109,11 @@
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "use-query-params": "^2.2.2",
-    "victory": "^37.3.6"
+    "victory": "^37.3.6",
+    "@grafana/lezer-logql": "^0.2.6",
+    "@patternfly/react-virtualized-extension": "^6.2.0",
+    "react-virtualized": "^9.22.6",
+    "@lezer/common": "^1.2.0"
   },
   "devDependencies": {
     "@cypress/grep": "^4.1.0",
@@ -166,7 +172,8 @@
     "vitest": "4.1.11",
     "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^6.0.0"
+    "webpack-dev-server": "^6.0.0",
+    "@types/react-virtualized": "^9.22.0"
   },
   "peerDependencies": {
     "react-router-dom": "^7"
@@ -202,7 +209,13 @@
       "TargetsPage": "./features/targets/pages/TargetsPage",
       "PrometheusRedirectPage": "./features/metrics/pages/PrometheusRedirectPage",
       "MonitoringContext": "./shared/contexts/MonitoringContext",
-      "ols-tool-ui": "./features/perses-dashboards/ols-tool-ui/ShowTimeseries"
+      "ols-tool-ui": "./features/perses-dashboards/ols-tool-ui/ShowTimeseries",
+      "LogsPage": "./features/logging/pages/LogsPage",
+      "LogsDetailPage": "./features/logging/pages/LogsDetailPage",
+      "LogsDevPage": "./features/logging/pages/LogsDevPage",
+      "getUserAlertingRules": "./features/logging/get-user-alerting-rules",
+      "getPlatformAlertingRules": "./features/logging/get-platform-alerting-rules",
+      "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
