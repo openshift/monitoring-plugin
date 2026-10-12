@@ -38,6 +38,7 @@ import { AccessDenied } from '@/shared/console/console-shared/src/components/emp
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { getSeverityColors } from '@/shared/utils/alerts/formatting';
+import { startCase } from '@/shared/utils/strings';
 
 export function AlertManagementAlertsPage() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -144,9 +145,7 @@ export function AlertManagementAlertsPage() {
                   getSeverityColors(key === 'severity' ? value : undefined).labelColor
                 }
                 formatLabelText={(key, value) =>
-                  ['scope', 'severity', 'state'].includes(key)
-                    ? t(`${value[0].toUpperCase()}${value.slice(1)}`)
-                    : value
+                  ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value
                 }
                 onChange={setFilters}
               />
