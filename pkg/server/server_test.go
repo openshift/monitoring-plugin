@@ -35,8 +35,11 @@ const (
 )
 
 var defaultFeatures = map[Feature]bool{
-	Alerting:           true,
-	AlertingManagement: true,
+	Alerting: true,
+	// even though alert-management-api will be true, starting the server
+	// required a logged in kubeconfig or to be running in the server, which is
+	// not always true, especially when running in ci
+	AlertManagementAPI: false,
 	Metrics:            true,
 	LegacyDashboards:   true,
 	Targets:            true,
