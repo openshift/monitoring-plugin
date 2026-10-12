@@ -4319,12 +4319,15 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.2.4.tgz#eca284f75d2965079309dc0ad9255abb2ebc1632"
   integrity sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==
 
-linkify-it@^2.0.3, linkify-it@^5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/linkify-it/-/linkify-it-5.0.2.tgz#d3be0a693af3da9df3883f1e346a0e97461a8c19"
-  integrity sha512-ONTm2jCMAVZjgQa/Fy1kScXsuOoF5NPTsoFBdE1KVIZ2vAh/r9+Bqo+0jINCBYnavTPQZz38QzFTme79ENoN3Q==
-  dependencies:
-    uc.micro "^2.0.0"
+linkify-react@^4.3.3:
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/linkify-react/-/linkify-react-4.3.3.tgz#86e9382f1b85b6cec1502e7c46182599ec3c62a0"
+  integrity sha512-bMWuN1YJ3hyDyojk4hzUugecN2RsTuibKAQBplUT2o+3uK33THdRL2qD0Zf3ibCXuBLBCyOE6Uj/S/1cY48Ygw==
+
+linkifyjs@4.3.3:
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/linkifyjs/-/linkifyjs-4.3.3.tgz#da08f0eeb4d89a24541d09591fbdcc211eb8fef0"
+  integrity sha512-P8aEP5U/D1/IlTY2OeYsErdwh9bGuLE30NcXtKEjgdHcahveQoQwM2yZNsioQHsWFz0P7KKudisbrzCgR0sDHg==
 
 listr2@^3.8.3:
   version "3.14.0"
@@ -5128,7 +5131,7 @@ prop-types-extra@^1.1.0:
     react-is "^16.3.2"
     warning "^4.0.0"
 
-prop-types@^15.5.8, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -5299,15 +5302,6 @@ react-lifecycles-compat@^3.0.0:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
-
-react-linkify@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/react-linkify/-/react-linkify-0.2.2.tgz#55b99b1cc7244446a0f9bdebbe13b2c30f789e65"
-  integrity sha512-0S8cvUNtEgfJpIGDPKklyrnrTffJ63WuJAc4KaYLBihl5TjgH5cHUmYD+AXLpsV+CVmfoo/56SUNfrZcY4zYMQ==
-  dependencies:
-    linkify-it "^2.0.3"
-    prop-types "^15.5.8"
-    tlds "^1.57.0"
 
 react-modal@^3.12.1:
   version "3.16.1"
@@ -6333,11 +6327,6 @@ tippy.js@5.1.2:
   dependencies:
     popper.js "^1.16.0"
 
-tlds@^1.57.0:
-  version "1.233.0"
-  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.233.0.tgz#decfed234c293a20548bdb5e468909766e5e1c15"
-  integrity sha512-K05dY1r4lkXk+eE/j2UqHhGWp1bFn+17eYcJP7OepkmI3obLOgan3ZIpmml++wZ4LTIx4r9var373ztO2xb27A==
-
 tmp@~0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.1.tgz#8457fc3037dcf4719c251367a1af6500ee1ccf14"
@@ -6508,11 +6497,6 @@ typescript@^4.6.2:
   version "4.9.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.4.tgz#a2a3d2756c079abda241d75f149df9d561091e78"
   integrity sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==
-
-uc.micro@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/uc.micro/-/uc.micro-2.1.0.tgz#f8d3f7d0ec4c3dea35a7e3c8efa4cb8b45c9e7ee"
-  integrity sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"
