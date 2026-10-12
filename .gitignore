@@ -21,3 +21,4 @@ web/po-files/
 _output/
 .tokensave/
 tasks/
+.monitoring-plugin-bridge-sa-token
