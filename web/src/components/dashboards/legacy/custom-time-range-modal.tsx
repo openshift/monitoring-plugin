@@ -12,26 +12,20 @@ import {
   ModalVariant,
   TimePicker,
 } from '@patternfly/react-core';
-import * as _ from 'lodash-es';
 import type { FC, MouseEventHandler } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { QueryParams } from '../../query-params';
-import { NumberParam, useQueryParam } from 'use-query-params';
+import { NumberParam, useQueryParams } from 'use-query-params';
 import { TimeRangeParam } from './utils';
+import { padNumber, parseLocalDateTime } from './date';
 
-const zeroPad = (number: number) => (number < 10 ? `0${number}` : number);
-
-// Get YYYY-MM-DD date string for a date object
 const toISODateString = (date: Date): string =>
-  `${date.getFullYear()}-${zeroPad(date.getMonth() + 1)}-${zeroPad(date.getDate())}`;
+  `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 
-// Get HH:MM time string for a date object
 const toISOTimeString = (date: Date): string =>
-  new Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).format(
-    date,
-  );
+  `${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 
 type CustomTimeRangeModalProps = {
   isOpen: boolean;
@@ -47,8 +41,10 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   endTime,
 }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const [, setEndTimeParam] = useQueryParam(QueryParams.EndTime, NumberParam);
-  const [, setTimeRangeParam] = useQueryParam(QueryParams.TimeRange, TimeRangeParam);
+  const [, setQueryParams] = useQueryParams({
+    [QueryParams.TimeRange]: TimeRangeParam,
+    [QueryParams.EndTime]: NumberParam,
+  });
 
   // If a time is already set in Redux, default to that, otherwise default to a time range that
   // covers all of today
@@ -58,13 +54,19 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
   const [fromTime, setFromTime] = useState(defaultFrom ? toISOTimeString(defaultFrom) : '00:00');
   const [toDate, setToDate] = useState(toISODateString(endTime ? new Date(endTime) : now));
   const [toTime, setToTime] = useState(endTime ? toISOTimeString(new Date(endTime)) : '23:59');
+  const from = parseLocalDateTime(fromDate, fromTime);
+  const to = parseLocalDateTime(toDate, toTime);
+
+  const isValid = Number.isInteger(from) && Number.isInteger(to) && to > from;
 
   const submit: MouseEventHandler<HTMLButtonElement> = () => {
     const from = Date.parse(`${fromDate} ${fromTime}`);
     const to = Date.parse(`${toDate} ${toTime}`);
-    if (_.isInteger(from) && _.isInteger(to)) {
-      setEndTimeParam(to);
-      setTimeRangeParam(to - from);
+    if (isValid) {
+      setQueryParams({
+        [QueryParams.EndTime]: to,
+        [QueryParams.TimeRange]: to - from,
+      });
       setClosed();
     }
   };
@@ -122,7 +124,7 @@ const CustomTimeRangeModal: FC<CustomTimeRangeModalProps> = ({
         </Form>
       </ModalBody>
       <ModalFooter>
-        <Button variant="primary" onClick={submit}>
+        <Button variant="primary" onClick={submit} isAriaDisabled={!isValid}>
           {t('Save')}
         </Button>
         <Button variant="secondary" onClick={setClosed}>
