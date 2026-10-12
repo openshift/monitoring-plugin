@@ -1,0 +1,12 @@
+.lv-plugin__time-picker__time-options {
+  max-height: 200px;
+  overflow: auto;
+}
+
+.lv-plugin__time-picker__input {
+  width: 150px;
+}
+
+.lv-plugin__time-picker__error {
+  padding-top: var(--pf-t--global--spacer--xs);
+}

@@ -1,0 +1,26 @@
+.lv-plugin__time-range-modal {
+  --pf-t--global--font--size--md: 14px;
+  width: fit-content !important;
+}
+
+.lv-plugin__time-range-modal__footer {
+  display: flex;
+  gap: var(--pf-t--global--spacer--sm);
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.lv-plugin__time-range-modal__body {
+  overflow: visible;
+  display: grid;
+  gap: var(--pf-t--global--spacer--md);
+}
+
+.lv-plugin__time-range-modal__field {
+  display: flex;
+  align-items: flex-start;
+}
+
+.lv-plugin__time-range-modal__error {
+  margin-top: var(--pf-t--global--spacer--md);
+}

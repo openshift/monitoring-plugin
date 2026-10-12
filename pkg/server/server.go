@@ -55,12 +55,14 @@ type PluginServer struct {
 }
 
 type PluginConfig struct {
-	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	Logging *LoggingConfig `json:"logging,omitempty" yaml:"logging,omitempty"`
+	Timeout time.Duration  `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 type Feature string
 
 const (
+	Logging               Feature = "logging"
 	AcmAlerting           Feature = "acm-alerting"
 	Alerting              Feature = "alerting"
 	AlertingManagement    Feature = "alerting-management"
@@ -249,7 +251,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	}
 
 	timeout := 30 * time.Second
-	if pluginConfig != nil {
+	if pluginConfig != nil && pluginConfig.Timeout > 0 {
 		timeout = pluginConfig.Timeout
 	}
 

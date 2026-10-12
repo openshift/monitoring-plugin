@@ -1,0 +1,14 @@
+.lv-plugin__toggle-play {
+  background-color: var(--pf-t--global--background--color--secondary--default);
+  border: var(--pf-t--global--border--width--extra-strong) solid
+    var(--pf-t--global--border--color--default);
+  border-radius: 50%;
+  height: 32px;
+  padding: 0;
+  width: 32px;
+  cursor: pointer;
+}
+
+.lv-plugin__toggle-play--active {
+  border-color: var(--pf-t--global--border--color--status--success--default);
+}
