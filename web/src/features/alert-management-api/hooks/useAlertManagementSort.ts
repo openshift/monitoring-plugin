@@ -18,6 +18,7 @@ export const useAlertManagementSort = () => {
   const setSort = (nextSort: AlertSort) =>
     setParams((current) => {
       const next = new URLSearchParams(current);
+      next.set('page', '1');
       if (
         nextSort.column === defaultAlertSort.column &&
         nextSort.direction === defaultAlertSort.direction

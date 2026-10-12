@@ -190,8 +190,8 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
           selectedAlertKeys={selectedAlertKeys}
           onSelectionChange={setSelectedAlertKeys}
           onSort={(nextSort) => {
-            setSort(nextSort);
             pagination.onSetPage(undefined, 1);
+            setSort(nextSort);
           }}
         />
         {aggregatedAlerts.length > 0 && (
