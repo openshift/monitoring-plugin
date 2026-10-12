@@ -137,7 +137,12 @@ export function ManageColumnsModal({ isOpen, isAggregated, columns, onSave, onCl
         </Flex>
       </ModalBody>
       <ModalFooter>
-        <Button onClick={() => onSave(draftColumns)}>{t('Save')}</Button>
+        <Button
+          isAriaDisabled={visibleColumnCount > maxAlertColumns}
+          onClick={() => onSave(draftColumns)}
+        >
+          {t('Save')}
+        </Button>
         <Button variant="link" onClick={onClose}>
           {t('Cancel')}
         </Button>
