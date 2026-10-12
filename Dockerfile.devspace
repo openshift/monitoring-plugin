@@ -20,6 +20,7 @@ COPY go.sum go.sum
 
 RUN make install-backend
 RUN GOFLAGS=-mod=mod GOBIN=/usr/local/bin go install github.com/air-verse/air@v1.67.4
+RUN chgrp -R 0 /tmp/go-build-cache && chmod -R g+rwX /tmp/go-build-cache
 
 COPY config/ config/
 COPY cmd/ cmd/

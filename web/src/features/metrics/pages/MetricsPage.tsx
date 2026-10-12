@@ -415,7 +415,7 @@ const QueryKebabContainer: FC<{ index: number }> = ({ index }) => {
 
   const canCreateAlert =
     (perspective === 'admin' || perspective === 'virtualization-perspective') &&
-    (features[plugin]?.['alerting-management'] ?? false);
+    (features[plugin]?.['alert-management-api'] ?? false);
 
   const queryTableData = useSelector(
     (state: MonitoringState) =>
