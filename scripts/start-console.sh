@@ -21,6 +21,12 @@ BRIDGE_K8S_AUTH_BEARER_TOKEN=$(oc whoami --show-token 2>/dev/null)
 BRIDGE_USER_SETTINGS_LOCATION="localstorage"
 BRIDGE_I18N_NAMESPACES="plugin__${npm_package_consolePlugin_name}"
 
+SA_TOKEN_HOST_FILE="$(pwd)/.monitoring-plugin-bridge-sa-token"
+SA_TOKEN_CONTAINER_FILE="/tmp/bridge-sa-token"
+printf '%s' "$(oc whoami --show-token 2>/dev/null)" > "${SA_TOKEN_HOST_FILE}"
+chmod 600 "${SA_TOKEN_HOST_FILE}"
+BRIDGE_K8S_MODE_OFF_CLUSTER_SERVICE_ACCOUNT_BEARER_TOKEN_FILE="${SA_TOKEN_CONTAINER_FILE}"
+
 echo "API Server: $BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT"
 echo "Console Image: $CONSOLE_IMAGE"
 echo "Console URL: http://localhost:${CONSOLE_PORT}"
@@ -34,6 +40,7 @@ if [ -x "$(command -v podman)" ]; then
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://localhost:${PLUGIN_PORT}"
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
         --rm --network=host \
+        -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro,Z \
         --env-file <(set | grep BRIDGE) \
         --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
@@ -41,6 +48,7 @@ if [ -x "$(command -v podman)" ]; then
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:${PLUGIN_PORT}"
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
         --rm -p "$CONSOLE_PORT":9000 \
+        -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro,Z \
         --env-file <(set | grep BRIDGE) \
         --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://host.containers.internal:8080","authorize":true}]}' \
         $CONSOLE_IMAGE
@@ -49,6 +57,7 @@ else
     BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.docker.internal:${PLUGIN_PORT}"
     docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
     --rm -p "$CONSOLE_PORT":9000 \
+    -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro \
     --env-file <(set | grep BRIDGE) \
     --env BRIDGE_PLUGIN_PROXY='{"services": [{"consoleAPIPath": "/api/proxy/plugin/monitoring-console-plugin/perses/", "endpoint":"http://host.docker.internal:8080","authorize":true}]}' \
     $CONSOLE_IMAGE
