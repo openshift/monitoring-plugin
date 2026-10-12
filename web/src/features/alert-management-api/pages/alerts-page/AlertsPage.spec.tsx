@@ -512,9 +512,9 @@ it('exports all filtered aggregates across pages and collapsed groups without gr
       });
     });
     const rows = csv.trim().split('\n');
-    expect(rows[0]).toContain('"Namespace (in alert)"');
-    expect(rows[0]).toContain('"Resource (in alert)"');
-    expect(csv).toContain('"openshift-monitoring"');
+    expect(rows[0]).toContain(`"'Namespace (in alert)"`);
+    expect(rows[0]).toContain(`"'Resource (in alert)"`);
+    expect(csv).toContain(`"'openshift-monitoring"`);
     expect(
       rows,
       'The CSV should contain a header and all five filtered alert aggregates',
@@ -525,11 +525,11 @@ it('exports all filtered aggregates across pages and collapsed groups without gr
         .map((row) => row.split(',')[0])
         .sort(),
       'The CSV should export every filtered aggregate across pages',
-    ).toEqual(['"Alert1"', '"Alert1"', '"Alert3"', '"Alert4"', '"Alert5"']);
+    ).toEqual([`"'Alert1"`, `"'Alert1"`, `"'Alert3"`, `"'Alert4"`, `"'Alert5"`]);
     expect(
-      rows.filter((row) => row.startsWith('"Alert1",')).map((row) => row.split(',')[2]),
+      rows.filter((row) => row.startsWith(`"'Alert1",`)).map((row) => row.split(',')[2]),
       'The CSV should preserve the individual totals for duplicate alert aggregates',
-    ).toEqual(['2', '1']);
+    ).toEqual([`"'2"`, `"'1"`]);
     expect(csv, 'The CSV should not include group summary rows').not.toContain('Alert scope:');
     expect(csv, 'The CSV should not include group alert-count summaries').not.toMatch(
       /\(\d+ alerts?\)/,
