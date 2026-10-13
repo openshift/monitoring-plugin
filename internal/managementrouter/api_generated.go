@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/oapi-codegen/runtime"
+	k8s "github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
 // AlertRuleClassificationUpdate Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
@@ -36,6 +38,15 @@ type AlertRuleSpec struct {
 	// Record Name of the time series for recording rules.
 	Record *string `json:"record,omitempty"`
 }
+
+// AlertingHealth Health details for the platform and user-workload alerting stacks.
+type AlertingHealth = k8s.AlertingHealth
+
+// AlertingRouteHealth defines model for AlertingRouteHealth.
+type AlertingRouteHealth = k8s.AlertingRouteHealth
+
+// AlertingStackHealth defines model for AlertingStackHealth.
+type AlertingStackHealth = k8s.AlertingStackHealth
 
 // BulkDeleteAlertRulesRequest defines model for BulkDeleteAlertRulesRequest.
 type BulkDeleteAlertRulesRequest struct {
@@ -103,6 +114,46 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// GetAlertsResponse defines model for GetAlertsResponse.
+type GetAlertsResponse struct {
+	Data     GetAlertsResponseData `json:"data"`
+	Warnings *[]string             `json:"warnings,omitempty"`
+}
+
+// GetAlertsResponseData defines model for GetAlertsResponseData.
+type GetAlertsResponseData struct {
+	Alerts []PrometheusAlert `json:"alerts"`
+}
+
+// GetHealthResponse defines model for GetHealthResponse.
+type GetHealthResponse struct {
+	// Alerting Health details for the platform and user-workload alerting stacks.
+	Alerting *AlertingHealth `json:"alerting,omitempty"`
+}
+
+// GetRulesResponse defines model for GetRulesResponse.
+type GetRulesResponse struct {
+	Data     GetRulesResponseData `json:"data"`
+	Warnings *[]string            `json:"warnings,omitempty"`
+}
+
+// GetRulesResponseData defines model for GetRulesResponseData.
+type GetRulesResponseData struct {
+	Groups []PrometheusRuleGroup `json:"groups"`
+}
+
+// PrometheusAlert defines model for PrometheusAlert.
+type PrometheusAlert = k8s.PrometheusAlert
+
+// PrometheusRule defines model for PrometheusRule.
+type PrometheusRule = k8s.PrometheusRule
+
+// PrometheusRuleAlert defines model for PrometheusRuleAlert.
+type PrometheusRuleAlert = k8s.PrometheusRuleAlert
+
+// PrometheusRuleGroup defines model for PrometheusRuleGroup.
+type PrometheusRuleGroup = k8s.PrometheusRuleGroup
+
 // PrometheusRuleTarget Identifies the PrometheusRule resource and rule group where the alert rule will be stored. Required for user-defined alert rules.
 type PrometheusRuleTarget struct {
 	// GroupName Name of the rule group within the PrometheusRule. Optional.
@@ -153,9 +204,18 @@ type UpdateAlertRuleJSONRequestBody = UpdateAlertRuleRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get alerts
+	// (GET /alerts)
+	GetAlerts(w http.ResponseWriter, r *http.Request)
+	// Get alerting health
+	// (GET /health)
+	GetHealth(w http.ResponseWriter, r *http.Request)
 	// Bulk delete user-defined alert rules
 	// (DELETE /rules)
 	BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request)
+	// Get alerting and recording rules
+	// (GET /rules)
+	GetRules(w http.ResponseWriter, r *http.Request)
 	// Bulk update alert rules
 	// (PATCH /rules)
 	BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request)
@@ -179,8 +239,37 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// GetAlerts operation middleware
+func (siw *ServerInterfaceWrapper) GetAlerts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAlerts(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHealth operation middleware
+func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // BulkDeleteUserDefinedAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request) {
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkDeleteUserDefinedAlertRules(w, r)
 	}))
@@ -192,8 +281,23 @@ func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.Respon
 	handler.ServeHTTP(w, r)
 }
 
+// GetRules operation middleware
+func (siw *ServerInterfaceWrapper) GetRules(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRules(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // BulkUpdateAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request) {
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkUpdateAlertRules(w, r)
 	}))
@@ -207,6 +311,7 @@ func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r
 
 // CreateAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) CreateAlertRule(w http.ResponseWriter, r *http.Request) {
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateAlertRule(w, r)
 	}))
@@ -220,7 +325,17 @@ func (siw *ServerInterfaceWrapper) CreateAlertRule(w http.ResponseWriter, r *htt
 
 // DeleteAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) DeleteAlertRule(w http.ResponseWriter, r *http.Request) {
-	ruleId := mux.Vars(r)["ruleId"]
+
+	var err error
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ruleId", mux.Vars(r)["ruleId"], &ruleId, runtime.BindStyledParameterOptions{Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteAlertRule(w, r, ruleId)
@@ -235,7 +350,17 @@ func (siw *ServerInterfaceWrapper) DeleteAlertRule(w http.ResponseWriter, r *htt
 
 // UpdateAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) UpdateAlertRule(w http.ResponseWriter, r *http.Request) {
-	ruleId := mux.Vars(r)["ruleId"]
+
+	var err error
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ruleId", mux.Vars(r)["ruleId"], &ruleId, runtime.BindStyledParameterOptions{Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAlertRule(w, r, ruleId)
@@ -361,7 +486,13 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.HandleFunc(options.BaseURL+"/alerts", wrapper.GetAlerts).Methods("GET")
+
+	r.HandleFunc(options.BaseURL+"/health", wrapper.GetHealth).Methods("GET")
+
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkDeleteUserDefinedAlertRules).Methods("DELETE")
+
+	r.HandleFunc(options.BaseURL+"/rules", wrapper.GetRules).Methods("GET")
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkUpdateAlertRules).Methods("PATCH")
 

@@ -7,18 +7,9 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
-type GetRulesResponse struct {
-	Data     GetRulesResponseData `json:"data"`
-	Warnings []string             `json:"warnings,omitempty"`
-}
-
-type GetRulesResponseData struct {
-	Groups []k8s.PrometheusRuleGroup `json:"groups"`
-}
-
 // GetRules serves GET /api/v1/alerting/rules.
 func (hr *httpRouter) GetRules(w http.ResponseWriter, req *http.Request) {
-	state, labels, matchers, err := parseStateLabelsAndMatchers(req.URL.Query())
+	state, labels, matchers, err := parseStateLabelsAndMatchers(req.URL.Query(), validRuleAlertStates)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -38,12 +29,15 @@ func (hr *httpRouter) GetRules(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(GetRulesResponse{
+	resp := GetRulesResponse{
 		Data: GetRulesResponseData{
 			Groups: groups,
 		},
-		Warnings: warnings,
-	}); err != nil {
+	}
+	if len(warnings) > 0 {
+		resp.Warnings = &warnings
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.WithError(err).Warn("failed to encode rules response")
 	}
 }

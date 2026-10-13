@@ -3,15 +3,22 @@ package managementrouter
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
-var validStates = map[string]bool{
+var validAlertStates = map[string]bool{
 	"pending":  true,
 	"firing":   true,
 	"silenced": true,
+}
+
+var validRuleAlertStates = map[string]bool{
+	"inactive": true,
+	"pending":  true,
+	"firing":   true,
 }
 
 // reservedQueryKeys lists query parameter names that have special meaning
@@ -33,13 +40,20 @@ var reservedQueryKeys = map[string]bool{
 // equality, inequality, regex, or negative-regex matchers:
 //
 //	?match[]=severity="critical"&match[]=alertname=~"Kube.*"
-func parseStateLabelsAndMatchers(q url.Values) (string, map[string]string, []string, error) {
+func parseStateLabelsAndMatchers(q url.Values, validStates map[string]bool) (string, map[string]string, []string, error) {
 	if len(q["state"]) > 1 {
 		return "", nil, nil, fmt.Errorf("multiple values for state filter: only a single value is supported")
 	}
 	state := strings.ToLower(strings.TrimSpace(q.Get("state")))
 	if state != "" && !validStates[state] {
-		return "", nil, nil, fmt.Errorf("invalid state filter %q: must be one of pending, firing, silenced", state)
+		states := make([]string, 0, len(validStates))
+		for validState, enabled := range validStates {
+			if enabled {
+				states = append(states, validState)
+			}
+		}
+		slices.Sort(states)
+		return "", nil, nil, fmt.Errorf("invalid state filter %q: must be one of %s", state, strings.Join(states, ", "))
 	}
 
 	labels := make(map[string]string)
