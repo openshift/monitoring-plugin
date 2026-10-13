@@ -1,0 +1,414 @@
+name: "15 - UI Stress Test - 100 Alerts"
+description: Stress test scenario with single incident containing 100 alerts
+incidents:
+- id: cluster-wide-failure-100-alerts
+  component: monitoring
+  layer: core
+  timeline:
+    start: 1h
+    severityChanges:
+    - time: 1h
+      severity: warning
+    - time: 30m
+      severity: critical
+  alerts:
+  - name: NetworkPolicyViolation001
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation002
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation003
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation004
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation005
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation006
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation007
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation008
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation009
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation010
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation011
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation012
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation013
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation014
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation015
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation016
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation017
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation018
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation019
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation020
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation021
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation022
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation023
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation024
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation025
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation026
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation027
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation028
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation029
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation030
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation031
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation032
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation033
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation034
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation035
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation036
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation037
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation038
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation039
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation040
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation041
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation042
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation043
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation044
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation045
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation046
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation047
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation048
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation049
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation050
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: SDNControllerDown051
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown052
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown053
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown054
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown055
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown056
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown057
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown058
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown059
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown060
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown061
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown062
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown063
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown064
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown065
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown066
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown067
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown068
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown069
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown070
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown071
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown072
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown073
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown074
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown075
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown076
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown077
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown078
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown079
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown080
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown081
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown082
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown083
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown084
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown085
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown086
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown087
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown088
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown089
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown090
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown091
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown092
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown093
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown094
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown095
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown096
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown097
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown098
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown099
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown100
+    namespace: openshift-sdn
+    severity: critical
+    firing: true

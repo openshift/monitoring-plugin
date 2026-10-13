@@ -1,0 +1,2014 @@
+name: UI Stress Test - 500 Alerts
+description: Stress test scenario with single incident containing 500 alerts
+incidents:
+- id: cluster-wide-failure-500-alerts
+  component: monitoring
+  layer: core
+  timeline:
+    start: 1h
+    severityChanges:
+    - time: 1h
+      severity: warning
+    - time: 30m
+      severity: critical
+  alerts:
+  - name: NetworkPolicyViolation001
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation002
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation003
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation004
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation005
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation006
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation007
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation008
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation009
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation010
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation011
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation012
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation013
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation014
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation015
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation016
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation017
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation018
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation019
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation020
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation021
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation022
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation023
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation024
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation025
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation026
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation027
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation028
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation029
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation030
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation031
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation032
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation033
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation034
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation035
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation036
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation037
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation038
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation039
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation040
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation041
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation042
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation043
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation044
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation045
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation046
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation047
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation048
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation049
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: NetworkPolicyViolation050
+    namespace: openshift-network
+    severity: critical
+    firing: true
+  - name: SDNControllerDown051
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown052
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown053
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown054
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown055
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown056
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown057
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown058
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown059
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown060
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown061
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown062
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown063
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown064
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown065
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown066
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown067
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown068
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown069
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown070
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown071
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown072
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown073
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown074
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown075
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown076
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown077
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown078
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown079
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown080
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown081
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown082
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown083
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown084
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown085
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown086
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown087
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown088
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown089
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown090
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown091
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown092
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown093
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown094
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown095
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown096
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown097
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown098
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown099
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: SDNControllerDown100
+    namespace: openshift-sdn
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown101
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown102
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown103
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown104
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown105
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown106
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown107
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown108
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown109
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown110
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown111
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown112
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown113
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown114
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown115
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown116
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown117
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown118
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown119
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown120
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown121
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown122
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown123
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown124
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown125
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown126
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown127
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown128
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown129
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown130
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown131
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown132
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown133
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown134
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown135
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown136
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown137
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown138
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown139
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown140
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown141
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown142
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown143
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown144
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown145
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown146
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown147
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown148
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown149
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: OVNKubeControllerDown150
+    namespace: openshift-ovn-kubernetes
+    severity: critical
+    firing: true
+  - name: NodeNetworkUnavailable151
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable152
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable153
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable154
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable155
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable156
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable157
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable158
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable159
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable160
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable161
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable162
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable163
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable164
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable165
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable166
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable167
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable168
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable169
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable170
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable171
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable172
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable173
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable174
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable175
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable176
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable177
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable178
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable179
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable180
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable181
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable182
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable183
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable184
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable185
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable186
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable187
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable188
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable189
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable190
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable191
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable192
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable193
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable194
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable195
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable196
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable197
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable198
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable199
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: NodeNetworkUnavailable200
+    namespace: openshift-network
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded201
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded202
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded203
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded204
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded205
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded206
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded207
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded208
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded209
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded210
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded211
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded212
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded213
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded214
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded215
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded216
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded217
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded218
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded219
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded220
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded221
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded222
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded223
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded224
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded225
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded226
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded227
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded228
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded229
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded230
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded231
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded232
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded233
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded234
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded235
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded236
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded237
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded238
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded239
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded240
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded241
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded242
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded243
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded244
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded245
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded246
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded247
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded248
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded249
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: IngressControllerDegraded250
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency251
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency252
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency253
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency254
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency255
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency256
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency257
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency258
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency259
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency260
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency261
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency262
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency263
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency264
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency265
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency266
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency267
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency268
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency269
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency270
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency271
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency272
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency273
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency274
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency275
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency276
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency277
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency278
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency279
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency280
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency281
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency282
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency283
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency284
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency285
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency286
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency287
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency288
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency289
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency290
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency291
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency292
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency293
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency294
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency295
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency296
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency297
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency298
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency299
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: RouterHighLatency300
+    namespace: openshift-ingress
+    severity: warning
+    firing: true
+  - name: DNSOperatorDegraded301
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded302
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded303
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded304
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded305
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded306
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded307
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded308
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded309
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded310
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded311
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded312
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded313
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded314
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded315
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded316
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded317
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded318
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded319
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded320
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded321
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded322
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded323
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded324
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded325
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded326
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded327
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded328
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded329
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded330
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded331
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded332
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded333
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded334
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded335
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded336
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded337
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded338
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded339
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded340
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded341
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded342
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded343
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded344
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded345
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded346
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded347
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded348
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded349
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: DNSOperatorDegraded350
+    namespace: openshift-dns
+    severity: critical
+    firing: true
+  - name: CoreDNSLatencyHigh351
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh352
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh353
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh354
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh355
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh356
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh357
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh358
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh359
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh360
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh361
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh362
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh363
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh364
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh365
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh366
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh367
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh368
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh369
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh370
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh371
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh372
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh373
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh374
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh375
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh376
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh377
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh378
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh379
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh380
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh381
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh382
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh383
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh384
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh385
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh386
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh387
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh388
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh389
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh390
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh391
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh392
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh393
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh394
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh395
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh396
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh397
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh398
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh399
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: CoreDNSLatencyHigh400
+    namespace: openshift-dns
+    severity: warning
+    firing: true
+  - name: KubeNodeNotReady401
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady402
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady403
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady404
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady405
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady406
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady407
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady408
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady409
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady410
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady411
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady412
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady413
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady414
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady415
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady416
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady417
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady418
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady419
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady420
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady421
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady422
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady423
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady424
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady425
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady426
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady427
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady428
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady429
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady430
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady431
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady432
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady433
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady434
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady435
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady436
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady437
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady438
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady439
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady440
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady441
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady442
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady443
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady444
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady445
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady446
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady447
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady448
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady449
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubeNodeNotReady450
+    namespace: openshift-monitoring
+    severity: critical
+    firing: true
+  - name: KubePodNotReady451
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady452
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady453
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady454
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady455
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady456
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady457
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady458
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady459
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady460
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady461
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady462
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady463
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady464
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady465
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady466
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady467
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady468
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady469
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady470
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady471
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady472
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady473
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady474
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady475
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady476
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady477
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady478
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady479
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady480
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady481
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady482
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady483
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady484
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady485
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady486
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady487
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady488
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady489
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady490
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady491
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady492
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady493
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady494
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady495
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady496
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady497
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady498
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady499
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true
+  - name: KubePodNotReady500
+    namespace: openshift-monitoring
+    severity: warning
+    firing: true

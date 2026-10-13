@@ -1,0 +1,1 @@
+../../.cursor/commands/generate-regression-test.md

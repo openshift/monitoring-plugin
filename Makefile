@@ -1,0 +1,135 @@
+VERSION     ?= latest
+PLATFORMS   ?= linux/arm64,linux/amd64
+ORG         ?= openshift-observability-ui
+PLUGIN_NAME ?=monitoring-plugin
+IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
+FEATURES    ?=incidents,perses-dashboards,dev-config
+
+GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.11.3
+
+export NODE_OPTIONS?=--max_old_space_size=4096
+
+.PHONY: install-frontend
+install-frontend:
+	cd web && npm install
+
+.PHONY: install-frontend-ci
+install-frontend-ci:
+	cd web && npm ci --ignore-scripts
+
+.PHONY: install-frontend-ci-clean
+install-frontend-ci-clean: install-frontend-ci
+	cd web && npm cache clean
+
+.PHONY: build-frontend
+build-frontend:
+	cd web && npm run build
+
+.PHONY: start-frontend
+start-frontend:
+	cd web && npm run start
+
+.PHONY: start-console
+start-console:
+	./scripts/start-console.sh
+
+.PHONY: i18n-frontend
+i18n-frontend:
+	cd web && npm run i18n
+
+.PHONY: lint-frontend
+lint-frontend:
+	cd web && npm run lint
+
+.PHONY: install-backend
+install-backend:
+	go mod download
+
+.PHONY: build-backend
+build-backend:
+	go build $(BUILD_OPTS) -mod=readonly -o plugin-backend cmd/plugin-backend.go
+
+.PHONY: start-backend
+start-backend:
+	go run ./cmd/plugin-backend.go -port='9001' -config-path='./config' -static-path='./web/dist'
+
+.PHONY: test-backend
+test-backend:
+	go test ./pkg/... -v
+
+.PHONY: test-frontend
+test-frontend:
+	cd web && npm run test:unit
+
+.PHONY: test-frontend-unit
+test-frontend-unit:
+	cd web && npm run test:unit:ci
+
+.PHONY: build-image
+build-image:
+	./scripts/build-image.sh
+
+.PHONY: install
+install:
+	make install-frontend && make install-backend
+
+.PHONY: update-plugin-name
+update-plugin-name:
+	./scripts/update-plugin-name.sh
+
+.PHONY: deploy
+deploy: lint-backend
+	PUSH=1 scripts/build-image.sh
+	helm uninstall $(PLUGIN_NAME) -n $(PLUGIN_NAME)-ns || true
+	helm install $(PLUGIN_NAME) charts/openshift-console-plugin -n monitoring-plugin-ns --create-namespace --set plugin.image=$(IMAGE)
+
+.PHONY: deploy-acm
+deploy-acm:
+	./scripts/deploy-acm.sh
+
+# Download and install golangci-lint if not already installed
+.PHONY: golangci-lint
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+		set -e ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+	}
+
+.PHONY: lint-backend
+lint-backend: golangci-lint
+	go mod tidy
+	$(GOLANGCI_LINT) -c $(shell pwd)/.golangci-lint.yaml run --verbose
+
+.PHONY: build-mcp-image
+build-mcp-image:
+	DOCKER_FILE_NAME="Dockerfile.mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
+
+.PHONY: build-dev-mcp-image
+build-dev-mcp-image:
+	DOCKER_FILE_NAME="Dockerfile.dev-mcp" REPO="monitoring-console-plugin" scripts/build-image.sh
+
+.PHONY: start-feature-console
+start-feature-console:
+	PLUGIN_PORT=9443 ./scripts/start-console.sh
+
+.PHONY: start-feature-backend
+start-feature-backend:
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${FEATURES}'
+
+.PHONY: start-devspace-backend
+start-devspace-backend:
+	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${FEATURES}'
+
+.PHONY: podman-cross-build
+podman-cross-build:
+	podman manifest create -a ${IMAGE}
+	podman build --platform ${PLATFORMS} --manifest ${IMAGE} -f Dockerfile.mcp
+
+.PHONY: podman-cross-build-push
+podman-cross-build-push: podman-cross-build
+	podman manifest push ${IMAGE}
+
+.PHONY: test-translations
+test-translations:
+	./scripts/test-translations.sh

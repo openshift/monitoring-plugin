@@ -1,0 +1,185 @@
+package main
+
+import (
+	"context"
+	"crypto/tls"
+	"flag"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/sirupsen/logrus"
+
+	server "github.com/openshift/monitoring-plugin/pkg"
+)
+
+var (
+	portArg             = flag.Int("port", 9443, "server port to listen on\nports 9444 and 9445 reserved for other use")
+	certArg             = flag.String("cert", "", "cert file path to enable TLS (disabled by default)")
+	keyArg              = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
+	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['acm-alerting', 'incidents', 'dev-config', 'perses-dashboards']")
+	staticPathArg       = flag.String("static-path", "/opt/app-root/web/dist", "static files path to serve frontend")
+	configPathArg       = flag.String("config-path", "/opt/app-root/config", "config files path")
+	pluginConfigArg     = flag.String("plugin-config-path", "/etc/plugin/config.yaml", "plugin yaml configuration")
+	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests")
+	alertmanagerUrlArg  = flag.String("alertmanager", "", "Alertmanager URL to proxy to for ACM mode")
+	thanosQuerierUrlArg = flag.String("thanos-querier", "", "Thanos Querier URL to proxy to for ACM mode")
+	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
+	tlsMaxVersionArg    = flag.String("tls-max-version", "", "maximum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default is the highest supported by Go)")
+	tlsCipherSuitesArg  = flag.String("tls-cipher-suites", "", "comma-separated list of cipher suites for the server\nvalues are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants)")
+	log                 = logrus.WithField("module", "main")
+)
+
+func main() {
+	flag.Parse()
+
+	port := mergeEnvValueInt("PORT", *portArg)
+	cert := mergeEnvValue("CERT_FILE_PATH", *certArg)
+	key := mergeEnvValue("PRIVATE_KEY_FILE_PATH", *keyArg)
+	features := mergeEnvValue("MONITORING_PLUGIN_FEATURES", *featuresArg)
+	staticPath := mergeEnvValue("MONITORING_PLUGIN_STATIC_PATH", *staticPathArg)
+	configPath := mergeEnvValue("MONITORING_PLUGIN_MANIFEST_CONFIG_PATH", *configPathArg)
+	pluginConfigPath := mergeEnvValue("MONITORING_PLUGIN_CONFIG_PATH", *pluginConfigArg)
+	logLevel := mergeEnvValue("MONITORING_PLUGIN_LOG_LEVEL", *logLevelArg)
+	alertmanagerUrl := mergeEnvValue("MONITORING_PLUGIN_ALERTMANAGER", *alertmanagerUrlArg)
+	thanosQuerierUrl := mergeEnvValue("MONITORING_PLUGIN_THANOS_QUERIER", *thanosQuerierUrlArg)
+	tlsMinVersion := mergeEnvValue("TLS_MIN_VERSION", *tlsMinVersionArg)
+	tlsMaxVersion := mergeEnvValue("TLS_MAX_VERSION", *tlsMaxVersionArg)
+	tlsCipherSuites := mergeEnvValue("TLS_CIPHER_SUITES", *tlsCipherSuitesArg)
+
+	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
+
+	featuresSet := make(map[server.Feature]bool)
+	for _, s := range featuresList {
+		featuresSet[server.Feature(s)] = true
+	}
+
+	logrusLevel, err := logrus.ParseLevel(logLevel)
+	if err != nil {
+		logrusLevel = logrus.ErrorLevel
+		logrus.WithError(err).Warnf("Invalid log level. Defaulting to %q", logrusLevel.String())
+	}
+	logrus.SetLevel(logrusLevel)
+
+	log.Infof("enabled features: %+q\n", featuresList)
+
+	// Parse the TLS configuration.
+	tlsMinVer := parseTLSVersion(tlsMinVersion)
+	log.Infof("Min TLS version: %q", tls.VersionName(tlsMinVer))
+	tlsMaxVer := parseTLSVersion(tlsMaxVersion)
+	if tlsMaxVer != 0 {
+		log.Infof("Max TLS version: %q", tls.VersionName(tlsMaxVer))
+	}
+	tlsCiphers := parseCipherSuites(tlsCipherSuites)
+	if tlsCipherSuites != "" {
+		log.Infof("TLS ciphers: %q", tlsCipherSuites)
+	}
+
+	srv, err := server.CreateServer(context.Background(), &server.Config{
+		Port:             port,
+		CertFile:         cert,
+		PrivateKeyFile:   key,
+		Features:         featuresSet,
+		StaticPath:       staticPath,
+		ConfigPath:       configPath,
+		PluginConfigPath: pluginConfigPath,
+		AlertmanagerUrl:  alertmanagerUrl,
+		ThanosQuerierUrl: thanosQuerierUrl,
+		TLSMinVersion:    tlsMinVer,
+		TLSMaxVersion:    tlsMaxVer,
+		TLSCipherSuites:  tlsCiphers,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if err = srv.StartHTTPServer(); err != nil {
+		panic(err)
+	}
+}
+
+func mergeEnvValue(key string, arg string) string {
+	if arg != "" {
+		return arg
+	}
+
+	return os.Getenv(key)
+}
+
+func mergeEnvValueInt(key string, arg int) int {
+	if arg != 0 {
+		return arg
+	}
+
+	envValue := os.Getenv(key)
+
+	i, err := strconv.Atoi(envValue)
+	if err != nil {
+		return 0
+	}
+
+	return i
+}
+
+func getCipherSuitesMap() map[string]uint16 {
+	result := make(map[string]uint16)
+
+	for _, suite := range tls.CipherSuites() {
+		result[suite.Name] = suite.ID
+	}
+
+	return result
+}
+
+func getTLSVersionsMap() map[string]uint16 {
+	versions := make(map[string]uint16)
+
+	versions["VersionTLS12"] = tls.VersionTLS12
+	versions["VersionTLS13"] = tls.VersionTLS13
+
+	return versions
+}
+
+func parseTLSVersion(version string) uint16 {
+	if version == "" {
+		return 0
+	}
+
+	tlsVersions := getTLSVersionsMap()
+	if v, ok := tlsVersions[version]; ok {
+		return v
+	}
+
+	log.Warnf("Invalid TLS version %q, using default VersionTLS12", version)
+	return tls.VersionTLS12
+}
+
+func parseCipherSuites(ciphers string) []uint16 {
+	if ciphers == "" {
+		return nil
+	}
+
+	cipherMap := getCipherSuitesMap()
+
+	cipherNames := strings.Split(strings.ReplaceAll(ciphers, " ", ""), ",")
+	var result []uint16
+
+	for _, name := range cipherNames {
+		if name == "" {
+			continue
+		}
+		if cipher, ok := cipherMap[name]; ok {
+			result = append(result, cipher)
+		} else {
+			log.Warnf("Unknown cipher suite %q, skipping", name)
+		}
+	}
+
+	if len(result) == 0 {
+		log.Warn("No valid cipher suites provided, using Go defaults")
+		return nil
+	}
+
+	return result
+}

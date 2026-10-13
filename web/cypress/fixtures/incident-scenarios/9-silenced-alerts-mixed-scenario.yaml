@@ -1,0 +1,104 @@
+name: "Silenced Alerts Mixed Scenario"
+description: "Incidents demonstrating silenced alerts across resolved and firing cases with shared alert names."
+incidents:
+  # Pair 1: Same alert name and same component; older resolved is silenced, newer is firing not silenced
+  - id: "PAIR-1-shared-alert-resolved-SILENCED"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "6h"
+      end: "1h"
+    alerts:
+      - name: "MonitoringSyntheticShared001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: false
+        silenced: true
+        timeline:
+          start: "5h"
+          end: "2h"
+
+  - id: "PAIR-1-shared-alert-firing-UNSILENCED"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "2h"
+    alerts:
+      - name: "MonitoringSyntheticShared001" # same name and component as above
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        silenced: false
+        timeline:
+          start: "1h"
+
+
+  # Pair 2: Same alert name but different components; both firing; one silenced, one not
+  - id: "PAIR-2-shared-alert-name-storage-SILENCED"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "3h"
+    alerts:
+      - name: "SyntheticSharedFiring002"
+        component: "storage"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: true
+        silenced: true
+        timeline:
+          start: "2h"
+      # - name: "StorageAdditionalInfoS001"
+      #   namespace: "openshift-storage"
+      #   severity: "info"
+      #   firing: true
+      #   timeline:
+      #     start: "100m"
+
+  - id: "PAIR-2-shared-alert-name-network-UNSILENCED"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "3h"
+    alerts:
+      - name: "SyntheticSharedFiring002" # same name as storage incident, different component
+        component: "network"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        silenced: false
+        timeline:
+          start: "90m"
+      # - name: "NetworkAdditionalWarnN001"
+      #   namespace: "openshift-network"
+      #   severity: "warning"
+      #   firing: true
+      #   timeline:
+      #     start: "80m"
+
+
+
+  - id: "CASE-3-shared-alert-single-incident-storage-network-SILENCED-UNSILENCED"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "3h"
+    alerts:
+      - name: "SyntheticSharedFiring003"
+        component: "storage"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: true
+        silenced: true
+        timeline:
+          start: "2h"
+
+      - name: "SyntheticSharedFiring003"
+        component: "network"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        silenced: false
+        timeline:
+          start: "90m"
+

@@ -1,0 +1,98 @@
+name: "Multi-Incident Cross-Namespace Target Alert Scenario"
+description: "Multiple incidents with varying components and severities. The final incident contains alerts from multiple namespaces including a TargetAlert for test query validation."
+incidents:
+  - id: "storage-resolved-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "6d"
+      end: "4d"
+    alerts:
+      - name: "PersistentVolumeClaimPending001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "6d"
+          end: "4d"
+      - name: "StorageNodeDiskSpaceLow001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "138h"
+          end: "102h"
+
+  - id: "network-mixed-severity-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "3d"
+    alerts:
+      - name: "NetworkInterfaceDown001"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "3d"
+      - name: "NetworkLatencyHigh001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "60h"
+      - name: "NetworkBandwidthUtilizationHigh001"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "48h"
+
+  - id: "multi-namespace-target-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "2d"
+    alerts:
+      - name: "AlertmanagerReceiversNotConfigured001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "2d"
+      - name: "PrometheusTargetDown001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "42h"
+      - name: "TargetAlert"
+        namespace: "openshift-user-workload-monitoring"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "36h"
+      - name: "KubeDeploymentReplicasMismatch001"
+        namespace: "openshift-kube-apiserver"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "30h"
+      - name: "EtcdMemberCommunicationSlow001"
+        namespace: "openshift-etcd"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "24h"
+      - name: "NodeExporterDown001"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "18h"
+      - name: "ApplicationHealthCheckFailing001"
+        namespace: "test-application"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "12h"

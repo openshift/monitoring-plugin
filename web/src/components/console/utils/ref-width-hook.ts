@@ -1,0 +1,32 @@
+import { useEffect, useRef, useState, useCallback } from 'react';
+
+export const useRefWidth = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number>();
+
+  const setRef = useCallback((e: HTMLDivElement) => {
+    const newWidth = e?.clientWidth;
+    if (newWidth && ref.current?.clientWidth !== newWidth) {
+      setWidth(e.clientWidth);
+    }
+    ref.current = e;
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(ref.current?.clientWidth);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('sidebar_toggle', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('sidebar_toggle', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (width !== ref.current?.clientWidth) {
+      setWidth(ref.current?.clientWidth);
+    }
+  }, [ref, width]);
+
+  return [setRef, width] as [React.Ref<HTMLDivElement>, number];
+};

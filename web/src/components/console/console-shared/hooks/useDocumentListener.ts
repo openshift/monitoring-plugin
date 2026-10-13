@@ -1,0 +1,78 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { KEYBOARD_SHORTCUTS } from '../constants/common';
+
+const isModalOpen = () => document.body.classList.contains('ReactModal__Body--open');
+
+/**
+ * Use this hook for components that require visibility only
+ * when the user is actively interacting with the document.
+ */
+
+export enum KeyEventModes {
+  HIDE = 'HIDE',
+  FOCUS = 'FOCUS',
+}
+
+const textInputKeyHandler = {
+  [KEYBOARD_SHORTCUTS.blurFilterInput]: KeyEventModes.HIDE,
+  [KEYBOARD_SHORTCUTS.focusFilterInput]: KeyEventModes.FOCUS,
+};
+
+export const useDocumentListener = <T extends HTMLElement>(
+  keyEventMap: KeyEventMap = textInputKeyHandler,
+) => {
+  const [visible, setVisible] = useState(true);
+  const ref = useRef<T>(null);
+
+  const handleEvent = useCallback((e) => {
+    if (!ref?.current?.contains(e.target)) {
+      setVisible(false);
+    }
+  }, []);
+
+  const handleKeyEvents = useCallback(
+    (e) => {
+      // Don't steal focus from a modal open on top of the page.
+      if (isModalOpen()) {
+        return;
+      }
+      const { nodeName } = e.target;
+      switch (keyEventMap[e.key]) {
+        case KeyEventModes.HIDE:
+          setVisible(false);
+          ref.current?.blur();
+          break;
+        case KeyEventModes.FOCUS:
+          if (
+            ref.current &&
+            document.activeElement !== ref.current &&
+            // Don't steal focus if the user types the focus shortcut in another text input.
+            nodeName !== 'INPUT' &&
+            nodeName !== 'TEXTAREA'
+          ) {
+            ref.current?.focus();
+            e.preventDefault();
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [keyEventMap],
+  );
+
+  useEffect(() => {
+    document.addEventListener('click', handleEvent, true);
+    document.addEventListener('keydown', handleKeyEvents, true);
+    return () => {
+      document.removeEventListener('click', handleEvent, true);
+      document.removeEventListener('keydown', handleKeyEvents, true);
+    };
+  }, [handleEvent, handleKeyEvents]);
+
+  return { visible, setVisible, ref };
+};
+
+export type KeyEventMap = {
+  [key: string]: KeyEventModes;
+};

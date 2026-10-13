@@ -1,0 +1,236 @@
+import { defineConfig } from 'cypress';
+import * as fs from 'fs-extra';
+import * as console from 'console';
+import * as path from 'path';
+import registerCypressGrep from '@cypress/grep/src/plugin';
+import { DefinePlugin, NormalModuleReplacementPlugin } from 'webpack';
+
+const getLoginCredentials = (index: number): { username: string; password: string } => {
+  const users = (process.env.CYPRESS_LOGIN_USERS || '').split(',').filter(Boolean);
+  const userEntry = users[index] || '';
+  const [username = '', password = ''] = userEntry.split(':');
+  return { username, password };
+};
+
+export default defineConfig({
+  screenshotsFolder: './cypress/screenshots',
+  screenshotOnRunFailure: true,
+  trashAssetsBeforeRuns: true,
+  videosFolder: './cypress/videos',
+  video: true,
+  videoCompression: false,
+  reporter: './node_modules/cypress-multi-reporters',
+  reporterOptions: {
+    configFile: 'reporter-config.json',
+  },
+  env: {
+    grepFilterSpecs: true,
+    HOST_API: (process.env.CYPRESS_BASE_URL || '').replace(/console-openshift-console.apps/, 'api').concat(
+      ':6443',
+    ),
+    // User 0 credentials - as kubeadmin or even non-admin user
+    // specifically for perses e2e tests, user0 is considered as console admin user to install COO and create RBAC roles and bindings
+    LOGIN_USERNAME: getLoginCredentials(0).username,
+    LOGIN_PASSWORD: getLoginCredentials(0).password,
+    // User 1 credentials
+    // User 2 credentials
+    // specifically for perses e2e tests, user1 and user2 are considered as perses e2e users to test RBAC access to dashboards
+    LOGIN_USERNAME1: getLoginCredentials(1).username,
+    LOGIN_PASSWORD1: getLoginCredentials(1).password,
+    LOGIN_USERNAME2: getLoginCredentials(2).username,
+    LOGIN_PASSWORD2: getLoginCredentials(2).password,
+    LOGIN_USERNAME3: getLoginCredentials(3).username,
+    LOGIN_PASSWORD3: getLoginCredentials(3).password,
+    LOGIN_USERNAME4: getLoginCredentials(4).username,
+    LOGIN_PASSWORD4: getLoginCredentials(4).password,
+    LOGIN_USERNAME5: getLoginCredentials(5).username,
+    LOGIN_PASSWORD5: getLoginCredentials(5).password,
+    LOGIN_USERNAME6: getLoginCredentials(6).username,
+    LOGIN_PASSWORD6: getLoginCredentials(6).password,
+    TIMEZONE: process.env.CYPRESS_TIMEZONE || 'UTC',
+    MOCK_NEW_METRICS: process.env.CYPRESS_MOCK_NEW_METRICS || 'false',
+    COO_NAMESPACE: process.env.CYPRESS_COO_NAMESPACE || 'openshift-cluster-observability-operator',
+    typeDelay: 200,
+  },
+  fixturesFolder: 'cypress/fixtures',
+  pageLoadTimeout: 60000,
+  defaultCommandTimeout: 80000, //due to performance loading issue on console
+  readyTimeoutMilliseconds: 120000,
+  installTimeoutMilliseconds: 600000,
+  retries: {
+    runMode: 0,
+    openMode: 0,
+  },
+  e2e: {
+    browser: "chrome",
+    viewportWidth: 1920,
+    viewportHeight: 1080,
+    setupNodeEvents(on, config) {
+      registerCypressGrep(config);
+      
+      on(
+        'before:browser:launch',
+        (
+          browser = {
+            name: '',
+            family: 'chromium',
+            channel: '',
+            displayName: '',
+            version: '',
+            majorVersion: '',
+            path: '',
+            isHeaded: false,
+            isHeadless: false,
+          },
+          launchOptions,
+        ) => {
+          if (browser.family === 'chromium' && browser.name !== 'electron') {
+            // Auto open devtools
+            launchOptions.args.push('--enable-precise-memory-info');
+            // Add flags for headless/container stability:
+            launchOptions.args.push('--disable-gpu'); // Often necessary for headless
+            launchOptions.args.push('--no-sandbox'); // Often needed in containers, understand security implications
+            launchOptions.args.push('--disable-dev-shm-usage'); // Crucial for Docker to prevent crashes
+            launchOptions.args.push('--window-size=1920,1080');
+          }
+
+          return launchOptions;
+        },
+      );
+      // `on` is used to hook into various events Cypress emits
+      on('task', {
+        log(message) {
+          console.log(message);
+          return null;
+        },
+        logError(message) {
+          console.error(message);
+          return null;
+        },
+        logTable(data) {
+          console.table(data);
+          return null;
+        },
+        readFileIfExists(filename) {
+          if (fs.existsSync(filename)) {
+            return fs.readFileSync(filename, 'utf8');
+          }
+          return null;
+        },
+         clearDownloads(folder: string = config.downloadsFolder): null {
+          // You must return a value or a promise from a task.
+          // Returning null is a common practice for tasks that don't need to yield a value.
+          console.log(`Clearing downloads folder: ${folder}`);
+          fs.emptyDirSync(folder);
+          return null;
+        },
+        /**
+         * Checks if a file exists in the specified folder (defaults to downloads folder).
+         * @param args Object containing fileName and optional folder.
+         * @returns True if the file exists, false otherwise.
+         */
+        doesFileExist({ fileName, folder = config.downloadsFolder }: { fileName: string; folder?: string }): boolean {
+          const filePath = path.join(folder, fileName);
+          const exists = fs.existsSync(filePath);
+          console.log(`Checking if file "${fileName}" exists at "${filePath}": ${exists}`);
+          return exists;
+        },
+
+        /**
+         * Gets a list of file names in the specified folder (defaults to downloads folder).
+         * @param folder The folder to list files from.
+         * @returns An array of file names.
+         */
+        getFilesInFolder(folder: string = config.downloadsFolder): string[] {
+          if (!fs.existsSync(folder)) {
+            console.log(`Folder does not exist: ${folder}`);
+            return [];
+          }
+          const files = fs.readdirSync(folder);
+          console.log(`Files in "${folder}": ${files.join(', ')}`);
+          return files;
+        },
+
+      });
+      on('after:spec', (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
+        if (results && results.video) {
+          // Do we have failures for any retry attempts?
+          const failures = results.tests.some((test) =>
+            test.attempts.some((attempt) => attempt.state === 'failed'),
+          );
+          if (!failures && fs.existsSync(results.video)) {
+            // Delete the video if the spec passed and no tests retried
+            fs.unlinkSync(results.video);
+          }
+        }
+      });
+      return config;
+    },
+    supportFile: './cypress/support/index.ts',
+    specPattern: './cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    downloadsFolder: './cypress/downloads',
+    numTestsKeptInMemory: 1,
+    testIsolation: false,
+    experimentalModifyObstructiveThirdPartyCode: true,
+    experimentalOriginDependencies: true,
+    experimentalMemoryManagement: true,
+    experimentalStudio: true,
+  },
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'webpack',
+      webpackConfig: {
+        resolve: {
+          extensions: ['.ts', '.tsx', '.js', '.jsx'],
+          alias: {
+            '@perses-dev/plugin-system': path.resolve(__dirname, 'cypress/component/mocks/perses-plugin-system.tsx'),
+            '@perses-dev/dashboards': path.resolve(__dirname, 'cypress/component/mocks/perses-dashboards.tsx'),
+            '@perses-dev/prometheus-plugin': path.resolve(__dirname, 'cypress/component/mocks/perses-prometheus-plugin.ts'),
+          },
+        },
+        module: {
+          rules: [
+            {
+              test: /\.(jsx?|tsx?)$/,
+              exclude: /node_modules/,
+              use: { loader: 'swc-loader' },
+            },
+            {
+              test: /\.scss$/,
+              exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
+              use: ['style-loader', 'css-loader', 'sass-loader'],
+            },
+            {
+              test: /\.css$/,
+              use: ['style-loader', 'css-loader'],
+            },
+            {
+              test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
+              type: 'asset/resource',
+            },
+            {
+              test: /\.m?js/,
+              resolve: { fullySpecified: false },
+            },
+          ],
+        },
+        plugins: [
+          new DefinePlugin({
+            'process.env.I18N_NAMESPACE': JSON.stringify('plugin__monitoring-plugin'),
+          }),
+          new NormalModuleReplacementPlugin(
+            /helpers\/OlsToolUIPersesWrapper/,
+            path.resolve(__dirname, 'cypress/component/mocks/OlsToolUIPersesWrapper.tsx'),
+          ),
+          new NormalModuleReplacementPlugin(
+            /helpers\/AddToDashboardButton/,
+            path.resolve(__dirname, 'cypress/component/mocks/AddToDashboardButton.tsx'),
+          ),
+        ],
+      },
+    },
+    specPattern: './cypress/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: './cypress/support/component.ts',
+  },
+});

@@ -1,0 +1,141 @@
+/* eslint-env node */
+
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import { DefinePlugin, Configuration as WebpackConfiguration } from 'webpack';
+import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
+import * as path from 'path';
+import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
+
+interface Configuration extends WebpackConfiguration {
+  devServer?: WebpackDevServerConfiguration;
+}
+
+const config: Configuration = {
+  mode: 'development',
+  // No regular entry points. The remote container entry is handled by ConsoleRemotePlugin.
+  entry: {},
+  context: path.resolve(__dirname, 'src'),
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name]-bundle.js',
+    chunkFilename: '[name]-chunk.js',
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    alias: {
+      // @console/internal modules are provided by the OpenShift Console at runtime.
+      // Stub them out during development builds to prevent webpack resolution errors.
+      '@console/internal': false,
+    },
+  },
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        exclude: /node_modules\/(?!(@patternfly|@openshift-console\/plugin-shared)\/).*/,
+        use: [
+          { loader: 'style-loader' },
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+            },
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true,
+              sassOptions: {
+                outputStyle: 'compressed',
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name].[ext]',
+        },
+      },
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false,
+        },
+      },
+    ],
+  },
+  devServer: {
+    static: './dist',
+    hot: false,
+    liveReload: true,
+    port: process.env.PORT || 9001,
+    // Allow bridge running in a container to connect to the plugin dev server.
+    allowedHosts: 'all',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Authorization',
+    },
+    devMiddleware: {
+      writeToDisk: true,
+    },
+  },
+  plugins: [
+    new ConsoleRemotePlugin({
+      validateExtensionIntegrity: false,
+    }),
+    new CopyWebpackPlugin({
+      patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+    }),
+    new DefinePlugin({
+      // Build-time injection of proxy path for config module
+      PERSES_PROXY_BASE_URL: JSON.stringify('/api/proxy/plugin/monitoring-console-plugin/perses'),
+      'process.env.I18N_NAMESPACE': process.env.I18N_NAMESPACE
+        ? JSON.stringify(process.env.I18N_NAMESPACE)
+        : JSON.stringify('plugin__monitoring-plugin'),
+    }),
+  ],
+  devtool: 'source-map',
+  optimization: {
+    chunkIds: 'named',
+    minimize: false,
+  },
+  stats: {
+    errorDetails: true,
+  },
+};
+
+if (process.env.NODE_ENV === 'production') {
+  config.mode = 'production';
+  config.output.filename = '[name]-bundle-[hash].min.js';
+  config.output.chunkFilename = '[name]-chunk-[chunkhash].min.js';
+  config.optimization.chunkIds = 'deterministic';
+  config.optimization.minimize = true;
+  config.devtool = false;
+
+  // Use default esbuild-loader for prod
+  config.module.rules?.unshift({
+    test: /\.[jt]sx?$/,
+    loader: 'esbuild-loader',
+    options: {
+      target: 'es2021',
+    },
+  });
+} else {
+  config.module.rules?.unshift({
+    test: /\.(jsx?|tsx?)$/,
+    exclude: /node_modules/,
+    use: {
+      loader: 'swc-loader',
+    },
+  });
+}
+
+export default config;

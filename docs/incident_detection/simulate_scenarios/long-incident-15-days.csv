@@ -1,0 +1,2 @@
+start,end,alertname,namespace,severity,silenced,labels
+0,21600,AlertLong_15Day_Critical,openshift-monitoring,critical,false,{"component": "monitoring"}

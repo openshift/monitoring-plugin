@@ -1,0 +1,558 @@
+---
+alwaysApply: true
+description: "Development guidelines for Incidents page Cypress tests"
+globs:
+  - "web/cypress/e2e/incidents/**/*.cy.ts"
+  - "web/cypress/views/incidents-page.ts"
+  - "web/cypress/fixtures/incident-scenarios/**/*.yaml"
+---
+
+# Incidents Testing Development Guidelines
+
+Guidelines for developing and maintaining Cypress tests for the Incidents page, including regression tests, page object patterns, and fixture management.
+
+## Page Object Model (POM) Usage
+
+### Priority Order for Selectors
+1. **First**: Use existing `incidentsPage.elements.*` selectors
+2. **Second**: Use existing `incidentsPage.*` methods
+3. **Third**: Suggest additions to page object (ask user before implementing)
+4. **Last Resort**: Use custom selectors (with explanation)
+
+### When to Suggest Page Object Additions
+If a test needs an element or action not in `incidents-page.ts`:
+- List the missing elements/methods
+- Show proposed implementation following existing patterns
+- Ask: "Should I add these to incidents-page.ts?"
+- Wait for user approval before modifying page object
+
+### Page Object Element Patterns
+```typescript
+// Simple element selector
+elementName: () => cy.byTestID(DataTestIDs.Component.Element)
+
+// Parameterized element selector
+elementWithParam: (param: string) => 
+  cy.byTestID(`${DataTestIDs.Component.Element}-${param.toLowerCase()}`)
+
+// Composite selector (when data-test not available)
+compositeSelector: () => 
+  incidentsPage.elements.toolbar().contains('span', 'Category').parent()
+```
+
+### Page Object Method Patterns
+```typescript
+// Action method
+actionName: (param: Type) => {
+  cy.log('incidentsPage.actionName');
+  incidentsPage.elements.something().click();
+}
+
+// Query method returning Chainable
+getData: (): Cypress.Chainable<DataType> => {
+  cy.log('incidentsPage.getData');
+  return incidentsPage.elements.container()
+    .invoke('text')
+    .then((text) => cy.wrap(processData(text)));
+}
+```
+
+## Test Structure and Organization
+
+### E2E Testing Philosophy
+
+**Why fewer, longer tests?**
+- Faster overall execution (less setup/teardown overhead)
+- Better reflects real user behavior
+- Easier to understand user journeys
+- Reduces test interdependencies
+- More valuable failure signals
+
+
+**Follow Cypress best practices for e2e/integration testing**:
+- Tests should cover **complete user flows**, not isolated units
+- Prefer **fewer, longer tests** over many small tests
+- Each `it()` block should test a **realistic user journey** with multiple steps
+- Unlike unit tests, e2e tests should combine related actions and verifications
+- Test how users actually interact with the application end-to-end
+
+**Examples of good e2e test flows**:
+- User navigates → filters data → verifies results → changes filter → verifies new results
+- User loads page → interacts with chart → opens details → verifies content → performs actions
+- Complete workflow from initial state through multiple user interactions to final verification
+
+**Avoid**:
+- Splitting every small action into a separate `it()` block
+- Testing each button click or filter in isolation
+- Creating many tiny tests that don't reflect real usage
+
+### File Naming Convention
+- Location: `web/cypress/e2e/incidents/regression/`
+- Pattern: `XX.reg_<section-name>.cy.ts`
+- Examples: `05.reg_tooltip_positioning.cy.ts`, `01.reg_filtering.cy.ts`
+
+### Test File Structure
+```typescript
+/*
+Brief description of what this test verifies.
+Additional context about the bug or behavior.
+Verifies: OU-XXX
+*/
+
+import { incidentsPage } from '../../../views/incidents-page';
+
+const MCP = {
+  namespace: 'openshift-cluster-observability-operator',
+  packageName: 'cluster-observability-operator',
+  operatorName: 'Cluster Observability Operator',
+  config: {
+    kind: 'UIPlugin',
+    name: 'monitoring',
+  },
+};
+
+const MP = {
+  namespace: 'openshift-monitoring',
+  operatorName: 'Cluster Monitoring Operator',
+};
+
+describe('Regression: <Section Name>', () => {
+  before(() => {
+    cy.beforeBlockCOO(MCP, MP);
+  });
+
+  beforeEach(() => {
+    cy.log('Navigate to Observe → Incidents');
+    incidentsPage.goTo();
+    cy.log('Brief description of scenario');
+    cy.mockIncidentFixture('incident-scenarios/XX-name.yaml');
+  });
+
+  it('1. Test case description', () => {
+    cy.log('1.1 Step description');
+    incidentsPage.clearAllFilters();
+    // Test assertions
+    cy.log('Verified: Expected outcome');
+  });
+});
+```
+
+### Required Elements
+- File header comment with purpose and issue reference (e.g., "Verifies: OU-XXX")
+- Import `incidentsPage` from relative path
+- Standard MCP/MP configuration blocks
+- Use `cy.beforeBlockCOO(MCP, MP)` in `before()` hook
+- Use `incidentsPage.goTo()` in `beforeEach()`
+- Use `cy.mockIncidentFixture()` for test data
+
+## Test Assertions
+
+### Two-Phase Approach for cy.pause()
+- **For new test files**: Include `cy.pause()` statements after key setup/verification steps for manual verification
+- **For new test cases**: Include `cy.pause()` when adding to existing files
+- **For existing test cases**: DO NOT reintroduce `cy.pause()` if the user has already removed them
+- **Rule**: Check if test already has assertions without pauses - preserve that state
+- **Purpose**: Initial pauses allow manual verification, then user deletes them once confident
+
+### Use Automated Assertions
+- **NO** `VERIFY:` comments in place of assertions
+- Convert all manual verification steps to automated assertions
+- Include `cy.pause()` only in initial test generation for manual verification
+
+### Common Assertion Patterns
+
+#### Visibility and Existence
+```typescript
+incidentsPage.elements.incidentsChartContainer().should('be.visible');
+incidentsPage.elements.incidentsTable().should('not.exist');
+```
+
+#### Counts and Length
+```typescript
+incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+incidentsPage.elements.incidentsDetailsTableRows()
+  .should('have.length.greaterThan', 0);
+```
+
+#### Text Content
+```typescript
+incidentsPage.elements.daysSelectToggle().should('contain.text', '7 days');
+incidentsPage.elements.incidentsTableComponentCell(0)
+  .invoke('text')
+  .should('contain', 'monitoring');
+```
+
+#### Conditional Waiting
+```typescript
+cy.waitUntil(
+  () => incidentsPage.elements.incidentsChartBarsGroups()
+    .then($groups => $groups.length === 12),
+  {
+    timeout: 10000,
+    interval: 500,
+    errorMsg: 'All 12 incidents should load within 10 seconds'
+  }
+);
+```
+
+#### Position and Layout
+```typescript
+incidentsPage.elements.incidentsChartBarsVisiblePaths()
+  .first()
+  .then(($element) => {
+    const rect = $element[0].getBoundingClientRect();
+    expect(rect.width).to.be.greaterThan(5);
+  });
+```
+
+#### Tooltip Interactions
+```typescript
+incidentsPage.elements.incidentsChartBarsVisiblePaths()
+  .first()
+  .trigger('mouseover', { force: true });
+
+cy.get('[role="tooltip"]').should('be.visible');
+cy.get('[role="tooltip"]').should('contain.text', 'Expected content');
+```
+
+### Descriptive Logging
+Use `cy.log()` for test flow clarity:
+```typescript
+cy.log('1.1 Verify all incidents loaded');
+incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+cy.pause(); // Manual verification point (for new tests)
+cy.log('Verified: 12 incidents shown');
+```
+
+### cy.pause() Best Practices
+```typescript
+// NEW test - include pauses for manual verification
+it('1. New test case', () => {
+  cy.log('1.1 Setup');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.incidentsChartContainer().should('be.visible');
+  cy.pause(); // Manual verification
+  
+  cy.log('1.2 Verify behavior');
+  // more assertions
+  cy.pause(); // Manual verification
+});
+
+// EXISTING test without pauses - DO NOT reintroduce them
+it('2. Existing test', () => {
+  cy.log('2.1 Setup');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.incidentsChartContainer().should('be.visible');
+  // No pause - user has already verified and removed it
+  
+  cy.log('2.2 Verify behavior');
+  // assertions without pause
+});
+```
+
+## Fixture Management
+
+### Fixture Location and Naming
+- Location: `web/cypress/fixtures/incident-scenarios/`
+- Pattern: `XX-descriptive-name.yaml`
+- Examples: `13-tooltip-positioning-scenarios.yaml`
+
+### Fixture Usage in Tests
+```typescript
+// Preferred: Single scenario per test file
+cy.mockIncidentFixture('incident-scenarios/13-tooltip-positioning-scenarios.yaml');
+
+// For empty state
+cy.mockIncidents([]);
+```
+
+### Creating Fixtures
+- Use `generate-incident-fixture` command for new fixtures
+- Follow schema from `web/cypress/support/incidents_prometheus_query_mocks/schema/fixture-schema.json`
+- Validate fixtures before committing
+- Prefer single scenario per test file for focused regression testing
+
+### Fixture Schema Compliance
+- Use relative durations (e.g., `"2h"`, `"30m"`) not absolute timestamps
+- Use valid component names: `monitoring`, `storage`, `network`, `compute`, `api-server`, `etcd`, `version`, `Others`
+- Use valid layers: `core`, `Others`
+- Use valid severities: `critical`, `warning`, `info`
+- Include descriptive scenario name and description
+
+## Code Quality Standards
+
+### Test Organization
+- **Prefer comprehensive flows**: Each `it()` should test a complete user journey
+- **Combine related steps**: Don't split filtering, verification, interaction into separate tests
+- **Think e2e, not unit**: Test realistic multi-step workflows, not isolated actions
+- **Limit `it()` blocks**: Prefer 1-3 comprehensive tests over 10+ tiny tests per `describe()`
+- Tests can be longer (50-100+ lines) if they test a complete, realistic workflow
+
+### Test Clarity
+- Use numbered test cases with descriptive names
+- Use sub-step numbering in logs (e.g., "1.1", "1.2", "1.3", etc.)
+- Group related assertions logically
+- Each test should tell a complete story of user interaction
+
+### Refactoring for Readability
+- **Extract helper functions for duplicated logic**: If you repeat the same action/assertion pattern, create a helper function within the test file
+- **Keep `it()` blocks readable as a story**: The test body should read like steps a user takes, not implementation details
+- **Move complex logic to helpers or page object**: Multi-step verifications, calculations, or repetitive patterns belong in functions
+- **Helper function placement**: 
+  - Test-specific helpers: Define within the test file (inside or outside `it()`)
+  - Reusable helpers: Add to `incidents-page.ts` page object
+
+### Naming Conventions
+- Test descriptions: Clear, specific, behavior-focused
+- Variables: Descriptive, follow TypeScript conventions
+- Constants: UPPER_CASE for configuration values
+
+### Imports
+```typescript
+// Always import from relative path
+import { incidentsPage } from '../../../views/incidents-page';
+
+// Import types when needed
+import { IncidentDefinition } from '../../support/incidents_prometheus_query_mocks';
+```
+
+### Comments
+- Follow sparse comments rule (explain "why", not "what")
+- Add file header comments explaining test purpose
+- Document workarounds or known issues
+- Reference issue numbers (e.g., "Verifies: OU-XXX")
+
+### Logging
+- Follow no-emojis rule (no emojis in cy.log() statements)
+- Use clear, descriptive text
+- Log test flow for debugging
+
+## Testing Best Practices
+
+### Test Independence
+- Tests should be self-contained
+- Should not depend on execution order
+- Use `beforeEach()` to set up clean state
+
+### Performance
+- Use `cy.waitUntil()` for dynamic loading instead of fixed `cy.wait()`
+- Only wait when necessary
+- Use appropriate timeouts
+
+### Maintainability
+- Keep tests DRY (use page object methods)
+- Follow established patterns
+- Make changes to page object for reusable functionality
+- Update page object when UI changes
+
+### Documentation References
+- Reference test documentation in [`docs/incident_detection/tests/`](../../docs/incident_detection/tests/)
+- Link to TESTING_CHECKLIST.md sections when applicable
+- Reference bug tracking issues in test files
+
+## Validation Checklist
+
+Before submitting tests, verify:
+- [ ] **Tests follow e2e philosophy**: Each `it()` covers a complete user flow, not isolated actions
+- [ ] **Appropriate test count**: Prefer 1-3 comprehensive tests over many small tests
+- [ ] **Tests are independent**: Each test is self-contained and doesn't depend on others
+- [ ] **Test reads like a story**: Refactor duplications into helper functions, keep `it()` body readable
+- [ ] Test file follows naming convention
+- [ ] Uses existing page object elements/methods (or suggests additions)
+- [ ] **For new tests**: Include `cy.pause()` after key verification points
+- [ ] **For existing tests**: Preserve pause/no-pause state (don't reintroduce)
+- [ ] NO `VERIFY:` comments in place of assertions
+- [ ] Fixture validated against schema
+- [ ] Standard imports and setup blocks
+- [ ] Descriptive test names and log statements
+- [ ] No emojis in logs
+- [ ] Minimal, value-adding comments
+- [ ] File header includes purpose and issue reference
+
+## Examples
+
+### Good Test Example (Comprehensive E2E Flow)
+```typescript
+it('1. Complete filtering workflow - severity, component, and time range', () => {
+  cy.log('1.1 Verify initial state with all incidents');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+  incidentsPage.elements.incidentsChartContainer().should('be.visible');
+  cy.pause(); // Manual verification point
+  
+  cy.log('1.2 Apply Critical severity filter and verify results');
+  incidentsPage.toggleFilter('Critical');
+  incidentsPage.elements.severityFilterChip().should('be.visible');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 7);
+  cy.pause(); // Manual verification point
+  
+  cy.log('1.3 Add component filter and verify combined filtering');
+  incidentsPage.selectComponent('monitoring');
+  incidentsPage.elements.componentFilterChip().should('be.visible');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 4);
+  cy.pause(); // Manual verification point
+  
+  cy.log('1.4 Change time range and verify filtered data updates');
+  incidentsPage.setDays('30 days');
+  incidentsPage.elements.daysSelectToggle().should('contain.text', '30 days');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length.greaterThan', 4);
+  cy.pause(); // Manual verification point
+  
+  cy.log('1.5 Click incident bar and verify details panel');
+  incidentsPage.elements.incidentsChartBarsVisiblePaths().first().click();
+  incidentsPage.elements.incidentsDetailsPanel().should('be.visible');
+  incidentsPage.elements.incidentsDetailsTableRows().should('have.length.greaterThan', 0);
+  cy.pause(); // Manual verification point
+  
+  cy.log('1.6 Clear all filters and verify return to initial state');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.severityFilterChip().should('not.exist');
+  incidentsPage.elements.componentFilterChip().should('not.exist');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+  cy.log('Verified: Complete filtering workflow');
+});
+```
+
+### Good Test Example (After User Removed Pauses)
+```typescript
+it('1. Complete filtering workflow - severity, component, and time range', () => {
+  cy.log('1.1 Verify initial state with all incidents');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+  incidentsPage.elements.incidentsChartContainer().should('be.visible');
+  
+  cy.log('1.2 Apply Critical severity filter and verify results');
+  incidentsPage.toggleFilter('Critical');
+  incidentsPage.elements.severityFilterChip().should('be.visible');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 7);
+  
+  cy.log('1.3 Add component filter and verify combined filtering');
+  incidentsPage.selectComponent('monitoring');
+  incidentsPage.elements.componentFilterChip().should('be.visible');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 4);
+  
+  cy.log('1.4 Change time range and verify filtered data updates');
+  incidentsPage.setDays('30 days');
+  incidentsPage.elements.daysSelectToggle().should('contain.text', '30 days');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length.greaterThan', 4);
+  
+  cy.log('1.5 Click incident bar and verify details panel');
+  incidentsPage.elements.incidentsChartBarsVisiblePaths().first().click();
+  incidentsPage.elements.incidentsDetailsPanel().should('be.visible');
+  incidentsPage.elements.incidentsDetailsTableRows().should('have.length.greaterThan', 0);
+  
+  cy.log('1.6 Clear all filters and verify return to initial state');
+  incidentsPage.clearAllFilters();
+  incidentsPage.elements.severityFilterChip().should('not.exist');
+  incidentsPage.elements.componentFilterChip().should('not.exist');
+  incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 12);
+  cy.log('Verified: Complete filtering workflow');
+});
+```
+
+### Good Test Example (With Helper Functions)
+```typescript
+it('1. Silence matching verification flow - opacity and tooltip indicators', () => {
+  const verifyAlertOpacity = (alertIndex: number, expectedOpacity: number) => {
+    incidentsPage.elements.alertsChartBarsPaths()
+      .eq(alertIndex)
+      .then(($bar) => {
+        const opacity = parseFloat($bar.css('opacity') || '1');
+        expect(opacity).to.equal(expectedOpacity);
+      });
+  };
+
+  const verifyAlertTooltip = (alertIndex: number, expectedTexts: string[], shouldBeSilenced: boolean) => {
+    incidentsPage.hoverOverAlertBar(alertIndex);
+    const tooltip = incidentsPage.elements.alertsChartTooltip().should('be.visible');
+    expectedTexts.forEach(text => tooltip.should('contain.text', text));
+    tooltip.should(shouldBeSilenced ? 'contain.text' : 'not.contain.text', '(silenced)');
+  };
+
+  cy.log('1.1 Select silenced alert incident');
+  incidentsPage.elements.incidentsChartBar('PAIR-2-storage-SILENCED').click();
+  incidentsPage.elements.alertsChartContainer().should('be.visible');
+  
+  cy.log('1.2 Verify silenced alert has reduced opacity and tooltip indicator');
+  verifyAlertOpacity(0, 0.3);
+  verifyAlertTooltip(0, ['SyntheticSharedFiring002'], true);
+  
+  cy.log('2.1 Select non-silenced alert with same name');
+  incidentsPage.elements.incidentsChartBar('PAIR-2-network-UNSILENCED').click();
+  
+  cy.log('2.2 Verify non-silenced alert has full opacity without indicator');
+  verifyAlertOpacity(0, 1.0);
+  verifyAlertTooltip(0, ['SyntheticSharedFiring002'], false);
+  
+  cy.log('Verified: Silence matching uses alertname + namespace + severity');
+});
+```
+
+**Why this is good**:
+- Helper functions extract repeated verification patterns
+- Test body reads like a user story (select → verify → select → verify)
+- Complex opacity/tooltip logic hidden in helpers
+- Easy to understand the test flow at a glance
+
+### Bad Test Examples
+
+#### Example 1: Too Many Small Tests (Unit Test Mindset)
+```typescript
+describe('Regression: Filtering', () => {
+  it('1. Should clear filters', () => {
+    incidentsPage.clearAllFilters();
+    incidentsPage.elements.severityFilterChip().should('not.exist');
+  });
+  
+  it('2. Should apply Critical filter', () => {
+    incidentsPage.toggleFilter('Critical');
+    incidentsPage.elements.severityFilterChip().should('be.visible');
+  });
+  
+  it('3. Should show correct count after filtering', () => {
+    incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 7);
+  });
+  
+  it('4. Should apply component filter', () => {
+    incidentsPage.selectComponent('monitoring');
+  });
+  
+  it('5. Should show combined filter results', () => {
+    incidentsPage.elements.incidentsChartBarsGroups().should('have.length', 4);
+  });
+});
+```
+
+**Issues**:
+- Splitting a single user flow into many tiny tests
+- Tests depend on each other (not independent)
+- Doesn't reflect how users actually interact with the app
+- Unit test mindset applied to e2e testing
+- More setup overhead, slower test execution
+
+#### Example 2: Poor Code Quality
+```typescript
+it('Test filtering', () => {
+  // Clear the filters
+  cy.get('[data-test="toolbar"]').find('button').contains('Clear').click();
+  cy.pause(); // VERIFY: Filters are cleared
+  
+  // Select critical
+  cy.get('[data-test="filters-select-toggle"]').click();
+  cy.pause(); // VERIFY: Menu opened
+});
+```
+
+**Issues**:
+- Not using page object methods
+- Using custom selectors instead of page object
+- Using cy.pause() WITHOUT assertions (should have both)
+- Obvious comments that don't add value
+- No descriptive logging
+- No verification of expected outcomes
+- Too short, doesn't test a complete flow
+
+**Important**: 
+- `cy.pause()` should be used WITH assertions for manual verification, not INSTEAD of assertions
+- Tests should cover complete user journeys, not isolated button clicks
+- Use page object methods for maintainability

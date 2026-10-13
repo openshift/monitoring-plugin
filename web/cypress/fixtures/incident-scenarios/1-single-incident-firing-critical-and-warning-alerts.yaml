@@ -1,0 +1,22 @@
+name: "Critical Monitoring Issues"
+description: "Cluster with critical monitoring component failures"
+incidents:
+  - id: "monitoring-critical-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "5d"  # Started 2 hours ago
+      # No end = ongoing incident
+    alerts:
+      - name: "AlertmanagerReceiversNotConfigured"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true
+      - name: "KubeDeploymentReplicasMismatch" 
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: true
+      - name: "KubePodCrashLooping"
+        namespace: "openshift-monitoring"
+        severity: "warning"
+        firing: true

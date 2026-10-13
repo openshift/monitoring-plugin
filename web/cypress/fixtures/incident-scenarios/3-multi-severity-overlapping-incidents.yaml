@@ -1,0 +1,110 @@
+name: "Multi-Severity Overlapping Incidents"
+description: "Three incidents spanning several days with different severity distributions and overlapping alert timelines. First incident contains only critical alerts, second has critical and warning alerts, third has all three severity levels."
+incidents:
+  - id: "monitoring-critical-only-001"
+    component: "monitoring"
+    layer: "core"
+    timeline:
+      start: "5d"
+      end: "3d"
+    alerts:
+      - name: "AlertmanagerReceiversNotConfigured001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "5d"
+          end: "3d"
+      - name: "PrometheusTargetDown001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "114h"
+          end: "78h"
+      - name: "GrafanaDashboardUnavailable001"
+        namespace: "openshift-monitoring"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "108h"
+          end: "84h"
+
+  - id: "storage-mixed-severity-001"
+    component: "storage"
+    layer: "core"
+    timeline:
+      start: "4d"
+      end: "1d"
+    alerts:
+      - name: "PersistentVolumeClaimPending001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "4d"
+          end: "2d"
+      - name: "StorageNodeDiskSpaceLow001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "90h"
+          end: "30h"
+      - name: "CephClusterHealthDegraded001"
+        namespace: "openshift-storage"
+        severity: "critical"
+        firing: false
+        timeline:
+          start: "84h"
+          end: "36h"
+      - name: "StoragePerformanceDegraded001"
+        namespace: "openshift-storage"
+        severity: "warning"
+        firing: false
+        timeline:
+          start: "78h"
+          end: "42h"
+
+  - id: "network-all-severities-001"
+    component: "network"
+    layer: "core"
+    timeline:
+      start: "3d"
+    alerts:
+      - name: "NetworkInterfaceDown001"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "3d"
+      - name: "NetworkLatencyHigh001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "66h"
+      - name: "NetworkBandwidthUtilizationHigh001"
+        namespace: "openshift-network"
+        severity: "warning"
+        firing: true
+        timeline:
+          start: "60h"
+      - name: "NetworkConnectionPoolExhausted001"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "54h"
+      - name: "NetworkDNSResolutionSlow001"
+        namespace: "openshift-network"
+        severity: "info"
+        firing: true
+        timeline:
+          start: "42h"
+      - name: "NetworkFirewallRuleBlocking001"
+        namespace: "openshift-network"
+        severity: "critical"
+        firing: true
+        timeline:
+          start: "36h"
