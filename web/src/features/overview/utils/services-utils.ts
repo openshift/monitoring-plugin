@@ -354,7 +354,7 @@ const isCapabilityLoaded = (
     }
   });
 
-  return [...requirementKinds].every((kind) => requirementResources[kind]?.[1]);
+  return Array.from(requirementKinds).every((kind) => requirementResources[kind]?.[1]);
 };
 
 const isOperatorInstalled = (requiredOperator?: RequiredOperator) =>
