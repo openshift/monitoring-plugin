@@ -9,7 +9,7 @@ import {
 import { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { formatFiringSince } from '@/features/alert-management-api/utils/alert-values';
 import { getSourceKey } from '@/shared/utils/alerts/alert-source';
-import { formatCsv } from '@/shared/utils/csv';
+import { downloadCsv, formatCsv } from '@/shared/utils/csv';
 import { startCase } from '@/shared/utils/strings';
 
 const getOptionalValue: Record<OptionalAlertColumn, (alert: AggregatedAlert) => string | number> = {
@@ -45,12 +45,7 @@ export function ExportAlertsButton({ alerts }: { alerts: AggregatedAlert[] }) {
       columns.map(({ label }) => label),
       ...alerts.map((alert) => columns.map(({ value }) => value(alert))),
     ];
-    const objectUrl = URL.createObjectURL(new Blob([formatCsv(rows)], { type: 'text/csv' }));
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = 'alerts.csv';
-    link.click();
-    URL.revokeObjectURL(objectUrl);
+    downloadCsv(new Blob([formatCsv(rows)], { type: 'text/csv' }), 'alerts.csv');
   };
 
   return (
