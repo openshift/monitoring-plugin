@@ -16,7 +16,8 @@ import './commands/traces-logging-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
-    assert.isTrue(!win.windowError, win.windowError);
+    const { windowError } = win as Cypress.AUTWindow & { windowError?: string };
+    assert.isTrue(!windowError, windowError);
   });
 
 // Ignore benign ResizeObserver errors globally so they don't fail tests
