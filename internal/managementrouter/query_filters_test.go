@@ -87,7 +87,7 @@ func TestParseStateLabelsAndMatchers(t *testing.T) {
 		{
 			name:    "invalid state",
 			query:   "state=invalid",
-			wantErr: `invalid state filter "invalid": must be one of pending, firing, silenced`,
+			wantErr: `invalid state filter "invalid": must be one of firing, pending, silenced`,
 		},
 		{
 			name:    "repeated state values are rejected",
@@ -132,7 +132,7 @@ func TestParseStateLabelsAndMatchers(t *testing.T) {
 				t.Fatalf("invalid test query: %v", err)
 			}
 
-			state, labels, matchers, err := parseStateLabelsAndMatchers(q)
+			state, labels, matchers, err := parseStateLabelsAndMatchers(q, validAlertStates)
 			if tt.wantErr != "" {
 				if err == nil {
 					t.Fatal("expected error, got nil")

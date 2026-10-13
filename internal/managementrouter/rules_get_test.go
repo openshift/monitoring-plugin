@@ -55,6 +55,31 @@ func TestGetRules_ParsesQueryParams(t *testing.T) {
 	}
 }
 
+func TestGetRules_ParsesInactiveAlertState(t *testing.T) {
+	f := newAGFixture(t)
+	var captured k8s.GetRulesRequest
+	f.mockPrometheusAlerts.FetchRulesFunc = func(_ context.Context, req k8s.GetRulesRequest) ([]k8s.PrometheusRuleGroup, []string, error) {
+		captured = req
+		return []k8s.PrometheusRuleGroup{}, nil, nil
+	}
+
+	w := f.get(t, "/api/v1/alerting/rules?state=inactive")
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body)
+	}
+	if captured.State != "inactive" {
+		t.Errorf("expected state=inactive, got %q", captured.State)
+	}
+}
+
+func TestGetRules_SilencedStateRejected(t *testing.T) {
+	f := newAGFixture(t)
+	w := f.get(t, "/api/v1/alerting/rules?state=silenced")
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+	}
+}
+
 func TestGetRules_ReturnsGroups(t *testing.T) {
 	f := newAGFixture(t)
 	f.mockPrometheusAlerts.SetRuleGroups([]k8s.PrometheusRuleGroup{
@@ -96,11 +121,11 @@ func TestGetRules_WarningsSurfacedFromFetchRules(t *testing.T) {
 
 	w := f.get(t, "/api/v1/alerting/rules")
 	resp := decodeRulesResp(t, w)
-	if len(resp.Warnings) != 1 {
-		t.Fatalf("expected 1 warning, got %d: %v", len(resp.Warnings), resp.Warnings)
+	if resp.Warnings == nil || len(*resp.Warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %v", resp.Warnings)
 	}
-	if resp.Warnings[0] != "failed to get user workload rules: connection refused" {
-		t.Errorf("unexpected warning: %s", resp.Warnings[0])
+	if (*resp.Warnings)[0] != "failed to get user workload rules: connection refused" {
+		t.Errorf("unexpected warning: %s", (*resp.Warnings)[0])
 	}
 }
 
@@ -111,8 +136,8 @@ func TestGetRules_NoWarningsWhenAllEndpointsSucceed(t *testing.T) {
 
 	w := f.get(t, "/api/v1/alerting/rules")
 	resp := decodeRulesResp(t, w)
-	if len(resp.Warnings) != 0 {
-		t.Errorf("expected no warnings, got: %v", resp.Warnings)
+	if resp.Warnings != nil {
+		t.Errorf("expected no warnings, got: %v", *resp.Warnings)
 	}
 }
 

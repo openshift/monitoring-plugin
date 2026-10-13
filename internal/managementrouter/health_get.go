@@ -3,13 +3,7 @@ package managementrouter
 import (
 	"encoding/json"
 	"net/http"
-
-	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
-
-type GetHealthResponse struct {
-	Alerting *k8s.AlertingHealth `json:"alerting,omitempty"`
-}
 
 // GetHealth serves GET /api/v1/alerting/health.
 func (hr *httpRouter) GetHealth(w http.ResponseWriter, req *http.Request) {

@@ -151,11 +151,11 @@ func TestGetAlerts_WarningsSurfacedFromFetchAlerts(t *testing.T) {
 	w := f.get(t, "/api/v1/alerting/alerts")
 	resp := decodeAlertsResp(t, w)
 
-	if len(resp.Warnings) != 1 {
-		t.Fatalf("expected 1 warning, got %d: %v", len(resp.Warnings), resp.Warnings)
+	if resp.Warnings == nil || len(*resp.Warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %v", resp.Warnings)
 	}
-	if resp.Warnings[0] != "failed to get user workload alerts: connection refused" {
-		t.Errorf("unexpected warning: %s", resp.Warnings[0])
+	if (*resp.Warnings)[0] != "failed to get user workload alerts: connection refused" {
+		t.Errorf("unexpected warning: %s", (*resp.Warnings)[0])
 	}
 }
 
@@ -166,8 +166,8 @@ func TestGetAlerts_NoWarningsWhenAllEndpointsSucceed(t *testing.T) {
 
 	w := f.get(t, "/api/v1/alerting/alerts")
 	resp := decodeAlertsResp(t, w)
-	if len(resp.Warnings) != 0 {
-		t.Errorf("expected no warnings, got: %v", resp.Warnings)
+	if resp.Warnings != nil {
+		t.Errorf("expected no warnings, got: %v", *resp.Warnings)
 	}
 }
 

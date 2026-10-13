@@ -7,17 +7,8 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
-type GetAlertsResponse struct {
-	Data     GetAlertsResponseData `json:"data"`
-	Warnings []string              `json:"warnings,omitempty"`
-}
-
-type GetAlertsResponseData struct {
-	Alerts []k8s.PrometheusAlert `json:"alerts"`
-}
-
 func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
-	state, labels, _, err := parseStateLabelsAndMatchers(req.URL.Query())
+	state, labels, _, err := parseStateLabelsAndMatchers(req.URL.Query(), validAlertStates)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -36,12 +27,15 @@ func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(GetAlertsResponse{
+	resp := GetAlertsResponse{
 		Data: GetAlertsResponseData{
 			Alerts: alerts,
 		},
-		Warnings: warnings,
-	}); err != nil {
+	}
+	if len(warnings) > 0 {
+		resp.Warnings = &warnings
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.WithError(err).Warn("failed to encode alerts response")
 	}
 }

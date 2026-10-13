@@ -11,7 +11,88 @@ servers:
   - url: /api/v1/alerting
 
 paths:
+  /alerts:
+    get:
+      operationId: GetAlerts
+      summary: Get alerts
+      description: >
+        Returns alerts visible to the current user. The optional state query
+        parameter accepts pending, firing, or silenced. Other query parameters
+        are treated as exact alert-label filters (for example,
+        ?severity=critical&namespace=openshift-monitoring).
+      responses:
+        "200":
+          description: Alerts and any non-fatal fetch warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAlertsResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (insufficient RBAC permissions)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /rules:
+    get:
+      operationId: GetRules
+      summary: Get alerting and recording rules
+      description: >
+        Returns rule groups visible to the current user. The optional state
+        query filter applies to alert instances contained in alerting rules and
+        supports inactive, pending, or firing. Other query parameters are
+        treated as exact rule-label filters; match[] accepts Prometheus-style
+        label matchers.
+      responses:
+        "200":
+          description: Rule groups and any non-fatal fetch warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetRulesResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (insufficient RBAC permissions)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     patch:
       operationId: BulkUpdateAlertRules
       summary: Bulk update alert rules
@@ -293,8 +374,272 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /health:
+    get:
+      operationId: GetHealth
+      summary: Get alerting health
+      description: Returns the health of the platform and user-workload alerting stacks.
+      responses:
+        "200":
+          description: Alerting stack health
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetHealthResponse"
+        "401":
+          description: Missing or invalid authorization token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden (insufficient RBAC permissions)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
+    PrometheusAlert:
+      type: object
+      required:
+        - labels
+        - annotations
+        - state
+        - activeAt
+        - value
+      properties:
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+        state:
+          type: string
+        activeAt:
+          type: string
+          format: date-time
+        value:
+          type: string
+        alertRuleId:
+          type: string
+        alertComponent:
+          type: string
+        alertLayer:
+          type: string
+      x-go-type: k8s.PrometheusAlert
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    PrometheusRuleGroup:
+      type: object
+      required:
+        - name
+        - rules
+      properties:
+        name:
+          type: string
+        file:
+          type: string
+        interval:
+          type: number
+          description: Rule evaluation interval in seconds, as returned by Prometheus.
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrometheusRule"
+      x-go-type: k8s.PrometheusRuleGroup
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    PrometheusRule:
+      type: object
+      properties:
+        name:
+          type: string
+        query:
+          type: string
+        duration:
+          type: number
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrometheusRuleAlert"
+        health:
+          type: string
+        type:
+          type: string
+        lastError:
+          type: string
+        evaluationTime:
+          type: number
+        lastEvaluation:
+          type: string
+          format: date-time
+      x-go-type: k8s.PrometheusRule
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    PrometheusRuleAlert:
+      type: object
+      required:
+        - labels
+        - state
+        - activeAt
+        - value
+      properties:
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+        state:
+          type: string
+        activeAt:
+          type: string
+          format: date-time
+        value:
+          type: string
+        keepFiringSince:
+          type: string
+          format: date-time
+      x-go-type: k8s.PrometheusRuleAlert
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    AlertingHealth:
+      type: object
+      description: Health details for the platform and user-workload alerting stacks.
+      required:
+        - userWorkloadEnabled
+      properties:
+        platform:
+          $ref: "#/components/schemas/AlertingStackHealth"
+        userWorkloadEnabled:
+          type: boolean
+        userWorkload:
+          $ref: "#/components/schemas/AlertingStackHealth"
+      x-go-type: k8s.AlertingHealth
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    AlertingStackHealth:
+      type: object
+      required:
+        - prometheus
+        - alertmanager
+      properties:
+        prometheus:
+          $ref: "#/components/schemas/AlertingRouteHealth"
+        alertmanager:
+          $ref: "#/components/schemas/AlertingRouteHealth"
+      x-go-type: k8s.AlertingStackHealth
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    AlertingRouteHealth:
+      type: object
+      required:
+        - name
+        - namespace
+        - status
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        status:
+          type: string
+          enum:
+            - notFound
+            - unreachable
+            - reachable
+        fallbackReachable:
+          type: boolean
+        error:
+          type: string
+      x-go-type: k8s.AlertingRouteHealth
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    GetAlertsResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/GetAlertsResponseData"
+        warnings:
+          type: array
+          items:
+            type: string
+
+    GetAlertsResponseData:
+      type: object
+      required:
+        - alerts
+      properties:
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrometheusAlert"
+
+    GetRulesResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/GetRulesResponseData"
+        warnings:
+          type: array
+          items:
+            type: string
+
+    GetRulesResponseData:
+      type: object
+      required:
+        - groups
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrometheusRuleGroup"
+
+    GetHealthResponse:
+      type: object
+      properties:
+        alerting:
+          $ref: "#/components/schemas/AlertingHealth"
+
     AlertRuleSpec:
       type: object
       description: >
