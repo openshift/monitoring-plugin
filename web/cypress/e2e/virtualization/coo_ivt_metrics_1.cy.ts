@@ -1,0 +1,88 @@
+import { CLUSTER_MONITORING_OPERATOR } from '../../support/operators';
+import { alerts } from '../../fixtures/monitoring/alert';
+import { testMetricsRegression1 } from '../../support/monitoring/reg_metrics_1.cy';
+import { testMetricsRegressionNamespace1 } from '../../support/monitoring/reg_metrics_namespace_1.cy';
+import { commonPages } from '../../views/common';
+import { nav } from '../../views/nav';
+import { guidedTour } from '../../views/tour';
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+
+describe(
+  'Regression: Monitoring - Metrics (Virtualization)',
+  { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.ensureMonitoringConsolePlugin();
+    });
+
+    beforeEach(() => {
+      cy.restoreLogin();
+    });
+
+    it('1. Installation: COO and setting up Monitoring Plugin', () => {
+      cy.log('Installation: COO and setting up Monitoring Plugin');
+    });
+  },
+);
+
+describe(
+  'IVT: Monitoring UIPlugin + Virtualization',
+  { tags: ['@coo', '@virtualization', '@slow'] },
+  () => {
+    before(() => {
+      cy.ensureVirtualization();
+    });
+
+    beforeEach(() => {
+      cy.restoreLogin();
+    });
+
+    it('1. Virtualization perspective - Observe Menu', () => {
+      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
+    });
+  },
+);
+
+describe(
+  'Regression: Monitoring - Metrics (Virtualization)',
+  { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
+  () => {
+    beforeEach(() => {
+      cy.restoreLogin();
+      cy.visit('/');
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
+      alerts.interceptWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      alerts.interceptWatchdogAlert();
+    });
+
+    testMetricsRegression1(CustomerPerspectiveName.Virtualization);
+  },
+);
+
+describe(
+  'Regression: Monitoring - Metrics Namespaced (Virtualization)',
+  { tags: ['@metrics', '@coo', '@virtualization', '@slow'] },
+  () => {
+    beforeEach(() => {
+      cy.restoreLogin();
+      cy.visit('/');
+      cy.validateLogin();
+      cy.switchPerspective('Virtualization', 'Fleet virtualization');
+      guidedTour.closeKubevirtTour();
+      alerts.interceptWatchdogAlert();
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
+      alerts.interceptWatchdogAlert();
+    });
+
+    testMetricsRegressionNamespace1(CustomerPerspectiveName.Virtualization);
+  },
+);

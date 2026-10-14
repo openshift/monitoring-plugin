@@ -184,13 +184,13 @@ npm run cypress:run
 
 ```bash
 # COO BVT tests
-npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/coo_bvt.cy.ts"
 
 # ACM Alerting tests
-npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/acm_alerting_ui.cy.ts"
 
 # Monitoring BVT tests
-npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/bvt_admin.cy.ts"
 
 # All Monitoring Regression tests
 npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/**"

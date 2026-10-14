@@ -1,0 +1,61 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import { nav } from '../../views/nav';
+import { testCOORBACPersesTestsDevUser6 } from '../../support/perses/coo_rbac_perses_user6.cy';
+import { operatorAuthUtils } from '../../support/commands/auth-commands';
+
+describe(
+  'RBAC User6: COO - Dashboards (Perses) - Administrator perspective',
+  { tags: ['@perses-dashboards', '@coo'] },
+  () => {
+    before(() => {
+      //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
+      // Step 1: Grant temporary cluster-admin role to dev user for COO/Perses installation
+      // cy.log('Granting temporary cluster-admin role to dev user for setup');
+      // cy.adminCLI(
+      //   `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
+      // );
+
+      // Step 2: Setup COO and Perses dashboards (requires admin privileges)
+      operatorAuthUtils.loginAndAuth();
+      cy.switchPerspective('Core platform');
+      cy.cleanupPersesTestDashboardsBeforeTests();
+      cy.setupPersesRBACandExtraDashboards();
+
+      //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
+      // Step 3: Remove cluster-admin role - dev user now has limited permissions
+      // cy.log('Removing cluster-admin role from dev user');
+      // cy.adminCLI(
+      //   `oc adm policy remove-cluster-role-from-user cluster-admin ` +
+      //     `${Cypress.env('LOGIN_USERNAME')}`,
+      // );
+    });
+
+    /**
+     * RBAC permissions for dev user6 (bound directly to the user, no group)
+     * Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
+     * No namespace-scoped RBAC permissions: no RoleBindings and no
+     * `oc policy add-role-to-user` grants exist for this user in
+     * rbac_perses_e2e_ci_users.sh, so it has no visible namespaces at all
+     * (not even openshift-monitoring).
+     */
+    beforeEach(() => {
+      cy.restoreLogin(
+        Cypress.env('LOGIN_IDP_DEV_USER'),
+        Cypress.env('LOGIN_USERNAME6'),
+        Cypress.env('LOGIN_PASSWORD6'),
+      );
+      cy.closeOnboardingModalIfPresent();
+      cy.switchPerspective('Core platform');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.wait(2000);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    });
+
+    after(() => {
+      cy.cleanupExtraDashboards();
+    });
+
+    //TODO: rename after customizable-dashboards gets merged
+    testCOORBACPersesTestsDevUser6(CustomerPerspectiveName.CorePlatform);
+  },
+);

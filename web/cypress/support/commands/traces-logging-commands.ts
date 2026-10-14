@@ -3,6 +3,8 @@ import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeout
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
+import { validateLogging, validateLoki, validateOtel, validateTempo } from './validate';
+import type { ValidationFailure } from './validate';
 import {
   CLUSTER_LOGGING_OPERATOR,
   LOKI_OPERATOR,
@@ -16,37 +18,35 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlockOtel();
-      beforeBlockTempo();
-      configureBase();
-      configureTracingApps();
-      installDistributeTracingUIPlugin();
-      waitForDistributeTracingUIPluginReady();
+      ensureOtel(): Chainable<void>;
+      ensureTempo(): Chainable<void>;
+      configureBase(): Chainable<void>;
+      configureTracingApps(): Chainable<void>;
+      installDistributeTracingUIPlugin(): Chainable<void>;
+      waitForDistributeTracingUIPluginReady(): Chainable<void>;
 
-      beforeBlockLoki();
-      beforeBlockLogging();
-      configureLoggingLoki();
-      installLoggingUIPlugin();
-      waitForLoggingUIPluginReady();
+      ensureLoki(): Chainable<void>;
+      ensureLogging(): Chainable<void>;
+      configureLoggingLoki(): Chainable<void>;
+      installLoggingUIPlugin(): Chainable<void>;
+      waitForLoggingUIPluginReady(): Chainable<void>;
 
-      cleanupOtel();
-      cleanupTempo();
-      cleanupBase();
-      cleanupTracingApps();
-      cleanupTempoLokiThanosPersesGlobalDatasource();
-      cleanupDistributeTracingUIPlugin();
-      cleanupLoki();
-      cleanupLogging();
-      cleanupLoggingLoki();
-      cleanupLoggingUIPlugin();
-      cleanupChainsawNamespaces();
+      cleanupOtel(): Chainable<void>;
+      cleanupTempo(): Chainable<void>;
+      cleanupBase(): Chainable<void>;
+      cleanupTracingApps(): Chainable<void>;
+      cleanupTempoLokiThanosPersesGlobalDatasource(): Chainable<void>;
+      cleanupDistributeTracingUIPlugin(): Chainable<void>;
+      cleanupLoki(): Chainable<void>;
+      cleanupLogging(): Chainable<void>;
+      cleanupLoggingLoki(): Chainable<void>;
+      cleanupLoggingUIPlugin(): Chainable<void>;
+      cleanupChainsawNamespaces(): Chainable<void>;
 
-      createTempoLokiThanosPersesGlobalDatasource();
+      createTempoLokiThanosPersesGlobalDatasource(): Chainable<void>;
     }
   }
 }
-
-const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
 
 const DTP = {
   namespace: Cypress.env('COO_NAMESPACE'),
@@ -780,144 +780,70 @@ const persesUtils = {
   },
 };
 
+function beforeOtel(): void {
+  cy.cleanupOtel();
+  operatorAuthUtils.loginAndAuth();
+  tracesUtils.installOtel();
+  tracesUtils.waitForOtelReady();
+}
+
+function beforeTempo(): void {
+  cy.cleanupTempoLokiThanosPersesGlobalDatasource();
+  cy.cleanupBase();
+  cy.cleanupTracingApps();
+  cy.cleanupTempo();
+  tracesUtils.cleanupChainsawNamespaces();
+  operatorAuthUtils.loginAndAuth();
+  tracesUtils.installTempo();
+  tracesUtils.waitForTempoReady();
+}
+
+function beforeLoki(): void {
+  cy.cleanupLoggingLoki();
+  cy.cleanupLoki();
+  operatorAuthUtils.loginAndAuth();
+  loggingUtils.installLoki();
+  loggingUtils.waitForLokiReady();
+}
+
+function beforeLogging(): void {
+  cy.cleanupLogging();
+  cy.cleanupLoggingLoki();
+  operatorAuthUtils.loginAndAuth();
+  loggingUtils.installLogging();
+  loggingUtils.waitForLoggingReady();
+}
+
+function ensureOperator(
+  validate: () => Cypress.Chainable<ValidationFailure[]>,
+  reset: () => void,
+): void {
+  validate().then((reasons) => {
+    if (!reasons.length) {
+      operatorAuthUtils.loginAndAuth();
+    } else {
+      cy.log(`Operator validation failed: ${reasons.map(({ error }) => error).join('; ')}`);
+      reset();
+    }
+  });
+}
+
 // ── Cypress commands ───────────────────────────────────────────────
 
-Cypress.Commands.add('beforeBlockOtel', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
-      'otel',
-      OPENTELEMETRY_OPERATOR,
-    );
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block OpenTelemetry (session)');
-        cy.cleanupOtel();
-        operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installOtel();
-        tracesUtils.waitForOtelReady();
-        cy.log('Before block OpenTelemetry (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block OpenTelemetry (no session)');
-    cy.cleanupOtel();
-    operatorAuthUtils.loginAndAuth();
-    tracesUtils.installOtel();
-    tracesUtils.waitForOtelReady();
-    cy.log('Before block OpenTelemetry (no session) completed');
-  }
+Cypress.Commands.add('ensureOtel', () => {
+  ensureOperator(validateOtel, beforeOtel);
 });
 
-Cypress.Commands.add('beforeBlockTempo', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('tempo', TEMPO_OPERATOR);
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block Tempo (session)');
-        cy.cleanupTempoLokiThanosPersesGlobalDatasource();
-        cy.cleanupBase();
-        cy.cleanupTracingApps();
-        cy.cleanupTempo();
-        tracesUtils.cleanupChainsawNamespaces();
-        operatorAuthUtils.loginAndAuthNoSession();
-        tracesUtils.installTempo();
-        tracesUtils.waitForTempoReady();
-        cy.log('Before block Tempo (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block Tempo (no session)');
-    cy.cleanupTempoLokiThanosPersesGlobalDatasource();
-    cy.cleanupBase();
-    cy.cleanupTracingApps();
-    cy.cleanupTempo();
-    tracesUtils.cleanupChainsawNamespaces();
-    operatorAuthUtils.loginAndAuth();
-    tracesUtils.installTempo();
-    tracesUtils.waitForTempoReady();
-    cy.log('Before block Tempo (no session) completed');
-  }
+Cypress.Commands.add('ensureTempo', () => {
+  ensureOperator(validateTempo, beforeTempo);
 });
 
-Cypress.Commands.add('beforeBlockLoki', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey('loki', LOKI_OPERATOR);
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block Loki (session)');
-        cy.cleanupLoggingLoki();
-        cy.cleanupLoki();
-        operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLoki();
-        loggingUtils.waitForLokiReady();
-        cy.log('Before block Loki (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block Loki (no session)');
-    cy.cleanupLoggingLoki();
-    cy.cleanupLoki();
-    operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLoki();
-    loggingUtils.waitForLokiReady();
-    cy.log('Before block Loki (no session) completed');
-  }
+Cypress.Commands.add('ensureLoki', () => {
+  ensureOperator(validateLoki, beforeLoki);
 });
 
-Cypress.Commands.add('beforeBlockLogging', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateTracesLoggingSessionKey(
-      'logging',
-      CLUSTER_LOGGING_OPERATOR,
-    );
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block Logging (session)');
-        cy.cleanupLogging();
-        cy.cleanupLoggingLoki();
-        operatorAuthUtils.loginAndAuthNoSession();
-        loggingUtils.installLogging();
-        loggingUtils.waitForLoggingReady();
-        cy.log('Before block Logging (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block Logging (no session)');
-    cy.cleanupLogging();
-    cy.cleanupLoggingLoki();
-    operatorAuthUtils.loginAndAuth();
-    loggingUtils.installLogging();
-    loggingUtils.waitForLoggingReady();
-    cy.log('Before block Logging (no session) completed');
-  }
+Cypress.Commands.add('ensureLogging', () => {
+  ensureOperator(validateLogging, beforeLogging);
 });
 
 Cypress.Commands.add('cleanupOtel', () => {
