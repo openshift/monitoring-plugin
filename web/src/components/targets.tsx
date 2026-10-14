@@ -54,6 +54,14 @@ enum MonitorType {
   PodMonitor = 'podMonitor',
 }
 
+type PrometheusTargetsResponse = {
+  status: string;
+  data: {
+    activeTargets: Array<Target>;
+    droppedTargets: Array<Target>;
+  };
+};
+
 const ServiceMonitorsWatchContext = React.createContext([]);
 const ServicesWatchContext = React.createContext([]);
 
@@ -586,7 +594,9 @@ export const TargetsUI: React.FC = () => {
   const safeFetch = React.useCallback(useSafeFetch(), []);
 
   const tick = () =>
-    safeFetch(`${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`)
+    safeFetch<PrometheusTargetsResponse>(
+      `${PROMETHEUS_BASE_PATH}/${PrometheusEndpoint.TARGETS}?state=active`,
+    )
       .then((response) => {
         setError(undefined);
         setLoaded(true);
