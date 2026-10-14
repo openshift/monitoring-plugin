@@ -21,7 +21,7 @@ type alertRelabelConfigManager struct {
 
 func newAlertRelabelConfigManager(ctx context.Context, clientset *osmv1client.Clientset, config *rest.Config) (*alertRelabelConfigManager, error) {
 	arcInformer := cache.NewSharedIndexInformer(
-		alertRelabelConfigListWatchForAllNamespaces(clientset),
+		alertRelabelConfigListWatch(clientset),
 		&osmv1.AlertRelabelConfig{},
 		0,
 		cache.Indexers{},
@@ -42,8 +42,8 @@ func newAlertRelabelConfigManager(ctx context.Context, clientset *osmv1client.Cl
 	return arcm, nil
 }
 
-func alertRelabelConfigListWatchForAllNamespaces(clientset *osmv1client.Clientset) *cache.ListWatch {
-	return cache.NewListWatchFromClient(clientset.MonitoringV1().RESTClient(), "alertrelabelconfigs", "", fields.Everything())
+func alertRelabelConfigListWatch(clientset *osmv1client.Clientset) *cache.ListWatch {
+	return cache.NewListWatchFromClient(clientset.MonitoringV1().RESTClient(), "alertrelabelconfigs", ClusterMonitoringNamespace, fields.Everything())
 }
 
 func (arcm *alertRelabelConfigManager) List(ctx context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error) {
