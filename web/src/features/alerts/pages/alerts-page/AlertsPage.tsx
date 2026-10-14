@@ -40,7 +40,8 @@ import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { usePerspective } from '@/shared/hooks/usePerspective';
 import { AggregatedAlert, AlertSource } from '@/shared/types/types';
-import { ALL_NAMESPACES_KEY, severitySort } from '@/shared/utils/utils';
+import { severitySort } from '@/shared/utils/alerts/formatting';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

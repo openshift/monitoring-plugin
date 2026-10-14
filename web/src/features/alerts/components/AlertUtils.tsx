@@ -5,7 +5,6 @@ import {
   PrometheusLabels,
   RowFilter,
   Rule,
-  Timestamp,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
@@ -17,24 +16,8 @@ import {
   Popover,
   Tooltip,
 } from '@patternfly/react-core';
-import {
-  BellIcon,
-  ExclamationCircleIcon,
-  ExclamationTriangleIcon,
-  InfoCircleIcon,
-  SeverityUndefinedIcon,
-} from '@patternfly/react-icons';
-import {
-  t_global_border_color_status_info_default,
-  t_global_color_status_danger_default,
-  t_global_color_status_info_default,
-  t_global_color_status_warning_default,
-  t_global_icon_color_severity_undefined_default,
-  t_global_text_color_subtle,
-} from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
-import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
@@ -69,42 +52,6 @@ export const isActionWithHref = (action: Action): action is ActionWithHref => 'h
 type ActionWithCallBack = Omit<Action, 'cta'> & { cta: () => void };
 export const isActionWithCallback = (action: Action): action is ActionWithCallBack =>
   typeof action.cta === 'function';
-
-export const SeverityIcon = memo(({ severity }: { severity: string }) => {
-  switch (severity) {
-    case AlertSeverity.Critical:
-      return <ExclamationCircleIcon color={t_global_color_status_danger_default.var} />;
-    case AlertSeverity.Warning:
-      return <ExclamationTriangleIcon color={t_global_color_status_warning_default.var} />;
-    case AlertSeverity.Info:
-      return <InfoCircleIcon color={t_global_color_status_info_default.var} />;
-    case AlertSeverity.None:
-      return <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />;
-    default:
-      return <BellIcon color={t_global_border_color_status_info_default.var} />;
-  }
-});
-
-SeverityIcon.displayName = 'SeverityIcon';
-
-export const AlertStateDescription: FC<{ alert: Alert }> = ({ alert }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  if (alert && !_.isEmpty(alert.silencedBy)) {
-    return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
-  }
-  if (alert && alert.activeAt) {
-    return <StateTimestamp text={t('Since')} timestamp={alert.activeAt} />;
-  }
-  return null;
-};
-
-export const StateTimestamp = ({ text, timestamp }: { text: string; timestamp: string }) => (
-  <div style={{ color: t_global_text_color_subtle.var }}>
-    {text}&nbsp;
-    <Timestamp timestamp={timestamp} className="pf-v6-u-display-inline" />
-  </div>
-);
 
 export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
   bodyContent,
