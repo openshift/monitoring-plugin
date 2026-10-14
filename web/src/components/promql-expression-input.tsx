@@ -248,6 +248,11 @@ export const promqlHighlighter = HighlightStyle.define([
   { tag: tags.comment, color: '#888', fontStyle: 'italic' },
 ]);
 
+type LabelNamesResponse = {
+  status: string;
+  data: Array<string>;
+};
+
 export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
   value,
   onExecuteQuery,
@@ -274,7 +279,7 @@ export const PromQLExpressionInput: React.FC<PromQLExpressionInputProps> = ({
       // eslint-disable-next-line max-len
       url = `${PROMETHEUS_TENANCY_BASE_PATH}/${PrometheusEndpoint.LABEL}/__name__/values?namespace=${namespace}`;
     }
-    safeFetch(url)
+    safeFetch<LabelNamesResponse>(url)
       .then((response) => {
         const metrics = response?.data;
         setMetricNames(metrics);

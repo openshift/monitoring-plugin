@@ -17,7 +17,7 @@ export const useFetchDashboards = (namespace: string): [Board[], boolean, string
   const [isLoading, , , setLoaded] = useBoolean(true);
 
   React.useEffect(() => {
-    safeFetch('/api/console/monitoring-dashboard-config')
+    safeFetch<any>('/api/console/monitoring-dashboard-config')
       .then((response) => {
         setLoaded();
         setError(undefined);
