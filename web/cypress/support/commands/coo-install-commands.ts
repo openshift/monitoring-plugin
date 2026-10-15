@@ -300,7 +300,7 @@ export const cooInstallUtils = {
         });
 
         cy.adminCLI(
-          `oc delete subscription --all -n ${
+          `oc delete subscriptions.operators.coreos.com --all -n ${
             CLUSTER_OBSERVABILITY_OPERATOR.namespace
           } --ignore-not-found --wait=false`,
           { timeout: 30000, failOnNonZeroExit: false },
@@ -313,6 +313,33 @@ export const cooInstallUtils = {
             cy.log(`Subscription deletion failed or not found: ${result.stderr}`);
           }
         });
+
+        // subscription deletion and dependent CR deletion are flakey, so
+        // manually delete the ones required to not be there to reinstall coo
+        cy.waitUntil(
+          () =>
+            cy
+              .adminCLI(
+                `oc get subscriptions.operators.coreos.com -n ` +
+                  `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} -o name`,
+              )
+              .then((result) => !result.stdout.trim()),
+          {
+            timeout: 600000,
+            interval: 5000,
+            errorMsg:
+              `Timed out deleting subscriptions in ` + CLUSTER_OBSERVABILITY_OPERATOR.namespace,
+          },
+        );
+
+        cy.adminCLI(
+          'oc delete rolebinding openshift-cluster-observability-operator-prometheus ' +
+            `-n ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --ignore-not-found`,
+        );
+        cy.adminCLI(
+          'oc delete role openshift-cluster-observability-operator-prometheus ' +
+            `-n ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --ignore-not-found`,
+        );
 
         cy.adminCLI(
           `oc delete namespace ${

@@ -455,7 +455,7 @@ export const incidentsPage = {
       .incidentIdFilterList()
       .should('exist')
       .then(($list) => {
-        const $items = $list.find(`[data-test^="${prefix}"]`);
+        const $items = Cypress.$($list).find(`[data-test^="${prefix}"]`);
         const ids: string[] = [];
         $items.each((_, el) => {
           const id = Cypress.$(el).attr('data-test')?.slice(prefix.length);

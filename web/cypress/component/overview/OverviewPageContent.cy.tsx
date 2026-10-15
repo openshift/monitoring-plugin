@@ -1,7 +1,7 @@
 import { K8sResourceKind, WatchK8sResult } from '@openshift-console/dynamic-plugin-sdk';
 import { MemoryRouter } from 'react-router';
 
-import OverviewPageContent from '@/features/overview/components/pages/OverviewPageContent';
+import { OverviewPageContent } from '@/features/overview/components/pages/OverviewPageContent';
 import * as useObservabilityCapabilitiesModule from '@/features/overview/hooks/useObservabilityCapabilities';
 import { DataTestIDs } from '@/shared/constants/data-test';
 

@@ -47,6 +47,7 @@ i18n-frontend:
 .PHONY: lint-frontend
 lint-frontend:
 	cd web && npm run lint
+	cd web && npm run lint:tsc:cypress
 
 .PHONY: install-backend
 install-backend:
