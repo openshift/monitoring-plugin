@@ -41,7 +41,6 @@ declare global {
       cleanupLogging(): Chainable<void>;
       cleanupLoggingLoki(): Chainable<void>;
       cleanupLoggingUIPlugin(): Chainable<void>;
-      cleanupChainsawNamespaces(): Chainable<void>;
 
       createTempoLokiThanosPersesGlobalDatasource(): Chainable<void>;
     }
@@ -868,12 +867,6 @@ Cypress.Commands.add('cleanupLogging', () => {
   cy.log('Cleanup Logging Operator');
   loggingUtils.cleanupLogging();
   cy.log('Cleanup Logging Operator completed');
-});
-
-Cypress.Commands.add('cleanupChainsawNamespaces', () => {
-  cy.log('Cleanup Chainsaw namespaces');
-  tracesUtils.cleanupChainsawNamespaces();
-  cy.log('Cleanup Chainsaw namespaces completed');
 });
 
 Cypress.Commands.add('configureBase', () => {

@@ -36,7 +36,6 @@ declare global {
       ensureMonitoringConsolePlugin(options?: COOSetupOptions): Chainable<void>;
       cleanupCOO(options?: COOSetupOptions): Chainable<void>;
       setupCOO(options?: COOSetupOptions): Chainable<void>;
-      RemoveClusterAdminRole(): Chainable<void>;
       ensureACM(): Chainable<void>;
       waitForAcmAlertsFiring(alertNames?: string[]): Chainable<void>;
       closeOnboardingModalIfPresent(): Chainable<void>;
@@ -309,12 +308,6 @@ Cypress.Commands.add('setupCOO', (options?: COOSetupOptions) => {
   imagePatchUtils.setupMonitoringPluginImage();
   removeClusterAdminRole();
   collectDebugInfo({ debugMonitoringPlugin: true, debugMonitoringConsolePlugin: true });
-});
-
-Cypress.Commands.add('RemoveClusterAdminRole', () => {
-  cy.log('Remove cluster-admin role from user.');
-  removeClusterAdminRole();
-  cy.log('Remove cluster-admin role from user completed');
 });
 
 Cypress.Commands.add('waitForAcmAlertsFiring', (alertNames?: string[]) => {

@@ -12,15 +12,6 @@ declare global {
   namespace Cypress {
     interface Chainable {
       switchPerspective(...perspectives: string[]): Chainable<void>;
-      uiLogin(
-        provider: string,
-        username: string,
-        password: string,
-        oauthurl?: string,
-      ): Chainable<void>;
-      uiLogout(): Chainable<void>;
-      cliLogin(username?: string, password?: string, hostapi?: string): Chainable<void>;
-      cliLogout(): Chainable<void>;
       login(
         provider?: string,
         username?: string,
@@ -28,17 +19,9 @@ declare global {
         oauthurl?: string,
         isHypershift?: boolean,
       ): Chainable<Element>;
-      loginNoSession(
-        provider: string,
-        username: string,
-        password: string,
-        oauthurl: string,
-        isHypershift?: boolean,
-      ): Chainable<Element>;
       adminCLI(command: string, options?: Partial<ExecOptions>): Chainable<Exec>;
       executeAndDelete(command: string): Chainable<void>;
       validateLogin(): Chainable<Element>;
-      relogin(provider: string, username: string, password: string): Chainable<Element>;
       restoreLogin(provider?: string, username?: string, password?: string): Chainable<void>;
     }
   }
@@ -288,21 +271,6 @@ Cypress.Commands.add(
   },
 );
 
-// Non-session login (for use within sessions)
-Cypress.Commands.add(
-  'loginNoSession',
-  (
-    provider: string,
-    username: string,
-    password: string,
-    oauthurl: string,
-    isHypershift: boolean = false,
-  ) => {
-    performLogin(provider, username, password, oauthurl, isHypershift);
-    cy.validateLogin();
-  },
-);
-
 Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
   cy.log('switchPerspective - ' + perspectives.join(', '));
   /* If side bar is collapsed then expand it
@@ -321,121 +289,6 @@ Cypress.Commands.add('switchPerspective', (...perspectives: string[]) => {
   nav.sidenav.switcher.changePerspectiveTo(...perspectives);
   cy.wait(3000);
   guidedTour.close();
-});
-
-// To avoid influence from upstream login change
-Cypress.Commands.add('uiLogin', (provider: string, username: string, password: string) => {
-  cy.log('Commands uiLogin');
-  cy.clearCookie('openshift-session-token');
-  cy.visit('/');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cy.window().then((win: any) => {
-    if (win.SERVER_FLAGS?.authDisabled) {
-      cy.task('log', 'Skipping login, console is running with auth disabled');
-      return;
-    }
-    cy.get('h1').should('have.text', 'Login');
-    cy.get('body').then(($body) => {
-      if ($body.text().includes(provider)) {
-        cy.contains(provider).should('be.visible').click();
-      } else if ($body.find('li.idp').length > 0) {
-        //Using the last idp if doesn't provider idp name
-        cy.get('li.idp').last().click();
-      }
-    });
-    cy.get('#inputUsername').type(username);
-    cy.get('#inputPassword').type(password);
-    cy.get('button[type=submit]').click();
-    cy.byTestID('username', { timeout: 120000 }).should('be.visible');
-  });
-  cy.switchPerspective('Administrator');
-});
-
-// Relogin command for use after clearing sessions
-// Fetches OAuth URL and uses cy.origin() for cross-origin login like the other login commands
-Cypress.Commands.add('relogin', (provider: string, username: string, password: string) => {
-  cy.log('Commands relogin - fetching OAuth URL and performing fresh login');
-
-  cy.uiLogout();
-  // Get the OAuth URL from the cluster (same as performLoginAndAuth does)
-  cy.exec(
-    `oc get oauthclient openshift-browser-client -o go-template ` +
-      `--template="{{index .redirectURIs 0}}"`,
-  ).then((result) => {
-    if (result.stderr !== '') {
-      throw new Error(`Failed to get OAuth URL: ${result.stderr}`);
-    }
-
-    const oauth = result.stdout;
-    const oauthurl = new URL(oauth);
-    const oauthorigin = oauthurl.origin;
-
-    // // Now perform login using cy.origin() for cross-origin OAuth
-    // cy.clearCookie('openshift-session-token');
-    cy.visit(Cypress.config('baseUrl'));
-
-    // Use cy.origin() for cross-origin login (OAuth is on a different domain)
-    cy.origin(
-      oauthorigin,
-      { args: { provider, username, password } },
-      ({ provider, username, password }) => {
-        // Wait for login page to load
-        cy.get('[data-test-id="login"]', { timeout: 60000 }).should('be.visible');
-
-        // Select the IDP if available
-        cy.get('body').then(($body) => {
-          if ($body.text().includes(provider)) {
-            cy.contains(provider).should('be.visible').click();
-          }
-        });
-
-        // Fill in login form
-        cy.get('#inputUsername', { timeout: 30000 }).should('be.visible').type(username);
-        cy.get('#inputPassword').type(password);
-        cy.get('button[type=submit]').click();
-      },
-    );
-
-    // Wait for successful login back on the main origin
-    cy.byTestID('username', { timeout: 120000 }).should('be.visible');
-    cy.switchPerspective('Administrator');
-  });
-});
-
-Cypress.Commands.add('uiLogout', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cy.window().then((win: any) => {
-    if (win.SERVER_FLAGS?.authDisabled) {
-      cy.log('Skipping logout, console is running with auth disabled');
-      return;
-    }
-    cy.log('Log out UI');
-    cy.byTestID('username').should('be.visible').click();
-    // Let Cypress retry until the menu item is actually actionable instead of
-    // guessing with a fixed wait, and avoid force: true so we get a real click.
-    cy.byTestID('log-out').should('be.visible').should('not.be.disabled').click();
-  });
-});
-
-Cypress.Commands.add('cliLogin', (username?, password?, hostapi?) => {
-  const loginUsername = username || Cypress.env('LOGIN_USERNAME');
-  const loginPassword = password || Cypress.env('LOGIN_PASSWORD');
-  const hostapiurl = hostapi || Cypress.env('HOST_API');
-  cy.exec(
-    `oc login -u ${loginUsername} -p ${loginPassword} ${hostapiurl} ` +
-      '--insecure-skip-tls-verify=true',
-    { failOnNonZeroExit: false },
-  ).then((result) => {
-    cy.log(result.stderr);
-    cy.log(result.stdout);
-  });
-});
-
-Cypress.Commands.add('cliLogout', () => {
-  cy.exec(`oc logout`, { failOnNonZeroExit: false }).then((result) => {
-    cy.log(result.stderr);
-    cy.log(result.stdout);
-  });
 });
 
 Cypress.Commands.add(
