@@ -426,7 +426,7 @@ export function validateACM(): Cypress.Chainable<ValidationFailure[]> {
       type: ValidationType.ACMOperator,
       command: 'oc get uiplugin monitoring -o json',
       validate: (stdout) =>
-        JSON.parse(stdout).spec.monitoring?.acm?.enabled === true
+        JSON.parse(stdout).spec?.monitoring?.acm?.enabled === true
           ? []
           : [{ type: ValidationType.ACMOperator, error: 'monitoring UIPlugin has ACM disabled' }],
     },
