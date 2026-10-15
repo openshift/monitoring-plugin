@@ -26,12 +26,14 @@ declare global {
         username?: string,
         password?: string,
         oauthurl?: string,
+        isHypershift?: boolean,
       ): Chainable<Element>;
       loginNoSession(
         provider: string,
         username: string,
         password: string,
         oauthurl: string,
+        isHypershift?: boolean,
       ): Chainable<Element>;
       adminCLI(command: string, options?: Partial<ExecOptions>): Chainable<Exec>;
       executeAndDelete(command: string): Chainable<void>;
@@ -98,6 +100,10 @@ export const operatorAuthUtils = {
           Stderr:\n${result.stderr}`);
       }
     });
+    let isHypershift = false;
+    cy.adminCLI(`oc get node --selector=hypershift.openshift.io/managed`).then((result) => {
+      isHypershift = result.stdout.includes('Ready');
+    });
     cy.get('@oauthorigin').then((oauthorigin) => {
       if (useSession) {
         cy.login(
@@ -105,6 +111,7 @@ export const operatorAuthUtils = {
           Cypress.env('LOGIN_USERNAME'),
           Cypress.env('LOGIN_PASSWORD'),
           oauthorigin as unknown as string,
+          isHypershift,
         );
       } else {
         cy.loginNoSession(
@@ -112,6 +119,7 @@ export const operatorAuthUtils = {
           Cypress.env('LOGIN_USERNAME'),
           Cypress.env('LOGIN_PASSWORD'),
           oauthorigin as unknown as string,
+          isHypershift,
         );
       }
     });
@@ -120,6 +128,7 @@ export const operatorAuthUtils = {
   loginAndAuth(): void {
     cy.log('Before block');
     operatorAuthUtils.performLoginAndAuth(true);
+    cy.visit('/');
   },
 
   loginAndAuthNoSession(): void {
@@ -195,6 +204,7 @@ function performLogin(
   username: string,
   password: string,
   oauthurl: string,
+  isHypershift: boolean,
 ): void {
   cy.visit(Cypress.config('baseUrl'));
   cy.log('Session - after visiting');
@@ -205,36 +215,32 @@ function performLogin(
       cy.task('log', '  skipping login, console is running with auth disabled');
       return;
     }
-    cy.adminCLI(`oc get node --selector=hypershift.openshift.io/managed`).then((result) => {
-      cy.log(result.stdout);
-      cy.task('log', result.stdout);
-      if (result.stdout.includes('Ready')) {
-        cy.log(`Attempting login via cy.origin to: ${oauthurl}`);
-        cy.task('log', `Attempting login via cy.origin to: ${oauthurl}`);
-        cy.origin(oauthurl, { args: { username, password } }, ({ username, password }) => {
+    if (isHypershift) {
+      cy.log(`Attempting login via cy.origin to: ${oauthurl}`);
+      cy.task('log', `Attempting login via cy.origin to: ${oauthurl}`);
+      cy.origin(oauthurl, { args: { username, password } }, ({ username, password }) => {
+        cy.get('#inputUsername').type(username);
+        cy.get('#inputPassword').type(password);
+        cy.get('button[type=submit]').click();
+      });
+    } else {
+      cy.task('log', `  Logging in as ${username} using fallback on ${oauthurl}`);
+      cy.origin(
+        oauthurl,
+        { args: { provider, username, password } },
+        ({ provider, username, password }) => {
+          cy.get('[data-test-id="login"]').should('be.visible');
+          cy.get('body').then(($body) => {
+            if ($body.text().includes(provider)) {
+              cy.contains(provider).should('be.visible').click();
+            }
+          });
           cy.get('#inputUsername').type(username);
           cy.get('#inputPassword').type(password);
           cy.get('button[type=submit]').click();
-        });
-      } else {
-        cy.task('log', `  Logging in as ${username} using fallback on ${oauthurl}`);
-        cy.origin(
-          oauthurl,
-          { args: { provider, username, password } },
-          ({ provider, username, password }) => {
-            cy.get('[data-test-id="login"]').should('be.visible');
-            cy.get('body').then(($body) => {
-              if ($body.text().includes(provider)) {
-                cy.contains(provider).should('be.visible').click();
-              }
-            });
-            cy.get('#inputUsername').type(username);
-            cy.get('#inputPassword').type(password);
-            cy.get('button[type=submit]').click();
-          },
-        );
-      }
-    });
+        },
+      );
+    }
   });
 }
 
@@ -277,11 +283,12 @@ Cypress.Commands.add(
     username: string = Cypress.env('LOGIN_USERNAME'),
     password: string = Cypress.env('LOGIN_PASSWORD'),
     oauthurl: string,
+    isHypershift: boolean = false,
   ) => {
     cy.session(
       [provider, username],
       () => {
-        performLogin(provider, username, password, oauthurl);
+        performLogin(provider, username, password, oauthurl, isHypershift);
       },
       {
         cacheAcrossSpecs: true,
@@ -296,8 +303,14 @@ Cypress.Commands.add(
 // Non-session login (for use within sessions)
 Cypress.Commands.add(
   'loginNoSession',
-  (provider: string, username: string, password: string, oauthurl: string) => {
-    performLogin(provider, username, password, oauthurl);
+  (
+    provider: string,
+    username: string,
+    password: string,
+    oauthurl: string,
+    isHypershift: boolean = false,
+  ) => {
+    performLogin(provider, username, password, oauthurl, isHypershift);
     cy.validateLogin();
   },
 );
