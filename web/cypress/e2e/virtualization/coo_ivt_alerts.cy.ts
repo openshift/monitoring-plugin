@@ -11,35 +11,9 @@ describe(
   () => {
     before(() => {
       cy.ensureMonitoringConsolePlugin();
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe(
-  'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
-  () => {
-    before(() => {
       cy.ensureVirtualization();
     });
 
-    beforeEach(() => {
-      cy.restoreLogin();
-    });
-
-    it('1. Virtualization perspective - Observe Menu', () => {
-      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization', 'Fleet virtualization');
-      guidedTour.closeKubevirtTour();
-    });
-  },
-);
-
-describe(
-  'Regression: Monitoring - Alerts (Virtualization)',
-  { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
-  () => {
     beforeEach(() => {
       cy.restoreLogin();
       cy.visit('/');
@@ -54,6 +28,7 @@ describe(
       commonPages.titleShouldHaveText('Alerting');
       alerts.interceptWatchdogAlert();
     });
+
     // Run tests in Virtualization perspective
     testAlertsRegression(CustomerPerspectiveName.Virtualization);
   },

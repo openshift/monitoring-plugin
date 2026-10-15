@@ -12,35 +12,9 @@ describe(
   () => {
     before(() => {
       cy.ensureMonitoringConsolePlugin();
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe(
-  'IVT: Monitoring UIPlugin + Virtualization',
-  { tags: ['@coo', '@virtualization', '@slow'] },
-  () => {
-    before(() => {
       cy.ensureVirtualization();
     });
 
-    beforeEach(() => {
-      cy.restoreLogin();
-    });
-
-    it('1. Virtualization perspective - Observe Menu', () => {
-      cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-      cy.switchPerspective('Virtualization', 'Fleet virtualization');
-      guidedTour.closeKubevirtTour();
-    });
-  },
-);
-
-describe(
-  'Regression: Monitoring - Legacy Dashboards (Virtualization)',
-  { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
-  () => {
     beforeEach(() => {
       cy.restoreLogin();
       cy.visit('/');
@@ -60,6 +34,11 @@ describe(
   'Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization)',
   { tags: ['@legacy-dashboards', '@coo', '@virtualization', '@slow'] },
   () => {
+    before(() => {
+      cy.ensureMonitoringConsolePlugin();
+      cy.ensureVirtualization();
+    });
+
     beforeEach(() => {
       cy.restoreLogin();
       cy.visit('/');

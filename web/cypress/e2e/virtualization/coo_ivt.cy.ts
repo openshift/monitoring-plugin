@@ -7,42 +7,13 @@ import { commonPages } from '../../views/common';
 
 describe(
   'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@virtualization', '@slow'] },
+  { tags: ['@alerting', '@metrics', '@coo', '@virtualization'] },
   () => {
     before(() => {
       cy.ensureMonitoringConsolePlugin();
+      cy.ensureVirtualization();
     });
 
-    beforeEach(() => {
-      cy.restoreLogin();
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@coo', '@virtualization', '@slow'] }, () => {
-  before(() => {
-    cy.ensureVirtualization();
-  });
-
-  beforeEach(() => {
-    cy.restoreLogin();
-  });
-
-  it('1. Virtualization perspective - Observe Menu', () => {
-    cy.log('Virtualization perspective - Observe Menu and verify all submenus');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: Monitoring + Virtualization',
-  { tags: ['@alerting', '@metrics', '@coo', '@virtualization'] },
-  () => {
     beforeEach(() => {
       cy.restoreLogin();
       cy.visit('/');

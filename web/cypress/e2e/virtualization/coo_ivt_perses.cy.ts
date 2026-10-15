@@ -7,42 +7,12 @@ import { commonPages } from '../../views/common';
 describe(
   'IVT: COO - Dashboards (Perses) - Virtualization perspective',
   { tags: ['@perses-dashboards', '@coo', '@virtualization', '@slow'] },
-
   () => {
     before(() => {
       cy.ensureMonitoringConsolePlugin();
+      cy.ensureVirtualization();
     });
 
-    beforeEach(() => {
-      cy.restoreLogin();
-    });
-
-    it('1. Installation: COO and setting up Monitoring Plugin', () => {
-      cy.log('Installation: COO and setting up Monitoring Plugin');
-    });
-  },
-);
-
-describe('Installation: Virtualization', { tags: ['@virtualization', '@slow'] }, () => {
-  before(() => {
-    cy.ensureVirtualization();
-  });
-
-  beforeEach(() => {
-    cy.restoreLogin();
-  });
-
-  it('1. Installation: Virtualization', () => {
-    cy.log('Installation: Virtualization');
-    cy.switchPerspective('Virtualization', 'Fleet virtualization');
-    guidedTour.closeKubevirtTour();
-  });
-});
-
-describe(
-  'IVT: COO - Dashboards (Perses) - Virtualization perspective',
-  { tags: ['@perses-dashboards', '@coo', '@virtualization', '@slow'] },
-  () => {
     beforeEach(() => {
       cy.restoreLogin();
       cy.visit('/');
