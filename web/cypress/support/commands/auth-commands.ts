@@ -265,13 +265,16 @@ Cypress.Commands.add('restoreLogin', (provider?: string, username?: string, pass
       '--template="{{index .redirectURIs 0}}"',
   ).then((result) => {
     const origin = new URL(result.stdout).origin;
-    cy.login(
-      provider || Cypress.env('LOGIN_IDP'),
-      username || Cypress.env('LOGIN_USERNAME'),
-      password || Cypress.env('LOGIN_PASSWORD'),
-      origin,
-    );
-    cy.visit('/');
+    cy.adminCLI('oc get node --selector=hypershift.openshift.io/managed').then((nodeResult) => {
+      cy.login(
+        provider || Cypress.env('LOGIN_IDP'),
+        username || Cypress.env('LOGIN_USERNAME'),
+        password || Cypress.env('LOGIN_PASSWORD'),
+        origin,
+        nodeResult.stdout.includes('Ready'),
+      );
+      cy.visit('/');
+    });
   });
 });
 
