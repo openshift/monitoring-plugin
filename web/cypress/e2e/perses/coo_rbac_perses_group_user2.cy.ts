@@ -10,7 +10,6 @@ describe(
       // Setup COO and Perses dashboards (requires admin privileges)
       cy.ensureMonitoringConsolePlugin({
         dashboards: true,
-        troubleshootingPanel: false,
       });
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();

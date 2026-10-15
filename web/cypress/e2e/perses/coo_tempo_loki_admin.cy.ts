@@ -22,7 +22,6 @@ describe(
 
       cy.ensureMonitoringConsolePlugin({
         dashboards: true,
-        troubleshootingPanel: false,
       });
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesExtraDashboards();

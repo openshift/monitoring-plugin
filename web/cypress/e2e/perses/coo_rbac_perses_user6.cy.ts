@@ -8,6 +8,9 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
+      cy.ensureMonitoringConsolePlugin({
+        dashboards: true,
+      });
       //TODO: https://issues.redhat.com/browse/OCPBUGS-58468 - when it gets fixed, installation can be don using non-admin user
       // Step 1: Grant temporary cluster-admin role to dev user for COO/Perses installation
       // cy.log('Granting temporary cluster-admin role to dev user for setup');

@@ -8,6 +8,9 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
+      cy.ensureMonitoringConsolePlugin({
+        dashboards: true,
+      });
       operatorAuthUtils.loginAndAuth();
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesExtraDashboards();

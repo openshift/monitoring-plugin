@@ -14,7 +14,6 @@ describe(
     before(() => {
       cy.ensureMonitoringConsolePlugin({
         dashboards: true,
-        troubleshootingPanel: false,
       });
       cy.cleanupPersesTestDashboardsBeforeTests();
     });
