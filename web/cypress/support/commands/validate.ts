@@ -1,3 +1,4 @@
+import { load } from 'js-yaml';
 import type { COOSetupOptions } from './operator-commands';
 import {
   CLUSTER_LOGGING_OPERATOR,
@@ -413,9 +414,14 @@ export function validateACM(): Cypress.Chainable<ValidationFailure[]> {
       type: ValidationType.ACMOperator,
       command: `oc get configmap thanos-ruler-custom-rules -n ${namespace} -o json`,
       validate: (stdout) => {
-        const rules = JSON.parse(stdout).data?.['custom_rules.yaml'];
+        const rules = load(JSON.parse(stdout).data?.['custom_rules.yaml'] || '') as {
+          groups?: { rules?: { alert?: string }[] }[];
+        };
+        const alerts = rules?.groups?.flatMap(
+          (group) => group.rules?.map((rule) => rule.alert) || [],
+        );
         return ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb']
-          .filter((alert) => !rules?.includes(`alert: ${alert}`))
+          .filter((alert) => !alerts?.includes(alert))
           .map((alert) => ({
             type: ValidationType.ACMOperator,
             error: `ACM custom rules missing ${alert}`,
