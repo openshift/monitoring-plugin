@@ -23,6 +23,7 @@ describe('Regression: Monitoring - Alerts (Administrator)', { tags: ['@monitorin
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     alerts.getWatchdogAlert();
+    cy.wait(3000);
   });
 
   // Run tests in Administrator perspective
