@@ -48,7 +48,7 @@ declare global {
 // Moved from operator-commands.ts so all auth concerns live in one file.
 
 export const operatorAuthUtils = {
-  performLoginAndAuth(useSession: boolean): void {
+  performLoginAndAuth(): void {
     if (`${Cypress.env('LOGIN_USERNAME')}` === 'kubeadmin') {
       cy.adminCLI(
         `oc adm policy add-cluster-role-to-user cluster-admin ${Cypress.env('LOGIN_USERNAME')}`,
@@ -105,35 +105,20 @@ export const operatorAuthUtils = {
       isHypershift = result.stdout.includes('Ready');
     });
     cy.get('@oauthorigin').then((oauthorigin) => {
-      if (useSession) {
-        cy.login(
-          Cypress.env('LOGIN_IDP'),
-          Cypress.env('LOGIN_USERNAME'),
-          Cypress.env('LOGIN_PASSWORD'),
-          oauthorigin as unknown as string,
-          isHypershift,
-        );
-      } else {
-        cy.loginNoSession(
-          Cypress.env('LOGIN_IDP'),
-          Cypress.env('LOGIN_USERNAME'),
-          Cypress.env('LOGIN_PASSWORD'),
-          oauthorigin as unknown as string,
-          isHypershift,
-        );
-      }
+      cy.login(
+        Cypress.env('LOGIN_IDP'),
+        Cypress.env('LOGIN_USERNAME'),
+        Cypress.env('LOGIN_PASSWORD'),
+        oauthorigin as unknown as string,
+        isHypershift,
+      );
     });
   },
 
   loginAndAuth(): void {
     cy.log('Before block');
-    operatorAuthUtils.performLoginAndAuth(true);
+    operatorAuthUtils.performLoginAndAuth();
     cy.visit('/');
-  },
-
-  loginAndAuthNoSession(): void {
-    cy.log('Before block (no session)');
-    operatorAuthUtils.performLoginAndAuth(false);
   },
 
   generateCOOSessionKey(): string[] {

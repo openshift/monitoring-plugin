@@ -48,8 +48,6 @@ const ACM_OBSERVABILITY_NS = 'open-cluster-management-observability';
 const ACM_DEFAULT_TEST_ALERTS = ['Watchdog', 'Watchdog-spoke', 'ClusterCPUHealth-jb'];
 const acmAlertReadyTimeoutMilliseconds = 600000;
 
-const useSession = String(Cypress.env('SESSION')).toLowerCase() === 'true';
-
 // ── Helpers used only by the orchestration commands ────────────────
 
 function beforeCOO(options?: COOSetupOptions): void {
@@ -221,11 +219,9 @@ Cypress.Commands.add('ensureMonitoringPlugin', () => {
 });
 
 Cypress.Commands.add('cleanupMP', () => {
-  if (useSession) {
-    cy.log('cleanupMP (session)');
-    imagePatchUtils.revertMonitoringPluginImage();
-    cy.log('cleanupMP (session) completed');
-  }
+  cy.log('cleanupMP');
+  imagePatchUtils.revertMonitoringPluginImage();
+  cy.log('cleanupMP completed');
 });
 
 Cypress.Commands.add('ensureMonitoringConsolePlugin', (options?: COOSetupOptions) => {
