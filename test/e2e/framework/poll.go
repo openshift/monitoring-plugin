@@ -13,9 +13,18 @@ import (
 // Poll calls f every interval until it returns nil or timeout elapses.
 // On timeout the last observed error is wrapped with wait.ErrWaitTimeout.
 func Poll(interval, timeout time.Duration, f func() error) error {
+	return PollWithContext(context.Background(), interval, timeout, func(context.Context) error {
+		return f()
+	})
+}
+
+// PollWithContext is Poll with a parent context. The callback receives the
+// poll-bounded context so Kubernetes and HTTP calls cancel when the timeout
+// elapses.
+func PollWithContext(ctx context.Context, interval, timeout time.Duration, f func(context.Context) error) error {
 	var lastErr error
-	err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(context.Context) (bool, error) {
-		if lastErr = f(); lastErr != nil {
+	err := wait.PollUntilContextTimeout(ctx, interval, timeout, true, func(pollCtx context.Context) (bool, error) {
+		if lastErr = f(pollCtx); lastErr != nil {
 			return false, nil
 		}
 		return true, nil

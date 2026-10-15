@@ -135,3 +135,30 @@ func mustCreateRule(ctx context.Context, t *testing.T, f *framework.Framework, n
 	}
 	return id
 }
+
+func fetchPluginMetrics(ctx context.Context, f *framework.Framework) (body string, err error) {
+	req, err := f.AuthorizedRequest(ctx, http.MethodGet, f.PluginURL+"/metrics", nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := f.HTTPClient().Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("closing response body: %w", closeErr)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(raw), nil
+}
