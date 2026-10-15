@@ -143,6 +143,8 @@ func TestRBAC_UpdateAlertRule_Single(t *testing.T) {
 	ruleInY2 := mustCreateRule(ctx, t, f, nsY, "RBACUpd1AlertY2", "e2e-rbac-upd1-pr")
 
 	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInY)
+	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInY2)
+	waitForSingleUpdateCacheSync(ctx, t, f, anonymousUser.Token, ruleInZ)
 
 	cases := []struct {
 		name       string
@@ -181,9 +183,7 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 	}
 	defer func() { _ = cleanup() }()
 
-	// KeepSingleAlert stays on the PrometheusRule and is checked by name
-	// after the other rule is deleted.
-	mustCreateRule(ctx, t, f, ns, "KeepSingleAlert", "e2e-delete-single-pr")
+	keepID := mustCreateRule(ctx, t, f, ns, "KeepSingleAlert", "e2e-delete-single-pr")
 	deleteID := mustCreateRule(ctx, t, f, ns, "DeleteSingleAlert", "e2e-delete-single-pr")
 
 	anonymousUser, err := f.CreateAnonymousUser(ctx, "e2e-delete-single-a", "default")
@@ -212,6 +212,20 @@ func TestDeleteAlertRule_Single(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("single delete failed: %v", err)
+	}
+
+	err = framework.Poll(time.Second, 20*time.Second, func() error {
+		status, _, err := tryPreviewAlertRule(ctx, f, f.BearerToken, previewUpdateProbeRequest(keepID))
+		if status == http.StatusOK {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("sibling rule %s not resolvable via API after delete: expected HTTP 200, got %d", keepID, status)
+	})
+	if err != nil {
+		t.Fatalf("sibling rule API resolution after single delete: %v", err)
 	}
 
 	err = framework.Poll(time.Second, 20*time.Second, func() error {
