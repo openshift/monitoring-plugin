@@ -177,16 +177,18 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
-  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardCount: ['options-menu-bottom-toggle', 'options-menu-top-toggle'],
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
-  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
+  persesDashboardCreateDashboardName: 'create-modal-dashboard-name-form-group-text-input',
   persesDashboardRenameDashboardName: 'rename-modal-text-input',
   persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
+  persesDashboardImportDashboardUploadFileInput: 'import-dashboard-file-filename',
+  persesDashboardRefreshIntervalDropdown: 'refreshInterval',
 };
 
 export const Classes = {
@@ -216,8 +218,10 @@ export const Classes = {
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   NamespaceDropdownExpanded:
     '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
-  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width',
+  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width.pf-m-typeahead',
   PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
+  PersesDuplicateDashboardNameError: '.pf-v6-c-alert__title',
+  PersesCreateDuplicateImportButton: '.pf-v6-c-button.pf-m-primary.pf-m-progress',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
@@ -230,6 +234,7 @@ export const Classes = {
   SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
   SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
   SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+  ImportDashboardTextArea: '.view-lines.monaco-mouse-cursor-text',
 };
 
 export const persesAriaLabels = {
@@ -267,7 +272,14 @@ export const persesAriaLabels = {
   //Add Panel tabs
   AddPanelTabs: 'Panel configuration tabs',
   //List Page
-  persesDashboardKebabIcon: 'Kebab toggle',
+  persesDashboardKebabIcon: ['Actions', 'Kebab toggle'],
+  //dialogProjectDropdown
+  dialogProjectInput: 'Type to filter',
+  //Import Dashboard
+  dashboardActionsMenu: 'Dashboard actions',
+  importDashboardProjectInputButton: 'Typeahead menu toggle',
+  importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
+  traceTablePanel_TraceTable: 'Trace name column menu',
 };
 
 //data-testid from MUI components
@@ -285,6 +297,8 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
   addPanelGroupFormName: 'panel-group-editor-name',
+  logsTableContainer: 'log-row-container-0',
+  scatterChartPanel_ScatterPlot: 'ScatterChartPanel_ScatterPlot',
 };
 
 export const persesDashboardDataTestIDs = {

@@ -1,63 +1,243 @@
-export { };
+export {};
+
+import { nav } from '../../views/nav';
+import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
+import { listPersesDashboardsOUIAIDs } from '../../../src/components/data-test';
+
+// Display name prefixes/exact matches for test-created PersesDashboards to delete before
+// Perses tests.
+// Examples: "Test Dashboard0.24...", "Dashboard to test duplication0.33...",
+// "Testing Dashboard - UP 0.32..."
+const PERSES_TEST_DASHBOARD_NAME_PREFIXES = [
+  'Testing Dashboard - UP ',
+  'Renamed dashboard ',
+  'Duplicate dashboard ',
+  'Test Dashboard',
+  'Dashboard to test rename',
+  'Dashboard to test duplication',
+  'DashboardToTestDuplication',
+  'Tempo Loki Perses Global Datasources',
+];
+const PERSES_TEST_DASHBOARD_NAME_EXACT = [
+  'Testing Perses dashboard - YAML',
+  'Testing Perses dashboard - JSON',
+  'Service Level dashboards / Virtual Machines by Time in Status',
+];
+
+const PERSES_E2E_DASHBOARDS_DIR = './cypress/fixtures/coo/coo140_perses/dashboards';
+const SED_OCP_NS_TO_OBS_TEST =
+  "sed 's/namespace: openshift-cluster-observability-operator/namespace: observ-test/g'";
+const SED_PERSES_DEV_TO_OBS_TEST = "sed 's/namespace: perses-dev/namespace: observ-test/g'";
 
 declare global {
-    namespace Cypress {
-      interface Chainable {
-        setupPersesRBACandExtraDashboards(): Chainable<void>;
-        cleanupExtraDashboards(): Chainable<void>;
-      }
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable {
+      setupPersesRBACandExtraDashboards(): Chainable<void>;
+      setupPersesExtraDashboards(): Chainable<void>;
+      cleanupExtraDashboards(): Chainable<void>;
+      /** Delete test Perses dashboards via UI (list page). Call before Perses tests. */
+      cleanupPersesTestDashboardsBeforeTests(): Chainable<void>;
+      setupPersesRBACandExtraDashboardsForGroup(): Chainable<void>;
     }
   }
+}
+
+Cypress.Commands.add('setupPersesRBACandExtraDashboardsForGroup', () => {
+  cy.log('Setup perses RBAC and extra dashboards for group.');
+  if (
+    `${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' &&
+    Cypress.env('LOGIN_USERNAME2') !== undefined
+  ) {
+    cy.exec('./cypress/fixtures/coo/coo140_perses/rbac/rbac_perses_e2e_group1_to_group6.sh', {
+      env: {
+        USER1: `${Cypress.env('LOGIN_USERNAME1')}`,
+        USER2: `${Cypress.env('LOGIN_USERNAME2')}`,
+        USER3: `${Cypress.env('LOGIN_USERNAME3')}`,
+        USER4: `${Cypress.env('LOGIN_USERNAME4')}`,
+        USER5: `${Cypress.env('LOGIN_USERNAME5')}`,
+        USER6: `${Cypress.env('LOGIN_USERNAME6')}`,
+      },
+      // This script makes significantly more `oc` CLI round-trips than
+      // rbac_perses_e2e_ci_users.sh (group creation/membership, re-applied
+      // ClusterRoles, group RoleBindings, plus the cleanup of direct-to-user
+      // bindings), so the default 60s execTimeout isn't enough.
+      timeout: 180000,
+    });
+  }
+  cy.setupPersesExtraDashboards();
+});
 
 Cypress.Commands.add('setupPersesRBACandExtraDashboards', () => {
-
-  if (`${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' && `${Cypress.env('LOGIN_USERNAME2')}` !== undefined) {
-    cy.exec(
-      './cypress/fixtures/coo/coo141_perses/rbac/rbac_perses_e2e_ci_users.sh',
-      {
-        env: {
-          USER1: `${Cypress.env('LOGIN_USERNAME1')}`,
-          USER2: `${Cypress.env('LOGIN_USERNAME2')}`,
-        },
-      }
-    );
-
-    cy.log('Create openshift-cluster-sample-dashboard instance.');
-    cy.exec(`sed 's/namespace: openshift-cluster-observability-operator/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-    cy.log('Create perses-dashboard-sample instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/perses-dashboard-sample.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-    cy.log('Create prometheus-overview-variables instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/prometheus-overview-variables.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-    cy.log('Create thanos-compact-overview-1var instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/thanos-compact-overview-1var.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
-    cy.log('Create Thanos Querier instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/thanos-querier-datasource.yaml | oc apply -f - --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  if (
+    `${Cypress.env('LOGIN_USERNAME1')}` !== 'kubeadmin' &&
+    Cypress.env('LOGIN_USERNAME2') !== undefined
+  ) {
+    cy.exec('./cypress/fixtures/coo/coo140_perses/rbac/rbac_perses_e2e_ci_users.sh', {
+      env: {
+        USER1: `${Cypress.env('LOGIN_USERNAME1')}`,
+        USER2: `${Cypress.env('LOGIN_USERNAME2')}`,
+        USER3: `${Cypress.env('LOGIN_USERNAME3')}`,
+        USER4: `${Cypress.env('LOGIN_USERNAME4')}`,
+        USER5: `${Cypress.env('LOGIN_USERNAME5')}`,
+        USER6: `${Cypress.env('LOGIN_USERNAME6')}`,
+      },
+    });
+    cy.setupPersesExtraDashboards();
   }
+});
+
+Cypress.Commands.add('setupPersesExtraDashboards', () => {
+  cy.log('Setup perses extra dashboards.');
+  const kc = Cypress.env('KUBECONFIG_PATH');
+
+  cy.log('Create perses-dev namespace.');
+  cy.adminCLI(`oc create namespace perses-dev`, { failOnNonZeroExit: false });
+
+  cy.log('Create observ-test namespace.');
+  cy.adminCLI(`oc create namespace observ-test`, { failOnNonZeroExit: false });
+
+  cy.log('Create empty-namespace3 namespace.');
+  cy.adminCLI(`oc create namespace empty-namespace3`, { failOnNonZeroExit: false });
+
+  cy.log('Create empty-namespace4 namespace.');
+  cy.adminCLI(`oc create namespace empty-namespace4`, { failOnNonZeroExit: false });
+
+  cy.log('Create openshift-cluster-sample-dashboard instance.');
+  cy.exec(
+    `${SED_OCP_NS_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `openshift-cluster-sample-dashboard.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create perses-dashboard-sample instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `perses-dashboard-sample.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create prometheus-overview-variables instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `prometheus-overview-variables.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create thanos-compact-overview-1var instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-compact-overview-1var.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
+
+  cy.log('Create Thanos Querier instance.');
+  cy.exec(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-querier-datasource.yaml | oc apply -f - --kubeconfig ${kc}`,
+  );
 });
 
 Cypress.Commands.add('cleanupExtraDashboards', () => {
+  cy.log('Cleanup perses extra dashboards.');
+  const kc = Cypress.env('KUBECONFIG_PATH');
 
-    cy.log('Remove openshift-cluster-sample-dashboard instance.');
-    cy.exec(`sed 's/namespace: openshift-cluster-observability-operator/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/openshift-cluster-sample-dashboard.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  // Use executeAndDelete (failOnNonZeroExit: false) instead of cy.exec here:
+  // these deletes can run before the Perses/COO CRDs are registered on the
+  // cluster (e.g. before beforeBlockCOO() in a test's `before` hook), in
+  // which case `oc delete` fails with "no matches for kind ..." rather than
+  // a per-resource not-found error. `--ignore-not-found` does not suppress
+  // that failure, so cleanup must tolerate it instead.
+  cy.log('Remove openshift-cluster-sample-dashboard instance.');
+  cy.executeAndDelete(
+    `${SED_OCP_NS_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `openshift-cluster-sample-dashboard.yaml | oc delete -f - --ignore-not-found ` +
+      `--kubeconfig ${kc}`,
+  );
 
-    cy.log('Remove perses-dashboard-sample instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/perses-dashboard-sample.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('Remove perses-dashboard-sample instance.');
+  cy.executeAndDelete(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `perses-dashboard-sample.yaml | oc delete -f - --ignore-not-found ` +
+      `--kubeconfig ${kc}`,
+  );
 
-    cy.log('Remove prometheus-overview-variables instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/prometheus-overview-variables.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('Remove prometheus-overview-variables instance.');
+  cy.executeAndDelete(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `prometheus-overview-variables.yaml | oc delete -f - --ignore-not-found ` +
+      `--kubeconfig ${kc}`,
+  );
 
-    cy.log('Remove thanos-compact-overview-1var instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/thanos-compact-overview-1var.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('Remove thanos-compact-overview-1var instance.');
+  cy.executeAndDelete(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-compact-overview-1var.yaml | oc delete -f - --ignore-not-found ` +
+      `--kubeconfig ${kc}`,
+  );
 
-    cy.log('Remove Thanos Querier instance.');
-    cy.exec(`sed 's/namespace: perses-dev/namespace: observ-test/g' ./cypress/fixtures/coo/coo141_perses/dashboards/thanos-querier-datasource.yaml | oc delete -f - --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
+  cy.log('Remove Thanos Querier instance.');
+  cy.executeAndDelete(
+    `${SED_PERSES_DEV_TO_OBS_TEST} ${PERSES_E2E_DASHBOARDS_DIR}/` +
+      `thanos-querier-datasource.yaml | oc delete -f - --ignore-not-found ` +
+      `--kubeconfig ${kc}`,
+  );
 
-    cy.log('Remove observ-test namespace');
-    cy.exec(`oc delete namespace observ-test --ignore-not-found --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`);
-
+  cy.log('Remove observ-test namespace');
+  cy.adminCLI(`oc delete namespace observ-test --ignore-not-found`, {
+    failOnNonZeroExit: false,
+  });
 });
 
+function isTestDashboardName(displayName: string | undefined): boolean {
+  if (!displayName) return false;
+  if (PERSES_TEST_DASHBOARD_NAME_EXACT.includes(displayName)) return true;
+  return PERSES_TEST_DASHBOARD_NAME_PREFIXES.some((p) => displayName.startsWith(p));
+}
+
+const MAX_UI_CLEANUP_ITERATIONS = 50;
+
+Cypress.Commands.add('cleanupPersesTestDashboardsBeforeTests', () => {
+  cy.log('Perses cleanup: remove test dashboards via UI.');
+  nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+  cy.wait(5000);
+  cy.changeNamespace('All Projects');
+  cy.wait(5000);
+  cy.get(`[data-ouia-component-id^="${listPersesDashboardsOUIAIDs.PersesDashListDataViewTable}"]`, {
+    timeout: 15000,
+  })
+    .should('be.visible')
+    .then(() => {
+      runDeleteOneMatching(0);
+    });
+});
+
+function runDeleteOneMatching(iteration: number): void {
+  if (iteration >= MAX_UI_CLEANUP_ITERATIONS) return;
+  cy.get('body').then(($body) => {
+    const $table = $body.find(
+      `[data-ouia-component-id^="${listPersesDashboardsOUIAIDs.PersesDashListDataViewTable}"]`,
+    );
+    if ($table.length === 0) return;
+    const $rows = $table.find('tbody tr');
+    if ($rows.length === 0) return;
+    let deleteIndex = -1;
+    let deleteName = '';
+    for (let i = 0; i < $rows.length; i++) {
+      const $row = $rows.eq(i);
+      const $link = $row
+        .find('a')
+        .filter((_, el) => Cypress.$(el).text().trim().length > 0)
+        .first();
+      const name = $link.length ? $link.text().trim() : '';
+      if (name && isTestDashboardName(name)) {
+        deleteIndex = i;
+        deleteName = name;
+        break;
+      }
+    }
+    if (deleteIndex < 0) return;
+    cy.log(`Perses cleanup (UI): deleting "${deleteName}" (row ${deleteIndex})`);
+    listPersesDashboardsPage.clickKebabIcon(deleteIndex);
+    listPersesDashboardsPage.clickDeleteOption();
+    listPersesDashboardsPage.deleteDashboardDeleteButton();
+    cy.wait(4000);
+    cy.then(() => runDeleteOneMatching(iteration + 1));
+  });
+}
