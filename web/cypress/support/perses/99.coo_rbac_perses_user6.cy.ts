@@ -1,8 +1,8 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import type { CustomerPerspective } from '@/shared/constants/perspective';
+import type { CustomerPerspective } from '../../../src/components/perspective';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
-import { Classes } from '@/shared/constants/data-test';
+import { Classes } from '../../../src/components/data-test';
 
 /**
  * User6 has access to:

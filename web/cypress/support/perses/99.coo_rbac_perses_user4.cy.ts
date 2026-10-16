@@ -1,5 +1,5 @@
 import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-dashboards';
-import type { CustomerPerspective } from '@/shared/constants/perspective';
+import type { CustomerPerspective } from '../../../src/components/perspective';
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 

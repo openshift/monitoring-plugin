@@ -27,7 +27,7 @@ export const persesCreateDashboardsPage = {
 
   assertProjectDropdown: (project: string) => {
     cy.log('persesCreateDashboardsPage.assertProjectDropdown');
-    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byPFRole('dialog').find('button[aria-label="Typeahead menu toggle"]').click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible');
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
@@ -35,7 +35,8 @@ export const persesCreateDashboardsPage = {
 
   assertProjectNotExistsInDropdown: (project: string) => {
     cy.log('persesCreateDashboardsPage.assertProjectNotExistsInDropdown');
-    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.wait(2000); // Wait for the dropdown to be loaded
+    cy.byPFRole('dialog').find('button[aria-label="Typeahead menu toggle"]').click({ force: true });
     cy.byPFRole('listbox')
       .find('li')
       .then((items) => {
@@ -46,7 +47,7 @@ export const persesCreateDashboardsPage = {
           }
         });
       });
-    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byPFRole('dialog').find('button[aria-label="Typeahead menu toggle"]').click({ force: true });
   },
 
   /**
@@ -59,7 +60,7 @@ export const persesCreateDashboardsPage = {
       .should('be.visible')
       .clear()
       .type('access-denied-check');
-    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byPFRole('dialog').find('button[aria-label="Typeahead menu toggle"]').click({ force: true });
     cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
     cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
     cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');

@@ -218,7 +218,7 @@ export const Classes = {
   NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   NamespaceDropdownExpanded:
     '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
-  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width',
+  PersesCreateDashboardProjectDropdown: '.pf-v6-c-menu-toggle.pf-m-full-width.pf-m-typeahead',
   PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
   PersesDuplicateDashboardNameError: '.pf-v6-c-alert__title',
   PersesCreateDuplicateImportButton: '.pf-v6-c-button.pf-m-primary.pf-m-progress',

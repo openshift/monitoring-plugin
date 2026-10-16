@@ -3,7 +3,7 @@ import { listPersesDashboardsPage } from '../../views/perses-dashboards-list-das
 import { persesCreateDashboardsPage } from '../../views/perses-dashboards-create-dashboard';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { persesDashboardsDashboardDropdownPersesDev } from '../../fixtures/perses/constants';
-import type { CustomerPerspective } from '@/shared/constants/perspective';
+import type { CustomerPerspective } from '../../../src/components/perspective';
 
 /**
  * User2 has access to:

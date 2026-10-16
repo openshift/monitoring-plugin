@@ -10,12 +10,12 @@ import {
 } from '../../fixtures/perses/constants';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
 import { persesDashboardsPanelGroup } from '../../views/perses-dashboards-panelgroup';
-import { persesAriaLabels } from '@/shared/constants/data-test';
+import { persesAriaLabels } from '../../../src/components/data-test';
 import { persesDashboardsPanel } from '../../views/perses-dashboards-panel';
 import { persesDashboardsAddListPanelType } from '../../fixtures/perses/constants';
 import { persesImportDashboardsPage } from '../../views/perses-dashboards-import-dashboard';
 import { nav } from '../../views/nav';
-import type { CustomerPerspective } from '@/shared/constants/perspective';
+import type { CustomerPerspective } from '../../../src/components/perspective';
 
 /**
  * User1 has access to:
