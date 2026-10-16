@@ -73,6 +73,19 @@ const config: Configuration = {
           fullySpecified: false,
         },
       },
+      {
+        // Perses 0.55+ dist is strict ESM ("type": "module"), so webpack's
+        // strict-ESM interop binds default imports of CommonJS deps (e.g.
+        // mdi-material-ui icons) to the module namespace instead of `.default`,
+        // yielding invalid React element types. `javascript/auto`
+        // restores the interop that unwraps `__esModule` default exports.
+        test: /\.js$/,
+        include: /[\\/]node_modules[\\/]@perses-dev[\\/]/,
+        type: 'javascript/auto',
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   devServer: {
