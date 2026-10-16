@@ -4,6 +4,7 @@ export const INFRASTRUCTURE_TAGS = ['@coo', '@virtualization', '@ols', '@acm'] a
 
 export const FEATURE_TAGS = [
   '@alerting',
+  '@logging',
   '@legacy-dashboards',
   '@metrics',
   '@targets',
