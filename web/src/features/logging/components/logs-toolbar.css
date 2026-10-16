@@ -1,0 +1,12 @@
+.lv-plugin__toolbar {
+  gap: var(--pf-t--global--spacer--md);
+}
+
+.lv-plugin__severity-filter {
+  margin: 0;
+}
+
+.lv-plugin__toolbar .lv-plugin__expression-input {
+  padding-right: var(--pf-v6-c-toolbar__content--PaddingInlineEnd);
+  padding-left: var(--pf-v6-c-toolbar__content--PaddingInlineStart);
+}

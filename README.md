@@ -213,3 +213,31 @@ curl "http://localhost:9090/api/v1/query?query=up"
 ```
 
 Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io.
+
+#### Local Development with the Logging View (LokiStack)
+
+The logging view runs under the `monitoring-console-plugin` identity and is
+not part of any default feature set. To test it locally against a cluster that
+runs a LokiStack (for example one set up with
+[development-tools](https://github.com/observability-ui/development-tools/blob/main/logging/setup-logging-stack.sh)):
+
+```
+# In a separate terminal: forward the LokiStack gateway; start-console.sh
+# proxies https://logging-loki-gateway-http.openshift-logging.svc:8080 to it
+$ oc -n openshift-logging port-forward svc/logging-loki-gateway-http 8080:8080
+
+# Frontend under the console-plugin identity (manifest name + i18n namespace)
+$ make start-mcp-frontend
+
+# Backend with logging enabled (not in MONITORING_FEATURES by default)
+$ make start-backend MONITORING_FEATURES='alerting,metrics,targets,legacy-dashboards,logging'
+
+# Console bridge
+$ CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console
+```
+
+`start-console.sh` fetches the cluster's service CA so the bridge can verify
+the gateway's TLS certificate and registers
+`/api/proxy/plugin/monitoring-console-plugin/loki/` for it. Override
+`LOKI_HOST`, `LOKI_NAME` or `LOKI_NAMESPACE` for non-default LokiStacks, e.g.
+`LOKI_HOST=http://localhost:3100` for a plain-HTTP local Loki.

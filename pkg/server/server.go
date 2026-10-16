@@ -55,12 +55,14 @@ type PluginServer struct {
 }
 
 type PluginConfig struct {
-	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	Logging *LoggingConfig `json:"logging,omitempty" yaml:"logging,omitempty"`
+	Timeout time.Duration  `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 type Feature string
 
 const (
+	Logging               Feature = "logging"
 	AcmAlerting           Feature = "acm-alerting"
 	Alerting              Feature = "alerting"
 	AlertingManagement    Feature = "alerting-management"
@@ -390,6 +392,9 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	}
 
 	var pluginConfig PluginConfig
+	if cfg.Features[Logging] {
+		pluginConfig.Timeout = 30 * time.Second
+	}
 	err = yaml.Unmarshal(pluginConfData, &pluginConfig)
 
 	if err != nil {
