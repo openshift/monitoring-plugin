@@ -1,20 +1,30 @@
 /**
- * Perses Plugin Configuration
- *
- * This module configures global variables needed for Perses plugins to load assets
- * through the OpenShift Console monitoring plugin proxy. The proxy path is injected
- * at build time via webpack DefinePlugin.
+ * Perses global setup: proxy-path window globals and host shared-module
+ * registration. Imported for side effects at the top of `PersesWrapper`.
  */
 
-// Build-time injected proxy URL for Perses plugins
+import * as PersesClient from '@perses-dev/client';
+import * as PersesComponents from '@perses-dev/components';
+import * as PersesDashboards from '@perses-dev/dashboards';
+import * as PersesExplore from '@perses-dev/explore';
+import { registerHostSharedModules } from '@perses-dev/plugin-system';
+import * as PersesPluginSystem from '@perses-dev/plugin-system';
+import * as PersesSpec from '@perses-dev/spec';
+
+// Perses 0.55+ requires the host to register its @perses-dev packages before
+// remote plugins (loaded via PluginRegistry) can consume them.
+registerHostSharedModules({
+  '@perses-dev/spec': PersesSpec,
+  '@perses-dev/client': PersesClient,
+  '@perses-dev/components': PersesComponents,
+  '@perses-dev/plugin-system': PersesPluginSystem,
+  '@perses-dev/explore': PersesExplore,
+  '@perses-dev/dashboards': PersesDashboards,
+});
+
+// Proxy URL injected at build time via webpack DefinePlugin.
 declare const PERSES_PROXY_BASE_URL: string;
 
-// Configuration object for Perses app compatibility
-const PERSES_APP_CONFIG = {
-  api_prefix: PERSES_PROXY_BASE_URL,
-};
-
-// Set up window globals for plugin system compatibility
-// These are needed for plugins that use getPublicPath() in their Module Federation configs
-window.PERSES_APP_CONFIG = PERSES_APP_CONFIG;
+// Window globals read by Perses plugins' getPublicPath() in their MF configs.
+window.PERSES_APP_CONFIG = { api_prefix: PERSES_PROXY_BASE_URL };
 window.PERSES_PLUGIN_ASSETS_PATH = PERSES_PROXY_BASE_URL;
