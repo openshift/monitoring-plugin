@@ -24,3 +24,5 @@ _output/
 tasks/
 web/dist-logging/
 .monitoring-plugin-bridge-sa-token
+.loki-service-ca.crt
+.bridge-ca-bundle.crt
