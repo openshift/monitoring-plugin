@@ -251,7 +251,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	}
 
 	timeout := 30 * time.Second
-	if pluginConfig != nil && pluginConfig.Timeout > 0 {
+	if pluginConfig != nil {
 		timeout = pluginConfig.Timeout
 	}
 
@@ -392,6 +392,9 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	}
 
 	var pluginConfig PluginConfig
+	if cfg.Features[Logging] {
+		pluginConfig.Timeout = 30 * time.Second
+	}
 	err = yaml.Unmarshal(pluginConfData, &pluginConfig)
 
 	if err != nil {
