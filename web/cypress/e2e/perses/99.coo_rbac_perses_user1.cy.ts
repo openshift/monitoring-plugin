@@ -1,6 +1,7 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import { operatorAuthUtils } from 'cypress/support/commands/auth-commands';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
@@ -8,10 +9,7 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO({
-        dashboards: true,
-        troubleshootingPanel: false,
-      });
+      operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
       cy.setupPersesRBACandExtraDashboards();

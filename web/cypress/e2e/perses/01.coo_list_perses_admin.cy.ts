@@ -5,6 +5,7 @@ import {
   testCOOListPersesDuplicateDashboard,
 } from '../../support/perses/01.coo_list_perses_admin.cy';
 import { testCOOListPersesNamespace } from '../../support/perses/01.coo_list_perses_admin_namespace.cy';
+import { operatorAuthUtils } from 'cypress/support/commands/auth-commands';
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
 describe(
@@ -38,7 +39,7 @@ describe(
   { tags: ['@perses-dashboards', '@coo'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO();
+      operatorAuthUtils.loginAndAuth();
       cy.switchPerspective('Core platform');
       cy.cleanupPersesTestDashboardsBeforeTests();
     });

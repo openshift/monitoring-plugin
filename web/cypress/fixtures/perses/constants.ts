@@ -36,15 +36,19 @@ export const persesDashboardsDashboardDropdownPersesDev = {
   THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses', 'thanos-compact-overview'],
 };
 
-export enum persesDashboardsAcceleratorsCommonMetricsPanels {
-  GPU_UTILIZATION = 'GPU Utilization',
-  MEMORY_USED_BYTES = 'Memory Used Bytes',
-  MEMORY_TOTAL_BYTES = 'Memory Total Bytes',
-  POWER_USAGE_WATTS = 'Power Usage (Watts)',
-  TEMPERATURE_CELCIUS = 'Temperature (Celsius)',
-  SM_CLOCK_HERTZ = 'SM Clock (Hertz)',
-  MEMORY_CLOCK_HERTZ = 'Memory Clock (Hertz)',
-}
+export const persesDashboardsDashboardDropdownObservTest = {
+  K8S_COMPUTE_RESOURCES_CLUSTER: [
+    'Kubernetes / Compute Resources / Cluster',
+    'perses',
+    'openshift-cluster-sample-dashboard',
+  ],
+  PROMETHEUS_OVERVIEW: ['Prometheus / Overview', 'perses', 'prometheus-overview'],
+  THANOS_COMPACT_OVERVIEW: ['Thanos / Compact / Overview', 'perses', 'thanos-compact-overview'],
+};
+
+export const persesDashboardsAcceleratorsCommonMetricsPanels = {
+  GPU_UTILIZATION: 'GPU Utilization',
+};
 
 export const listPersesDashboardsPageSubtitle = 'View and manage dashboards.';
 
@@ -99,7 +103,7 @@ export enum persesDashboardsAddListVariableSort {
 }
 
 export const persesDashboardsRequiredFields = {
-  AddVariableNameField: 'String must contain at least 1 character(s)',
+  AddVariableNameField: 'Too small: expected string to have >=1 characters',
 };
 
 export const persesDashboardsAddListPanelType = {
