@@ -103,7 +103,7 @@ it('fetches rules from the management API and silences from the selected Prometh
     ).toBe('platform|Compute|rid_example'),
   );
   expect(mocks.fetchAlerts, 'alert rules should come from the management API').toHaveBeenCalledWith(
-    '/api/v1/alerting/rules',
+    '/api/plugins/monitoring-plugin/api/v1/alerting/rules',
   );
   expect(
     mocks.getAlertmanagerSilencesUrl,
