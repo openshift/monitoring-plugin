@@ -23,12 +23,14 @@ import (
 
 type listRulesResponse struct {
 	Data struct {
-		Groups []k8s.PrometheusRuleGroup `json:"groups"`
+		Groups []struct {
+			Rules []k8s.AlertingRule `json:"rules"`
+		} `json:"groups"`
 	} `json:"data"`
 }
 
-func listRules(ctx context.Context, f *framework.Framework) ([]k8s.PrometheusRule, error) {
-	rules, status, err := listRulesWithToken(ctx, f, f.BearerToken, "")
+func listAlertingRules(ctx context.Context, f *framework.Framework) ([]*k8s.AlertingRule, error) {
+	rules, status, err := listAlertingRulesWithToken(ctx, f, f.BearerToken, "")
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +79,7 @@ func TestPrometheusRuleAppearsInMemory(t *testing.T) {
 	}
 
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		rules, err := listRules(ctx, f)
+		rules, err := listAlertingRules(ctx, f)
 		if err != nil {
 			t.Logf("Failed to list rules: %v", err)
 			return false, nil
@@ -199,7 +201,7 @@ func TestRelabelAlert(t *testing.T) {
 	}()
 
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		rules, err := listRules(ctx, f)
+		rules, err := listAlertingRules(ctx, f)
 		if err != nil {
 			t.Logf("Failed to list rules: %v", err)
 			return false, nil
@@ -359,7 +361,7 @@ func TestRBAC_GetRules(t *testing.T) {
 	}
 
 	err = wait.PollUntilContextTimeout(ctx, 2*time.Second, 2*time.Minute, true, func(ctx context.Context) (bool, error) {
-		rulesY, status, err := listRulesWithToken(ctx, f, f.BearerToken, nsY)
+		rulesY, status, err := listAlertingRulesWithToken(ctx, f, f.BearerToken, nsY)
 		if err != nil {
 			t.Logf("Admin GET /rules nsY failed: %v", err)
 			return false, nil
@@ -368,7 +370,7 @@ func TestRBAC_GetRules(t *testing.T) {
 			t.Logf("Admin GET /rules nsY returned status %d, retrying", status)
 			return false, nil
 		}
-		rulesZ, status, err := listRulesWithToken(ctx, f, f.BearerToken, nsZ)
+		rulesZ, status, err := listAlertingRulesWithToken(ctx, f, f.BearerToken, nsZ)
 		if err != nil {
 			t.Logf("Admin GET /rules nsZ failed: %v", err)
 			return false, nil
@@ -408,7 +410,7 @@ func TestRBAC_GetRules(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, status, err := listRulesWithToken(ctx, f, tc.token, tc.namespace)
+			rules, status, err := listAlertingRulesWithToken(ctx, f, tc.token, tc.namespace)
 			if err != nil {
 				t.Fatalf("GET /rules request failed: %v", err)
 			}
@@ -423,7 +425,7 @@ func TestRBAC_GetRules(t *testing.T) {
 	}
 }
 
-func containsRule(rules []k8s.PrometheusRule, alertName string) bool {
+func containsRule(rules []*k8s.AlertingRule, alertName string) bool {
 	for _, r := range rules {
 		if r.Name == alertName {
 			return true
@@ -432,9 +434,9 @@ func containsRule(rules []k8s.PrometheusRule, alertName string) bool {
 	return false
 }
 
-// listRulesWithToken calls GET /rules with an optional namespace query param.
+// listAlertingRulesWithToken calls GET /rules and returns only alerting rules.
 // A non-OK status is not an error — callers must assert on status explicitly.
-func listRulesWithToken(ctx context.Context, f *framework.Framework, token, namespace string) (rules []k8s.PrometheusRule, status int, err error) {
+func listAlertingRulesWithToken(ctx context.Context, f *framework.Framework, token, namespace string) (rules []*k8s.AlertingRule, status int, err error) {
 	rulesURL := f.PluginURL + "/api/v1/alerting/rules"
 	if namespace != "" {
 		rulesURL += "?" + url.Values{"namespace": {namespace}}.Encode()
@@ -465,7 +467,11 @@ func listRulesWithToken(ctx context.Context, f *framework.Framework, token, name
 	}
 
 	for _, group := range listResp.Data.Groups {
-		rules = append(rules, group.Rules...)
+		for i := range group.Rules {
+			if group.Rules[i].Type == k8s.RuleTypeAlerting {
+				rules = append(rules, &group.Rules[i])
+			}
+		}
 	}
 	return rules, resp.StatusCode, nil
 }

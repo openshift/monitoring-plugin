@@ -70,9 +70,18 @@ func filterRuleGroupsByLabelMatchers(groups []PrometheusRuleGroup, matchers []*l
 
 	out := make([]PrometheusRuleGroup, 0, len(groups))
 	for _, g := range groups {
-		kept := make([]PrometheusRule, 0, len(g.Rules))
+		kept := make([]Rule, 0, len(g.Rules))
 		for _, r := range g.Rules {
-			if ruleMatchesLabelMatchers(r, matchers) {
+			var ruleLabels map[string]string
+			switch rule := r.(type) {
+			case *AlertingRule:
+				ruleLabels = rule.Labels
+			case *RecordingRule:
+				ruleLabels = rule.Labels
+			default:
+				continue
+			}
+			if ruleMatchesLabelMatchers(ruleLabels, matchers) {
 				kept = append(kept, r)
 			}
 		}
@@ -86,13 +95,13 @@ func filterRuleGroupsByLabelMatchers(groups []PrometheusRuleGroup, matchers []*l
 	return out
 }
 
-func ruleMatchesLabelMatchers(rule PrometheusRule, matchers []*labels.Matcher) bool {
+func ruleMatchesLabelMatchers(ruleLabels map[string]string, matchers []*labels.Matcher) bool {
 	if len(matchers) == 0 {
 		return true
 	}
 
 	for _, m := range matchers {
-		val, ok := rule.Labels[m.Name]
+		val, ok := ruleLabels[m.Name]
 		if !ok {
 			// Prometheus treats absent labels as "". Evaluate the matcher
 			// against "" so that negative matchers like missing!="" or

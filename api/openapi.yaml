@@ -446,7 +446,12 @@ components:
       type: object
       required:
         - name
+        - file
         - rules
+        - interval
+        - limit
+        - evaluationTime
+        - lastEvaluation
       properties:
         name:
           type: string
@@ -455,23 +460,61 @@ components:
         interval:
           type: number
           description: Rule evaluation interval in seconds, as returned by Prometheus.
+        limit:
+          type: integer
+        evaluationTime:
+          type: number
+        lastEvaluation:
+          type: string
+          format: date-time
         rules:
           type: array
           items:
-            $ref: "#/components/schemas/PrometheusRule"
+            $ref: "#/components/schemas/Rule"
       x-go-type: k8s.PrometheusRuleGroup
       x-go-type-import:
         path: github.com/openshift/monitoring-plugin/pkg/k8s
         name: k8s
 
-    PrometheusRule:
+    Rule:
+      oneOf:
+        - $ref: "#/components/schemas/AlertingRule"
+        - $ref: "#/components/schemas/RecordingRule"
+      discriminator:
+        propertyName: type
+        mapping:
+          alerting: "#/components/schemas/AlertingRule"
+          recording: "#/components/schemas/RecordingRule"
+      x-go-type: k8s.Rule
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    AlertingRule:
       type: object
+      required:
+        - state
+        - name
+        - query
+        - duration
+        - keepFiringFor
+        - labels
+        - annotations
+        - alerts
+        - health
+        - evaluationTime
+        - lastEvaluation
+        - type
       properties:
+        state:
+          type: string
         name:
           type: string
         query:
           type: string
         duration:
+          type: number
+        keepFiringFor:
           type: number
         labels:
           type: object
@@ -489,6 +532,8 @@ components:
           type: string
         type:
           type: string
+          enum:
+            - alerting
         lastError:
           type: string
         evaluationTime:
@@ -496,7 +541,44 @@ components:
         lastEvaluation:
           type: string
           format: date-time
-      x-go-type: k8s.PrometheusRule
+      x-go-type: k8s.AlertingRule
+      x-go-type-import:
+        path: github.com/openshift/monitoring-plugin/pkg/k8s
+        name: k8s
+
+    RecordingRule:
+      type: object
+      required:
+        - name
+        - query
+        - labels
+        - health
+        - evaluationTime
+        - lastEvaluation
+        - type
+      properties:
+        name:
+          type: string
+        query:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        health:
+          type: string
+        type:
+          type: string
+          enum:
+            - recording
+        lastError:
+          type: string
+        evaluationTime:
+          type: number
+        lastEvaluation:
+          type: string
+          format: date-time
+      x-go-type: k8s.RecordingRule
       x-go-type-import:
         path: github.com/openshift/monitoring-plugin/pkg/k8s
         name: k8s
@@ -505,8 +587,8 @@ components:
       type: object
       required:
         - labels
+        - annotations
         - state
-        - activeAt
         - value
       properties:
         labels:

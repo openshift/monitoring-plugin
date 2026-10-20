@@ -45,6 +45,9 @@ type AlertingHealth = k8s.AlertingHealth
 // AlertingRouteHealth defines model for AlertingRouteHealth.
 type AlertingRouteHealth = k8s.AlertingRouteHealth
 
+// AlertingRule defines model for AlertingRule.
+type AlertingRule = k8s.AlertingRule
+
 // AlertingStackHealth defines model for AlertingStackHealth.
 type AlertingStackHealth = k8s.AlertingStackHealth
 
@@ -145,9 +148,6 @@ type GetRulesResponseData struct {
 // PrometheusAlert defines model for PrometheusAlert.
 type PrometheusAlert = k8s.PrometheusAlert
 
-// PrometheusRule defines model for PrometheusRule.
-type PrometheusRule = k8s.PrometheusRule
-
 // PrometheusRuleAlert defines model for PrometheusRuleAlert.
 type PrometheusRuleAlert = k8s.PrometheusRuleAlert
 
@@ -165,6 +165,12 @@ type PrometheusRuleTarget struct {
 	// PrometheusRuleNamespace Namespace of the PrometheusRule resource.
 	PrometheusRuleNamespace string `json:"prometheusRuleNamespace"`
 }
+
+// RecordingRule defines model for RecordingRule.
+type RecordingRule = k8s.RecordingRule
+
+// Rule defines model for Rule.
+type Rule = k8s.Rule
 
 // UpdateAlertRuleRequest Partial update for a single alert rule. At least one of labels, alertingRuleEnabled, or classification must be set. alertingRuleEnabled cannot be combined with labels or classification in the same request.
 type UpdateAlertRuleRequest struct {
