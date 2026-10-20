@@ -10,7 +10,7 @@ export const QUERY_CHUNK_SIZE = 24 * 60 * 60 * 1000;
 export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
 const PROMETHEUS_TENANCY_BASE_PATH = window.SERVER_FLAGS.prometheusTenancyBaseURL;
 const PROMETHEUS_PROXY_PATH = '/api/proxy/plugin/monitoring-console-plugin/thanos-proxy';
-const ALERT_MANAGEMENT_API_BASE_PATH = '/api/v1/alerting';
+const ALERT_MANAGEMENT_API_BASE_PATH = '/api/plugins/monitoring-plugin/api/v1/alerting';
 
 export const ALERTMANAGER_BASE_PATH = window.SERVER_FLAGS.alertManagerBaseURL;
 export const ALERTMANAGER_TENANCY_BASE_PATH = '/api/alertmanager-tenancy'; // remove it once it get added to SERVER_FLAGS
