@@ -1,0 +1,3 @@
+logging:
+  schema: "select"
+  showTimezoneSelector: true

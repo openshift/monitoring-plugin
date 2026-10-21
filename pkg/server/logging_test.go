@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -98,6 +99,29 @@ func TestLoggingConfig(t *testing.T) {
 		handler(response, httptest.NewRequest("GET", "/config", nil))
 		require.JSONEq(t, `{}`, response.Body.String())
 	})
+}
+
+func TestLoggingConfigRejectsInvalidYAML(t *testing.T) {
+	for _, tc := range []struct {
+		name, yaml string
+	}{
+		{"top-level schema", "schema: select\n"},
+		{"top-level timezone selector", "showTimezoneSelector: true\n"},
+		{"unknown logging field", "logging:\n  unknown: true\n"},
+		{"non-boolean timezone selector", "logging:\n  showTimezoneSelector: 4\n"},
+		{"duplicate logging field", "logging:\n  schema: select\n  schema: otel\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.yaml")
+			require.NoError(t, os.WriteFile(path, []byte(tc.yaml), 0600))
+			handler, config := configHandler(&Config{Features: map[Feature]bool{Logging: true}, PluginConfigPath: path})
+			require.Nil(t, config)
+			response := httptest.NewRecorder()
+			handler(response, httptest.NewRequest("GET", "/config", nil))
+			require.Equal(t, http.StatusInternalServerError, response.Code)
+			require.Equal(t, "unable to unmarshall config data\n", response.Body.String())
+		})
+	}
 }
 
 // Existing non-logging configuration behavior must remain unchanged.

@@ -224,16 +224,16 @@ runs a LokiStack (for example one set up with
 ```
 # In a separate terminal: forward the LokiStack gateway; start-console.sh
 # proxies https://logging-loki-gateway-http.openshift-logging.svc:8080 to it
-$ oc -n openshift-logging port-forward svc/logging-loki-gateway-http 8080:8080
+oc -n openshift-logging port-forward svc/logging-loki-gateway-http 8080:8080
 
 # Frontend under the console-plugin identity (manifest name + i18n namespace)
-$ make start-mcp-frontend
+make start-mcp-frontend
 
 # Backend with logging enabled (not in MONITORING_FEATURES by default)
-$ make start-backend MONITORING_FEATURES='alerting,metrics,targets,legacy-dashboards,logging'
+make start-coo-backend
 
 # Console bridge
-$ CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console
+make start-coo-console
 ```
 
 `start-console.sh` fetches the cluster's service CA so the bridge can verify
