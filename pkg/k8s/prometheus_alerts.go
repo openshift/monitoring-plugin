@@ -121,8 +121,13 @@ type prometheusAlertsResponse struct {
 	Data   prometheusAlertsData `json:"data"`
 }
 
+type prometheusRuleGroupResponse struct {
+	PrometheusRuleGroup
+	Rules []json.RawMessage `json:"rules"`
+}
+
 type prometheusRulesData struct {
-	Groups []PrometheusRuleGroup `json:"groups"`
+	Groups []prometheusRuleGroupResponse `json:"groups"`
 }
 
 type prometheusRulesResponse struct {
@@ -711,6 +716,9 @@ func (pa *prometheusAlerts) getRulesViaThanosTenancy(ctx context.Context, namesp
 	return groups, nil
 }
 
+// parsePrometheusRulesResponse unmarshals a raw Prometheus/Thanos GET /api/v1/rules
+// response and converts its rules to AlertingRule and RecordingRule structs.
+// No routing labels are added; callers that need them should call applyRuleSource.
 func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleGroup, error) {
 	var rulesResp prometheusRulesResponse
 	if err := json.Unmarshal(raw, &rulesResp); err != nil {
@@ -719,7 +727,42 @@ func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleG
 	if rulesResp.Status != "success" {
 		return nil, fmt.Errorf("%s API returned non-success status: %s", apiName, rulesResp.Status)
 	}
-	return rulesResp.Data.Groups, nil
+	var groups []PrometheusRuleGroup
+	if rulesResp.Data.Groups != nil {
+		groups = make([]PrometheusRuleGroup, 0, len(rulesResp.Data.Groups))
+	}
+	for _, decoded := range rulesResp.Data.Groups {
+		group := decoded.PrometheusRuleGroup
+		if decoded.Rules != nil {
+			group.Rules = make([]Rule, 0, len(decoded.Rules))
+		}
+		for _, rawRule := range decoded.Rules {
+			var discriminator struct {
+				Type string `json:"type"`
+			}
+			if err := json.Unmarshal(rawRule, &discriminator); err != nil {
+				return nil, fmt.Errorf("failed to decode %s rule in group %q: %w", apiName, group.Name, err)
+			}
+			var rule Rule
+			switch discriminator.Type {
+			case RuleTypeAlerting:
+				rule = &AlertingRule{}
+			case RuleTypeRecording:
+				rule = &RecordingRule{}
+			default:
+				return nil, fmt.Errorf("unsupported %s rule type %q in group %q", apiName, discriminator.Type, group.Name)
+			}
+			if err := json.Unmarshal(rawRule, rule); err != nil {
+				return nil, fmt.Errorf("failed to decode %s rule in group %q: %w", apiName, group.Name, err)
+			}
+			if alerting, ok := rule.(*AlertingRule); ok && alerting.Alerts == nil {
+				alerting.Alerts = []PrometheusRuleAlert{}
+			}
+			group.Rules = append(group.Rules, rule)
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
 }
 
 func (pa *prometheusAlerts) getPrometheusResponse(ctx context.Context, namespace string, routeName string, path string) ([]byte, error) {
@@ -785,18 +828,26 @@ func applyAlertMetadata(alerts []PrometheusAlert, source, backend string) {
 
 func applyRuleSource(groups []PrometheusRuleGroup, source string) {
 	for gi := range groups {
-		for ri := range groups[gi].Rules {
-			rule := &groups[gi].Rules[ri]
-			if rule.Labels == nil {
-				rule.Labels = map[string]string{}
-			}
-			rule.Labels[AlertSourceLabel] = source
-			for ai := range rule.Alerts {
-				if rule.Alerts[ai].Labels == nil {
-					rule.Alerts[ai].Labels = map[string]string{}
+		for _, entry := range groups[gi].Rules {
+			var ruleLabels *map[string]string
+			switch rule := entry.(type) {
+			case *RecordingRule:
+				ruleLabels = &rule.Labels
+			case *AlertingRule:
+				ruleLabels = &rule.Labels
+				for ai := range rule.Alerts {
+					if rule.Alerts[ai].Labels == nil {
+						rule.Alerts[ai].Labels = map[string]string{}
+					}
+					rule.Alerts[ai].Labels[AlertSourceLabel] = source
 				}
-				rule.Alerts[ai].Labels[AlertSourceLabel] = source
+			default:
+				continue
 			}
+			if *ruleLabels == nil {
+				*ruleLabels = map[string]string{}
+			}
+			(*ruleLabels)[AlertSourceLabel] = source
 		}
 	}
 }

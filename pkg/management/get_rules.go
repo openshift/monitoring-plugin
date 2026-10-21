@@ -41,25 +41,43 @@ func (c *client) EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8
 
 	filteredGroups := make([]k8s.PrometheusRuleGroup, 0, len(groups))
 	for _, group := range groups {
-		filteredRules := make([]k8s.PrometheusRule, 0, len(group.Rules))
+		filteredRules := make([]k8s.Rule, 0, len(group.Rules))
 
-		for _, rule := range group.Rules {
-			if applyFilters && rule.Type != k8s.RuleTypeAlerting {
-				continue
+		for _, entry := range group.Rules {
+			var rule *k8s.AlertingRule
+			var ruleLabels map[string]string
+			switch typed := entry.(type) {
+			case *k8s.AlertingRule:
+				// make a shallow copy to avoid modifying response in place
+				copy := *typed
+				rule = &copy
+				applyRelabeledRuleLabels(rule, relabeledByAlert)
+				ruleLabels = rule.Labels
+			case *k8s.RecordingRule:
+				if applyFilters {
+					continue
+				}
+				ruleLabels = typed.Labels
+			default:
+				return nil, nil, fmt.Errorf("unsupported rule type %T", entry)
 			}
-			applyRelabeledRuleLabels(&rule, relabeledByAlert)
 
-			if ruleID := rule.Labels[k8s.AlertRuleLabelId]; ruleID != "" {
+			if ruleID := ruleLabels[k8s.AlertRuleLabelId]; ruleID != "" {
 				if _, seen := seenIDs[ruleID]; seen {
 					continue
 				}
 				seenIDs[ruleID] = struct{}{}
 			}
+			if rule == nil {
+				filteredRules = append(filteredRules, entry)
+				continue
+			}
 
 			if len(rule.Alerts) == 0 {
-				if applyFilters && rule.Type == k8s.RuleTypeAlerting {
+				if applyFilters {
 					continue
 				}
+				rule.Alerts = []k8s.PrometheusRuleAlert{}
 				filteredRules = append(filteredRules, rule)
 				continue
 			}
@@ -97,7 +115,7 @@ func (c *client) EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8
 			}
 			rule.Alerts = relabeledAlerts
 
-			if applyFilters && rule.Type == k8s.RuleTypeAlerting && len(rule.Alerts) == 0 {
+			if applyFilters && len(rule.Alerts) == 0 {
 				continue
 			}
 
@@ -142,8 +160,8 @@ func relabeledAlertName(rule *monitoringv1.Rule) string {
 	return ""
 }
 
-func applyRelabeledRuleLabels(rule *k8s.PrometheusRule, relabeledByAlert map[string][]monitoringv1.Rule) {
-	if rule == nil || rule.Name == "" || rule.Type == k8s.RuleTypeRecording {
+func applyRelabeledRuleLabels(rule *k8s.AlertingRule, relabeledByAlert map[string][]monitoringv1.Rule) {
+	if rule == nil || rule.Name == "" {
 		return
 	}
 
@@ -170,7 +188,7 @@ func applyRelabeledRuleLabels(rule *k8s.PrometheusRule, relabeledByAlert map[str
 	rule.Labels = labelsOut
 }
 
-func findRelabeledMatch(rule *k8s.PrometheusRule, candidates []monitoringv1.Rule) *monitoringv1.Rule {
+func findRelabeledMatch(rule *k8s.AlertingRule, candidates []monitoringv1.Rule) *monitoringv1.Rule {
 	// A unique alertname cannot be ambiguous; skip PromQL/label matching.
 	if len(candidates) == 1 {
 		return &candidates[0]
@@ -216,7 +234,7 @@ func findRelabeledMatch(rule *k8s.PrometheusRule, candidates []monitoringv1.Rule
 	return nil
 }
 
-func promRuleMatchesRelabeled(rule *k8s.PrometheusRule, candidate *monitoringv1.Rule) bool {
+func promRuleMatchesRelabeled(rule *k8s.AlertingRule, candidate *monitoringv1.Rule) bool {
 	if rule == nil || candidate == nil {
 		return false
 	}

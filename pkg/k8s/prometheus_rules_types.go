@@ -1,9 +1,6 @@
 package k8s
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
 const (
 	RuleTypeAlerting  = "alerting"
@@ -26,33 +23,50 @@ type GetRulesRequest struct {
 
 // PrometheusRuleGroup models a rule group from the Prometheus alerting API.
 type PrometheusRuleGroup struct {
-	Name     string           `json:"name"`
-	File     string           `json:"file,omitempty"`
-	Interval json.RawMessage  `json:"interval,omitempty"`
-	Rules    []PrometheusRule `json:"rules"`
+	Name           string    `json:"name"`
+	File           string    `json:"file"`
+	Rules          []Rule    `json:"rules"`
+	Interval       float64   `json:"interval"`
+	Limit          int       `json:"limit"`
+	EvaluationTime float64   `json:"evaluationTime"`
+	LastEvaluation time.Time `json:"lastEvaluation"`
 }
 
-// PrometheusRule models a rule entry from the Prometheus alerting API.
-type PrometheusRule struct {
-	Name           string                `json:"name,omitempty"`
-	Query          string                `json:"query,omitempty"`
-	Duration       float64               `json:"duration,omitempty"`
-	Labels         map[string]string     `json:"labels,omitempty"`
-	Annotations    map[string]string     `json:"annotations,omitempty"`
-	Alerts         []PrometheusRuleAlert `json:"alerts,omitempty"`
-	Health         string                `json:"health,omitempty"`
-	Type           string                `json:"type,omitempty"`
+type Rule any
+
+type AlertingRule struct {
+	State          string                `json:"state"`
+	Name           string                `json:"name"`
+	Query          string                `json:"query"`
+	Duration       float64               `json:"duration"`
+	KeepFiringFor  float64               `json:"keepFiringFor"`
+	Labels         map[string]string     `json:"labels"`
+	Annotations    map[string]string     `json:"annotations"`
+	Alerts         []PrometheusRuleAlert `json:"alerts"`
+	Health         string                `json:"health"`
 	LastError      string                `json:"lastError,omitempty"`
-	EvaluationTime float64               `json:"evaluationTime,omitempty"`
-	LastEvaluation time.Time             `json:"lastEvaluation,omitempty"`
+	EvaluationTime float64               `json:"evaluationTime"`
+	LastEvaluation time.Time             `json:"lastEvaluation"`
+	Type           string                `json:"type"`
+}
+
+type RecordingRule struct {
+	Name           string            `json:"name"`
+	Query          string            `json:"query"`
+	Labels         map[string]string `json:"labels"`
+	Health         string            `json:"health"`
+	LastError      string            `json:"lastError,omitempty"`
+	EvaluationTime float64           `json:"evaluationTime"`
+	LastEvaluation time.Time         `json:"lastEvaluation"`
+	Type           string            `json:"type"`
 }
 
 // PrometheusRuleAlert models an alert entry within a rule from the Prometheus alerting API.
 type PrometheusRuleAlert struct {
 	Labels          map[string]string `json:"labels"`
-	Annotations     map[string]string `json:"annotations,omitempty"`
+	Annotations     map[string]string `json:"annotations"`
 	State           string            `json:"state"`
-	ActiveAt        time.Time         `json:"activeAt"`
+	ActiveAt        *time.Time        `json:"activeAt,omitempty"`
 	Value           string            `json:"value"`
-	KeepFiringSince time.Time         `json:"keepFiringSince,omitempty"`
+	KeepFiringSince *time.Time        `json:"keepFiringSince,omitempty"`
 }

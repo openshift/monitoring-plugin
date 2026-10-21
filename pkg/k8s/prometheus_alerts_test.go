@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -347,15 +348,24 @@ func TestLabelsMatch(t *testing.T) {
 // --- parsePrometheusRulesResponse ---
 
 func TestParsePrometheusRulesResponse_Success(t *testing.T) {
+	var rules []json.RawMessage
+	for _, rule := range []Rule{
+		&AlertingRule{Name: "AlertA", Type: RuleTypeAlerting, Labels: map[string]string{"severity": "critical"}},
+		&RecordingRule{Name: "record:foo", Type: RuleTypeRecording, Query: "vector(1)", Labels: map[string]string{"team": "infra"}},
+	} {
+		rawRule, err := json.Marshal(rule)
+		if err != nil {
+			t.Fatalf("marshal rule fixture: %v", err)
+		}
+		rules = append(rules, rawRule)
+	}
 	raw, err := json.Marshal(prometheusRulesResponse{
 		Status: "success",
 		Data: prometheusRulesData{
-			Groups: []PrometheusRuleGroup{
+			Groups: []prometheusRuleGroupResponse{
 				{
-					Name: "group-a",
-					Rules: []PrometheusRule{
-						{Name: "AlertA", Type: RuleTypeAlerting, Labels: map[string]string{"severity": "critical"}},
-					},
+					PrometheusRuleGroup: PrometheusRuleGroup{Name: "group-a"},
+					Rules:               rules,
 				},
 			},
 		},
@@ -374,15 +384,41 @@ func TestParsePrometheusRulesResponse_Success(t *testing.T) {
 	if groups[0].Name != "group-a" {
 		t.Errorf("expected group name group-a, got %q", groups[0].Name)
 	}
-	if len(groups[0].Rules) != 1 || groups[0].Rules[0].Name != "AlertA" {
-		t.Errorf("expected rule AlertA, got %+v", groups[0].Rules)
+	if len(groups[0].Rules) != 2 {
+		t.Fatalf("expected 2 rules, got %+v", groups[0].Rules)
+	}
+	alerting, ok := groups[0].Rules[0].(*AlertingRule)
+	if !ok || alerting.Name != "AlertA" || alerting.Labels["severity"] != "critical" {
+		t.Errorf("expected alerting rule AlertA with severity=critical, got %+v", groups[0].Rules[0])
+	}
+	recording, ok := groups[0].Rules[1].(*RecordingRule)
+	if !ok || recording.Name != "record:foo" || recording.Query != "vector(1)" || recording.Labels["team"] != "infra" {
+		t.Errorf("expected recording rule record:foo with query and labels preserved, got %+v", groups[0].Rules[1])
 	}
 }
 
-func TestParsePrometheusRulesResponse_InvalidJSON(t *testing.T) {
+func TestParsePrometheusRulesResponse_InvalidResponse(t *testing.T) {
 	_, err := parsePrometheusRulesResponse([]byte("not json"), "prometheus")
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
+	}
+	for _, rawRule := range []string{
+		`{"type":42,"name":"AlertA"}`,
+		`{"type":"unknown","name":"AlertA"}`,
+		`{"type":"alerting","name":"AlertA","duration":"invalid"}`,
+	} {
+		t.Run(rawRule, func(t *testing.T) {
+			raw := []byte(`{"status":"success","data":{"groups":[{"name":"group-a","rules":[` + rawRule + `]}]}}`)
+			_, err := parsePrometheusRulesResponse(raw, "thanos")
+			if err == nil {
+				t.Fatal("expected error for invalid rule")
+			}
+			for _, expected := range []string{"thanos", "group-a"} {
+				if !strings.Contains(err.Error(), expected) {
+					t.Errorf("expected error to include %q, got %v", expected, err)
+				}
+			}
+		})
 	}
 }
 
@@ -403,17 +439,19 @@ func TestApplyRuleSource(t *testing.T) {
 	groups := []PrometheusRuleGroup{
 		{
 			Name: "g",
-			Rules: []PrometheusRule{
-				{
+			Rules: []Rule{
+				&AlertingRule{
 					Name:   "A",
+					Type:   RuleTypeAlerting,
 					Labels: nil,
 					Alerts: []PrometheusRuleAlert{{Labels: nil}, {Labels: map[string]string{"alertname": "A"}}},
 				},
+				&RecordingRule{Name: "record:foo", Type: RuleTypeRecording},
 			},
 		},
 	}
 	applyRuleSource(groups, AlertSourcePlatform)
-	rule := groups[0].Rules[0]
+	rule := groups[0].Rules[0].(*AlertingRule)
 	if rule.Labels[AlertSourceLabel] != AlertSourcePlatform {
 		t.Errorf("rule source = %q, want %q", rule.Labels[AlertSourceLabel], AlertSourcePlatform)
 	}
@@ -425,6 +463,10 @@ func TestApplyRuleSource(t *testing.T) {
 	}
 	if rule.Alerts[1].Labels["alertname"] != "A" {
 		t.Errorf("alert[1] alertname = %q, want %q", rule.Alerts[1].Labels["alertname"], "A")
+	}
+	recording := groups[0].Rules[1].(*RecordingRule)
+	if recording.Labels[AlertSourceLabel] != AlertSourcePlatform {
+		t.Errorf("recording rule %s source = %q, want %q", recording.Name, recording.Labels[AlertSourceLabel], AlertSourcePlatform)
 	}
 }
 

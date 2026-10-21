@@ -27,7 +27,7 @@ func TestRuleMatchesLabelMatchers_PrometheusMissingLabelSemantics(t *testing.T) 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if !ruleMatchesLabelMatchers(PrometheusRule{Labels: map[string]string{}}, neg) {
+	if !ruleMatchesLabelMatchers(map[string]string{}, neg) {
 		t.Fatalf("expected negative matcher to match missing label")
 	}
 
@@ -37,8 +37,39 @@ func TestRuleMatchesLabelMatchers_PrometheusMissingLabelSemantics(t *testing.T) 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if ruleMatchesLabelMatchers(PrometheusRule{Labels: map[string]string{}}, pos) {
+	if ruleMatchesLabelMatchers(map[string]string{}, pos) {
 		t.Fatalf("expected positive matcher not to match missing label")
+	}
+}
+
+func TestFilterRuleGroupsByLabelMatchers_MixedRuleKinds(t *testing.T) {
+	matchers, err := compileRuleLabelMatchers(GetRulesRequest{
+		Labels: map[string]string{"severity": "critical"},
+	})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	alerting := &AlertingRule{Name: "AlertA", Type: RuleTypeAlerting, Labels: map[string]string{"severity": "critical"}}
+	recording := &RecordingRule{Name: "record:foo", Type: RuleTypeRecording, Labels: map[string]string{"severity": "critical"}}
+	groups := []PrometheusRuleGroup{
+		{
+			Name: "mixed",
+			Rules: []Rule{
+				alerting,
+				&AlertingRule{Name: "AlertB", Type: RuleTypeAlerting, Labels: map[string]string{"severity": "warning"}},
+				recording,
+				&RecordingRule{Name: "record:bar", Type: RuleTypeRecording},
+			},
+		},
+		{Name: "filtered", Rules: []Rule{&RecordingRule{Name: "record:baz", Type: RuleTypeRecording}}},
+	}
+
+	got := filterRuleGroupsByLabelMatchers(groups, matchers)
+	if len(got) != 1 || got[0].Name != "mixed" || len(got[0].Rules) != 2 {
+		t.Fatalf("expected mixed group with 2 rules, got %+v", got)
+	}
+	if got[0].Rules[0] != alerting || got[0].Rules[1] != recording {
+		t.Errorf("expected matching alerting and recording rule pointers, got %+v", got[0].Rules)
 	}
 }
 

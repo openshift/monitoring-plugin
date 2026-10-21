@@ -9,6 +9,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/prometheus/prometheus/model/labels"
+	v1 "github.com/prometheus/prometheus/web/api/v1"
+	"github.com/stretchr/testify/require"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -21,6 +26,65 @@ func decodeRulesResp(t *testing.T, w *httptest.ResponseRecorder) managementroute
 		t.Fatalf("decode response: %v", err)
 	}
 	return resp
+}
+
+func newRuleGroups(evaluatedAt time.Time, alerts []*v1.Alert) ([]v1.RuleGroup, *v1.AlertingRule) {
+	alerting := &v1.AlertingRule{
+		State: "firing", Name: "HighCPUUsage", Query: "node_cpu_usage > 0.9",
+		Duration: 300, KeepFiringFor: 60,
+		Labels:      labels.FromStrings("severity", "warning"),
+		Annotations: labels.FromStrings("summary", "CPU usage is high"),
+		Alerts:      alerts, Health: "err", LastError: "previous evaluation failed",
+		EvaluationTime: 0.125, LastEvaluation: evaluatedAt, Type: "alerting",
+	}
+	groups := []v1.RuleGroup{
+		{
+			Name: "group-a", File: "/etc/prometheus/rules/cpu.yaml", Interval: 30, Limit: 100,
+			EvaluationTime: 0.25, LastEvaluation: evaluatedAt,
+			Rules: []v1.Rule{
+				&v1.RecordingRule{
+					Name: "node:cpu:ratio", Query: "avg(node_cpu_usage)", Labels: labels.EmptyLabels(),
+					Health: "ok", EvaluationTime: 0.025, LastEvaluation: evaluatedAt, Type: "recording",
+				},
+				alerting,
+			},
+		},
+		{
+			Rules: []v1.Rule{
+				&v1.AlertingRule{Labels: labels.EmptyLabels(), Annotations: labels.EmptyLabels(), Alerts: []*v1.Alert{}, Type: "alerting"},
+				&v1.RecordingRule{Labels: labels.EmptyLabels(), Type: "recording"},
+			},
+		},
+	}
+	return groups, alerting
+}
+
+func convertGroupToK8sGroup(t *testing.T, group v1.RuleGroup) k8s.PrometheusRuleGroup {
+	t.Helper()
+	converted := k8s.PrometheusRuleGroup{
+		Name: group.Name, File: group.File, Interval: group.Interval, Limit: group.Limit,
+		EvaluationTime: group.EvaluationTime, LastEvaluation: group.LastEvaluation,
+		Rules: make([]k8s.Rule, 0, len(group.Rules)),
+	}
+	for _, upstreamRule := range group.Rules {
+		var rule k8s.Rule
+		switch upstreamRule.(type) {
+		case *v1.AlertingRule:
+			rule = &k8s.AlertingRule{}
+		case *v1.RecordingRule:
+			rule = &k8s.RecordingRule{}
+		default:
+			t.Fatalf("unsupported upstream rule type %T", upstreamRule)
+		}
+		input, err := json.Marshal(upstreamRule)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(input, rule))
+		if alerting, ok := rule.(*k8s.AlertingRule); ok && alerting.Alerts == nil {
+			alerting.Alerts = []k8s.PrometheusRuleAlert{}
+		}
+		converted.Rules = append(converted.Rules, rule)
+	}
+	return converted
 }
 
 func TestGetRules_ParsesQueryParams(t *testing.T) {
@@ -81,32 +145,47 @@ func TestGetRules_SilencedStateRejected(t *testing.T) {
 }
 
 func TestGetRules_ReturnsGroups(t *testing.T) {
-	f := newAGFixture(t)
-	f.mockPrometheusAlerts.SetRuleGroups([]k8s.PrometheusRuleGroup{
+	evaluatedAt := time.Date(2026, time.October, 19, 12, 0, 0, 123000000, time.UTC)
+	activeAt := evaluatedAt.Add(-10 * time.Minute)
+	keepFiringSince := evaluatedAt.Add(-time.Minute)
+	activeAlerts := []*v1.Alert{
 		{
-			Name: "group-a",
-			Rules: []k8s.PrometheusRule{
-				{Name: "HighCPUUsage", Type: k8s.RuleTypeAlerting},
-			},
+			Labels:      labels.FromStrings("alertname", "HighCPUUsage", "severity", "warning"),
+			Annotations: labels.FromStrings("summary", "CPU usage is high"),
+			State:       "firing", ActiveAt: &activeAt, KeepFiringSince: &keepFiringSince, Value: "9.5e-01",
 		},
-	})
+		{Labels: labels.EmptyLabels(), Annotations: labels.EmptyLabels(), State: "pending", Value: "0"},
+	}
+	for _, tc := range []struct {
+		name   string
+		alerts []*v1.Alert
+	}{
+		{name: "nil alerts"},
+		{name: "empty alerts", alerts: []*v1.Alert{}},
+		{name: "active alerts", alerts: activeAlerts},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			groups, alerting := newRuleGroups(evaluatedAt, tc.alerts)
+			localGroups := make([]k8s.PrometheusRuleGroup, 0, len(groups))
+			for _, group := range groups {
+				localGroups = append(localGroups, convertGroupToK8sGroup(t, group))
+			}
 
-	w := f.get(t, "/api/v1/alerting/rules")
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body)
-	}
-	if ct := w.Header().Get("Content-Type"); ct != "application/json" {
-		t.Errorf("expected Content-Type application/json, got %q", ct)
-	}
-	resp := decodeRulesResp(t, w)
-	if len(resp.Data.Groups) != 1 {
-		t.Fatalf("expected 1 group, got %d", len(resp.Data.Groups))
-	}
-	if resp.Data.Groups[0].Name != "group-a" {
-		t.Errorf("expected group-a, got %q", resp.Data.Groups[0].Name)
-	}
-	if len(resp.Data.Groups[0].Rules) != 1 || resp.Data.Groups[0].Rules[0].Name != "HighCPUUsage" {
-		t.Errorf("expected rule HighCPUUsage, got %+v", resp.Data.Groups[0].Rules)
+			f := newAGFixture(t)
+			f.mockPrometheusAlerts.SetRuleGroups(localGroups)
+			if tc.alerts == nil {
+				alerting.Alerts = []*v1.Alert{}
+			}
+			expected, err := json.Marshal(struct {
+				Data v1.RuleDiscovery `json:"data"`
+			}{Data: v1.RuleDiscovery{RuleGroups: []*v1.RuleGroup{&groups[0], &groups[1]}}})
+			require.NoError(t, err)
+
+			w := f.get(t, "/api/v1/alerting/rules")
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			require.Equal(t, "application/json", w.Header().Get("Content-Type"))
+			require.JSONEq(t, string(expected), w.Body.String())
+		})
 	}
 }
 

@@ -50,8 +50,8 @@ func threeAlertGroup() []k8s.PrometheusRuleGroup {
 	return []k8s.PrometheusRuleGroup{
 		{
 			Name: "group-a",
-			Rules: []k8s.PrometheusRule{
-				{
+			Rules: []k8s.Rule{
+				&k8s.AlertingRule{
 					Name: "rule-a",
 					Type: k8s.RuleTypeAlerting,
 					Alerts: []k8s.PrometheusRuleAlert{
@@ -103,7 +103,7 @@ func TestEnrichRules_AppliesRelabelConfigsToPendingFiringOnly(t *testing.T) {
 	if len(rules) != 1 {
 		t.Fatalf("expected 1 rule, got %d", len(rules))
 	}
-	alerts := rules[0].Alerts
+	alerts := rules[0].(*k8s.AlertingRule).Alerts
 	if len(alerts) != 2 {
 		t.Fatalf("expected 2 alerts after drop, got %d", len(alerts))
 	}
@@ -112,6 +112,44 @@ func TestEnrichRules_AppliesRelabelConfigsToPendingFiringOnly(t *testing.T) {
 	}
 	if alerts[1].Labels["alertname"] != "Alert3" || alerts[1].Labels["severity"] != "warning" {
 		t.Errorf("alert[1]: got alertname=%s severity=%s", alerts[1].Labels["alertname"], alerts[1].Labels["severity"])
+	}
+}
+
+func TestEnrichRules_KeepsRuleWhenAllAlertsDropped(t *testing.T) {
+	f := grFixture{
+		groups: []k8s.PrometheusRuleGroup{{
+			Name: "group-a",
+			Rules: []k8s.Rule{&k8s.AlertingRule{
+				Name: "rule-a",
+				Type: k8s.RuleTypeAlerting,
+				Alerts: []k8s.PrometheusRuleAlert{
+					{State: "firing", Labels: map[string]string{"alertname": "Alert1"}},
+					{State: "pending", Labels: map[string]string{"alertname": "Alert2"}},
+				},
+			}},
+		}},
+		relabelConfig: []*relabel.Config{{
+			SourceLabels:         model.LabelNames{"alertname"},
+			Regex:                relabel.MustNewRegexp(".*"),
+			Action:               relabel.Drop,
+			NameValidationScheme: model.UTF8Validation,
+		}},
+	}
+	client := f.client(t)
+
+	groups, _, err := client.EnrichRules(context.Background(), k8s.GetRulesRequest{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(groups) != 1 || groups[0].Name != "group-a" || len(groups[0].Rules) != 1 {
+		t.Fatalf("expected group-a with 1 rule, got %+v", groups)
+	}
+	rule := groups[0].Rules[0].(*k8s.AlertingRule)
+	if rule.Name != "rule-a" {
+		t.Errorf("expected rule-a, got %q", rule.Name)
+	}
+	if rule.Alerts == nil || len(rule.Alerts) != 0 {
+		t.Errorf("expected initialized empty alerts, got %#v", rule.Alerts)
 	}
 }
 
@@ -133,7 +171,7 @@ func TestEnrichRules_FiltersByStateAndLabels(t *testing.T) {
 	if len(groups) != 1 {
 		t.Fatalf("expected 1 group, got %d", len(groups))
 	}
-	alerts := groups[0].Rules[0].Alerts
+	alerts := groups[0].Rules[0].(*k8s.AlertingRule).Alerts
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
@@ -170,8 +208,8 @@ func TestEnrichRules_AddsManagedByLabelsFromRelabeledRules(t *testing.T) {
 					return []k8s.PrometheusRuleGroup{
 						{
 							Name: "group-a",
-							Rules: []k8s.PrometheusRule{
-								{
+							Rules: []k8s.Rule{
+								&k8s.AlertingRule{
 									Name:        "AlertWithManagedBy",
 									Type:        "alerting",
 									Query:       "up == 0",
@@ -216,7 +254,7 @@ func TestEnrichRules_AddsManagedByLabelsFromRelabeledRules(t *testing.T) {
 	if len(groups) != 1 || len(groups[0].Rules) != 1 {
 		t.Fatalf("expected 1 group with 1 rule")
 	}
-	rule := groups[0].Rules[0]
+	rule := groups[0].Rules[0].(*k8s.AlertingRule)
 	checks := map[string]string{
 		k8s.AlertRuleLabelId:                         "alert-id-1",
 		k8s.PrometheusRuleLabelNamespace:             "openshift-monitoring",
@@ -239,8 +277,8 @@ func TestEnrichRules_EnrichesWithAllLabelTypes(t *testing.T) {
 					return []k8s.PrometheusRuleGroup{
 						{
 							Name: "group-a",
-							Rules: []k8s.PrometheusRule{
-								{
+							Rules: []k8s.Rule{
+								&k8s.AlertingRule{
 									Name:   "ARCUpdatedRule",
 									Type:   "alerting",
 									Query:  "up == 0",
@@ -286,7 +324,7 @@ func TestEnrichRules_EnrichesWithAllLabelTypes(t *testing.T) {
 	if len(groups) != 1 || len(groups[0].Rules) != 1 {
 		t.Fatalf("expected 1 group with 1 rule")
 	}
-	rule := groups[0].Rules[0]
+	rule := groups[0].Rules[0].(*k8s.AlertingRule)
 	checks := map[string]string{
 		k8s.AlertSourceLabel:                         k8s.AlertSourcePlatform,
 		k8s.AlertRuleLabelId:                         "rid-arc-1",
@@ -314,8 +352,8 @@ func TestEnrichRules_EnrichesWhenAlertFieldEmpty(t *testing.T) {
 					return []k8s.PrometheusRuleGroup{
 						{
 							Name: "group-a",
-							Rules: []k8s.PrometheusRule{
-								{
+							Rules: []k8s.Rule{
+								&k8s.AlertingRule{
 									Name:   "EmptyAlertFieldRule",
 									Type:   "alerting",
 									Query:  "up == 0",
@@ -357,7 +395,7 @@ func TestEnrichRules_EnrichesWhenAlertFieldEmpty(t *testing.T) {
 	if len(groups) != 1 || len(groups[0].Rules) != 1 {
 		t.Fatalf("expected 1 group with 1 rule")
 	}
-	rule := groups[0].Rules[0]
+	rule := groups[0].Rules[0].(*k8s.AlertingRule)
 	checks := map[string]string{
 		k8s.AlertSourceLabel:             k8s.AlertSourcePlatform,
 		k8s.AlertRuleLabelId:             "rid-empty-alert-1",
@@ -380,8 +418,8 @@ func TestEnrichRules_NoEnrichmentWhenMultipleCandidatesMatch(t *testing.T) {
 					return []k8s.PrometheusRuleGroup{
 						{
 							Name: "group-a",
-							Rules: []k8s.PrometheusRule{
-								{
+							Rules: []k8s.Rule{
+								&k8s.AlertingRule{
 									Name:   "AmbiguousRule",
 									Type:   "alerting",
 									Query:  "up == 0",
@@ -430,7 +468,7 @@ func TestEnrichRules_NoEnrichmentWhenMultipleCandidatesMatch(t *testing.T) {
 	if len(groups) != 1 || len(groups[0].Rules) != 1 {
 		t.Fatalf("expected 1 group with 1 rule")
 	}
-	rule := groups[0].Rules[0]
+	rule := groups[0].Rules[0].(*k8s.AlertingRule)
 	if rule.Labels[k8s.AlertSourceLabel] != k8s.AlertSourcePlatform {
 		t.Errorf("expected source=%s, got %s", k8s.AlertSourcePlatform, rule.Labels[k8s.AlertSourceLabel])
 	}
@@ -480,16 +518,16 @@ func TestEnrichRules_NamespaceOnlyKeepsInactiveRules(t *testing.T) {
 		groups: []k8s.PrometheusRuleGroup{
 			{
 				Name: "group-a",
-				Rules: []k8s.PrometheusRule{
-					{Name: "InactiveRule", Type: k8s.RuleTypeAlerting},
-					{
+				Rules: []k8s.Rule{
+					&k8s.AlertingRule{Name: "InactiveRule", Type: k8s.RuleTypeAlerting},
+					&k8s.AlertingRule{
 						Name: "FiringWithoutNamespaceLabel",
 						Type: k8s.RuleTypeAlerting,
 						Alerts: []k8s.PrometheusRuleAlert{
 							{State: "firing", Labels: map[string]string{"alertname": "FiringWithoutNamespaceLabel", "severity": "warning"}},
 						},
 					},
-					{Name: "record:foo", Type: k8s.RuleTypeRecording, Query: "vector(1)"},
+					&k8s.RecordingRule{Name: "record:foo", Type: k8s.RuleTypeRecording, Query: "vector(1)"},
 				},
 			},
 		},
@@ -530,7 +568,7 @@ func TestEnrichRules_NamespaceAndSeverityStillFilters(t *testing.T) {
 	if len(groups) != 1 {
 		t.Fatalf("expected 1 group, got %d", len(groups))
 	}
-	alerts := groups[0].Rules[0].Alerts
+	alerts := groups[0].Rules[0].(*k8s.AlertingRule).Alerts
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
@@ -552,8 +590,8 @@ func TestEnrichRules_MatchesPrometheusDayDuration(t *testing.T) {
 					return []k8s.PrometheusRuleGroup{
 						{
 							Name: "group-a",
-							Rules: []k8s.PrometheusRule{
-								{
+							Rules: []k8s.Rule{
+								&k8s.AlertingRule{
 									Name:     "DayForRule",
 									Type:     k8s.RuleTypeAlerting,
 									Query:    "up == 0",
@@ -603,7 +641,7 @@ func TestEnrichRules_MatchesPrometheusDayDuration(t *testing.T) {
 	if len(groups) != 1 || len(groups[0].Rules) != 1 {
 		t.Fatalf("expected 1 group with 1 rule")
 	}
-	got := groups[0].Rules[0].Labels[k8s.AlertRuleLabelId]
+	got := groups[0].Rules[0].(*k8s.AlertingRule).Labels[k8s.AlertRuleLabelId]
 	if got != "rid-day" {
 		t.Errorf("expected AlertRuleLabelId=rid-day, got %q", got)
 	}
