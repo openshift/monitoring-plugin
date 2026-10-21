@@ -31,7 +31,7 @@ import {
 } from '@/features/logging/components/filters/filter-types';
 import { SearchSelect } from '@/features/logging/components/filters/SearchSelect';
 import { useDebounce } from '@/features/logging/hooks/useDebounce';
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface AttributeFilterProps {
   attributeList: AttributeList;

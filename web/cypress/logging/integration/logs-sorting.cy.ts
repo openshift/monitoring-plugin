@@ -1,4 +1,4 @@
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 const LOGS_PAGE_URL = '/monitoring/logs';
 const QUERY_RANGE_STREAMS_URL_MATCH =

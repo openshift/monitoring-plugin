@@ -1,5 +1,5 @@
-import { Resource, Schema } from '@/features/logging/logs-types';
-import { notUndefined } from '@/features/logging/value-utils';
+import { Resource, Schema } from '@/features/logging/utils/logs-types';
+import { notUndefined } from '@/features/logging/utils/value-utils';
 
 export enum ResourceLabel {
   Container = 'Container',

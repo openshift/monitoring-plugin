@@ -7,7 +7,7 @@ import {
   notEmptyString,
   ONE_HOUR_IN_NS,
   valueWithScalePrefix,
-} from '@/features/logging/value-utils';
+} from '@/features/logging/utils/value-utils';
 
 describe('value utils', () => {
   it('should add the propoer prefix to the value', () => {

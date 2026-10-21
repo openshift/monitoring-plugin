@@ -1,7 +1,7 @@
 import { createContext, FC, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 
-import { defaultConfig, getConfig } from '@/features/logging/backend-client';
-import { Config } from '@/features/logging/logs-types';
+import { defaultConfig, getConfig } from '@/features/logging/utils/backend-client';
+import { Config } from '@/features/logging/utils/logs-types';
 
 interface LogsContextType {
   config: Config;

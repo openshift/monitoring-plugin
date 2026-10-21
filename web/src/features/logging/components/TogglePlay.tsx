@@ -4,7 +4,7 @@ import { FC, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import '@/features/logging/components/toggle-play.css';
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface TogglePlayProps {
   onClick?: (e: MouseEvent) => void;

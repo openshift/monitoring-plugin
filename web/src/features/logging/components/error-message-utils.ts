@@ -1,6 +1,9 @@
-import { LabelMatcher, LogQLQuery } from '@/features/logging/logql-query';
-import { ResourceLabel, ResourceToStreamLabels } from '@/features/logging/ParseResources';
-import { removeQuoteWrapper } from '@/features/logging/value-utils';
+import {
+  ResourceLabel,
+  ResourceToStreamLabels,
+} from '@/features/logging/components/ParseResources';
+import { LabelMatcher, LogQLQuery } from '@/features/logging/utils/logql-query';
+import { removeQuoteWrapper } from '@/features/logging/utils/value-utils';
 
 export type ForbiddenKind = 'none' | 'namespace-selected' | 'no-namespace' | 'audit';
 

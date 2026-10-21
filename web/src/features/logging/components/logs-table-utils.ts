@@ -1,4 +1,4 @@
-import { Direction, LogTableData } from '@/features/logging/logs-types';
+import { Direction, LogTableData } from '@/features/logging/utils/logs-types';
 
 export interface TimestampBounds {
   oldest?: string;

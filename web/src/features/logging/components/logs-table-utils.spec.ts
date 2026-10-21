@@ -2,8 +2,8 @@ import {
   getLoadMoreTimestamp,
   getTimestampBounds,
 } from '@/features/logging/components/logs-table-utils';
-import { LogTableData } from '@/features/logging/logs-types';
-import { getPaginationRange } from '@/features/logging/value-utils';
+import { LogTableData } from '@/features/logging/utils/logs-types';
+import { getPaginationRange } from '@/features/logging/utils/value-utils';
 
 const messageSortedData = [
   { rawTimestamp: '300' },

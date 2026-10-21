@@ -5,8 +5,8 @@ import { LogsMetrics } from '@/features/logging/components/LogsMetrics';
 import { TimeRangeDropdown } from '@/features/logging/components/TimeRangeDropdown';
 import { LogsConfigProvider, useLogsConfig } from '@/features/logging/hooks/LogsConfigProvider';
 import { useLogs } from '@/features/logging/hooks/useLogs';
-import { Rule, TimeRange } from '@/features/logging/logs-types';
-import { getSchema } from '@/features/logging/value-utils';
+import { Rule, TimeRange } from '@/features/logging/utils/logs-types';
+import { getSchema } from '@/features/logging/utils/value-utils';
 
 interface LogsAlertMetricsProps {
   rule?: Rule;

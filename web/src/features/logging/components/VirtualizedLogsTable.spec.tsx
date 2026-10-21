@@ -5,7 +5,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { CellMeasurerCache } from 'react-virtualized/dist/es/CellMeasurer';
 
 import { VirtualizedLogsTable } from '@/features/logging/components/VirtualizedLogsTable';
-import { Schema } from '@/features/logging/logs-types';
+import { Schema } from '@/features/logging/utils/logs-types';
 
 const sizing = vi.hoisted(() => ({ width: 800, recomputeRowHeights: vi.fn() }));
 

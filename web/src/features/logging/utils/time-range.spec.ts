@@ -3,7 +3,7 @@ import {
   intervalFromTimeRange,
   numericTimeRange,
   spanFromTimeRange,
-} from '@/features/logging/time-range';
+} from '@/features/logging/utils/time-range';
 
 const mockNow = new Date('2022-10-17T10:37:40+0000').getTime();
 

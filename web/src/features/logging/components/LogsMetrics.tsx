@@ -16,19 +16,19 @@ import { useTranslation } from 'react-i18next';
 import { CenteredContainer } from '@/features/logging/components/CenteredContainer';
 import '@/features/logging/components/logs-metrics.css';
 import { formatValue } from '@/features/logging/components/value-formatter';
+import { useRefWidth } from '@/features/logging/hooks/useRefWidth';
 import {
   DateFormat,
   dateToFormat,
   getTimeFormatFromTimeRange,
-} from '@/features/logging/date-utils';
-import { useRefWidth } from '@/features/logging/hooks/useRefWidth';
-import { isMatrixResult, QueryRangeResponse, TimeRange } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
+} from '@/features/logging/utils/date-utils';
+import { isMatrixResult, QueryRangeResponse, TimeRange } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
 import {
   defaultTimeRange,
   intervalFromTimeRange,
   numericTimeRange,
-} from '@/features/logging/time-range';
+} from '@/features/logging/utils/time-range';
 
 const colors = getThemeColors(ChartThemeColor.multiUnordered).line?.colorScale;
 

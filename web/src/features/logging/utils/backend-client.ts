@@ -1,5 +1,5 @@
-import { cancellableFetch } from '@/features/logging/cancellable-fetch';
-import { Config, SchemaConfig } from '@/features/logging/logs-types';
+import { cancellableFetch } from '@/features/logging/utils/cancellable-fetch';
+import { Config, SchemaConfig } from '@/features/logging/utils/logs-types';
 
 const BACKEND_ENDPOINT = '/api/plugins/monitoring-console-plugin';
 

@@ -1,5 +1,5 @@
-import { TimeRangeNumber } from '@/features/logging/logs-types';
-import { padLeadingZero } from '@/features/logging/value-utils';
+import { TimeRangeNumber } from '@/features/logging/utils/logs-types';
+import { padLeadingZero } from '@/features/logging/utils/value-utils';
 
 export enum DateFormat {
   TimeShort,

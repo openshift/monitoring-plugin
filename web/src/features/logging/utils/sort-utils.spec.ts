@@ -1,4 +1,4 @@
-import { bigIntDifference, numericComparator } from '@/features/logging/sort-utils';
+import { bigIntDifference, numericComparator } from '@/features/logging/utils/sort-utils';
 
 describe('numericComparator', () => {
   it('should return -1 when a < b with positive multiplier', () => {

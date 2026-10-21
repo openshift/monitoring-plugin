@@ -2,14 +2,14 @@ import {
   DateFormat,
   dateToFormat,
   getTimeFormatFromTimeRange,
-} from '@/features/logging/date-utils';
+} from '@/features/logging/utils/date-utils';
 import {
   TimeRange,
   timeRangeIsNumber,
   timeRangeIsText,
   TimeRangeNumber,
-} from '@/features/logging/logs-types';
-import { millisecondsFromDuration, units } from '@/features/logging/value-utils';
+} from '@/features/logging/utils/logs-types';
+import { millisecondsFromDuration, units } from '@/features/logging/utils/value-utils';
 
 export const CUSTOM_TIME_RANGE_KEY = 'CUSTOM';
 

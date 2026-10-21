@@ -1,4 +1,8 @@
-import { parseName, parseResources, ResourceLabel } from '@/features/logging/ParseResources';
+import {
+  parseName,
+  parseResources,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
 
 const mixedData = {
   __error__: 'JSONParserErr',

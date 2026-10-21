@@ -25,8 +25,8 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getBrowserTimezone, getTimezoneOffset } from '@/features/logging/date-utils';
-import { TestIds } from '@/features/logging/test-ids';
+import { getBrowserTimezone, getTimezoneOffset } from '@/features/logging/utils/date-utils';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 // Extend Intl type to include supportedValuesOf (available in modern browsers)
 declare global {

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { ExecuteQueryButton } from '@/features/logging/components/ExecuteQueryButton';
 import '@/features/logging/components/logs-query-input.css';
-import { LogQLQuery } from '@/features/logging/logql-query';
-import { TestIds } from '@/features/logging/test-ids';
+import { LogQLQuery } from '@/features/logging/utils/logql-query';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface LogsQueryInputProps {
   value: string;

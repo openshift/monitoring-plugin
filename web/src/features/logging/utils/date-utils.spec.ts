@@ -5,7 +5,7 @@ import {
   getTimezoneOffset,
   normalizeTimezone,
   parseInTimezone,
-} from '@/features/logging/date-utils';
+} from '@/features/logging/utils/date-utils';
 
 const mockDate = new Date('2023-02-22T08:38:36Z');
 const mockDateWithMillis = new Date('2023-02-22T08:38:36.001Z');

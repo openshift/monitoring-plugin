@@ -17,8 +17,8 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { isOption } from '@/features/logging/components/filters/FiltersFromParams';
-import { TENANTS } from '@/features/logging/tenants';
-import { TestIds } from '@/features/logging/test-ids';
+import { TENANTS } from '@/features/logging/utils/tenants';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface TenantDropdownProps {
   selectedTenant?: string;

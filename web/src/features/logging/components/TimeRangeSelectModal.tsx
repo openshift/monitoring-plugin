@@ -11,11 +11,11 @@ import {
   getBrowserTimezone,
   normalizeTimezone,
   parseInTimezone,
-} from '@/features/logging/date-utils';
-import { TimeRange } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
-import { defaultTimeRange, numericTimeRange } from '@/features/logging/time-range';
-import { padLeadingZero } from '@/features/logging/value-utils';
+} from '@/features/logging/utils/date-utils';
+import { TimeRange } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
+import { defaultTimeRange, numericTimeRange } from '@/features/logging/utils/time-range';
+import { padLeadingZero } from '@/features/logging/utils/value-utils';
 
 interface TimeRangeSelectModalProps {
   onClose: () => void;

@@ -18,7 +18,7 @@ import {
   dateToFormat,
   getTimeFormatFromInterval,
   getTimeFormatFromTimeRange,
-} from '@/features/logging/date-utils';
+} from '@/features/logging/utils/date-utils';
 import {
   isMatrixResult,
   MetricValue,
@@ -26,16 +26,16 @@ import {
   Schema,
   TimeRange,
   TimeRangeNumber,
-} from '@/features/logging/logs-types';
+} from '@/features/logging/utils/logs-types';
 import {
   getSeverityColor,
   Severity,
   severityAbbreviations,
   severityFromString,
-} from '@/features/logging/severity';
-import { TestIds } from '@/features/logging/test-ids';
-import { intervalFromTimeRange, numericTimeRange } from '@/features/logging/time-range';
-import { valueWithScalePrefix } from '@/features/logging/value-utils';
+} from '@/features/logging/utils/severity';
+import { TestIds } from '@/features/logging/utils/test-ids';
+import { intervalFromTimeRange, numericTimeRange } from '@/features/logging/utils/time-range';
+import { valueWithScalePrefix } from '@/features/logging/utils/value-utils';
 
 const GRAPH_HEIGHT = 130;
 const LEFT_PADDING = 50;

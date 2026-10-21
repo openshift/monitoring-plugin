@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
-import { csvFromQueryResponse, escapeCSVValue } from '@/features/logging/download-csv';
-import { QueryRangeResponse } from '@/features/logging/logs-types';
+import { csvFromQueryResponse, escapeCSVValue } from '@/features/logging/utils/download-csv';
+import { QueryRangeResponse } from '@/features/logging/utils/logs-types';
 
 describe('download CSV', () => {
   it('should escape data correctly', () => {

@@ -1,24 +1,31 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
-import { cancellableFetch } from '@/features/logging/cancellable-fetch';
 import {
   Attribute,
   AttributeList,
   Filters,
   Option,
 } from '@/features/logging/components/filters/filter-types';
-import { LabelMatcher, LogQLQuery, PipelineStage } from '@/features/logging/logql-query';
-import { Config, Schema, SeriesResponse } from '@/features/logging/logs-types';
-import { executeLabelValue, executeSeries } from '@/features/logging/loki-client';
-import { getStreamLabelsFromSchema, ResourceLabel } from '@/features/logging/ParseResources';
-import { Severity, severityAbbreviations, severityFromString } from '@/features/logging/severity';
+import {
+  getStreamLabelsFromSchema,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
+import { cancellableFetch } from '@/features/logging/utils/cancellable-fetch';
+import { LabelMatcher, LogQLQuery, PipelineStage } from '@/features/logging/utils/logql-query';
+import { Config, Schema, SeriesResponse } from '@/features/logging/utils/logs-types';
+import { executeLabelValue, executeSeries } from '@/features/logging/utils/loki-client';
+import {
+  Severity,
+  severityAbbreviations,
+  severityFromString,
+} from '@/features/logging/utils/severity';
 import {
   getInitialTenantFromNamespace,
   namespaceBelongsToInfrastructureTenant,
   notEmptyString,
   notUndefined,
   removeQuoteWrapper,
-} from '@/features/logging/value-utils';
+} from '@/features/logging/utils/value-utils';
 
 const RESOURCES_ENDPOINT = '/api/kubernetes/api/v1';
 

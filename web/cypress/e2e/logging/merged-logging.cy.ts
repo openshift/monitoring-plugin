@@ -1,4 +1,4 @@
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 // Real Console/Loki smoke; never installs operators or grants permissions.
 describe('Merged MCP logging', { tags: ['@logging', '@coo'] }, () => {

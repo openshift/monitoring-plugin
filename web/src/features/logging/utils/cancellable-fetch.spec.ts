@@ -8,7 +8,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   consoleFetchJSON: mockConsoleFetch,
 }));
 
-import { cancellableFetch, isFetchError } from '@/features/logging/cancellable-fetch';
+import { cancellableFetch, isFetchError } from '@/features/logging/utils/cancellable-fetch';
 
 describe('cancellableFetch with consoleFetchJSON', () => {
   beforeEach(() => {

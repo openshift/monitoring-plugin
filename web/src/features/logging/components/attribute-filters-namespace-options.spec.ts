@@ -1,16 +1,16 @@
 import type { Mock } from 'vitest';
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({ K8sResourceCommon: {} }));
-vi.mock('@/features/logging/cancellable-fetch', () => ({ cancellableFetch: vi.fn() }));
-vi.mock('@/features/logging/loki-client', () => ({
+vi.mock('@/features/logging/utils/cancellable-fetch', () => ({ cancellableFetch: vi.fn() }));
+vi.mock('@/features/logging/utils/loki-client', () => ({
   executeLabelValue: vi.fn(),
   executeSeries: vi.fn(),
 }));
 
-import { availableDevConsoleAttributes } from '@/features/logging/AttributeFilters';
-import { cancellableFetch } from '@/features/logging/cancellable-fetch';
+import { availableDevConsoleAttributes } from '@/features/logging/components/AttributeFilters';
 import { Option } from '@/features/logging/components/filters/filter-types';
-import { Config, Schema } from '@/features/logging/logs-types';
-import { executeLabelValue } from '@/features/logging/loki-client';
+import { cancellableFetch } from '@/features/logging/utils/cancellable-fetch';
+import { Config, Schema } from '@/features/logging/utils/logs-types';
+import { executeLabelValue } from '@/features/logging/utils/loki-client';
 
 const mockCancellableFetch = cancellableFetch as Mock;
 const mockExecuteLabelValue = executeLabelValue as Mock;

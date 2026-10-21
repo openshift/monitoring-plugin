@@ -17,7 +17,7 @@ import {
   filtersFromQuery,
   initialAvailableAttributes,
   queryFromFilters,
-} from '@/features/logging/AttributeFilters';
+} from '@/features/logging/components/AttributeFilters';
 import { CenteredContainer } from '@/features/logging/components/CenteredContainer';
 import { Filters } from '@/features/logging/components/filters/filter-types';
 import { LogsHistogram } from '@/features/logging/components/LogsHistogram';
@@ -28,12 +28,12 @@ import { RefreshIntervalDropdown } from '@/features/logging/components/RefreshIn
 import { TimeRangeDropdown } from '@/features/logging/components/TimeRangeDropdown';
 import { TimezoneDropdown } from '@/features/logging/components/TimezoneDropdown';
 import { ToggleHistogramButton } from '@/features/logging/components/ToggleHistogramButton';
-import { downloadCSV } from '@/features/logging/download-csv';
 import { LogsConfigProvider, useLogsConfig } from '@/features/logging/hooks/LogsConfigProvider';
 import { useLogs } from '@/features/logging/hooks/useLogs';
 import { defaultQueryFromTenant, useURLState } from '@/features/logging/hooks/useURLState';
-import { Direction, isMatrixResult } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
+import { downloadCSV } from '@/features/logging/utils/download-csv';
+import { Direction, isMatrixResult } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 const LogsPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

@@ -39,10 +39,10 @@ import { TenantDropdown } from '@/features/logging/components/TenantDropdown';
 import { ToggleButton } from '@/features/logging/components/ToggleButton';
 import { TogglePlay } from '@/features/logging/components/TogglePlay';
 import { useLogsConfig } from '@/features/logging/hooks/LogsConfigProvider';
-import { Schema, SchemaConfig } from '@/features/logging/logs-types';
-import { Severity, severityFromString } from '@/features/logging/severity';
-import { TestIds } from '@/features/logging/test-ids';
-import { notUndefined } from '@/features/logging/value-utils';
+import { Schema, SchemaConfig } from '@/features/logging/utils/logs-types';
+import { Severity, severityFromString } from '@/features/logging/utils/severity';
+import { TestIds } from '@/features/logging/utils/test-ids';
+import { notUndefined } from '@/features/logging/utils/value-utils';
 
 interface LogsToolbarProps {
   query: string;

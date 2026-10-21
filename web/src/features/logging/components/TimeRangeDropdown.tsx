@@ -11,15 +11,15 @@ import { useTranslation } from 'react-i18next';
 
 import { TimeRangeSelectModal } from '@/features/logging/components/TimeRangeSelectModal';
 import { useLocalStorage } from '@/features/logging/hooks/useLocalStorage';
-import { TimeRange } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
+import { TimeRange } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
 import {
   CUSTOM_TIME_RANGE_KEY,
   formatTimeRange,
   timeOptionKeyFromRange,
   timeRangeFromDuration,
   timeRangeOptions,
-} from '@/features/logging/time-range';
+} from '@/features/logging/utils/time-range';
 
 const DEFAULT_DURATION_KEY = '1h';
 const STORED_TIME_RANGE_KEY = 'logging-view-plugin.time-range';

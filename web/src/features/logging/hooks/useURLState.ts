@@ -2,14 +2,23 @@ import { DependencyList, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import { filtersFromQuery, queryFromFilters } from '@/features/logging/AttributeFilters';
+import { filtersFromQuery, queryFromFilters } from '@/features/logging/components/AttributeFilters';
 import { AttributeList, Filters } from '@/features/logging/components/filters/filter-types';
-import { getBrowserTimezone } from '@/features/logging/date-utils';
+import {
+  ResourceLabel,
+  ResourceToStreamLabels,
+} from '@/features/logging/components/ParseResources';
 import { useLogsConfig } from '@/features/logging/hooks/LogsConfigProvider';
-import { Config, Direction, Schema, SchemaConfig, TimeRange } from '@/features/logging/logs-types';
-import { ResourceLabel, ResourceToStreamLabels } from '@/features/logging/ParseResources';
-import { intervalFromTimeRange } from '@/features/logging/time-range';
-import { getSchema } from '@/features/logging/value-utils';
+import { getBrowserTimezone } from '@/features/logging/utils/date-utils';
+import {
+  Config,
+  Direction,
+  Schema,
+  SchemaConfig,
+  TimeRange,
+} from '@/features/logging/utils/logs-types';
+import { intervalFromTimeRange } from '@/features/logging/utils/time-range';
+import { getSchema } from '@/features/logging/utils/value-utils';
 
 interface UseURLStateHook {
   defaultTenant?: string;

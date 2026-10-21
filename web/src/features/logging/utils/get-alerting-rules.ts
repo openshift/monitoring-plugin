@@ -1,7 +1,7 @@
-import { getConfig } from '@/features/logging/backend-client';
-import { RulesResponse } from '@/features/logging/logs-types';
-import { getRules } from '@/features/logging/loki-client';
-import { namespaceBelongsToInfrastructureTenant } from '@/features/logging/value-utils';
+import { getConfig } from '@/features/logging/utils/backend-client';
+import { RulesResponse } from '@/features/logging/utils/logs-types';
+import { getRules } from '@/features/logging/utils/loki-client';
+import { namespaceBelongsToInfrastructureTenant } from '@/features/logging/utils/value-utils';
 
 const abortControllers: Map<string, null | (() => void)> = new Map();
 

@@ -1,4 +1,4 @@
-import { LogQLQuery } from '@/features/logging/logql-query';
+import { LogQLQuery } from '@/features/logging/utils/logql-query';
 
 describe('LogQL query', () => {
   it('should parse a logql query', () => {

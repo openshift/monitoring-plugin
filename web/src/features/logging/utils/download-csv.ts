@@ -1,4 +1,4 @@
-import { isStreamsResult, QueryRangeResponse } from '@/features/logging/logs-types';
+import { isStreamsResult, QueryRangeResponse } from '@/features/logging/utils/logs-types';
 
 export const escapeCSVValue = (value: string | number) => {
   if (typeof value === 'number') {

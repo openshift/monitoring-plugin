@@ -1,7 +1,11 @@
 import { WSFactory } from '@openshift-console/dynamic-plugin-sdk/lib/utils/k8s/ws-factory';
 
-import { queryWithNamespace } from '@/features/logging/AttributeFilters';
-import { CancellableFetch, cancellableFetch } from '@/features/logging/cancellable-fetch';
+import { queryWithNamespace } from '@/features/logging/components/AttributeFilters';
+import {
+  getStreamLabelsFromSchema,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
+import { CancellableFetch, cancellableFetch } from '@/features/logging/utils/cancellable-fetch';
 import {
   Config,
   Direction,
@@ -12,9 +16,8 @@ import {
   Schema,
   SeriesResponse,
   VolumeRangeResponse,
-} from '@/features/logging/logs-types';
-import { getStreamLabelsFromSchema, ResourceLabel } from '@/features/logging/ParseResources';
-import { durationFromTimestamp, getSchema } from '@/features/logging/value-utils';
+} from '@/features/logging/utils/logs-types';
+import { durationFromTimestamp, getSchema } from '@/features/logging/utils/value-utils';
 
 const LOKI_ENDPOINT = '/api/proxy/plugin/monitoring-console-plugin/loki';
 

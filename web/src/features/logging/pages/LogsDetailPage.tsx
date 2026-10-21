@@ -17,25 +17,28 @@ import {
   availablePodAttributes,
   filtersFromQuery,
   queryFromFilters,
-} from '@/features/logging/AttributeFilters';
+} from '@/features/logging/components/AttributeFilters';
 import { CenteredContainer } from '@/features/logging/components/CenteredContainer';
 import { Filters } from '@/features/logging/components/filters/filter-types';
 import { LogsHistogram } from '@/features/logging/components/LogsHistogram';
 import { LogsMetrics } from '@/features/logging/components/LogsMetrics';
 import { LogsTable } from '@/features/logging/components/LogsTable';
 import { LogsToolbar } from '@/features/logging/components/LogsToolbar';
+import {
+  getStreamLabelsFromSchema,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
 import { RefreshIntervalDropdown } from '@/features/logging/components/RefreshIntervalDropdown';
 import { TimeRangeDropdown } from '@/features/logging/components/TimeRangeDropdown';
 import { TimezoneDropdown } from '@/features/logging/components/TimezoneDropdown';
 import { ToggleHistogramButton } from '@/features/logging/components/ToggleHistogramButton';
-import { downloadCSV } from '@/features/logging/download-csv';
 import { LogsConfigProvider, useLogsConfig } from '@/features/logging/hooks/LogsConfigProvider';
 import { useLogs } from '@/features/logging/hooks/useLogs';
 import { useURLState } from '@/features/logging/hooks/useURLState';
-import { Direction, isMatrixResult, Schema } from '@/features/logging/logs-types';
-import { getStreamLabelsFromSchema, ResourceLabel } from '@/features/logging/ParseResources';
-import { TestIds } from '@/features/logging/test-ids';
-import { getInitialTenantFromNamespace } from '@/features/logging/value-utils';
+import { downloadCSV } from '@/features/logging/utils/download-csv';
+import { Direction, isMatrixResult, Schema } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
+import { getInitialTenantFromNamespace } from '@/features/logging/utils/value-utils';
 
 /*
 This comment creates an entry in the translations catalogue for console extensions

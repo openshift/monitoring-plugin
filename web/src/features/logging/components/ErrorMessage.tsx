@@ -3,12 +3,15 @@ import { TFunction } from 'i18next';
 import { FC, PropsWithChildren, ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { isFetchError } from '@/features/logging/cancellable-fetch';
 import { ForbiddenKind, getForbiddenKind } from '@/features/logging/components/error-message-utils';
 import '@/features/logging/components/error-message.css';
-import { Schema } from '@/features/logging/logs-types';
-import { getStreamLabelsFromSchema, ResourceLabel } from '@/features/logging/ParseResources';
-import { capitalize, notUndefined } from '@/features/logging/value-utils';
+import {
+  getStreamLabelsFromSchema,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
+import { isFetchError } from '@/features/logging/utils/cancellable-fetch';
+import { Schema } from '@/features/logging/utils/logs-types';
+import { capitalize, notUndefined } from '@/features/logging/utils/value-utils';
 
 interface ErrorMessageProps {
   error: unknown | Error;

@@ -10,7 +10,7 @@ import { FC, Ref, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useLocalStorage } from '@/features/logging/hooks/useLocalStorage';
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 const STORED_REFRESH_INTERVAL_KEY = 'logging-view-plugin.refresh-interval';
 

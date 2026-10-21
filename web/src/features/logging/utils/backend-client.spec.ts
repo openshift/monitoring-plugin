@@ -1,6 +1,6 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
-import { SchemaConfig } from '@/features/logging/logs-types';
+import { SchemaConfig } from '@/features/logging/utils/logs-types';
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({ consoleFetchJSON: vi.fn() }));
 
@@ -20,7 +20,7 @@ describe('merged logging config', () => {
         showTimezoneSelector: false,
       },
     });
-    const { getConfig } = await import('@/features/logging/backend-client');
+    const { getConfig } = await import('@/features/logging/utils/backend-client');
     expect(await getConfig()).toEqual({
       isStreamingEnabledInDefaultPage: false,
       logsLimit: 0,
@@ -38,7 +38,7 @@ describe('merged logging config', () => {
 
   it('uses source defaults when the logging section is absent', async () => {
     vi.mocked(consoleFetchJSON).mockResolvedValue({ timeout: 120 });
-    const { getConfig, defaultConfig } = await import('@/features/logging/backend-client');
+    const { getConfig, defaultConfig } = await import('@/features/logging/utils/backend-client');
     expect(await getConfig()).toEqual(defaultConfig);
   });
 });

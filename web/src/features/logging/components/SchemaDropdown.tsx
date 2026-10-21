@@ -16,8 +16,8 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Schema } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
+import { Schema } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 type SchemaDropdownProps = {
   onSchemaSelected: ((schema: Schema) => void) | undefined;

@@ -1,4 +1,4 @@
-import { namespaceBelongsToInfrastructureTenant } from '@/features/logging/value-utils';
+import { namespaceBelongsToInfrastructureTenant } from '@/features/logging/utils/value-utils';
 
 describe('Data source utilities', () => {
   describe('namespaceBelongsToInfrastructureTenant', () => {

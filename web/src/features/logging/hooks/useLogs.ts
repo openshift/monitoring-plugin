@@ -3,7 +3,7 @@ import { useContext, useReducer, useRef } from 'react';
 
 import { queryHasNamespaceFilter } from '@/features/logging/components/error-message-utils';
 import { LogsContext } from '@/features/logging/hooks/LogsConfigProvider';
-import { LogQLQuery } from '@/features/logging/logql-query';
+import { LogQLQuery } from '@/features/logging/utils/logql-query';
 import {
   Config,
   Direction,
@@ -13,7 +13,7 @@ import {
   Schema,
   TimeRange,
   VolumeRangeResponse,
-} from '@/features/logging/logs-types';
+} from '@/features/logging/utils/logs-types';
 import {
   connectToTailSocket,
   executeHistogramQuery,
@@ -23,13 +23,13 @@ import {
   toQueryRangeResponse,
   toRecord,
   validateQueryRangeResponse,
-} from '@/features/logging/loki-client';
+} from '@/features/logging/utils/loki-client';
 import {
   intervalFromTimeRange,
   numericTimeRange,
   timeRangeFromDuration,
-} from '@/features/logging/time-range';
-import { getPaginationRange, msToNs } from '@/features/logging/value-utils';
+} from '@/features/logging/utils/time-range';
+import { getPaginationRange, msToNs } from '@/features/logging/utils/value-utils';
 
 const DEFAULT_TIME_SPAN = '1h';
 const STREAMING_MAX_LOGS_LIMIT = 1e3;

@@ -2,12 +2,12 @@ vi.mock('@openshift-console/dynamic-plugin-sdk/lib/utils/k8s/ws-factory', () => 
   WSFactory: vi.fn(function () {}),
 }));
 
-import { SchemaConfig } from '@/features/logging/logs-types';
+import { SchemaConfig } from '@/features/logging/utils/logs-types';
 import {
   getFetchConfig,
   isQueryRangeResponse,
   throwResponseError,
-} from '@/features/logging/loki-client';
+} from '@/features/logging/utils/loki-client';
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   consoleFetchJSON: vi.fn(),
@@ -91,8 +91,8 @@ describe('Loki Client', () => {
 it('uses the merged Loki alias for WebSocket tailing with namespace scoping', async () => {
   const { WSFactory } =
     await import('@openshift-console/dynamic-plugin-sdk/lib/utils/k8s/ws-factory');
-  const { connectToTailSocket } = await import('@/features/logging/loki-client');
-  const { Schema } = await import('@/features/logging/logs-types');
+  const { connectToTailSocket } = await import('@/features/logging/utils/loki-client');
+  const { Schema } = await import('@/features/logging/utils/logs-types');
   connectToTailSocket({
     query: '{log_type="application"}',
     tenant: 'application',

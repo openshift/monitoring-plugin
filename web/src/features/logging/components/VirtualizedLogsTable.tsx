@@ -28,9 +28,9 @@ import CellMeasurer, {
 
 import { CenteredContainer } from '@/features/logging/components/CenteredContainer';
 import { ErrorMessage } from '@/features/logging/components/ErrorMessage';
-import { LogTableData, Schema } from '@/features/logging/logs-types';
-import { getSeverityColor, Severity } from '@/features/logging/severity';
-import { TestIds } from '@/features/logging/test-ids';
+import { LogTableData, Schema } from '@/features/logging/utils/logs-types';
+import { getSeverityColor, Severity } from '@/features/logging/utils/severity';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface VirtualizedLogsTableProps<D> {
   Row: ComponentType<RowProps<D>>;

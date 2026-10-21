@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import '@/features/logging/components/precision-time-picker.css';
 import { useBoolean } from '@/features/logging/hooks/useBoolean';
-import { padLeadingZero } from '@/features/logging/value-utils';
+import { padLeadingZero } from '@/features/logging/utils/value-utils';
 
 interface PrecisionTimePickerProps {
   time: string;

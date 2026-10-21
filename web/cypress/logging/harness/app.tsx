@@ -24,7 +24,7 @@ import {
   PageSection,
   PageSidebar,
 } from '@patternfly/react-core';
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 import { Ref, useState } from 'react';
 
 const DevConsole = () => {

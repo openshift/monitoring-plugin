@@ -214,8 +214,8 @@
       "LogsPage": "./features/logging/pages/LogsPage",
       "LogsDetailPage": "./features/logging/pages/LogsDetailPage",
       "LogsDevPage": "./features/logging/pages/LogsDevPage",
-      "getUserAlertingRules": "./features/logging/get-user-alerting-rules",
-      "getPlatformAlertingRules": "./features/logging/get-platform-alerting-rules",
+      "getUserAlertingRules": "./features/logging/utils/get-user-alerting-rules",
+      "getPlatformAlertingRules": "./features/logging/utils/get-platform-alerting-rules",
       "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics"
     },
     "dependencies": {

@@ -11,11 +11,14 @@ import {
   getNamespaceMatcher,
   getSeverityFilterPipelineStage,
   queryFromFilters,
-} from '@/features/logging/AttributeFilters';
+} from '@/features/logging/components/AttributeFilters';
 import { AttributeList, Filters } from '@/features/logging/components/filters/filter-types';
-import { LabelMatcher, PipelineStage } from '@/features/logging/logql-query';
-import { Schema } from '@/features/logging/logs-types';
-import { getStreamLabelsFromSchema, ResourceLabel } from '@/features/logging/ParseResources';
+import {
+  getStreamLabelsFromSchema,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
+import { LabelMatcher, PipelineStage } from '@/features/logging/utils/logql-query';
+import { Schema } from '@/features/logging/utils/logs-types';
 
 const availableAttributes = (schema: Schema): AttributeList => {
   const labelMatchers = getStreamLabelsFromSchema(schema);

@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { useAttributeValueData } from '@/features/logging/components/filters/AttributeValueData';
 import { Attribute, Filters } from '@/features/logging/components/filters/filter-types';
 import { isOption } from '@/features/logging/components/filters/FiltersFromParams';
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface SearchSelectProps {
   attribute: Attribute;

@@ -4,8 +4,8 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import '@/features/logging/components/stats-table.css';
-import { QueryRangeResponse } from '@/features/logging/logs-types';
-import { TestIds } from '@/features/logging/test-ids';
+import { QueryRangeResponse } from '@/features/logging/utils/logs-types';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 interface StatsTableProps {
   logsData?: QueryRangeResponse;

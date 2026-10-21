@@ -1,4 +1,9 @@
-import { DEFAULT_SCHEMA, Direction, Schema, SchemaConfig } from '@/features/logging/logs-types';
+import {
+  DEFAULT_SCHEMA,
+  Direction,
+  Schema,
+  SchemaConfig,
+} from '@/features/logging/utils/logs-types';
 
 export const ONE_HOUR_IN_NS = 3_600_000_000_000n;
 

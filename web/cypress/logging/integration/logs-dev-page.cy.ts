@@ -1,4 +1,4 @@
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 import {
   queryRangeMatrixValidResponse,
   queryRangeStreamsValidResponse,

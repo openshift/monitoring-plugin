@@ -1,4 +1,4 @@
-import { TestIds } from '@/features/logging/test-ids';
+import { TestIds } from '@/features/logging/utils/test-ids';
 import {
   queryRangeMatrixInvalidResponse,
   queryRangeMatrixValidResponse,
@@ -14,7 +14,7 @@ import {
   podsListResponse,
   projectListResponse,
 } from '../fixtures/resource-api-fixtures';
-import { formatTimeRange } from '@/features/logging/time-range';
+import { formatTimeRange } from '@/features/logging/utils/time-range';
 import { configResponse } from '../fixtures/backend-fixtures';
 
 Cypress.Keyboard.defaults({

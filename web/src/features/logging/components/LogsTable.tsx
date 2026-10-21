@@ -21,12 +21,17 @@ import {
   getTimestampBounds,
 } from '@/features/logging/components/logs-table-utils';
 import '@/features/logging/components/logs-table.css';
+import {
+  parseName,
+  parseResources,
+  ResourceLabel,
+} from '@/features/logging/components/ParseResources';
 import { StatsTable } from '@/features/logging/components/StatsTable';
 import {
   TableData,
   VirtualizedLogsTable,
 } from '@/features/logging/components/VirtualizedLogsTable';
-import { DateFormat, dateToFormat } from '@/features/logging/date-utils';
+import { DateFormat, dateToFormat } from '@/features/logging/utils/date-utils';
 import {
   Direction,
   isStreamsResult,
@@ -35,11 +40,10 @@ import {
   Resource,
   Schema,
   StreamLogData,
-} from '@/features/logging/logs-types';
-import { parseName, parseResources, ResourceLabel } from '@/features/logging/ParseResources';
-import { severityFromString } from '@/features/logging/severity';
-import { bigIntDifference, numericComparator } from '@/features/logging/sort-utils';
-import { TestIds } from '@/features/logging/test-ids';
+} from '@/features/logging/utils/logs-types';
+import { severityFromString } from '@/features/logging/utils/severity';
+import { bigIntDifference, numericComparator } from '@/features/logging/utils/sort-utils';
+import { TestIds } from '@/features/logging/utils/test-ids';
 
 /* eslint-disable react-hooks/refs */
 
