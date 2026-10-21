@@ -282,7 +282,7 @@ const AlertsDetailsPage_: FC = () => {
                     <DescriptionListGroup>
                       <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
                       <DescriptionListDescription>
-                        {alert.annotations.summary}
+                        <LinkifyExternal>{alert.annotations.summary}</LinkifyExternal>
                       </DescriptionListDescription>
                     </DescriptionListGroup>
                   )}
