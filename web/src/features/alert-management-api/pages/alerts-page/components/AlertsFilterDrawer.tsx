@@ -1,6 +1,6 @@
 import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 import { Button, Divider, Flex, Title, ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
-import { CogIcon, CubesIcon, FilterIcon, TimesIcon } from '@patternfly/react-icons';
+import { CogIcon, CubesIcon, RhUiFilterFillIcon, TimesIcon } from '@patternfly/react-icons';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -67,7 +67,7 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         hideLabel={key === 'state' || key === 'source'}
         icon={
           key === 'labels' ? (
-            <FilterIcon aria-hidden />
+            <RhUiFilterFillIcon aria-hidden />
           ) : key === 'component' ? (
             <CogIcon aria-hidden />
           ) : undefined
@@ -98,7 +98,7 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         flexWrap={{ default: 'nowrap' }}
       >
         <Title headingLevel="h2" size="md">
-          <FilterIcon aria-hidden /> {t('Filter alerts')}
+          <RhUiFilterFillIcon aria-hidden /> {t('Filter alerts')}
         </Title>
         <Button
           variant="plain"

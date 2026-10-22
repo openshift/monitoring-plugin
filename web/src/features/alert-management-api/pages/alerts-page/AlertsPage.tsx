@@ -19,7 +19,7 @@ import {
   SearchInput,
   Title,
 } from '@patternfly/react-core';
-import { ClockIcon, FilterIcon } from '@patternfly/react-icons';
+import { ClockIcon, RhUiFilterFillIcon } from '@patternfly/react-icons';
 import { CSSProperties, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -110,7 +110,7 @@ export function AlertManagementAlertsPage() {
                 <FlexItem>
                   <Button
                     variant="control"
-                    icon={<FilterIcon />}
+                    icon={<RhUiFilterFillIcon />}
                     aria-expanded={isFilterDrawerOpen}
                     aria-controls={DataTestIDs.AlertManagementAPI.FiltersPanel}
                     aria-label={t('Open alert filters')}
