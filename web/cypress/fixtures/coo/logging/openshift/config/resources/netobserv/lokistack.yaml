@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: seaweedfs-s3
+stringData:
+  access_key_id: loki-user
+  access_key_secret: loki-secret-key
+  bucketnames: loki
+  endpoint: http://seaweedfs.seaweedfs.svc:8333
+type: Opaque
+---
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: loki
+spec:
+  size: 1x.demo
+  storage:
+    schemas:
+    - version: v12
+      effectiveDate: '2022-06-01'
+    secret:
+      name: seaweedfs-s3
+      type: s3
+  storageClassName: REPLACE
+  tenants:
+    mode: openshift-network
