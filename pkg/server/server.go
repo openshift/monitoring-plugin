@@ -391,9 +391,6 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	}
 
 	var pluginConfig PluginConfig
-	if cfg.Features[Logging] {
-		pluginConfig.Timeout = 30 * time.Second
-	}
 	err = yaml.UnmarshalStrict(pluginConfData, &pluginConfig)
 
 	if err != nil {

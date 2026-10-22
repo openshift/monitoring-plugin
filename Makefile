@@ -42,7 +42,7 @@ start-console:
 
 .PHONY: start-coo-console
 start-coo-console:
-	CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console ./scripts/start-console.sh
+	CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console
 
 .PHONY: i18n-frontend
 i18n-frontend:
