@@ -22,7 +22,7 @@ jest.mock('@patternfly/react-core', () => {
 jest.mock('@patternfly/react-icons', () => ({
   ExternalLinkAltIcon: () => null,
 }));
-jest.mock('react-linkify', () => ({
+jest.mock('linkify-react', () => ({
   __esModule: true,
   default: ({ children }: { children: ReactNode }) => children,
 }));
