@@ -92,6 +92,10 @@ test-frontend:
 test-frontend-unit:
 	cd web && npm run test:unit:ci
 
+.PHONY: test-logging-ui
+test-logging-ui:
+	./scripts/test-logging-ui.sh
+
 .PHONY: build-image
 build-image:
 	./scripts/build-image.sh
