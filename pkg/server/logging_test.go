@@ -70,9 +70,11 @@ func TestLoggingConfig(t *testing.T) {
 		name, yaml, expected string
 		timeout              time.Duration
 	}{
-		{"nested defaults", "logging: {}\n", `{"timeout":30,"logging":{}}`, 30 * time.Second},
+		// No timeout in the config means no server timeout; the frontend defaults
+		// its Loki fetch timeout to 30s on its own.
+		{"logging without timeout", "logging: {}\n", `{"logging":{}}`, 0},
 		{"isolated timeout", "timeout: 45s\nlogging:\n  timeout: 2.5s\n  logsLimit: 50\n  schema: select\n  useTenantInHeader: true\n  isStreamingEnabledInDefaultPage: true\n  showTimezoneSelector: true\n  alertingRuleTenantLabelKey: tenant\n  alertingRuleNamespaceLabelKey: namespace\n", `{"timeout":45,"logging":{"timeout":2.5,"logsLimit":50,"schema":"select","useTenantInHeader":true,"isStreamingEnabledInDefaultPage":true,"showTimezoneSelector":true,"alertingRuleTenantLabelKey":"tenant","alertingRuleNamespaceLabelKey":"namespace"}}`, 45 * time.Second},
-		{"logging timeout alone", "logging:\n  timeout: 5s\n", `{"timeout":30,"logging":{"timeout":5}}`, 30 * time.Second},
+		{"logging timeout alone", "logging:\n  timeout: 5s\n", `{"logging":{"timeout":5}}`, 0},
 		{"explicit shared zero", "timeout: 0s\nlogging:\n  schema: otel\n", `{"logging":{"schema":"otel"}}`, 0},
 		{"no logging", "timeout: 15s\n", `{"timeout":15}`, 15 * time.Second},
 	} {
