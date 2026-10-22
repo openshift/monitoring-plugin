@@ -11,6 +11,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import type { LabelProps } from '@patternfly/react-core';
 import {
+  t_global_color_nonstatus_gray_default,
+  t_global_color_nonstatus_orangered_default,
+  t_global_color_nonstatus_purple_default,
+  t_global_color_nonstatus_teal_default,
+  t_global_color_nonstatus_yellow_default,
   t_global_color_status_danger_default,
   t_global_color_status_info_default,
   t_global_color_status_warning_default,
@@ -23,16 +28,40 @@ import { AggregatedAlert } from '@/shared/types/types';
 
 export const getSeverityColors = (
   severity?: string | null,
-): { labelColor: LabelProps['color']; textColor: string } => {
+): { labelStatus: LabelProps['status']; textColor: string; mutedBackgroundColor: string } => {
   switch (severity) {
     case AlertSeverity.Critical:
-      return { labelColor: 'red', textColor: t_global_color_status_danger_default.var };
+      return {
+        labelStatus: 'danger',
+        textColor: t_global_color_status_danger_default.var,
+        mutedBackgroundColor: t_global_color_nonstatus_orangered_default.var,
+      };
     case AlertSeverity.Warning:
-      return { labelColor: 'orange', textColor: t_global_color_status_warning_default.var };
+      return {
+        labelStatus: 'warning',
+        textColor: t_global_color_status_warning_default.var,
+        mutedBackgroundColor: t_global_color_nonstatus_yellow_default.var,
+      };
     case AlertSeverity.Info:
-      return { labelColor: 'purple', textColor: t_global_color_status_info_default.var };
+      return {
+        labelStatus: 'info',
+        textColor: t_global_color_status_info_default.var,
+        mutedBackgroundColor: t_global_color_nonstatus_purple_default.var,
+      };
+    case AlertSeverity.None:
+    case null:
+    case undefined:
+      return {
+        labelStatus: undefined,
+        textColor: t_global_text_color_regular.var,
+        mutedBackgroundColor: t_global_color_nonstatus_gray_default.var,
+      };
     default:
-      return { labelColor: 'grey', textColor: t_global_text_color_regular.var };
+      return {
+        labelStatus: 'custom',
+        textColor: t_global_text_color_regular.var,
+        mutedBackgroundColor: t_global_color_nonstatus_teal_default.var,
+      };
   }
 };
 

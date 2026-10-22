@@ -6,10 +6,16 @@ import {
   RhUiWarningFillIcon,
   SeverityUndefinedIcon,
 } from '@patternfly/react-icons';
-import { t_global_icon_color_severity_undefined_default } from '@patternfly/react-tokens';
+import {
+  t_global_icon_color_severity_undefined_default,
+  t_global_icon_color_subtle,
+  t_global_text_color_subtle,
+} from '@patternfly/react-tokens';
 import * as _ from 'lodash-es';
-import { memo } from 'react';
+import { CSSProperties, memo } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import { getSeverityColors } from '@/shared/utils/alerts/formatting';
 
 const severityIcons: Record<string, typeof RhUiErrorFillIcon> = {
   [AlertSeverity.Critical]: RhUiErrorFillIcon,
@@ -46,30 +52,50 @@ const getSeverityKey = (severity: string, t) => {
 };
 
 export const SeverityBadge = memo(
-  ({ severity, count }: { severity?: string | null; count?: number }) => {
+  ({
+    severity,
+    count,
+    isDimmed = false,
+  }: {
+    severity?: string | null;
+    count?: number;
+    isDimmed?: boolean;
+  }) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
     if (_.isNil(severity)) return null;
 
     const labelText = count ? count : getSeverityKey(severity, t);
-    switch (severity) {
-      case AlertSeverity.Critical:
-        return <Label status="danger">{labelText}</Label>;
-      case AlertSeverity.Warning:
-        return <Label status="warning">{labelText}</Label>;
-      case AlertSeverity.Info:
-        return <Label status="info">{labelText}</Label>;
-      case AlertSeverity.None:
-        return (
-          <Label variant="outline">
-            <SeverityUndefinedIcon color={t_global_icon_color_severity_undefined_default.var} />
-            &nbsp;
-            {labelText}
-          </Label>
-        );
-      default:
-        return <Label status="custom">{labelText}</Label>;
+    const { labelStatus, mutedBackgroundColor } = getSeverityColors(severity);
+    const style: CSSProperties = isDimmed
+      ? ({
+          '--pf-v6-c-label--BackgroundColor': mutedBackgroundColor,
+          '--pf-v6-c-label--Color': t_global_text_color_subtle.var,
+          '--pf-v6-c-label__icon--Color': t_global_icon_color_subtle.var,
+        } as CSSProperties)
+      : undefined;
+
+    if (severity === AlertSeverity.None) {
+      return (
+        <Label variant="outline" style={style}>
+          <SeverityUndefinedIcon
+            color={
+              isDimmed
+                ? t_global_icon_color_subtle.var
+                : t_global_icon_color_severity_undefined_default.var
+            }
+          />
+          &nbsp;
+          {labelText}
+        </Label>
+      );
     }
+
+    return (
+      <Label status={labelStatus} style={style}>
+        {labelText}
+      </Label>
+    );
   },
 );
 

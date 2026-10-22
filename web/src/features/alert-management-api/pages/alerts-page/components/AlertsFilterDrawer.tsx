@@ -138,6 +138,7 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
               <AlertSeverityButton
                 key={severity}
                 severity={severity}
+                isDimmed={filters.severity.length > 0 && !filters.severity.includes(severity)}
                 onClick={() => toggle('severity', severity, !filters.severity.includes(severity))}
               />
             );

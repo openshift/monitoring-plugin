@@ -8,10 +8,12 @@ import { getSeverityColors } from '@/shared/utils/alerts/formatting';
 export function AlertSeverityButton({
   severity,
   count,
+  isDimmed = false,
   onClick,
 }: {
   severity: string;
   count?: number;
+  isDimmed?: boolean;
   onClick: () => void;
 }) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -38,7 +40,7 @@ export function AlertSeverityButton({
       aria-label={t('Filter {{severity}} alerts', { severity })}
       onClick={onClick}
     >
-      {count ?? <SeverityBadge severity={severity} />}
+      {count ?? <SeverityBadge severity={severity} isDimmed={isDimmed} />}
     </Button>
   );
 }

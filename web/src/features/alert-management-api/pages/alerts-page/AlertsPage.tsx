@@ -141,8 +141,8 @@ export function AlertManagementAlertsPage() {
               <SelectedFilters
                 filters={filters}
                 labels={selectedAlertFilterLabels}
-                getLabelColor={(key, value) =>
-                  getSeverityColors(key === 'severity' ? value : undefined).labelColor
+                getLabelStatus={(key, value) =>
+                  key === 'severity' ? getSeverityColors(value).labelStatus : undefined
                 }
                 formatLabelText={(key, value) =>
                   ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value

@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { AlertsFilterDrawer } from '@/features/alert-management-api/pages/alerts-page/components/AlertsFilterDrawer';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
 import { defaultAlertFilters } from '@/features/alert-management-api/utils/alerts';
+import { getSeverityColors } from '@/shared/utils/alerts/formatting';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -12,6 +13,47 @@ vi.mock('react-i18next', () => ({
       key.replace(/\{\{(\w+)\}\}/g, (_match, name: string) => values?.[name] ?? name),
   }),
 }));
+
+it('dims only unselected severities while keeping them clickable', () => {
+  const onChange = vi.fn();
+  const alerts = ['critical', 'warning', 'info'].map((severity) => ({
+    ...testAlerts[4],
+    labels: { ...testAlerts[4].labels, severity },
+  }));
+  const props = { alerts, onChange, onClose: vi.fn() };
+  const { rerender } = render(<AlertsFilterDrawer {...props} filters={defaultAlertFilters} />);
+  const severityButton = (severity: string) =>
+    screen.getByRole('button', { name: `Filter ${severity} alerts` });
+  const background = (severity: string) =>
+    severityButton(severity)
+      .querySelector<HTMLElement>('.pf-v6-c-label')
+      .style.getPropertyValue('--pf-v6-c-label--BackgroundColor');
+
+  for (const severity of ['critical', 'warning', 'info']) {
+    expect(background(severity)).toBe('');
+  }
+
+  fireEvent.click(severityButton('critical'));
+  rerender(<AlertsFilterDrawer {...props} filters={onChange.mock.lastCall[0]} />);
+
+  expect(background('critical')).toBe('');
+  expect(background('warning')).toBe(getSeverityColors('warning').mutedBackgroundColor);
+  expect(background('info')).toBe(getSeverityColors('info').mutedBackgroundColor);
+
+  fireEvent.click(severityButton('warning'));
+  expect(onChange.mock.lastCall[0].severity).toEqual(['critical', 'warning']);
+  rerender(<AlertsFilterDrawer {...props} filters={onChange.mock.lastCall[0]} />);
+
+  expect(background('critical')).toBe('');
+  expect(background('warning')).toBe('');
+  expect(background('info')).toBe(getSeverityColors('info').mutedBackgroundColor);
+
+  rerender(<AlertsFilterDrawer {...props} filters={defaultAlertFilters} />);
+
+  for (const severity of ['critical', 'warning', 'info']) {
+    expect(background(severity)).toBe('');
+  }
+});
 
 it('preserves multiple namespace selections', async () => {
   const onChange = vi.fn();

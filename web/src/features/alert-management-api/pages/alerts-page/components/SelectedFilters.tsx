@@ -9,7 +9,8 @@ import { defaultAlertFilters } from '@/features/alert-management-api/utils/alert
 type SelectedFiltersProps = {
   filters: AlertFilters;
   labels: Record<SelectedAlertFilterKey, string>;
-  getLabelColor: (key: SelectedAlertFilterKey, value: string) => LabelProps['color'];
+  getLabelColor?: (key: SelectedAlertFilterKey, value: string) => LabelProps['color'];
+  getLabelStatus?: (key: SelectedAlertFilterKey, value: string) => LabelProps['status'];
   formatLabelText: (key: SelectedAlertFilterKey, value: string) => string;
   onChange: (filters: AlertFilters) => void;
 };
@@ -18,6 +19,7 @@ export function SelectedFilters({
   filters,
   labels,
   getLabelColor,
+  getLabelStatus,
   formatLabelText,
   onChange,
 }: SelectedFiltersProps) {
@@ -46,7 +48,8 @@ export function SelectedFilters({
             {filters[key].map((value) => (
               <Label
                 key={value}
-                color={getLabelColor(key, value)}
+                color={getLabelColor?.(key, value)}
+                status={getLabelStatus?.(key, value)}
                 onClose={() => removeFilter(key, value)}
                 closeBtnAriaLabel={t('Remove filter')}
               >
