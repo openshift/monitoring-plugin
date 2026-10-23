@@ -388,10 +388,11 @@ const SeriesButton: FC<SeriesButtonProps> = ({ index, labels }) => {
         return [null, false, true];
       }
 
+      // Sum earlier queries' series counts so this square matches the graph's
+      // flat color index. Disabled queries have empty series and contribute 0.
       const colorOffset = observe.queryBrowser.queries
         .slice(0, index)
-        .filter((q) => q?.isEnabled)
-        .reduce((sum, q) => sum + _.size(q[series]), 0);
+        .reduce((sum, q) => sum + _.size(q.series), 0);
       const seriesIndex = _.findIndex(series, (s) => _.isEqual(s, labels));
       return [(colorOffset + seriesIndex) % colors.length, false, false];
     },
