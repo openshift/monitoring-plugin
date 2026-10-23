@@ -70,17 +70,18 @@ cypress/
 ├── component/                # Component tests (isolated, no cluster needed)
 ├── e2e/
 │   ├── monitoring/           # Core monitoring tests (Administrator)
-│   │   ├── 00.bvt_admin.cy.ts
+│   │   ├── bvt_admin.cy.ts
 │   │   └── regression/
 │   ├── coo/                  # COO-specific tests
-│   │   ├── 01.coo_bvt.cy.ts
-│   │   └── 02.acm_alerting_ui.cy.ts
+│   │   ├── coo_bvt.cy.ts
+│   │   └── acm_alerting_ui.cy.ts
 │   └── virtualization/       # Integration tests (Virtualization)
 ├── support/
 │   ├── monitoring/           # Reusable test scenarios
-│   │   ├── 01.reg_alerts.cy.ts
-│   │   ├── 02.reg_metrics.cy.ts
-│   │   └── 03.reg_legacy_dashboards.cy.ts
+│   │   ├── reg_alerts.cy.ts
+│   │   ├── reg_metrics_1.cy.ts
+│   │   ├── reg_metrics_2.cy.ts
+│   │   └── reg_legacy_dashboards.cy.ts
 │   ├── perses/               # COO/Perses scenarios
 │   ├── commands/             # Custom Cypress commands
 │   ├── component.ts          # Component test support (mount command)
@@ -173,7 +174,7 @@ npx cypress run --component --spec cypress/component/labels.cy.tsx
 ### Example: Support Scenario Structure
 
 ```typescript
-// In support/monitoring/01.reg_alerts.cy.ts
+// In support/monitoring/reg_alerts.cy.ts
 import { nav } from '../../views/nav';
 import { silencesListPage } from '../../views/silences-list-page';
 
@@ -221,18 +222,19 @@ cd web/cypress
 npm run cypress:run -- --spec "cypress/e2e/**/regression/**"
 
 # Run specific feature regression
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/01.reg_alerts_admin.cy.ts"
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/02.reg_metrics_admin.cy.ts"
-npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/03.reg_legacy_dashboards_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/reg_alerts_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/reg_metrics_admin_1.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/reg_metrics_admin_2.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/regression/reg_legacy_dashboards_admin.cy.ts"
 
 # Run BVT (Build Verification Tests)
-npm run cypress:run -- --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/monitoring/bvt_admin.cy.ts"
 
 # Run COO tests
-npm run cypress:run -- --spec "cypress/e2e/coo/01.coo_bvt.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/coo_bvt.cy.ts"
 
 # Run ACM Alerting tests
-npm run cypress:run -- --spec "cypress/e2e/coo/02.acm_alerting_ui.cy.ts"
+npm run cypress:run -- --spec "cypress/e2e/coo/acm_alerting_ui.cy.ts"
 
 # Interactive mode (GUI)
 npm run cypress:open
