@@ -170,7 +170,7 @@ describe('Node', () => {
   });
 });
 
-describe('Graph', () => {
+it('Graph', () => {
   const a: api.Graph = {
     nodes: [
       { class: 'a:x', count: 1, queries: [{ query: 'a:x:one', count: 1 }] },

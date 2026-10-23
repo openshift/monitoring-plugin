@@ -121,7 +121,7 @@ describe('', () => {
 
 describe('NetflowDomain.queryToLink with duration constraint', () => {
   it('uses timeRange when end is close to now', () => {
-    jest.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
     const domain = new NetflowDomain();
     const query = Query.parse('netflow:network:{SrcK8S_Namespace="default"}');
     const constraint = Constraint.fromAPI({
@@ -132,7 +132,7 @@ describe('NetflowDomain.queryToLink with duration constraint', () => {
     expect(link.searchParams.get('timeRange')).toEqual('900');
     expect(link.searchParams.get('startTime')).toBeFalsy();
     expect(link.searchParams.get('endTime')).toBeFalsy();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('uses startTime/endTime when end is not close to now', () => {

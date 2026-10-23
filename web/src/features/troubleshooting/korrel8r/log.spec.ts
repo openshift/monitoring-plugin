@@ -1,3 +1,4 @@
+/** @vitest-environment jsdom */
 import { LogDomain } from '@/features/troubleshooting/korrel8r/log';
 import { Constraint, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
 import { Duration, Unit } from '@/features/troubleshooting/utils/time';
@@ -180,7 +181,7 @@ describe('expected errors', () => {
 
 describe('LogDomain.queryToLink with duration constraint', () => {
   it('uses now-Xm format when end is close to now', () => {
-    jest.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
     const domain = new LogDomain();
     const query = Query.parse('log:infrastructure:{kubernetes_namespace_name="default"}');
     const constraint = Constraint.fromAPI({
@@ -190,7 +191,7 @@ describe('LogDomain.queryToLink with duration constraint', () => {
     const link = domain.queryToLink(query, constraint);
     expect(link.searchParams.get('start')).toEqual('now-15m');
     expect(link.searchParams.get('end')).toEqual('now');
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('uses timestamps when end is not close to now', () => {

@@ -45,7 +45,7 @@ describe('TraceDomain.fromQuery', () => {
 
 describe('TraceDomain.queryToLink with duration constraint', () => {
   it('uses duration string when end is close to now', () => {
-    jest.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2024-01-01T12:00:00Z').getTime());
     const domain = new TraceDomain();
     const query = Query.parse('trace:span:{}');
     const constraint = Constraint.fromAPI({
@@ -55,7 +55,7 @@ describe('TraceDomain.queryToLink with duration constraint', () => {
     const link = domain.queryToLink(query, constraint);
     expect(link.searchParams.get('start')).toEqual('15m');
     expect(link.searchParams.get('end')).toBeFalsy();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('uses timestamps when end is not close to now', () => {

@@ -1,3 +1,4 @@
+/** @vitest-environment jsdom */
 import { K8sDomain } from '@/features/troubleshooting/korrel8r/k8s';
 import { Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
 
