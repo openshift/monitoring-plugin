@@ -1,0 +1,36 @@
+.tp-plugin__topology_node_badge rect {
+  fill: var(--pf-t--global--color--brand--default);
+  stroke: var(--pf-t--global--color--brand--default);
+}
+
+.tp-plugin__topology_node_badge text {
+  fill: var(--pf-t--global--text--color--on-brand--default);
+}
+
+.tp-plugin__topology_marker_badge {
+  --pf-v6-c-badge--BackgroundColor: var(--pf-t--global--color--brand--default);
+  --pf-v6-c-badge--Color: var(--pf-t--global--text--color--on-brand--default);
+}
+
+/* Override info status colors from nonstatus-blue to status-info */
+.tp-plugin__topology {
+  --pf-topology__node--m-info--Background--Fill: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node--m-info--Background--Stroke: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node--m--hover--m-info--node__background--Stroke: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node__decorator__status--m-info--Color: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node--m-info--node__label__background--Stroke: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node--m--hover--m-info--node__label__background--Stroke: var(--pf-t--global--color--status--info--default);
+  --pf-topology__node--m-info--label__icon__background--Stroke: var(--pf-t--global--color--status--info--default);
+}
+
+.tp-plugin__topology_start_decorator {
+  --pf-topology__node_decorator--Color: var(--pf-t--global--icon--color--brand--default);
+
+  color: var(--pf-topology__node_decorator--Color);
+}
+
+.tp-plugin__topology_node--disabled {
+  opacity: 0.5;
+  filter: grayscale(100%);
+  pointer-events: auto;
+}

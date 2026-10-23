@@ -1,0 +1,34 @@
+.tp-plugin__panel-toolbar {
+  padding: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--sm);
+  border-bottom: var(--pf-t--global--border--width--regular) solid var(--pf-t--global--border--color--default);
+}
+
+.tp-plugin__compact-control {
+  padding: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--sm);
+}
+
+.tp-plugin__panel-query-container {
+  padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+}
+
+.tp-plugin__panel-topology-container {
+  border-left: var(--pf-t--global--border--width--regular) var(--pf-t--global--border--color--default) solid;
+  position: relative;
+}
+
+.tp-plugin__panel-query-input {
+  margin: 0 var(--pf-t--global--spacer--md) var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+}
+
+.tp-plugin__panel-topology-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  background-color: transparent;
+}

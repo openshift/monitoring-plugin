@@ -25,6 +25,8 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
+  // Temporary: troubleshooting-panel import is excluded until it adopts these lint rules.
+  { ignores: ['src/features/troubleshooting/**'] },
   {
     extends: fixupConfigRules(
       compat.extends(

@@ -10,7 +10,12 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.spec.{ts,tsx}'],
-    exclude: [...configDefaults.exclude, 'src/**/*.browser.spec.tsx'],
+    // Temporary: troubleshooting-panel Jest specs are excluded until ported to Vitest.
+    exclude: [
+      ...configDefaults.exclude,
+      'src/**/*.browser.spec.tsx',
+      'src/features/troubleshooting/**',
+    ],
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',
