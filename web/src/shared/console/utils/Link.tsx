@@ -1,7 +1,7 @@
 import { Button, Icon } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import Linkify from 'linkify-react';
 import type { FC, PropsWithChildren, ReactNode } from 'react';
-import Linkify from 'react-linkify';
 
 export const ExternalLink: FC<PropsWithChildren<ExternalLinkProps>> = ({
   children,
@@ -38,9 +38,18 @@ export const ExternalLink: FC<PropsWithChildren<ExternalLinkProps>> = ({
   );
 };
 
-// Open links in a new window and set noopener/noreferrer.
+// Open links in a new window and set noopener/noreferrer. Only HTTP(S) URLs become links.
 export const LinkifyExternal: FC<{ children: ReactNode }> = ({ children }) => (
-  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
+  <Linkify
+    options={{
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      render: ({ attributes, content }) =>
+        isSafeExternalURL(attributes.href) ? <a {...attributes}>{content}</a> : <>{content}</>,
+    }}
+  >
+    {children}
+  </Linkify>
 );
 LinkifyExternal.displayName = 'LinkifyExternal';
 

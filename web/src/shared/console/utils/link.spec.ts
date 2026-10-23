@@ -22,15 +22,14 @@ jest.mock('@patternfly/react-core', () => {
 jest.mock('@patternfly/react-icons', () => ({
   ExternalLinkAltIcon: () => null,
 }));
-jest.mock('react-linkify', () => ({
-  __esModule: true,
-  default: ({ children }: { children: ReactNode }) => children,
-}));
 
-import { ExternalLink } from '@/shared/console/utils/Link';
+import { ExternalLink, LinkifyExternal } from '@/shared/console/utils/Link';
 
 const renderExternalLink = (href: string): string =>
   renderToStaticMarkup(createElement(ExternalLink, { href, text: href }));
+
+const renderLinkifyExternal = (children: ReactNode): string =>
+  renderToStaticMarkup(createElement(LinkifyExternal, null, children));
 
 describe('ExternalLink', () => {
   it.each([
@@ -60,5 +59,43 @@ describe('ExternalLink', () => {
     expect(markup).not.toContain('<a');
     expect(markup).not.toContain('href=');
     expect(markup).not.toBe('');
+  });
+});
+
+describe('LinkifyExternal', () => {
+  it('renders URLs in annotations as links with noopener noreferrer', () => {
+    const markup = renderLinkifyExternal('See https://runbooks.example.com/alert for details.');
+
+    expect(markup).toContain('href="https://runbooks.example.com/alert"');
+    expect(markup).toContain('target="_blank"');
+    expect(markup).toContain('rel="noopener noreferrer"');
+  });
+
+  it('prefixes scheme-less URLs with the http protocol', () => {
+    const markup = renderLinkifyExternal('See www.runbooks.example.com/alert');
+
+    expect(markup).toContain('href="http://www.runbooks.example.com/alert"');
+  });
+
+  it.each([
+    'file:///etc/passwd',
+    'ftp://mirror.example.com/pub',
+    'ftps://mirror.example.com/pub',
+    'mailto:security@example.com',
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+  ])('renders an unsafe or non-HTTP(S) URL as text: %s', (url) => {
+    const markup = renderLinkifyExternal(`See ${url} for details.`);
+
+    expect(markup).not.toContain('<a ');
+  });
+
+  it('renders only the safe links from mixed content', () => {
+    const markup = renderLinkifyExternal(
+      'See https://runbooks.example.com/alert or file:///etc/passwd.',
+    );
+
+    expect(markup).toContain('href="https://runbooks.example.com/alert"');
+    expect(markup).not.toContain('href="file:');
   });
 });
