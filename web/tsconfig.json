@@ -19,5 +19,5 @@
     "types": ["node", "vitest/globals"],
   },
   "include": ["src", "eslint.config.ts", "eslint-rules", "vitest*.setup.ts", "vitest*.config.mts"],
-  "exclude": ["node_modules", "src/features/troubleshooting"],
+  "exclude": ["node_modules"],
 }

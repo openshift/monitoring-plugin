@@ -70,7 +70,7 @@ beforeAll(() => {
     ],
   };
   localStorage.setItem('bridge/api-discovery-resources', JSON.stringify(resources));
-  window['SERVER_FLAGS'] = { consoleVersion: 'x.y.z' };
+  window['SERVER_FLAGS'] = { consoleVersion: 'x.y.z' } as unknown as Window['SERVER_FLAGS'];
 });
 
 describe('K8sDomain.linkToQuery', () => {

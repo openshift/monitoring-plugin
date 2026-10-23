@@ -25,7 +25,6 @@ import { AdvancedSearchForm } from '@/features/troubleshooting/components/Advanc
 import AgentMenu from '@/features/troubleshooting/components/AgentMenu';
 import { TimeRangeDropdown } from '@/features/troubleshooting/components/TimeRangeDropdown';
 import { Korrel8rTopology } from '@/features/troubleshooting/components/topology/Korrel8rTopology';
-import { useFeature } from '@/features/troubleshooting/hooks/useFeatures';
 import { useLocationQuery } from '@/features/troubleshooting/hooks/useLocationQuery';
 import { usePluginAvailable } from '@/features/troubleshooting/hooks/usePluginAvailable';
 import { GraphResult, useKorrel8rGraph } from '@/features/troubleshooting/korrel8r/korrel8r-client';
@@ -33,20 +32,22 @@ import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
 import { defaultSearch, Search, setSearch } from '@/features/troubleshooting/store/actions';
 import { State } from '@/features/troubleshooting/store/reducers';
 import * as time from '@/features/troubleshooting/utils/time';
+import { useFeatures } from '@/shared/hooks/useFeatures';
 import '@/features/troubleshooting/components/korrel8rpanel.css';
 
 export default function Korrel8rPanel() {
   const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
   const dispatch = useDispatch();
   const { query: locationQuery, period: locationPeriod } = useLocationQuery();
-  const featureEnabled = useFeature('agent-navigation');
+  const { features } = useFeatures();
+  const featureEnabled = features['monitoring-console-plugin']['agent-navigation'];
 
   const search: Search = useSelector((state: State) => state.plugins?.tp?.get('search'));
 
-  const { data, isError, error, isFetching, isPending, fetchStatus, refetch } = useKorrel8rGraph({
+  const { data, isError, error, isFetching, isLoading, fetchStatus, refetch } = useKorrel8rGraph({
     search,
   });
-  const isCancelled = !!search?.queryStr && isPending && fetchStatus === 'idle';
+  const isCancelled = !!search?.queryStr && isLoading && fetchStatus === 'idle';
   const queryClient = useQueryClient();
 
   const startNodeId = useMemo(() => {
