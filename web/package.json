@@ -192,6 +192,7 @@
       "MetricsPage": "./features/metrics/pages/MetricsPage",
       "OverviewPage": "./features/overview/pages/OverviewPage",
       "AlertsPage": "./features/alerts/pages/alerts-page/AlertsPage",
+      "AlertManagementRouter": "./features/alert-management-api/pages/AlertManagementRouter",
       "AlertingPage": "./features/alerts/pages/AlertingPage",
       "AlertsDetailsPage": "./features/alerts/pages/AlertsDetailsPage",
       "AlertRulesPage": "./features/alerts/pages/alert-rules-page/AlertRulesPage",

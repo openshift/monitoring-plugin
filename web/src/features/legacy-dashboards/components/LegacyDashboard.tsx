@@ -52,6 +52,7 @@ import {
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
 import type { Variable } from '@/shared/types/types';
+import { downloadCsv } from '@/shared/utils/csv';
 import { GraphUnits } from '@/shared/utils/units';
 
 const QueryBrowserLink = ({
@@ -185,12 +186,7 @@ const Card = memo(({ panel, perspective, dashboardName }: CardProps) => {
       csvString += `${dateTime},${temp.join(',')}\n`;
     }
 
-    const blobCsvData = new Blob([csvString], { type: 'text/csv' });
-    const csvURL = URL.createObjectURL(blobCsvData);
-    const link = document.createElement('a');
-    link.href = csvURL;
-    link.download = `graphData.csv`;
-    link.click();
+    downloadCsv(new Blob([csvString], { type: 'text/csv' }), 'graphData.csv');
   };
 
   const isThereCsvData = () => {

@@ -37,8 +37,9 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		file    string
 		enabled bool
 	}{
-		{"monitoring-plugin.patch.json", features[Alerting] || features[LegacyDashboards] || features[Metrics] || features[Targets] || features[Overview]},
+		{"monitoring-plugin.patch.json", features[Alerting] || features[LegacyDashboards] || features[Metrics] || features[Targets] || features[Overview] || features[AlertManagementAPI]},
 		{"alerting.patch.json", features[Alerting]},
+		{"alert-management-api.patch.json", features[AlertManagementAPI]},
 		{"metrics.patch.json", features[Metrics]},
 		{"legacy-dashboards.patch.json", features[LegacyDashboards]},
 		{"targets.patch.json", features[Targets]},

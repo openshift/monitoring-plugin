@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 
 type Features = {
   alerting: boolean;
+  'alert-management-api': boolean;
   'acm-alerting': boolean;
-  'alerting-management': boolean;
   'perses-dashboards': boolean;
   'perses-ui-customization': boolean;
   'legacy-dashboards': boolean;
@@ -17,8 +17,8 @@ type FeaturesResponse = Partial<Features>;
 
 const defaultMonitoringConsolePluginFeatures: Features = {
   alerting: false,
+  'alert-management-api': false,
   'acm-alerting': false,
-  'alerting-management': false,
   'perses-dashboards': false,
   'perses-ui-customization': false,
   'legacy-dashboards': false,
@@ -29,8 +29,8 @@ const defaultMonitoringConsolePluginFeatures: Features = {
 
 const defaultMonitoringPluginFeatures: Features = {
   alerting: true,
+  'alert-management-api': false,
   'acm-alerting': false,
-  'alerting-management': false,
   'perses-dashboards': false,
   'perses-ui-customization': false,
   'legacy-dashboards': true,

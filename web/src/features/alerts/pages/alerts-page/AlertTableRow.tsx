@@ -22,13 +22,12 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
 import {
-  AlertStateDescription,
   isActionWithCallback,
   isActionWithHref,
   NamespaceGroupVersionKind,
 } from '@/features/alerts/components/AlertUtils';
 import { useAgenticRunCheck } from '@/features/alerts/pages/alerts-page/agentic-runs/useAgenticRunCheck';
-import { AlertState } from '@/shared/components/AlertState';
+import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
 import CustomIcon from '@/shared/components/CustomIcon';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
@@ -37,7 +36,8 @@ import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getAlertUrl, getNewSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
 import { alertSource } from '@/shared/utils/alerts/alert-source';
-import { AlertResource, alertState } from '@/shared/utils/utils';
+import { alertState } from '@/shared/utils/alerts/formatting';
+import { AlertResource } from '@/shared/utils/utils';
 
 const getAgenticRunUrl = (namespace: string, name: string): string => {
   return `/lightspeed/runs/${namespace}/${name}`;

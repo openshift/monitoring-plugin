@@ -1,0 +1,36 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "alert-management-api",
+        "name": "%plugin__monitoring-plugin~Alerts (management)%",
+        "href": "/monitoring/v2/alerts",
+        "perspective": "admin",
+        "section": "observe",
+        "startsWith": [
+          "monitoring/v2/alerts",
+          "monitoring/v2/management/alertrules",
+          "monitoring/v2/management/silences",
+          "monitoring/v2/incidents"
+        ]
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": false,
+        "path": "/monitoring/v2",
+        "component": {
+          "$codeRef": "AlertManagementRouter.MpCmoAlertManagementRouter"
+        }
+      }
+    }
+  }
+]

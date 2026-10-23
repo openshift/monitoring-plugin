@@ -51,7 +51,8 @@ import {
   getSilencesUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { alertDescription, SilenceResource } from '@/shared/utils/utils';
+import { alertDescription } from '@/shared/utils/alerts/formatting';
+import { SilenceResource } from '@/shared/utils/utils';
 
 const SilencesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

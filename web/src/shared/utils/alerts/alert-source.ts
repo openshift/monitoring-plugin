@@ -1,8 +1,8 @@
 import { Alert, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash-es';
 
 import { AlertSource } from '@/shared/types/types';
+import { startCase } from '@/shared/utils/strings';
 
 export const getAdditionalSources = <T extends Alert | Rule>(
   data: Array<T>,
@@ -16,7 +16,7 @@ export const getAdditionalSources = <T extends Alert | Rule>(
         additionalSources.add(source);
       }
     });
-    return Array.from(additionalSources).map((item) => ({ value: item, label: _.startCase(item) }));
+    return Array.from(additionalSources).map((item) => ({ value: item, label: startCase(item) }));
   }
   return [];
 };

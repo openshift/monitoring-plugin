@@ -43,7 +43,7 @@ import {
   getFetchSilenceUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { silenceMatcherEqualitySymbol, silenceState } from '@/shared/utils/utils';
+import { silenceMatcherEqualitySymbol, silenceState } from '@/shared/utils/alerts/formatting';
 
 export const SilenceMatchersList = ({ silence }: { silence: Silence }) => (
   <LabelGroup numLabels={20}>

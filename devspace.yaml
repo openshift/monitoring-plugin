@@ -42,6 +42,10 @@ dev:
     labelSelector:
       app.kubernetes.io/component: monitoring-plugin
     devImage: quay.io/openshift-observability-ui/monitoring-plugin:devspace
+    patches:
+      - op: replace
+        path: spec.containers[0].imagePullPolicy
+        value: Always
     sync:
       - path: ./web/dist:/opt/app-root/web/dist
         startContainer: true

@@ -20,6 +20,7 @@ import {
   alertSource,
   getAdditionalSources,
 } from '@/shared/utils/alerts/alert-source';
+import { silenceCluster } from '@/shared/utils/alerts/formatting';
 import {
   ALL_NAMESPACES_KEY,
   buildPrometheusUrl,
@@ -27,7 +28,6 @@ import {
   getAlertmanagerSilencesUrl,
   getPrometheusBasePath,
   Prometheus,
-  silenceCluster,
 } from '@/shared/utils/utils';
 
 const POLLING_INTERVAL_MS = 15 * 1000; // 15 seconds
