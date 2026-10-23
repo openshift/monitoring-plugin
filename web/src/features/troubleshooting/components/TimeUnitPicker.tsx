@@ -5,10 +5,10 @@ import {
   SelectList,
   SelectOption,
 } from '@patternfly/react-core';
+import { FC, MouseEvent as ReactMouseEvent, Ref, useState } from 'react';
 
-import { useTimeUnitLabel } from '../hooks/useTimeUnitLabel';
-import * as time from '../time';
-import { FC, Ref, useState, MouseEvent as ReactMouseEvent } from 'react';
+import { useTimeUnitLabel } from '@/features/troubleshooting/hooks/useTimeUnitLabel';
+import * as time from '@/features/troubleshooting/utils/time';
 
 interface TimeUnitPickerProps {
   unit: time.Unit;

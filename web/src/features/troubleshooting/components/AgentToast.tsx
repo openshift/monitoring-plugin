@@ -2,9 +2,10 @@ import { Alert, AlertActionCloseButton, AlertGroup } from '@patternfly/react-cor
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAgentToast } from '../redux-actions';
-import { State } from '../redux-reducers';
-import { AIExperienceIcon } from './AIExperienceIcon';
+
+import { AIExperienceIcon } from '@/features/troubleshooting/components/AIExperienceIcon';
+import { setAgentToast } from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
 
 const DISMISS_MS = 8000;
 

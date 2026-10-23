@@ -1,5 +1,6 @@
 import { createContext, FC, PropsWithChildren } from 'react';
-import AgentToast from './AgentToast';
+
+import AgentToast from '@/features/troubleshooting/components/AgentToast';
 
 const NullContext = createContext(null);
 

@@ -1,7 +1,7 @@
 import { Badge, Label, LabelGroup, Title, Tooltip } from '@patternfly/react-core';
-import RetweetIcon from '@patternfly/react-icons/dist/dynamic/icons/retweet-icon';
 import CrosshairsIcon from '@patternfly/react-icons/dist/dynamic/icons/crosshairs-icon';
 import InfoCircleIcon from '@patternfly/react-icons/dist/dynamic/icons/info-circle-icon';
+import RetweetIcon from '@patternfly/react-icons/dist/dynamic/icons/retweet-icon';
 import {
   action,
   ComponentFactory,
@@ -44,17 +44,23 @@ import {
   WithSelectionProps,
 } from '@patternfly/react-topology';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useDomains } from '../../hooks/useDomains';
-import { useLocationQuery } from '../../hooks/useLocationQuery';
-import { useNavigateToQuery } from '../../hooks/useNavigateToQuery';
-import * as korrel8r from '../../korrel8r/types';
-import { LEFT_TO_RIGHT, TOP_TO_BOTTOM, setRankdir } from '../../redux-actions';
-import { State } from '../../redux-reducers';
-import { getIcon } from '../icons';
-import './korrel8rtopology.css';
-import { mergeStatusCounts, statusForNode, statusName, toStatus } from './status';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { getIcon } from '@/features/troubleshooting/components/Icons';
+import {
+  mergeStatusCounts,
+  statusForNode,
+  statusName,
+  toStatus,
+} from '@/features/troubleshooting/components/topology/status';
+import { useDomains } from '@/features/troubleshooting/hooks/useDomains';
+import { useLocationQuery } from '@/features/troubleshooting/hooks/useLocationQuery';
+import { useNavigateToQuery } from '@/features/troubleshooting/hooks/useNavigateToQuery';
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
+import { LEFT_TO_RIGHT, setRankdir, TOP_TO_BOTTOM } from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
+import '@/features/troubleshooting/components/topology/korrel8rtopology.css';
 
 type TopologyNodeData = korrel8r.Node & { isStart?: boolean; label: string };
 
@@ -213,6 +219,7 @@ export const Korrel8rTopology: FC<{
 
   useEffect(() => {
     if (!query) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Imported control sync.
       setSelectedIds([]);
       return;
     }

@@ -1,7 +1,13 @@
 import { Map as ImmutableMap } from 'immutable';
 
-import { ActionType, LEFT_TO_RIGHT, TPAction, defaultSearch } from './redux-actions';
+import {
+  ActionType,
+  defaultSearch,
+  LEFT_TO_RIGHT,
+  TPAction,
+} from '@/features/troubleshooting/store/actions';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Imported mixed-value state.
 export type TPState = ImmutableMap<string, any>;
 
 export type State = {
@@ -9,6 +15,7 @@ export type State = {
   plugins: {
     tp: TPState;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Imported untyped state.
     mp: any;
   };
 };

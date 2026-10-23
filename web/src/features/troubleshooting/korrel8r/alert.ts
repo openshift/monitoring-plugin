@@ -1,4 +1,4 @@
-import { Class, Domain, Query, URIRef } from './types';
+import { Class, Domain, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
 
 export class AlertDomain extends Domain {
   private nameToID: Map<string, string>;

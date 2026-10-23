@@ -12,10 +12,15 @@ import {
 import { Ref, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAgentConnected, setAgentEnabled, setAgentError } from '../redux-actions';
-import { State } from '../redux-reducers';
-import { AIExperienceIcon } from './AIExperienceIcon';
-import { HelpPopover } from './HelpPopover';
+
+import { AIExperienceIcon } from '@/features/troubleshooting/components/AIExperienceIcon';
+import { HelpPopover } from '@/features/troubleshooting/components/HelpPopover';
+import {
+  setAgentConnected,
+  setAgentEnabled,
+  setAgentError,
+} from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
 
 const AgentMenu = () => {
   const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');

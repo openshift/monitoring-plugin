@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import * as korrel8r from '../korrel8r/types';
-import { useDomains } from './useDomains';
+
+import { useDomains } from '@/features/troubleshooting/hooks/useDomains';
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
 
 /**
  * Custom hook for navigating from Korrel8r queries to console web pages.

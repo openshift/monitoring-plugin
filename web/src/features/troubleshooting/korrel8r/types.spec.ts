@@ -1,6 +1,4 @@
-import * as api from '../korrel8r/client';
-import { Period, Range } from '../time';
-
+import * as api from '@/features/troubleshooting/korrel8r/client';
 import {
   Class,
   Constraint,
@@ -8,13 +6,14 @@ import {
   Domains,
   Edge,
   Graph,
+  joinPath,
   Node,
   Query,
-  URIRef,
-  joinPath,
   unixMilliseconds,
   unixSeconds,
-} from '../korrel8r/types';
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { Period, Range } from '@/features/troubleshooting/utils/time';
 
 describe('Query', () => {
   it('converts to/from string', () => {

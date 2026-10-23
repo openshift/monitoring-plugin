@@ -1,8 +1,16 @@
-import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { getConsoleUpdates, retryDelay, sendConsoleUpdate } from '../korrel8r-client';
-import * as api from '../korrel8r/client';
-import { Query } from '../korrel8r/types';
+
+import { useDomains } from '@/features/troubleshooting/hooks/useDomains';
+import { useLocationQuery } from '@/features/troubleshooting/hooks/useLocationQuery';
+import { useNavigateToQuery } from '@/features/troubleshooting/hooks/useNavigateToQuery';
+import * as api from '@/features/troubleshooting/korrel8r/client';
+import {
+  getConsoleUpdates,
+  retryDelay,
+  sendConsoleUpdate,
+} from '@/features/troubleshooting/korrel8r/korrel8r-client';
+import { Query } from '@/features/troubleshooting/korrel8r/types';
 import {
   defaultSearch,
   openTP,
@@ -12,12 +20,9 @@ import {
   setAgentError,
   setAgentToast,
   setSearch,
-} from '../redux-actions';
-import { State } from '../redux-reducers';
-import { sleep } from '../sleep';
-import { useDomains } from './useDomains';
-import { useLocationQuery } from './useLocationQuery';
-import { useNavigateToQuery } from './useNavigateToQuery';
+} from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
+import { sleep } from '@/features/troubleshooting/utils/sleep';
 
 const errorMessage = (err: unknown): string => (err as Error)?.message || String(err);
 
@@ -33,16 +38,16 @@ const useAgentNavigation = ({
   const domains = useDomains();
   const navigateToQuery = useNavigateToQuery();
 
-  const navigateToQueryRef = React.useRef(navigateToQuery);
-  const domainsRef = React.useRef(domains);
-  React.useEffect(() => {
+  const navigateToQueryRef = useRef(navigateToQuery);
+  const domainsRef = useRef(domains);
+  useEffect(() => {
     navigateToQueryRef.current = navigateToQuery;
     domainsRef.current = domains;
   });
 
   // Handle console update events via an SSE stream.
   // Endless loop to stay constantly connected to the agent.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!agentEnabled) {
       dispatch(setAgentConnected(false));
       return;
@@ -106,7 +111,7 @@ const useAgentNavigation = ({
   // Send console updates when local view or search changes, or on connect.
   // Sends even when view/search are empty to signal that the console is connected.
   const agentConnected: boolean = useSelector((s: State) => s.plugins?.tp?.get('agentConnected'));
-  React.useEffect(() => {
+  useEffect(() => {
     if (!agentConnected) return;
     const controller = new AbortController();
     const sendWithRetry = async () => {

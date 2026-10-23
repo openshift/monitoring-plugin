@@ -1,5 +1,12 @@
-import { getCachedResources } from '../getResources';
-import { capitalize, Class, Domain, Query, URIRef, keyValueList } from './types';
+import {
+  capitalize,
+  Class,
+  Domain,
+  keyValueList,
+  Query,
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { getCachedResources } from '@/features/troubleshooting/utils/get-resources';
 
 // k8s model type stored in browser cache.
 type Model = {

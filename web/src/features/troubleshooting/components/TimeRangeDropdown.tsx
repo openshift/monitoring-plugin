@@ -14,10 +14,11 @@ import {
 } from '@patternfly/react-core';
 import { FC, MutableRefObject, Ref, useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTimeUnitLabel } from '../hooks/useTimeUnitLabel';
-import * as time from '../time';
-import { DateTimePicker } from './DateTimePicker';
-import { TimeUnitPicker } from './TimeUnitPicker';
+
+import { DateTimePicker } from '@/features/troubleshooting/components/DateTimePicker';
+import { TimeUnitPicker } from '@/features/troubleshooting/components/TimeUnitPicker';
+import { useTimeUnitLabel } from '@/features/troubleshooting/hooks/useTimeUnitLabel';
+import * as time from '@/features/troubleshooting/utils/time';
 
 const CUSTOM_RANGE_KEY = 'CUSTOM_RANGE';
 const CUSTOM_DURATION_KEY = 'CUSTOM_DURATION';

@@ -1,5 +1,3 @@
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
-
 export class HttpError extends Error {
   retryAfter?: number; // milliseconds
   constructor(
@@ -26,7 +24,10 @@ const parseRetryAfter = (value: string | null): number | undefined => {
 export const retryDelay = (err: unknown, backoff: number): number =>
   err instanceof HttpError && err.retryAfter !== undefined ? err.retryAfter : backoff;
 
+import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+
 import {
   listDomains as clientListDomains,
   Console,
@@ -38,12 +39,10 @@ import {
   Neighbors,
   setConsole,
   Start,
-} from './korrel8r/client';
-import { Config, createClient } from './korrel8r/client/client';
-import * as korrel8r from './korrel8r/types';
-
-import { useTranslation } from 'react-i18next';
-import { Search, SearchType } from './redux-actions';
+} from '@/features/troubleshooting/korrel8r/client';
+import { Config, createClient } from '@/features/troubleshooting/korrel8r/client/client';
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
+import { Search, SearchType } from '@/features/troubleshooting/store/actions';
 
 // Result displayed in troubleshooting panel, graph or message.
 export type GraphResult = {

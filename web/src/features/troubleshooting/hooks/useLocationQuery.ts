@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Query, URIRef } from '../korrel8r/types';
-import { Period } from '../time';
-import { useDomains } from './useDomains';
+
+import { useDomains } from '@/features/troubleshooting/hooks/useDomains';
+import { Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
+import { Period } from '@/features/troubleshooting/utils/time';
 
 /** Get a snapshot of the current browser location */
 const getLocation = () => ({

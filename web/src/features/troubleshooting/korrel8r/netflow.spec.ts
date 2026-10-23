@@ -1,6 +1,6 @@
-import { Duration, Unit } from '../time';
-import { NetflowDomain } from '../korrel8r/netflow';
-import { Constraint, Query, URIRef } from '../korrel8r/types';
+import { NetflowDomain } from '@/features/troubleshooting/korrel8r/netflow';
+import { Constraint, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
+import { Duration, Unit } from '@/features/troubleshooting/utils/time';
 
 // Korrel8r queries contain less information than console URLs.
 // Round-trip conversion is not always equal.

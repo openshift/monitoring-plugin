@@ -1,6 +1,6 @@
 /** Type-safe versions of the Korrel8r API types. */
-import { periodFrom, Period } from '../time';
-import * as api from './client';
+import * as api from '@/features/troubleshooting/korrel8r/client';
+import { Period, periodFrom } from '@/features/troubleshooting/utils/time';
 
 export const capitalize = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : '');
 

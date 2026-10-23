@@ -1,5 +1,6 @@
 import { NodeStatus } from '@patternfly/react-topology';
-import * as korrel8r from '../../korrel8r/types';
+
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
 
 // Subset of status levels used by korrel8r, patternfly naming - "danger" for "error" .
 export enum Status {

@@ -1,5 +1,5 @@
-import { AlertDomain } from '../korrel8r/alert';
-import { Query, URIRef } from '../korrel8r/types';
+import { AlertDomain } from '@/features/troubleshooting/korrel8r/alert';
+import { Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
 
 describe('AlertNode.fromURL', () => {
   it.each([

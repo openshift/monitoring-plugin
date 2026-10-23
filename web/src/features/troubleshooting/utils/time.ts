@@ -102,7 +102,9 @@ export const periodFrom = (start: Date, end: Date): Period | undefined => {
   if (!end) return Duration.since(start);
   if (end.getTime() < start.getTime()) return undefined;
   const endsNow = Math.abs(Date.now() - end.getTime()) < END_NOW_TOLERANCE_MS;
-  return endsNow ? Duration.fromMilliseconds(end.getTime() - start.getTime()) : new Range(start, end);
+  return endsNow
+    ? Duration.fromMilliseconds(end.getTime() - start.getTime())
+    : new Range(start, end);
 };
 
 export enum Unit {

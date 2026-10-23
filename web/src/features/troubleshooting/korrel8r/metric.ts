@@ -1,5 +1,11 @@
-import { Period, Range } from '../time';
-import { Class, Constraint, Domain, Query, URIRef } from './types';
+import {
+  Class,
+  Constraint,
+  Domain,
+  Query,
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { Period, Range } from '@/features/troubleshooting/utils/time';
 
 export class MetricDomain extends Domain {
   constructor() {
