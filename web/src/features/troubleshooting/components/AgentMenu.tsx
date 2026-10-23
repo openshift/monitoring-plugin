@@ -23,7 +23,7 @@ import {
 import { State } from '@/features/troubleshooting/store/reducers';
 
 const AgentMenu = () => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
 

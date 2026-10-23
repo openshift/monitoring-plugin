@@ -36,7 +36,7 @@ import { useFeatures } from '@/shared/hooks/useFeatures';
 import '@/features/troubleshooting/components/korrel8rpanel.css';
 
 export default function Korrel8rPanel() {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const { query: locationQuery, period: locationPeriod } = useLocationQuery();
   const { features } = useFeatures();
@@ -219,7 +219,7 @@ const Topology: FC<TopologyProps> = ({
   error,
   isCancelled,
 }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [loggingAvailable, loggingAvailableLoading] = usePluginAvailable('logging-view-plugin');
   const [netobserveAvailable, netobserveAvailableLoading] = usePluginAvailable('netobserv-plugin');
 
@@ -267,7 +267,7 @@ const Topology: FC<TopologyProps> = ({
 };
 
 const Searching: FC = () => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <div className="tp-plugin__panel-topology-info">
       <EmptyState
