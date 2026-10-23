@@ -1,4 +1,4 @@
-jest.mock('@patternfly/react-topology', () => ({
+vi.mock('@patternfly/react-topology', () => ({
   NodeStatus: {
     default: 'default',
     info: 'info',

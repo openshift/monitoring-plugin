@@ -1,5 +1,3 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({}), { virtual: true });
-
 import { fromAPISearch, toAPISearch } from '@/features/troubleshooting/hooks/useAgentNavigation';
 import * as api from '@/features/troubleshooting/korrel8r/client';
 import { Search, SearchType } from '@/features/troubleshooting/store/actions';
