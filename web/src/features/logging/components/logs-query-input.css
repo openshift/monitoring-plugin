@@ -1,0 +1,14 @@
+.lv-plugin__expression-input {
+  display: flex;
+  align-items: flex-start;
+}
+
+.lv-plugin__expression-input__form {
+  margin-right: var(--pf-t--global--spacer--md);
+  width: 100%;
+}
+
+textarea.pf-v6-c-form-control.lv-plugin__expression-input__searchInput {
+  font-family: var(--pf-v6-c-code-block__pre--FontFamily), monospace;
+  font-size: var(--pf-v6-c-code-block__pre--FontSize);
+}

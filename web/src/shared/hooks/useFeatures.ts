@@ -2,6 +2,7 @@ import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 type Features = {
+  logging: boolean;
   alerting: boolean;
   'alert-management-api': boolean;
   'acm-alerting': boolean;
@@ -16,6 +17,7 @@ type Features = {
 type FeaturesResponse = Partial<Features>;
 
 const defaultMonitoringConsolePluginFeatures: Features = {
+  logging: false,
   alerting: false,
   'alert-management-api': false,
   'acm-alerting': false,
@@ -28,6 +30,7 @@ const defaultMonitoringConsolePluginFeatures: Features = {
 };
 
 const defaultMonitoringPluginFeatures: Features = {
+  logging: false,
   alerting: true,
   'alert-management-api': false,
   'acm-alerting': false,

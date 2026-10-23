@@ -5,6 +5,7 @@ web/cypress/screenshots/
 web/cypress/export-env.sh
 web/screenshots/
 web/cypress/videos/
+web/cypress/downloads/
 web/dist/
 web/node_modules/
 web/coverage/
@@ -21,4 +22,7 @@ web/po-files/
 _output/
 .tokensave/
 tasks/
+web/dist-logging/
 .monitoring-plugin-bridge-sa-token
+.loki-service-ca.crt
+.bridge-ca-bundle.crt

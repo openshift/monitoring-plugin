@@ -1,0 +1,9 @@
+.lv-plugin__error_message {
+  margin-bottom: var(--pf-t--global--spacer--md);
+  margin-top: var(--pf-t--global--spacer--md);
+  background-color: transparent;
+}
+
+.lv-plugin__table__row-error .pf-v6-c-code-block__pre {
+  text-align: left;
+}
