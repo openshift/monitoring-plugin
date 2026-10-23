@@ -1,6 +1,6 @@
-import { Duration, Unit } from '../time';
-import { TraceDomain } from '../korrel8r/trace';
-import { Constraint, Query, URIRef } from '../korrel8r/types';
+import { TraceDomain } from '@/features/troubleshooting/korrel8r/trace';
+import { Constraint, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
+import { Duration, Unit } from '@/features/troubleshooting/utils/time';
 
 const tempo = 'namespace=openshift-tracing&name=platform&tenant=platform';
 

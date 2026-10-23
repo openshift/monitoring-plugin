@@ -1,5 +1,12 @@
-import { Duration, Period, Unit, parseRange } from '../time';
-import { capitalize, Class, Constraint, Domain, Query, URIRef } from './types';
+import {
+  capitalize,
+  Class,
+  Constraint,
+  Domain,
+  Query,
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { Duration, parseRange, Period, Unit } from '@/features/troubleshooting/utils/time';
 
 enum LogClass {
   application = 'application',

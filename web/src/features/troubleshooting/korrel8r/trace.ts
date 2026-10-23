@@ -1,5 +1,11 @@
-import { Duration, Period, parseRange } from '../time';
-import { Class, Constraint, Domain, Query, URIRef } from './types';
+import {
+  Class,
+  Constraint,
+  Domain,
+  Query,
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { Duration, parseRange, Period } from '@/features/troubleshooting/utils/time';
 
 // URL formats:
 // Get all spans in a single trace:

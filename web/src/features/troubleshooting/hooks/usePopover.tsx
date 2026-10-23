@@ -1,9 +1,10 @@
 import { useOverlay } from '@openshift-console/dynamic-plugin-sdk';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import Popover from '../components/Popover';
-import { State } from '../redux-reducers';
-import useAgentNavigation from './useAgentNavigation';
+
+import Popover from '@/features/troubleshooting/components/Popover';
+import useAgentNavigation from '@/features/troubleshooting/hooks/useAgentNavigation';
+import { State } from '@/features/troubleshooting/store/reducers';
 
 const usePopover = () => {
   const isOpen = useSelector((state: State) => state.plugins?.tp?.get('isOpen'));

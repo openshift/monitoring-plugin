@@ -1,5 +1,12 @@
-import { Duration, Period, Unit, parseRange } from '../time';
-import { Class, Constraint, Domain, Query, unixSeconds, URIRef } from './types';
+import {
+  Class,
+  Constraint,
+  Domain,
+  Query,
+  unixSeconds,
+  URIRef,
+} from '@/features/troubleshooting/korrel8r/types';
+import { Duration, parseRange, Period, Unit } from '@/features/troubleshooting/utils/time';
 
 // https://docs.openshift.com/container-platform/4.15/observability/network_observability/json-flows-format-reference.html
 // Netflow URL parameter names are equivalent to the LogQL query labels, but spelled differently.

@@ -1,9 +1,15 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { classIcons, domainIcons, fallbackIcon, IconMap } from '../components/icons';
 import { CSSProperties, FC } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+
+import {
+  classIcons,
+  domainIcons,
+  fallbackIcon,
+  IconMap,
+} from '@/features/troubleshooting/components/Icons';
 
 describe('IconsPreview Component', () => {
   const styles: { [key: string]: CSSProperties } = {

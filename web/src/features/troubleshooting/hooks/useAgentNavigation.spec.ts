@@ -1,8 +1,8 @@
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({}), { virtual: true });
 
-import { toAPISearch, fromAPISearch } from '../hooks/useAgentNavigation';
-import { Search, SearchType } from '../redux-actions';
-import * as api from '../korrel8r/client';
+import { fromAPISearch, toAPISearch } from '@/features/troubleshooting/hooks/useAgentNavigation';
+import * as api from '@/features/troubleshooting/korrel8r/client';
+import { Search, SearchType } from '@/features/troubleshooting/store/actions';
 
 describe('toAPISearch', () => {
   it('converts a goal search', () => {

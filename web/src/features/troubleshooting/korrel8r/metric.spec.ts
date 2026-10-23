@@ -1,6 +1,6 @@
-import { MetricDomain } from '../korrel8r/metric';
-import { Constraint, Query, URIRef } from '../korrel8r/types';
-import { Range } from '../time';
+import { MetricDomain } from '@/features/troubleshooting/korrel8r/metric';
+import { Constraint, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
+import { Range } from '@/features/troubleshooting/utils/time';
 
 /**
  * Bad deployment is the suggested deployment from korrel8r to show its functionality within the

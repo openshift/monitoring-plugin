@@ -24,10 +24,11 @@ import {
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { FC, Ref, useEffect, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { useDomains } from '../hooks/useDomains';
-import { Query } from '../korrel8r/types';
-import { defaultSearch, Search, SearchType } from '../redux-actions';
-import { HelpPopover } from './HelpPopover';
+
+import { HelpPopover } from '@/features/troubleshooting/components/HelpPopover';
+import { useDomains } from '@/features/troubleshooting/hooks/useDomains';
+import { Query } from '@/features/troubleshooting/korrel8r/types';
+import { defaultSearch, Search, SearchType } from '@/features/troubleshooting/store/actions';
 
 interface AdvancedSearchFormProps {
   search: Search;
@@ -54,6 +55,7 @@ export const AdvancedSearchForm: FC<AdvancedSearchFormProps> = ({ search, onSear
 
   // Update state if search changes (e.g. Correlate button pressed externally).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Imported control sync.
     setQueryStr(search.queryStr);
     setSearchType(search.searchType);
     onDepthChange(search.depth);

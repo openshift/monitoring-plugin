@@ -1,5 +1,6 @@
 import { action, ActionType as Action } from 'typesafe-actions';
-import { Duration, HOUR, Period } from './time';
+
+import { Duration, HOUR, Period } from '@/features/troubleshooting/utils/time';
 
 export enum ActionType {
   CloseTroubleshootingPanel = 'closeTroubleshootingPanel',

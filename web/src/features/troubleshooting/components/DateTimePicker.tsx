@@ -6,8 +6,9 @@ import {
   TimePicker,
   yyyyMMddFormat,
 } from '@patternfly/react-core';
-import { copyTime, setTime } from '../time';
 import { FC } from 'react';
+
+import { copyTime, setTime } from '@/features/troubleshooting/utils/time';
 
 /** Combine date and time pickers, return the result as a Date */
 export const DateTimePicker: FC<{

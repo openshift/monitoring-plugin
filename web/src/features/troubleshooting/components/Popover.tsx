@@ -5,11 +5,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { closeTP } from '../redux-actions';
-import { State } from '../redux-reducers';
-import { HelpPopover } from './HelpPopover';
-import Korrel8rPanel from './Korrel8rPanel';
-import './popover.css';
+
+import { HelpPopover } from '@/features/troubleshooting/components/HelpPopover';
+import Korrel8rPanel from '@/features/troubleshooting/components/Korrel8rPanel';
+import { closeTP } from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
+import '@/features/troubleshooting/components/popover.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

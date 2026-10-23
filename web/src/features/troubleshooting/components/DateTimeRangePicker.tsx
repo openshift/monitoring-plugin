@@ -1,9 +1,9 @@
 import {
+  DatePicker,
   Flex,
   FlexItem,
   InputGroup,
   InputGroupItem,
-  DatePicker,
   isValidDate,
   TimePicker,
   yyyyMMddFormat,

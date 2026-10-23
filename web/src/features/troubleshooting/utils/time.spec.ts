@@ -11,7 +11,7 @@ import {
   setTime,
   Unit,
   units,
-} from '../time';
+} from '@/features/troubleshooting/utils/time';
 
 describe('Range', () => {
   it('constructs', () => {

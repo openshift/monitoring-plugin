@@ -3,7 +3,8 @@ import { InfrastructureIcon } from '@patternfly/react-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { openTP } from '../redux-actions';
+
+import { openTP } from '@/features/troubleshooting/store/actions';
 
 const useTroubleshootingPanel: ExtensionHook<Array<Action>> = () => {
   const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
@@ -37,6 +38,7 @@ const useTroubleshootingPanel: ExtensionHook<Array<Action>> = () => {
   const [actions, setActions] = useState<Array<Action>>(getActions());
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Imported control sync.
     setActions(getActions());
   }, [open, getActions]);
 

@@ -1,6 +1,6 @@
-import { Duration, Unit } from '../time';
-import { LogDomain } from '../korrel8r/log';
-import { Constraint, Query, URIRef } from '../korrel8r/types';
+import { LogDomain } from '@/features/troubleshooting/korrel8r/log';
+import { Constraint, Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
+import { Duration, Unit } from '@/features/troubleshooting/utils/time';
 
 beforeAll(() => {
   // Mock API pod resource for pod log queries.

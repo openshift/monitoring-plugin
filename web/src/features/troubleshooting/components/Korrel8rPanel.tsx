@@ -15,25 +15,25 @@ import {
   ToolbarItem,
   Tooltip,
 } from '@patternfly/react-core';
-
-import { CubesIcon, ExclamationCircleIcon, SlidersHIcon, RedoIcon } from '@patternfly/react-icons';
+import { CubesIcon, ExclamationCircleIcon, RedoIcon, SlidersHIcon } from '@patternfly/react-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFeature } from '../hooks/useFeatures';
-import { useLocationQuery } from '../hooks/useLocationQuery';
-import { usePluginAvailable } from '../hooks/usePluginAvailable';
-import { GraphResult, useKorrel8rGraph } from '../korrel8r-client';
-import * as korrel8r from '../korrel8r/types';
-import { defaultSearch, Search, setSearch } from '../redux-actions';
-import { State } from '../redux-reducers';
-import * as time from '../time';
-import { AdvancedSearchForm } from './AdvancedSearchForm';
-import AgentMenu from './AgentMenu';
-import './korrel8rpanel.css';
-import { TimeRangeDropdown } from './TimeRangeDropdown';
-import { Korrel8rTopology } from './topology/Korrel8rTopology';
+
+import { AdvancedSearchForm } from '@/features/troubleshooting/components/AdvancedSearchForm';
+import AgentMenu from '@/features/troubleshooting/components/AgentMenu';
+import { TimeRangeDropdown } from '@/features/troubleshooting/components/TimeRangeDropdown';
+import { Korrel8rTopology } from '@/features/troubleshooting/components/topology/Korrel8rTopology';
+import { useFeature } from '@/features/troubleshooting/hooks/useFeatures';
+import { useLocationQuery } from '@/features/troubleshooting/hooks/useLocationQuery';
+import { usePluginAvailable } from '@/features/troubleshooting/hooks/usePluginAvailable';
+import { GraphResult, useKorrel8rGraph } from '@/features/troubleshooting/korrel8r/korrel8r-client';
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
+import { defaultSearch, Search, setSearch } from '@/features/troubleshooting/store/actions';
+import { State } from '@/features/troubleshooting/store/reducers';
+import * as time from '@/features/troubleshooting/utils/time';
+import '@/features/troubleshooting/components/korrel8rpanel.css';
 
 export default function Korrel8rPanel() {
   const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');

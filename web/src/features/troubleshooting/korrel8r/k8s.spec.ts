@@ -1,5 +1,5 @@
-import { K8sDomain } from '../korrel8r/k8s';
-import { Query, URIRef } from '../korrel8r/types';
+import { K8sDomain } from '@/features/troubleshooting/korrel8r/k8s';
+import { Query, URIRef } from '@/features/troubleshooting/korrel8r/types';
 
 const k8s = new K8sDomain();
 

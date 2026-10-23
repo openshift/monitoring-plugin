@@ -24,9 +24,10 @@ import {
   OutlinedHddIcon,
   ServiceIcon,
 } from '@patternfly/react-icons';
-import { Class } from '../korrel8r/types';
-import { KubernetesIcon } from './KubernetesIcon';
 import { ReactElement } from 'react';
+
+import { KubernetesIcon } from '@/features/troubleshooting/components/KubernetesIcon';
+import { Class } from '@/features/troubleshooting/korrel8r/types';
 
 export type IconType = ReactElement;
 export type IconMap = { [key: string]: IconType };

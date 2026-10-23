@@ -14,9 +14,9 @@ import {
   statusForNode,
   statusName,
   toStatus,
-} from '../components/topology/status';
-import * as api from '../korrel8r/client';
-import * as korrel8r from '../korrel8r/types';
+} from '@/features/troubleshooting/components/topology/status';
+import * as api from '@/features/troubleshooting/korrel8r/client';
+import * as korrel8r from '@/features/troubleshooting/korrel8r/types';
 
 describe('Status enum', () => {
   it('has ordered severity levels', () => {
