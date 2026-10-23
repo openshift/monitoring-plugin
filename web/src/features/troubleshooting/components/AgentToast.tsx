@@ -13,7 +13,7 @@ const DISMISS_MS = 8000;
 const TOAST_ZINDEX = 1060;
 
 const AgentToast = () => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
   const toastMessage: string = useSelector((s: State) => s.plugins?.tp?.get('agentToast'));
   const dismiss = useCallback(() => dispatch(setAgentToast('')), [dispatch]);

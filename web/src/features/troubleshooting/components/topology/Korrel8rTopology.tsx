@@ -117,7 +117,7 @@ const NodeDecorator: FC<{
 const Korrel8rTopologyNode: FC<
   Korrel8rTopologyNodeProps & WithContextMenuProps & WithSelectionProps & WithDragNodeProps
 > = ({ element, onSelect, selected, onContextMenu, contextMenuOpen, dragNodeRef }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const node = element.getData();
   const [statusCounts, status] = mergeStatusCounts(node);
   const nodeStatus = node.disabled ? undefined : statusForNode(status);
@@ -209,7 +209,7 @@ export const Korrel8rTopology: FC<{
   netobserveAvailable: boolean;
   constraint: korrel8r.Constraint;
 }> = ({ graph, startNode, loggingAvailable, netobserveAvailable, constraint }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const domains = useDomains();
   const navigateToQuery = useNavigateToQuery();
   const { query } = useLocationQuery();

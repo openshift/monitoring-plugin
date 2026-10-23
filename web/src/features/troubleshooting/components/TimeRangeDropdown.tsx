@@ -50,7 +50,7 @@ interface TimeRangeModalProps {
 }
 
 const TimeRangeForm: FC<TimeRangeModalProps> = ({ initialRange, onSave, onClose }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [start, setStart] = useState(initialRange.start);
   const [end, setEnd] = useState(initialRange.end);
   const isValid = start < end;
@@ -97,7 +97,7 @@ interface DurationModalProps {
 }
 
 const DurationForm: FC<DurationModalProps> = ({ initialDuration, onSave, onClose }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [count, setCount] = useState(initialDuration.count);
   const [unit, setUnit] = useState(initialDuration.unit);
 
@@ -158,7 +158,7 @@ export const TimeRangeDropdown: FC<TimeRangeDropdownProps> = ({
   className,
   locationPeriod,
 }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [isOpen, setIsOpen] = useState(false);
   const [rangeModalOpen, setRangeModalOpen] = useState(false);
   const [durationModalOpen, setDurationModalOpen] = useState(false);

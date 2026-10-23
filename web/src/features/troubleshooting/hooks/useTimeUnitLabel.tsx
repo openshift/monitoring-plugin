@@ -5,7 +5,7 @@ import { Unit } from '@/features/troubleshooting/utils/time';
 
 /** Returns a function that maps a Unit to its translated label (e.g. "minutes"). */
 export const useTimeUnitLabel = (): ((u: Unit) => string) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return useCallback(
     (u: Unit): string => {
       switch (u) {

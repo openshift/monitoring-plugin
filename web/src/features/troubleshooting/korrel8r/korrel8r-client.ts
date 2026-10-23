@@ -112,7 +112,7 @@ export const useKorrel8rGraph = ({
 }: {
   search: Search;
 }): UseQueryResult<GraphResult, Error> => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const queryStr = search?.queryStr;
 
@@ -191,7 +191,7 @@ const initRequest = async (req: Request): Promise<RequestInit> => {
 };
 
 const defaultConfig = {
-  baseUrl: '/api/proxy/plugin/troubleshooting-panel-console-plugin/korrel8r/api/v1alpha1',
+  baseUrl: '/api/proxy/plugin/monitoring-console-plugin/korrel8r/api/v1alpha1',
   headers: { Accept: 'application/json' },
   fetch: requestWrapper,
   throwOnError: true,

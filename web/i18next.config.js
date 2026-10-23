@@ -6,8 +6,6 @@ module.exports = defineConfig({
   locales: ['en'],
   extract: {
     input: ['src/**/*.{js,jsx,ts,tsx}'],
-    // Temporary: troubleshooting-panel strings are excluded until it adopts this namespace.
-    ignore: ['src/features/troubleshooting/**'],
     output: 'locales/{{language}}/{{namespace}}.json',
     defaultNS: 'plugin__monitoring-plugin',
     nsSeparator: '~',

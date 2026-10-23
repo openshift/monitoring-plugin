@@ -37,7 +37,7 @@ interface AdvancedSearchFormProps {
 }
 
 export const AdvancedSearchForm: FC<AdvancedSearchFormProps> = ({ search, onSearch, onClose }) => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const domains = useDomains();
 
   const [queryStr, setQueryStr] = useState(search.queryStr);

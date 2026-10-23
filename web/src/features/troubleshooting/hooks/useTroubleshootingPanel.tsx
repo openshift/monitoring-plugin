@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 import { openTP } from '@/features/troubleshooting/store/actions';
 
 const useTroubleshootingPanel: ExtensionHook<Array<Action>> = () => {
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [perspective] = useActivePerspective();
   const dispatch = useDispatch();
   const open = useCallback(() => {

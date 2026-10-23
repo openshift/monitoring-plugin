@@ -24,7 +24,7 @@ const queryClient = new QueryClient({
 export default function Popover({ closeOverlay }: { closeOverlay: () => void }) {
   const dispatch = useDispatch();
   const [activePerspective] = useActivePerspective();
-  const { t } = useTranslation('plugin__troubleshooting-panel-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const isOpen = useSelector((state: State) => state.plugins?.tp?.get('isOpen'));
 
