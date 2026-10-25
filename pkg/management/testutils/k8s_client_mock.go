@@ -6,6 +6,7 @@ import (
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/relabel"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -149,7 +150,7 @@ type MockPrometheusRuleInterface struct {
 	GetFunc     func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error)
 	UpdateFunc  func(ctx context.Context, pr monitoringv1.PrometheusRule) error
 	DeleteFunc  func(ctx context.Context, namespace string, name string) error
-	AddRuleFunc func(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error
+	AddRuleFunc func(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule, ownershipGuard func(*monitoringv1.PrometheusRule) error) error
 
 	// Storage for test data
 	PrometheusRules map[string]*monitoringv1.PrometheusRule
@@ -218,9 +219,9 @@ func (m *MockPrometheusRuleInterface) Delete(ctx context.Context, namespace stri
 }
 
 // AddRule mocks the AddRule method
-func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error {
+func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule, ownershipGuard func(*monitoringv1.PrometheusRule) error) error {
 	if m.AddRuleFunc != nil {
-		return m.AddRuleFunc(ctx, namespacedName, groupName, rule)
+		return m.AddRuleFunc(ctx, namespacedName, groupName, rule, ownershipGuard)
 	}
 
 	key := namespacedName.Namespace + "/" + namespacedName.Name
@@ -228,17 +229,40 @@ func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedNam
 		m.PrometheusRules = make(map[string]*monitoringv1.PrometheusRule)
 	}
 
-	// Get or create PrometheusRule
+	// Get or create PrometheusRule. The API server stamps a UID and
+	// resource version on create; the mock mirrors that so rollback
+	// preconditions can be exercised in contract tests.
 	pr, exists := m.PrometheusRules[key]
 	if !exists {
 		pr = &monitoringv1.PrometheusRule{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            namespacedName.Name,
+				Namespace:       namespacedName.Namespace,
+				UID:             types.UID("mock-uid-" + key),
+				ResourceVersion: "1",
+			},
 			Spec: monitoringv1.PrometheusRuleSpec{
 				Groups: []monitoringv1.RuleGroup{},
 			},
 		}
-		pr.Name = namespacedName.Name
-		pr.Namespace = namespacedName.Namespace
 		m.PrometheusRules[key] = pr
+	}
+
+	if ownershipGuard != nil {
+		if err := ownershipGuard(pr); err != nil {
+			// Mirror the real client: a PrometheusRule created by this call
+			// must not stay behind when the guard rejects it. Like the real
+			// client's preconditioned delete, the rollback only removes the
+			// resource while it is still the exact one this call created;
+			// a concurrently updated or replaced resource is left in place.
+			if !exists && len(pr.Spec.Groups) == 0 {
+				if current, stillPresent := m.PrometheusRules[key]; stillPresent &&
+					current.UID == pr.UID && current.ResourceVersion == pr.ResourceVersion {
+					delete(m.PrometheusRules, key)
+				}
+			}
+			return err
+		}
 	}
 
 	// Find or create the group

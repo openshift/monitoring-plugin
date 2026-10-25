@@ -89,12 +89,44 @@ func makePRWithRule(ns, name string, rule monitoringv1.Rule) *testutils.MockProm
 	}
 }
 
+// makeManagedPRWithRule is makePRWithRule with external-management markers
+// (GitOps annotations and/or operator owner references) on the served
+// PrometheusRule, so the live resource reports the given management source.
+func makeManagedPRWithRule(
+	ns, name string,
+	rule monitoringv1.Rule,
+	annotations map[string]string,
+	ownerRefs []metav1.OwnerReference,
+) *testutils.MockPrometheusRuleInterface {
+	return &testutils.MockPrometheusRuleInterface{
+		GetFunc: func(_ context.Context, namespace, prName string) (*monitoringv1.PrometheusRule, bool, error) {
+			return &monitoringv1.PrometheusRule{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace:       namespace,
+					Name:            prName,
+					Annotations:     annotations,
+					OwnerReferences: ownerRefs,
+				},
+				Spec: monitoringv1.PrometheusRuleSpec{
+					Groups: []monitoringv1.RuleGroup{{Name: "test-group", Rules: []monitoringv1.Rule{rule}}},
+				},
+			}, true, nil
+		},
+	}
+}
+
 // --- Managed-by enforcement ---
 
 func TestUpdateUserDefinedAlertRule_BlocksGitOpsManaged(t *testing.T) {
 	client, mockK8s := newUpdateUserDefinedClient(t)
 	gitopsRule := copyRuleWithLabels(udUserRule, managementlabels.RuleManagedByLabel, managementlabels.ManagedByGitOps)
 	mockK8s.RelabeledRulesFunc = mockUDRelabeledGet(originalUserRuleId, gitopsRule)
+	// The live PrometheusRule carries the GitOps marker and is authoritative
+	// for management state, with or without the relabeled-rule marker.
+	mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+		return makeManagedPRWithRule("user-namespace", "user-rule", originalUserRule,
+			map[string]string{"argocd.argoproj.io/tracking-id": "gitops"}, nil)
+	}
 
 	_, err := client.UpdateUserDefinedAlertRule(context.Background(), originalUserRuleId, udUserRule)
 	if err == nil || !strings.Contains(err.Error(), "managed by GitOps") {
@@ -106,6 +138,10 @@ func TestUpdateUserDefinedAlertRule_BlocksOperatorManaged(t *testing.T) {
 	client, mockK8s := newUpdateUserDefinedClient(t)
 	opRule := copyRuleWithLabels(udUserRule, managementlabels.RuleManagedByLabel, managementlabels.ManagedByOperator)
 	mockK8s.RelabeledRulesFunc = mockUDRelabeledGet(originalUserRuleId, opRule)
+	mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+		return makeManagedPRWithRule("user-namespace", "user-rule", originalUserRule, nil,
+			[]metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "Deployment", Name: "owner", UID: "uid"}})
+	}
 
 	_, err := client.UpdateUserDefinedAlertRule(context.Background(), originalUserRuleId, udUserRule)
 	if err == nil || !strings.Contains(err.Error(), "managed by an operator") {
