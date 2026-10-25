@@ -179,6 +179,11 @@ func (c *client) applyClassificationViaARC(
 	if err != nil {
 		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", arcNamespace, arcName, err)
 	}
+	// Mirror the preview's ownership checks so classification cannot modify
+	// an ARC that is externally managed.
+	if err := validatePlatformUpdatePreconditions(relabeled, pr, relabelConfigIfFound(found, existingArc)); err != nil {
+		return err
+	}
 
 	existingOverrides, existingDrops := collectExistingFromARC(found, existingArc)
 	existingRuleDrops := getExistingRuleDrops(existingArc, alertRuleId)

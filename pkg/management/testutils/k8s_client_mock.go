@@ -149,7 +149,7 @@ type MockPrometheusRuleInterface struct {
 	GetFunc     func(ctx context.Context, namespace string, name string) (*monitoringv1.PrometheusRule, bool, error)
 	UpdateFunc  func(ctx context.Context, pr monitoringv1.PrometheusRule) error
 	DeleteFunc  func(ctx context.Context, namespace string, name string) error
-	AddRuleFunc func(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error
+	AddRuleFunc func(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule, ownershipGuard func(*monitoringv1.PrometheusRule) error) error
 
 	// Storage for test data
 	PrometheusRules map[string]*monitoringv1.PrometheusRule
@@ -218,9 +218,9 @@ func (m *MockPrometheusRuleInterface) Delete(ctx context.Context, namespace stri
 }
 
 // AddRule mocks the AddRule method
-func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error {
+func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule, ownershipGuard func(*monitoringv1.PrometheusRule) error) error {
 	if m.AddRuleFunc != nil {
-		return m.AddRuleFunc(ctx, namespacedName, groupName, rule)
+		return m.AddRuleFunc(ctx, namespacedName, groupName, rule, ownershipGuard)
 	}
 
 	key := namespacedName.Namespace + "/" + namespacedName.Name
@@ -239,6 +239,17 @@ func (m *MockPrometheusRuleInterface) AddRule(ctx context.Context, namespacedNam
 		pr.Name = namespacedName.Name
 		pr.Namespace = namespacedName.Namespace
 		m.PrometheusRules[key] = pr
+	}
+
+	if ownershipGuard != nil {
+		if err := ownershipGuard(pr); err != nil {
+			// Mirror the real client: a PrometheusRule created by this call
+			// must not stay behind when the guard rejects it.
+			if !exists && len(pr.Spec.Groups) == 0 {
+				delete(m.PrometheusRules, key)
+			}
+			return err
+		}
 	}
 
 	// Find or create the group

@@ -4,6 +4,7 @@
 package managementrouter
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -11,6 +12,49 @@ import (
 	"github.com/oapi-codegen/runtime"
 	k8s "github.com/openshift/monitoring-plugin/pkg/k8s"
 )
+
+const (
+	BearerAuthScopes = "bearerAuth.Scopes"
+)
+
+// Defines values for PreviewAlertRuleResponseManagedBy.
+const (
+	Gitops   PreviewAlertRuleResponseManagedBy = "gitops"
+	Operator PreviewAlertRuleResponseManagedBy = "operator"
+)
+
+// Valid indicates whether the value is a known member of the PreviewAlertRuleResponseManagedBy enum.
+func (e PreviewAlertRuleResponseManagedBy) Valid() bool {
+	switch e {
+	case Gitops:
+		return true
+	case Operator:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RuleChangeOperation.
+const (
+	Add     RuleChangeOperation = "add"
+	Remove  RuleChangeOperation = "remove"
+	Replace RuleChangeOperation = "replace"
+)
+
+// Valid indicates whether the value is a known member of the RuleChangeOperation enum.
+func (e RuleChangeOperation) Valid() bool {
+	switch e {
+	case Add:
+		return true
+	case Remove:
+		return true
+	case Replace:
+		return true
+	default:
+		return false
+	}
+}
 
 // AlertRuleClassificationUpdate Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
 type AlertRuleClassificationUpdate = AlertRuleClassificationPatch
@@ -145,6 +189,65 @@ type GetRulesResponseData struct {
 	Groups []PrometheusRuleGroup `json:"groups"`
 }
 
+// PreviewAlertRuleCreateRequest Preview creating a single alert rule. alertingRule is the desired rule. prometheusRule identifies the target PrometheusRule and is required for user-defined alert rules; omit it to preview a platform alert rule.
+type PreviewAlertRuleCreateRequest struct {
+	// AlertingRule Specification of a Prometheus alerting or recording rule. Maps to prometheus-operator Rule fields.
+	AlertingRule AlertRuleSpec `json:"alertingRule"`
+
+	// PrometheusRule Identifies the PrometheusRule resource and rule group where the alert rule will be stored. Required for user-defined alert rules.
+	PrometheusRule *PrometheusRuleTarget `json:"prometheusRule,omitempty"`
+}
+
+// PreviewAlertRuleResponse defines model for PreviewAlertRuleResponse.
+type PreviewAlertRuleResponse struct {
+	// DesiredRule Specification of a Prometheus alerting or recording rule. Maps to prometheus-operator Rule fields.
+	DesiredRule AlertRuleSpec `json:"desiredRule"`
+
+	// ManagedBy External management source when the target is not writable.
+	ManagedBy *PreviewAlertRuleResponseManagedBy `json:"managedBy,omitempty"`
+
+	// Resources Kubernetes resources that would be created or modified by this operation. A single alert operation may affect multiple resources.
+	Resources []PreviewResourceChange `json:"resources"`
+
+	// Writable Whether the Alerts Management API can persist this change.
+	Writable bool `json:"writable"`
+}
+
+// PreviewAlertRuleResponseManagedBy External management source when the target is not writable.
+type PreviewAlertRuleResponseManagedBy string
+
+// PreviewAlertRuleUpdateRequest Preview updating a single alert rule. ruleId identifies the rule; at least one of labels, alertingRuleEnabled, or classification must be set. alertingRuleEnabled cannot be combined with labels or classification in the same request.
+type PreviewAlertRuleUpdateRequest struct {
+	// AlertingRuleEnabled Drop/restore toggle for update preview (platform rules only).
+	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
+
+	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
+	Classification *AlertRuleClassificationUpdate `json:"classification,omitempty"`
+
+	// Labels Label overrides for update preview.
+	Labels *map[string]*string `json:"labels,omitempty"`
+
+	// RuleId Stable alert rule ID to preview an update for.
+	RuleId string `json:"ruleId"`
+}
+
+// PreviewResourceChange defines model for PreviewResourceChange.
+type PreviewResourceChange struct {
+	Changes []RuleChange `json:"changes"`
+
+	// DesiredObject Complete resulting Kubernetes object for this resource entry. Omitted when the resource would be deleted.
+	DesiredObject *map[string]interface{} `json:"desiredObject,omitempty"`
+	Resource      PreviewTargetResource   `json:"resource"`
+}
+
+// PreviewTargetResource defines model for PreviewTargetResource.
+type PreviewTargetResource struct {
+	ApiVersion string  `json:"apiVersion"`
+	Kind       string  `json:"kind"`
+	Name       string  `json:"name"`
+	Namespace  *string `json:"namespace,omitempty"`
+}
+
 // PrometheusAlert defines model for PrometheusAlert.
 type PrometheusAlert = k8s.PrometheusAlert
 
@@ -171,6 +274,22 @@ type RecordingRule = k8s.RecordingRule
 
 // Rule defines model for Rule.
 type Rule = k8s.Rule
+
+// RuleChange defines model for RuleChange.
+type RuleChange struct {
+	// CurrentValue Value before the change, for replace or remove operations.
+	CurrentValue interface{} `json:"currentValue,omitempty"`
+
+	// Field Semantic alert-rule field path (e.g. severity, labels.severity, for, rule).
+	Field string `json:"field"`
+
+	// NewValue Value after the change, for add or replace operations.
+	NewValue  interface{}         `json:"newValue,omitempty"`
+	Operation RuleChangeOperation `json:"operation"`
+}
+
+// RuleChangeOperation defines model for RuleChange.Operation.
+type RuleChangeOperation string
 
 // UpdateAlertRuleRequest Partial update for a single alert rule. At least one of labels, alertingRuleEnabled, or classification must be set. alertingRuleEnabled cannot be combined with labels or classification in the same request.
 type UpdateAlertRuleRequest struct {
@@ -205,6 +324,12 @@ type BulkUpdateAlertRulesJSONRequestBody = BulkUpdateAlertRulesRequest
 // CreateAlertRuleJSONRequestBody defines body for CreateAlertRule for application/json ContentType.
 type CreateAlertRuleJSONRequestBody = CreateAlertRuleRequest
 
+// PreviewAlertRuleCreateJSONRequestBody defines body for PreviewAlertRuleCreate for application/json ContentType.
+type PreviewAlertRuleCreateJSONRequestBody = PreviewAlertRuleCreateRequest
+
+// PreviewAlertRuleUpdateJSONRequestBody defines body for PreviewAlertRuleUpdate for application/json ContentType.
+type PreviewAlertRuleUpdateJSONRequestBody = PreviewAlertRuleUpdateRequest
+
 // UpdateAlertRuleJSONRequestBody defines body for UpdateAlertRule for application/json ContentType.
 type UpdateAlertRuleJSONRequestBody = UpdateAlertRuleRequest
 
@@ -228,6 +353,12 @@ type ServerInterface interface {
 	// Create an alert rule
 	// (POST /rules)
 	CreateAlertRule(w http.ResponseWriter, r *http.Request)
+	// Preview creating a single alert rule
+	// (POST /rules/preview/create)
+	PreviewAlertRuleCreate(w http.ResponseWriter, r *http.Request)
+	// Preview updating a single alert rule
+	// (POST /rules/preview/update)
+	PreviewAlertRuleUpdate(w http.ResponseWriter, r *http.Request)
 	// Delete a single alert rule
 	// (DELETE /rules/{ruleId})
 	DeleteAlertRule(w http.ResponseWriter, r *http.Request, ruleId string)
@@ -248,6 +379,12 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // GetAlerts operation middleware
 func (siw *ServerInterfaceWrapper) GetAlerts(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetAlerts(w, r)
 	}))
@@ -261,6 +398,12 @@ func (siw *ServerInterfaceWrapper) GetAlerts(w http.ResponseWriter, r *http.Requ
 
 // GetHealth operation middleware
 func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
@@ -276,6 +419,12 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 // BulkDeleteUserDefinedAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkDeleteUserDefinedAlertRules(w, r)
 	}))
@@ -289,6 +438,12 @@ func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.Respon
 
 // GetRules operation middleware
 func (siw *ServerInterfaceWrapper) GetRules(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetRules(w, r)
@@ -304,6 +459,12 @@ func (siw *ServerInterfaceWrapper) GetRules(w http.ResponseWriter, r *http.Reque
 // BulkUpdateAlertRules operation middleware
 func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.BulkUpdateAlertRules(w, r)
 	}))
@@ -318,8 +479,54 @@ func (siw *ServerInterfaceWrapper) BulkUpdateAlertRules(w http.ResponseWriter, r
 // CreateAlertRule operation middleware
 func (siw *ServerInterfaceWrapper) CreateAlertRule(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateAlertRule(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PreviewAlertRuleCreate operation middleware
+func (siw *ServerInterfaceWrapper) PreviewAlertRuleCreate(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PreviewAlertRuleCreate(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PreviewAlertRuleUpdate operation middleware
+func (siw *ServerInterfaceWrapper) PreviewAlertRuleUpdate(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PreviewAlertRuleUpdate(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -342,6 +549,12 @@ func (siw *ServerInterfaceWrapper) DeleteAlertRule(w http.ResponseWriter, r *htt
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteAlertRule(w, r, ruleId)
@@ -367,6 +580,12 @@ func (siw *ServerInterfaceWrapper) UpdateAlertRule(w http.ResponseWriter, r *htt
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateAlertRule(w, r, ruleId)
@@ -503,6 +722,10 @@ func HandlerWithOptions(si ServerInterface, options GorillaServerOptions) http.H
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.BulkUpdateAlertRules).Methods("PATCH")
 
 	r.HandleFunc(options.BaseURL+"/rules", wrapper.CreateAlertRule).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/rules/preview/create", wrapper.PreviewAlertRuleCreate).Methods("POST")
+
+	r.HandleFunc(options.BaseURL+"/rules/preview/update", wrapper.PreviewAlertRuleUpdate).Methods("POST")
 
 	r.HandleFunc(options.BaseURL+"/rules/{ruleId}", wrapper.DeleteAlertRule).Methods("DELETE")
 

@@ -66,11 +66,15 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 	if arErr != nil {
 		return arErr
 	}
-	if arFound && ar != nil {
-		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(ar); gitOpsManaged {
-			return notAllowedGitOpsEdit()
-		} else if operatorManaged {
-			return c.applyLabelChangesViaAlertRelabelConfig(ctx, arcNamespace, alertRuleId, *originalRule, alertRule.Labels)
+	if blocked, ok := arGitOpsAllowance(ar, arFound); ok {
+		return blocked.Err
+	}
+	if resolvePlatformLabelRoute(ar, arFound) == platformLabelRouteAlertingRule {
+		if allowance := evaluatePlatformUpdateAllowed(
+			rule, prMeta, ar, arFound, nil,
+			PlatformUpdateTargetAlertingRule, platformMutationLabel,
+		); allowance.Err != nil {
+			return allowance.Err
 		}
 		return c.updateAlertingRuleLabels(ctx, ar, originalRule.Alert, alertRuleId, alertRule.Labels, arName)
 	}
@@ -81,7 +85,7 @@ func (c *client) UpdatePlatformAlertRule(ctx context.Context, alertRuleId string
 func filterAndValidatePlatformLabelChanges(labels map[string]string) (map[string]string, error) {
 	filtered := make(map[string]string)
 	for k, v := range labels {
-		if !isProtectedLabel(k) {
+		if !isProtectedLabel(k) && !isPreviewProvenanceLabel(k) {
 			filtered[k] = v
 		}
 	}
@@ -118,14 +122,15 @@ func (c *client) updateAlertingRuleLabels(
 	if err != nil {
 		return err
 	}
-	target, found := findAlertByNameInAlertingRule(ar, originalAlertName)
-	if !found || target == nil {
+	groupIdx, alertIdx, found := findAlertIndicesInAlertingRule(ar, originalAlertName)
+	if !found {
 		return &NotFoundError{
 			Resource:       "AlertRule",
 			Id:             alertRuleId,
 			AdditionalInfo: fmt.Sprintf("alert %q not found in AlertingRule %s", originalAlertName, arName),
 		}
 	}
+	target := &ar.Spec.Groups[groupIdx].Rules[alertIdx]
 	if target.Labels == nil {
 		target.Labels = map[string]string{}
 	}
@@ -142,16 +147,15 @@ func (c *client) updateAlertingRuleLabels(
 	return nil
 }
 
-func findAlertByNameInAlertingRule(ar *osmv1.AlertingRule, alertName string) (*osmv1.Rule, bool) {
+func findAlertIndicesInAlertingRule(ar *osmv1.AlertingRule, alertName string) (groupIdx, alertIdx int, found bool) {
 	for gi := range ar.Spec.Groups {
 		for ri := range ar.Spec.Groups[gi].Rules {
-			r := &ar.Spec.Groups[gi].Rules[ri]
-			if r.Alert == alertName {
-				return r, true
+			if ar.Spec.Groups[gi].Rules[ri].Alert == alertName {
+				return gi, ri, true
 			}
 		}
 	}
-	return nil, false
+	return 0, 0, false
 }
 
 func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, namespace string, alertRuleId string, originalRule monitoringv1.Rule, rawLabels map[string]string) error {
@@ -174,8 +178,11 @@ func (c *client) applyLabelChangesViaAlertRelabelConfig(ctx context.Context, nam
 	if err != nil {
 		return fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", namespace, arcName, err)
 	}
-	if err := validatePlatformUpdatePreconditions(relabeled, nil, relabelConfigIfFound(found, existingArc)); err != nil {
-		return err
+	if allowance := evaluatePlatformUpdateAllowed(
+		relabeled, nil, nil, false, relabelConfigIfFound(found, existingArc),
+		PlatformUpdateTargetAlertRelabelConfig, platformMutationLabel,
+	); allowance.Err != nil {
+		return allowance.Err
 	}
 
 	original := copyStringMap(originalRule.Labels)
