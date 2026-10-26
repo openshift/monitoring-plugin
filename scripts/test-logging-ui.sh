@@ -19,10 +19,13 @@ cleanup() {
     pkill -f webpack.logging.config.ts 2>/dev/null || true
     pkill -f "ts-node.*webpack" 2>/dev/null || true
     wait 2>/dev/null || true
-  [ -n "${ARTIFACT_DIR:-}" ] || return 0
-  if [ -d "${repo_root}/web/cypress/screenshots/" ]; then
-    cp -r "${repo_root}/web/cypress/screenshots/" "${ARTIFACT_DIR}/screenshots"
-  fi
+    [ -n "${ARTIFACT_DIR:-}" ] || return 0
+    if [ -d "${repo_root}/web/cypress/screenshots/" ]; then
+      cp -r "${repo_root}/web/cypress/screenshots/" "${ARTIFACT_DIR}/screenshots"
+    fi
+    if [ -f /tmp/webpack-harness.log ]; then
+      cp /tmp/webpack-harness.log "${ARTIFACT_DIR}/webpack-harness.log" 2>/dev/null || true
+    fi
 }
 trap cleanup EXIT
 trap 'exit 130' INT
@@ -44,7 +47,7 @@ fi
 npm install
 
 # Start the logging view test harness, a webpack dev server on localhost:9003.
-npm run start:logging-tests &
+npm run start:logging-tests > /tmp/webpack-harness.log 2>&1 &
 
 # Wait up to 5 minutes for the harness to accept connections.
 for _ in $(seq 1 150); do (exec 3<>/dev/tcp/127.0.0.1/${port}) 2>/dev/null && break; sleep 2; done
