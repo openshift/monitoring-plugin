@@ -226,7 +226,11 @@
       "LogsDevPage": "./features/logging/pages/LogsDevPage",
       "getUserAlertingRules": "./features/logging/utils/get-user-alerting-rules",
       "getPlatformAlertingRules": "./features/logging/utils/get-platform-alerting-rules",
-      "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics"
+      "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics",
+      "TroubleshootingPanelActionsProvider": "./features/troubleshooting/hooks/useTroubleshootingPanel",
+      "TPReducer": "./features/troubleshooting/store/reducers",
+      "NullContextProvider": "./features/troubleshooting/components/NullContextProvider",
+      "usePopover": "./features/troubleshooting/hooks/usePopover"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
