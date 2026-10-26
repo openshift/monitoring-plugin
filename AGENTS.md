@@ -88,6 +88,7 @@ The `web/src/` directory is organized into two top-level areas:
 | Metrics / PromQL                         | `features/metrics/`           |
 | Perses Dashboards                        | `features/perses-dashboards/` |
 | Targets                                  | `features/targets/`           |
+| Troubleshooting panel (Korrel8r)         | `features/troubleshooting/`   |
 
 | Shared Directory     | Contents                                                              |
 | -------------------- | --------------------------------------------------------------------- |

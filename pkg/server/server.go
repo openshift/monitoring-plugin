@@ -73,6 +73,7 @@ const (
 	PersesUICustomization Feature = "perses-ui-customization"
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 	AlertManagementAPI    Feature = "alert-management-api"
+	Troubleshooting       Feature = "troubleshooting"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {

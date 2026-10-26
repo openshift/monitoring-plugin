@@ -12,6 +12,7 @@ type Features = {
   metrics: boolean;
   targets: boolean;
   'cluster-health-analyzer': boolean;
+  troubleshooting: boolean;
   'agent-navigation': boolean;
 };
 
@@ -28,6 +29,7 @@ const defaultMonitoringConsolePluginFeatures: Features = {
   metrics: false,
   targets: false,
   'cluster-health-analyzer': false,
+  troubleshooting: false,
   'agent-navigation': false,
 };
 
@@ -42,6 +44,7 @@ const defaultMonitoringPluginFeatures: Features = {
   metrics: true,
   targets: true,
   'cluster-health-analyzer': false,
+  troubleshooting: false,
   'agent-navigation': false,
 };
 
