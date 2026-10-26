@@ -21,16 +21,7 @@ export function AlertSeverityButton({
   const color = count !== undefined ? getSeverityColors(severity).textColor : undefined;
 
   return (
-    <Tooltip
-      content={
-        count !== undefined
-          ? t('{{severity}}: {{alertCount}}', {
-              severity: t(startCase(severity)),
-              alertCount: count,
-            })
-          : t(startCase(severity))
-      }
-    >
+    <Tooltip content={t(startCase(severity)) + (count !== undefined ? `: ${count}` : '')}>
       <Button
         size="sm"
         variant="plain"
