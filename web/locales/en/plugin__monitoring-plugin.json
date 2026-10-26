@@ -13,6 +13,7 @@
   "{{group}}: {{value}} ({{count}} alerts)_other": "{{group}}: {{value}} ({{count}} alerts)",
   "{{labels}} content is not available in the catalog at this time due to loading failures.": "{{labels}} content is not available in the catalog at this time due to loading failures.",
   "{{name}} details": "{{name}} details",
+  "{{severity}}: {{alertCount}}": "{{severity}}: {{alertCount}}",
   "1. Provide a dashboard (JSON or YAML)": "1. Provide a dashboard (JSON or YAML)",
   "12h": "12h",
   "1d": "1d",

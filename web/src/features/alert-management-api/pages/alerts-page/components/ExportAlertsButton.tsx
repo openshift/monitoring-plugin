@@ -1,4 +1,4 @@
-import { Button } from '@patternfly/react-core';
+import { Button, Tooltip } from '@patternfly/react-core';
 import { DownloadIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -49,12 +49,13 @@ export function ExportAlertsButton({ alerts }: { alerts: AggregatedAlert[] }) {
   };
 
   return (
-    <Button
-      variant="control"
-      icon={<DownloadIcon />}
-      aria-label={t('Export as CSV')}
-      title={t('Export as CSV')}
-      onClick={exportAlerts}
-    />
+    <Tooltip content={t('Export as CSV')}>
+      <Button
+        variant="control"
+        icon={<DownloadIcon />}
+        aria-label={t('Export as CSV')}
+        onClick={exportAlerts}
+      />
+    </Tooltip>
   );
 }
