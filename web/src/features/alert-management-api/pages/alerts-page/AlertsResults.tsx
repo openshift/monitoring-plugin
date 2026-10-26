@@ -9,6 +9,7 @@ import {
   PanelMain,
   PanelMainBody,
   Switch,
+  Tooltip,
 } from '@patternfly/react-core';
 import { BellSlashIcon, ColumnsIcon } from '@patternfly/react-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -168,13 +169,14 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
               <FlexItem>
                 <ActionList isIconList>
                   <ActionListItem>
-                    <Button
-                      variant="control"
-                      icon={<ColumnsIcon />}
-                      aria-label={t('Manage columns')}
-                      title={t('Manage columns')}
-                      onClick={() => setManageColumnsOpen(true)}
-                    />
+                    <Tooltip content={t('Manage columns')}>
+                      <Button
+                        variant="control"
+                        icon={<ColumnsIcon />}
+                        aria-label={t('Manage columns')}
+                        onClick={() => setManageColumnsOpen(true)}
+                      />
+                    </Tooltip>
                   </ActionListItem>
                   <ActionListItem>
                     <ExportAlertsButton alerts={aggregatedAlerts} />

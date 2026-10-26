@@ -152,6 +152,17 @@ it('sorts from each column header and saves column and direction in the URL', ()
   ).toBe(false);
 });
 
+it.each(['Manage columns', 'Export as CSV'])('shows the %s tooltip', async (label) => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts']}>
+      <AlertsPage />
+    </MemoryRouter>,
+  );
+
+  fireEvent.mouseEnter(screen.getByRole('button', { name: label }));
+  expect((await screen.findByRole('tooltip')).textContent).toBe(label);
+});
+
 it('manages optional table columns while keeping alert name and severity visible', () => {
   render(
     <MemoryRouter initialEntries={['/monitoring/v2/alerts']}>
