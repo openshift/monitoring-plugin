@@ -10,16 +10,15 @@ set -o pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 port=9003
-harness_pid=""
 
 # Stop the harness dev server and copy Cypress screenshots. Also runs on
 # cancellation, otherwise a stale server keeps holding port 9003.
 # (video is off in cypress.logging.config.ts, so only screenshots are collected.)
 cleanup() {
-  if [ -n "${harness_pid}" ]; then
-    kill "${harness_pid}" 2>/dev/null || true
+    pkill -P $$ 2>/dev/null || true
     pkill -f webpack.logging.config.ts 2>/dev/null || true
-  fi
+    pkill -f "ts-node.*webpack" 2>/dev/null || true
+    wait 2>/dev/null || true
   [ -n "${ARTIFACT_DIR:-}" ] || return 0
   if [ -d "${repo_root}/web/cypress/screenshots/" ]; then
     cp -r "${repo_root}/web/cypress/screenshots/" "${ARTIFACT_DIR}/screenshots"
@@ -46,7 +45,6 @@ npm install
 
 # Start the logging view test harness, a webpack dev server on localhost:9003.
 npm run start:logging-tests &
-harness_pid=$!
 
 # Wait up to 5 minutes for the harness to accept connections.
 for _ in $(seq 1 150); do (exec 3<>/dev/tcp/127.0.0.1/${port}) 2>/dev/null && break; sleep 2; done
