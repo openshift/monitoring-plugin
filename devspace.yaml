@@ -51,6 +51,9 @@ dev:
         startContainer: true
       - path: ./cmd:/opt/app-root/cmd
       - path: ./pkg:/opt/app-root/pkg
+      - path: ./internal:/opt/app-root/internal
+      - path: ./go.mod:/opt/app-root/go.mod
+      - path: ./go.sum:/opt/app-root/go.sum
       - path: ./config:/opt/app-root/config
     command: ["sh", "-c"]
     args:
@@ -73,6 +76,9 @@ dev:
         startContainer: true
       - path: ./cmd:/opt/app-root/cmd
       - path: ./pkg:/opt/app-root/pkg
+      - path: ./internal:/opt/app-root/internal
+      - path: ./go.mod:/opt/app-root/go.mod
+      - path: ./go.sum:/opt/app-root/go.sum
       - path: ./config:/opt/app-root/config
     command: ["sh", "-c"]
     args:

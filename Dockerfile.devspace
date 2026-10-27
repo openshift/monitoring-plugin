@@ -20,13 +20,13 @@ COPY go.sum go.sum
 
 RUN make install-backend
 RUN GOFLAGS=-mod=mod GOBIN=/usr/local/bin go install github.com/air-verse/air@v1.67.4
-RUN chgrp -R 0 /tmp/go-build-cache && chmod -R g+rwX /tmp/go-build-cache
+RUN chgrp -R 0 /tmp/go-build-cache /go && chmod -R g+rwX /tmp/go-build-cache /go
 
 COPY config/ config/
 COPY cmd/ cmd/
 COPY pkg/ pkg/
 COPY internal/ internal/
 COPY .air.toml .air.toml
-RUN chgrp -R 0 config cmd pkg internal && chmod -R g+rwX config cmd pkg internal
+RUN chgrp -R 0 /opt/app-root && chmod -R g+rwX /opt/app-root
 
 ENTRYPOINT ["make", "start-devspace-backend"]

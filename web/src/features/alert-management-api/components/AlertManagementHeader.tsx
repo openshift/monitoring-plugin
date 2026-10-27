@@ -102,7 +102,7 @@ export function AlertManagementHeader({
           <BreadcrumbItem isActive>{t(activePrimaryTab?.name)}</BreadcrumbItem>
         </Breadcrumb>
       </PageBreadcrumb>
-      <div className="alert-management-header__page-title">
+      <div className="alert-management-api__alert-management-header__page-title">
         <ListPageHeader title={t('Alerting')}>
           {refresh && <RefreshControl pageKey={pathname} {...refresh} />}
         </ListPageHeader>

@@ -367,9 +367,9 @@ it('shows alert state descriptions on individual rows', () => {
     'Individual alert rows should not have aggregate detail controls',
   ).toBeNull();
   expect(
-    within(row).queryByRole('link', { name: 'Alert3' }),
-    'Individual alert names should not open aggregate detail links',
-  ).toBeNull();
+    within(row).getByRole('link', { name: 'Alert3' }).getAttribute('href'),
+    'Individual alert names should link to their sidepanel selection',
+  ).toContain('alertRuleID=Alert3&alertID=');
   expect(
     within(row).getByRole('checkbox', { name: 'Select Alert3 alerts' }),
     'Each individual alert row should be selectable',
