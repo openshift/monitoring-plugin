@@ -17,11 +17,23 @@ LOKI_NAME=${LOKI_NAME:-logging-loki}
 LOKI_NAMESPACE=${LOKI_NAMESPACE:-openshift-logging}
 LOKI_SVC_DNS="${LOKI_NAME}-gateway-http.${LOKI_NAMESPACE}.svc"
 LOKI_HOST=${LOKI_HOST:-"https://${LOKI_SVC_DNS}:8080"}
+# Korrel8r for the troubleshooting panel, deployed by a COO TroubleshootingPanel
+# UIPlugin, reachable via
+# `oc -n openshift-cluster-observability-operator port-forward svc/korrel8r 9446:9443`.
+# Local port 9446 avoids PLUGIN_PORT (9443) and the backend's reserved 9444/9445.
+KORREL8R_NAMESPACE=${KORREL8R_NAMESPACE:-openshift-cluster-observability-operator}
+KORREL8R_SVC_DNS="korrel8r.${KORREL8R_NAMESPACE}.svc"
+KORREL8R_HOST=${KORREL8R_HOST:-"https://${KORREL8R_SVC_DNS}:9446"}
 LOKI_CA_FILE="$(pwd)/.loki-service-ca.crt"
 BRIDGE_CA_BUNDLE="$(pwd)/.bridge-ca-bundle.crt"
 BRIDGE_CA_CONTAINER_FILE="/tmp/bridge-ca-bundle.crt"
-if oc -n "${LOKI_NAMESPACE}" get configmap openshift-service-ca.crt \
-    -o jsonpath='{.data.service-ca\.crt}' > "${LOKI_CA_FILE}" 2>/dev/null && [ -s "${LOKI_CA_FILE}" ]; then
+# The service CA is the same in every namespace; fall back to Korrel8r's
+# namespace on clusters without logging.
+read_service_ca() {
+    oc -n "$1" get configmap openshift-service-ca.crt \
+        -o jsonpath='{.data.service-ca\.crt}' > "${LOKI_CA_FILE}" 2>/dev/null && [ -s "${LOKI_CA_FILE}" ]
+}
+if read_service_ca "${LOKI_NAMESPACE}" || read_service_ca "${KORREL8R_NAMESPACE}"; then
     # Go's SSL_CERT_FILE replaces the whole trust store, so keep the image's
     # system bundle next to the service CA.
     if [ -x "$(command -v podman)" ]; then ca_runner=podman; else ca_runner=docker; fi
@@ -31,7 +43,7 @@ if oc -n "${LOKI_NAMESPACE}" get configmap openshift-service-ca.crt \
     cat "${LOKI_CA_FILE}" >> "${BRIDGE_CA_BUNDLE}"
 else
     : > "${BRIDGE_CA_BUNDLE}"
-    echo "Warning: no service CA found in ${LOKI_NAMESPACE}; the Loki proxy will fail TLS verification"
+    echo "Warning: no service CA found in ${LOKI_NAMESPACE} or ${KORREL8R_NAMESPACE}; the Loki and Korrel8r proxies will fail TLS verification"
 fi
 
 # Point SSL_CERT_FILE at the bundle only when it has content: an empty file
@@ -66,6 +78,7 @@ BRIDGE_K8S_MODE_OFF_CLUSTER_SERVICE_ACCOUNT_BEARER_TOKEN_FILE="${SA_TOKEN_CONTAI
 
 echo "API Server: $BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT"
 echo "Loki gateway: $LOKI_HOST (via local port-forward)"
+echo "Korrel8r: $KORREL8R_HOST (via local port-forward)"
 echo "Console Image: $CONSOLE_IMAGE"
 echo "Console URL: http://localhost:${CONSOLE_PORT}"
 echo "Console Platform: $CONSOLE_IMAGE_PLATFORM"
@@ -79,22 +92,24 @@ if [ -x "$(command -v podman)" ]; then
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
         --rm --network=host --user 0:0 \
         --add-host "${LOKI_SVC_DNS}:127.0.0.1" \
+        --add-host "${KORREL8R_SVC_DNS}:127.0.0.1" \
         -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro,Z \
         -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro,Z \
         ${SSL_CERT_ENV} \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true}]}" \
+        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:${PLUGIN_PORT}"
         podman run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
         --rm -p "$CONSOLE_PORT":9000 --user 0:0 \
         --add-host "${LOKI_SVC_DNS}:host-gateway" \
+        --add-host "${KORREL8R_SVC_DNS}:host-gateway" \
         -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro,Z \
         -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro,Z \
         ${SSL_CERT_ENV} \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.containers.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true}]}" \
+        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.containers.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
     fi
 else
@@ -102,10 +117,11 @@ else
     docker run --pull always --platform $CONSOLE_IMAGE_PLATFORM \
     --rm -p "$CONSOLE_PORT":9000 --user 0:0 \
     --add-host "${LOKI_SVC_DNS}:host-gateway" \
+    --add-host "${KORREL8R_SVC_DNS}:host-gateway" \
     -v "${SA_TOKEN_HOST_FILE}":"${SA_TOKEN_CONTAINER_FILE}":ro \
     -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro \
     ${SSL_CERT_ENV} \
     --env-file <(set | grep BRIDGE) \
-    --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.docker.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true}]}" \
+    --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.docker.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
     $CONSOLE_IMAGE
 fi
