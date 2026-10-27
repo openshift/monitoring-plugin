@@ -1,0 +1,9 @@
+.lv-plugin__metrics-legent-table-color {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
+.lv-plugin__metrics-legend-table .pf-v6-c-table__sticky-cell {
+  --pf-v6-c-table__sticky-cell--BackgroundColor: transparent;
+}

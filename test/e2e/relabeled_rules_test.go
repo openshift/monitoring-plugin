@@ -379,7 +379,14 @@ func TestRBAC_GetRules(t *testing.T) {
 			t.Logf("Admin GET /rules nsZ returned status %d, retrying", status)
 			return false, nil
 		}
-		if containsRule(rulesY, nsYName) && containsRule(rulesZ, nsZName) {
+		// The namespace-less path uses a server-side namespace cache (30s TTL), so wait for it too.
+		rulesAll, status, err := listAlertingRulesWithToken(ctx, f, f.BearerToken, "")
+		if err != nil || status != http.StatusOK {
+			t.Logf("Admin GET /rules (all namespaces) not ready: status %d, err %v", status, err)
+			return false, nil
+		}
+		if containsRule(rulesY, nsYName) && containsRule(rulesZ, nsZName) &&
+			containsRule(rulesAll, nsYName) && containsRule(rulesAll, nsZName) {
 			return true, nil
 		}
 		t.Logf("Waiting for rules %s and %s", nsYName, nsZName)

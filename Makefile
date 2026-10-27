@@ -4,7 +4,7 @@ ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
 MONITORING_FEATURES    ?=alerting,alert-management-api,overview,targets,legacy-dashboards,metrics
-ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
+ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards,logging
 MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,perses-ui-customization,acm-alerting
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
@@ -40,6 +40,10 @@ start-mcp-frontend:
 start-console:
 	./scripts/start-console.sh
 
+.PHONY: start-coo-console
+start-coo-console:
+	CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console
+
 .PHONY: i18n-frontend
 i18n-frontend:
 	cd web && npm run i18n
@@ -66,7 +70,7 @@ start-backend:
 
 .PHONY: start-coo-backend
 start-coo-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${ALL_FEATURES}'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -plugin-config-path='./hack/default-config.yaml' -static-path='./web/dist' -features='${ALL_FEATURES}'
 
 .PHONY: test-backend
 test-backend:
@@ -87,6 +91,10 @@ test-frontend:
 .PHONY: test-frontend-unit
 test-frontend-unit:
 	cd web && npm run test:unit:ci
+
+.PHONY: test-logging-ui
+test-logging-ui:
+	./scripts/test-logging-ui.sh
 
 .PHONY: build-image
 build-image:

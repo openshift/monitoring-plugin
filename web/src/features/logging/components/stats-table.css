@@ -1,0 +1,11 @@
+.lv-plugin__stats__card {
+  margin-bottom: var(--pf-t--global--spacer--md);
+}
+
+.lv-plugin__stats-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--pf-t--global--border--color--on-secondary);
+}

@@ -55,12 +55,14 @@ type PluginServer struct {
 }
 
 type PluginConfig struct {
-	Timeout time.Duration `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	Logging *LoggingConfig `json:"logging,omitempty" yaml:"logging,omitempty"`
+	Timeout time.Duration  `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 }
 
 type Feature string
 
 const (
+	Logging               Feature = "logging"
 	AcmAlerting           Feature = "acm-alerting"
 	Alerting              Feature = "alerting"
 	LegacyDashboards      Feature = "legacy-dashboards"
@@ -389,7 +391,7 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	}
 
 	var pluginConfig PluginConfig
-	err = yaml.Unmarshal(pluginConfData, &pluginConfig)
+	err = yaml.UnmarshalStrict(pluginConfData, &pluginConfig)
 
 	if err != nil {
 		log.WithError(err).Error("unable to unmarshall config data")
