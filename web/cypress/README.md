@@ -357,24 +357,12 @@ export CYPRESS_SESSION=true
 
 ---
 
-## Component Testing
-
-Cypress component tests mount individual React components in isolation, without a running cluster. They provide fast feedback for testing rendering logic, props handling, and user interactions. See **[CYPRESS_TESTING_GUIDE.md](CYPRESS_TESTING_GUIDE.md)** for more guidance on how
-to write and run the tests.
-
-### Configuration
-
-Component testing is configured in the `component` section of `web/cypress.config.ts`. It uses a standalone webpack config with `swc-loader` and a custom `mount` command (compatible with React 17) defined in `cypress/support/component.ts`.
-
----
-
 ## Test Organization
 
 ### Directory Structure
 
 ```
 cypress/
-├── component/              # Component test files (.cy.tsx)
 ├── e2e/                    # E2E test files by perspective
 │   ├── monitoring/         # Core monitoring (Administrator)
 │   ├── coo/               # COO-specific tests

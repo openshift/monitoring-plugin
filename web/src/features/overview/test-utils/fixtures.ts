@@ -17,10 +17,6 @@ import { getObservabilityCapability } from '@/features/overview/utils/services-u
 export const CSV_GVK = RequirementGroupVersionKinds[RequirementKind.ClusterServiceVersion];
 export const MONITORING_STACK_GVK = RequirementGroupVersionKinds[RequirementKind.MonitoringStack];
 
-/**
- * PatternFly puts the status modifier on the Icon's inner content span, not on the
- * `pf-v6-c-icon` wrapper, so status assertions have to target `__content`.
- */
 export const statusIcon = (status: 'success' | 'danger' | 'warning' | 'info') =>
   `.pf-v6-c-icon__content.pf-m-${status}`;
 

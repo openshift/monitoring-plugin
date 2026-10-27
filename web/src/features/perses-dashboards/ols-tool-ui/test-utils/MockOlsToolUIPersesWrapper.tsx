@@ -1,4 +1,4 @@
-import { OlsToolUIPersesWrapperProps } from '@/features/perses-dashboards/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
+import type { OlsToolUIPersesWrapperProps } from '@/features/perses-dashboards/ols-tool-ui/helpers/OlsToolUIPersesWrapper';
 
 export const OlsToolUIPersesWrapper = ({
   children,
@@ -6,7 +6,7 @@ export const OlsToolUIPersesWrapper = ({
   initialTimeZone = 'local',
 }: OlsToolUIPersesWrapperProps) => (
   <div
-    data-testid="perses-wrapper"
+    data-test="perses-wrapper"
     data-time-range={JSON.stringify(initialTimeRange)}
     data-timezone={initialTimeZone}
   >

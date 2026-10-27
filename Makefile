@@ -92,6 +92,10 @@ test-frontend:
 test-frontend-unit:
 	cd web && npm run test:unit:ci
 
+.PHONY: test-frontend-component
+test-frontend-component:
+	cd web && npm run test:component
+
 .PHONY: test-logging-ui
 test-logging-ui:
 	./scripts/test-logging-ui.sh

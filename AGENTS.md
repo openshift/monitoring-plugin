@@ -332,15 +332,15 @@ npm run cypress:open
 
 For detailed testing instructions, see `web/cypress/CYPRESS_TESTING_GUIDE.md`
 
-### Cypress Component Testing
+### Vitest Browser Component Testing
 
 #### Overview
 
-Cypress component tests mount individual React components in isolation, without requiring a running OpenShift cluster. They are useful for testing component rendering, user interactions, and visual behavior with fast feedback.
+Vitest Browser Mode mounts individual React components in Playwright Chromium without a cluster. Use Jest-style Vitest assertions and `vitest-browser-react` rendering.
 
-- **Test location**: `web/cypress/component/`
-- **Support file**: `web/cypress/support/component.ts`
-- **Config**: `component` section in `web/cypress.config.ts`
+- **Test location**: Co-located `*.browser.spec.tsx` files in `web/src/`
+- **Support file**: `web/vitest.browser.setup.ts`
+- **Config**: `web/vitest.browser.config.mts`
 
 #### When to Create Component Tests
 
@@ -354,27 +354,28 @@ Cypress component tests mount individual React components in isolation, without 
 ```bash
 cd web
 
-# Interactive mode
-npm run cypress:open:component
+npx playwright install chromium
 
 # Headless mode - all component tests
-npm run cypress:run:component
+npm run test:component
 
 # Run a single component test file
-npx cypress run --component --spec cypress/component/labels.cy.tsx
+npm run test:component -- Labels.browser.spec.tsx
 ```
 
 #### Writing a Component Test
 
-Component test files use the `.cy.tsx` extension and go in `web/cypress/component/`:
+Component test files use `.browser.spec.tsx` and are co-located with the source:
 
 ```typescript
+import { render } from 'vitest-browser-react';
+
 import { MyComponent } from '@/shared/components/MyComponent';
 
 describe('MyComponent', () => {
-  it('renders correctly', () => {
-    cy.mount(<MyComponent prop="value" />);
-    cy.contains('expected text').should('be.visible');
+  it('renders correctly', async () => {
+    const screen = await render(<MyComponent prop="value" />);
+    await expect.element(screen.getByText('expected text')).toBeVisible();
   });
 });
 ```
@@ -392,18 +393,18 @@ Reusable workflows live under `.agents/skills/`. Invoke them with
 does not discover Agent Skills, ask it to read the corresponding
 `.agents/skills/<name>/SKILL.md` explicitly.
 
-| Skill | Purpose |
-| --- | --- |
-| `backport` | Backport a commit with release-branch adaptations. |
-| `build-images` | Build both plugin development images with a unique tag. |
-| `run-perses-dev` | Start the integrated plugin/Perses tmux environment. |
-| `cypress-setup` | Install and configure the Cypress environment. |
-| `cypress-run` | Select and run Cypress tests. |
-| `generate-incident-fixture` | Create a schema-valid incident fixture. |
-| `validate-incident-fixtures` | Validate one or all incident fixtures. |
-| `fixture-schema-reference` | Explain the incident fixture schema. |
-| `generate-regression-test` | Generate an Incidents regression test from documented flows. |
-| `refactor-regression-test` | Refactor an existing Incidents regression test. |
+| Skill                        | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `backport`                   | Backport a commit with release-branch adaptations.           |
+| `build-images`               | Build both plugin development images with a unique tag.      |
+| `run-perses-dev`             | Start the integrated plugin/Perses tmux environment.         |
+| `cypress-setup`              | Install and configure the Cypress environment.               |
+| `cypress-run`                | Select and run Cypress tests.                                |
+| `generate-incident-fixture`  | Create a schema-valid incident fixture.                      |
+| `validate-incident-fixtures` | Validate one or all incident fixtures.                       |
+| `fixture-schema-reference`   | Explain the incident fixture schema.                         |
+| `generate-regression-test`   | Generate an Incidents regression test from documented flows. |
+| `refactor-regression-test`   | Refactor an existing Incidents regression test.              |
 
 ### Feature Backporting
 

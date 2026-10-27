@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
@@ -10,11 +10,12 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.spec.{ts,tsx}'],
+    exclude: [...configDefaults.exclude, 'src/**/*.browser.spec.tsx'],
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.spec.{ts,tsx}', 'src/**/*.d.ts', 'src/shared/test-utils/*'],
+      exclude: ['src/**/*.spec.{ts,tsx}', 'src/**/*.d.ts', 'src/**/test-utils/**'],
     },
   },
 });
