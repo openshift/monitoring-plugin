@@ -94,11 +94,12 @@ func (c *client) EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8
 						}
 						delete(in, k8s.AlertSourceLabel)
 
-						relabeledLabels, keep := relabel.Process(labels.FromMap(in), configs...)
+						lb := labels.NewBuilder(labels.FromMap(in))
+						keep := relabel.ProcessBuilder(lb, configs...)
 						if !keep {
 							continue
 						}
-						alert.Labels = relabeledLabels.Map()
+						alert.Labels = lb.Labels().Map()
 						if src != "" {
 							alert.Labels[k8s.AlertSourceLabel] = src
 						}
@@ -259,7 +260,7 @@ func canonicalizePromQL(in string) string {
 	if s == "" {
 		return ""
 	}
-	expr, err := parser.ParseExpr(s)
+	expr, err := parser.NewParser(parser.Options{}).ParseExpr(s)
 	if err == nil && expr != nil {
 		parser.Inspect(expr, func(node parser.Node, _ []parser.Node) error {
 			switch n := node.(type) {
