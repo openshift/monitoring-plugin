@@ -1,0 +1,460 @@
+import { commonPages } from './common';
+import {
+  Classes,
+  DataTestIDs,
+  IDs,
+  LegacyTestIDs,
+  listPersesDashboardsDataTestIDs,
+  listPersesDashboardsOUIAIDs,
+  persesAriaLabels,
+  persesDashboardDataTestIDs,
+} from '../../src/components/data-test';
+import {
+  listPersesDashboardsEmptyState,
+  listPersesDashboardsNoDashboardsFoundState,
+  listPersesDashboardsPageSubtitle,
+  persesDashboardsDuplicateDashboard,
+  persesDashboardsRenameDashboard,
+} from '../fixtures/perses/constants';
+import { MonitoringPageTitles } from '../fixtures/monitoring/constants';
+
+export const listPersesDashboardsPage = {
+  emptyState: () => {
+    cy.log('listPersesDashboardsPage.emptyState');
+    cy.get(Classes.PersesListEmptyStateTitle)
+      .should('be.visible')
+      .contains(listPersesDashboardsEmptyState.TITLE);
+    cy.get(Classes.PersesListEmptyStateBody)
+      .should('be.visible')
+      .contains(listPersesDashboardsEmptyState.BODY);
+    cy.get(Classes.PersesListDataViewHeaderClearAllFiltersLink).should('be.visible');
+  },
+
+  noDashboardsFoundState: () => {
+    cy.log('listPersesDashboardsPage.noDashboardsFoundState');
+    cy.get(Classes.PersesListEmptyStateTitle)
+      .should('be.visible')
+      .contains(listPersesDashboardsNoDashboardsFoundState.TITLE);
+    cy.get(Classes.PersesListEmptyStateBody)
+      .should('be.visible')
+      .contains(listPersesDashboardsNoDashboardsFoundState.BODY);
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderClearAllFiltersButton).should(
+      'not.be.visible',
+    );
+  },
+
+  shouldBeLoaded: (dashboardsPageName?: string) => {
+    cy.log('listPersesDashboardsPage.shouldBeLoaded');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesBreadcrumb).should('not.exist');
+    commonPages.titleShouldHaveText(MonitoringPageTitles.DASHBOARDS);
+    cy.get(Classes.PersesListPageHeaderSubtitle)
+      .should('contain', listPersesDashboardsPageSubtitle)
+      .should('be.visible');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).scrollIntoView().should('be.visible');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.PersesDashListDataViewTable).should('be.visible');
+  },
+
+  filter: {
+    byName: (name: string) => {
+      cy.log('listPersesDashboardsPage.filter.byName');
+      cy.wait(1000);
+      cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
+        .contains('button', /Name|Dashboard|Project/)
+        .click({ force: true });
+      cy.wait(1000);
+      cy.get(Classes.FilterDropdownOption)
+        .should('be.visible')
+        .contains(/Name|Dashboard/)
+        .click({ force: true });
+      cy.wait(1000);
+      cy.get(Classes.FilterField).should('be.visible').type(name);
+      cy.wait(1000);
+      cy.get(Classes.FilterField).should('have.attr', 'value', name);
+      cy.wait(4000);
+    },
+    byProject: (project: string) => {
+      cy.log('listPersesDashboardsPage.filter.byProject');
+      cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewFilters)
+        .contains('button', /Name|Dashboard|Project/)
+        .click({ force: true });
+      cy.wait(1000);
+      cy.get(Classes.FilterDropdownOption)
+        .should('be.visible')
+        .contains('Project')
+        .click({ force: true });
+      cy.wait(1000);
+      cy.get(Classes.FilterField).should('be.visible').type(project);
+      cy.wait(1000);
+      cy.get(Classes.FilterField).should('have.attr', 'value', project);
+      cy.wait(4000);
+    },
+  },
+
+  countDashboards: (count: string) => {
+    cy.log('listPersesDashboardsPage.countDashboards');
+    cy.wait(2000);
+    const selector = IDs.persesDashboardCount.map((id) => '#' + id).join(', ');
+    cy.get(selector).each(($el) => {
+      cy.wrap($el)
+        .find(Classes.PersesListDashboardCount)
+        .invoke('text')
+        .should((text) => {
+          expect(text.split('of')[1]?.trim()).to.equal(count);
+        });
+    });
+  },
+
+  clearAllFilters: () => {
+    cy.log('listPersesDashboardsPage.clearAllFilters');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderClearAllFiltersButton).click();
+    cy.wait(5000);
+  },
+
+  sortBy: (column: string) => {
+    cy.log('listPersesDashboardsPage.sortBy');
+    cy.byOUIAID(listPersesDashboardsOUIAIDs.persesListDataViewHeaderSortButton)
+      .contains(column)
+      .scrollIntoView()
+      .click();
+  },
+
+  /**
+   * If index is not provided, it asserts the existence of the dashboard by appending the name to
+   * the prefix to build data-test id, expecting to be unique
+   * If index is provided, it asserts the existence of the dashboard by the index.
+   * @param name - The name of the dashboard to assert
+   * @param index - The index of the dashboard to assert (optional)
+   */
+  assertDashboardName: (name: string, index?: number) => {
+    cy.log('listPersesDashboardsPage.assertDashboardName');
+    const idx = index !== undefined ? index : 0;
+    if (index === undefined) {
+      cy.byTestID(listPersesDashboardsDataTestIDs.DashboardLinkPrefix + name)
+        .should('be.visible')
+        .contains(name);
+    } else {
+      cy.byOUIAID(
+        listPersesDashboardsOUIAIDs.persesListDataViewTableDashboardNameTD + idx.toString(),
+      )
+        .should('be.visible')
+        .contains(name);
+    }
+  },
+
+  clickDashboard: (name: string, index?: number) => {
+    const idx = index !== undefined ? index : 0;
+    cy.log('listPersesDashboardsPage.clickDashboard');
+    // cy.byTestID(listPersesDashboardsDataTestIDs.DashboardLinkPrefix+name).eq(idx)
+    //   .should('be.visible').click();
+    cy.get('a').contains(name).eq(idx).should('be.visible').click();
+    cy.wait(15000);
+  },
+
+  removeTag: (value: string) => {
+    cy.log('listPersesDashboardsPage.removeTag');
+    cy.get('[class="pf-v5-c-chip__text"]')
+      .contains(value)
+      .parent('span')
+      .siblings('span')
+      .find('button')
+      .click();
+    // cy.byAriaLabel('close ' + value).click();
+  },
+
+  clickCreateButton: () => {
+    cy.log('persesDashboardsPage.clickCreateButton');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton)
+      .scrollIntoView()
+      .should('be.visible')
+      .and('not.have.attr', 'disabled');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton).click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertCreateButtonIsEnabled: () => {
+    cy.log('persesDashboardsPage.assertCreateButtonIsEnabled');
+    cy.byTestID(DataTestIDs.PersesCreateDashboardButton)
+      .scrollIntoView()
+      .should('be.visible')
+      .should('not.have.attr', 'disabled');
+  },
+
+  clickKebabIcon: (index?: number) => {
+    const idx = index !== undefined ? index : 0;
+    cy.log('persesDashboardsPage.clickKebabIcon');
+    cy.byAriaLabel(persesAriaLabels.persesDashboardKebabIcon)
+      .eq(idx)
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertKebabIconOptions: () => {
+    cy.log('persesDashboardsPage.assertKebabIconOptions');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Rename dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Delete dashboard')
+      .should('be.visible')
+      .should('be.enabled');
+  },
+
+  assertKebabIconOnlyDuplicate: () => {
+    cy.log('persesDashboardsPage.assertKebabIconOnlyDuplicate');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Rename dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Delete dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+  },
+
+  assertKebabRowActionsDisabled: (index?: number) => {
+    cy.log('persesDashboardsPage.assertKebabRowActionsDisabled');
+    listPersesDashboardsPage.clickKebabIcon(index);
+    // NOTE: cy.contains(text) alone returns the deepest matching element, which
+    // would be the inner <span class="pf-v6-c-menu__item-text"> text node, not
+    // the <button role="menuitem" aria-disabled="..."> that actually carries the
+    // attribute. Passing the role selector into contains() anchors the match to
+    // the button itself.
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Rename dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Delete dashboard')
+      .should('have.attr', 'aria-disabled', 'true');
+    cy.byPFRole('menuitem')
+      .contains('[role="menuitem"]', 'Duplicate dashboard')
+      .should('not.have.attr', 'aria-disabled', 'true');
+    listPersesDashboardsPage.clickKebabIcon(index);
+  },
+
+  assertDuplicateProjectDenied: (project: string) => {
+    listPersesDashboardsPage.duplicateDashboardEnterName('access-denied-check');
+    cy.log('persesDashboardsPage.assertDuplicateProjectDenied');
+    listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown(project);
+    cy.byTestID(persesDashboardDataTestIDs.createAccessDeniedHelperText).should('be.visible');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDuplicateImportButton).should('be.disabled');
+  },
+
+  assertDuplicateAccessDenied: (project: string) => {
+    cy.log('persesDashboardsPage.assertDuplicateAccessDenied');
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.clickDuplicateOption();
+    listPersesDashboardsPage.assertDuplicateProjectDenied(project);
+    listPersesDashboardsPage.duplicateDashboardCancelButton();
+  },
+
+  clickRenameDashboardOption: () => {
+    cy.log('listPersesDashboardsPage.clickRenameDashboardOption');
+    cy.wait(1000);
+    cy.byPFRole('menuitem')
+      .contains('Rename dashboard')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(1000);
+  },
+
+  renameDashboardEnterName: (name: string) => {
+    cy.log('listPersesDashboardsPage.renameDashboardEnterName');
+    cy.get('#' + IDs.persesDashboardRenameDashboardName)
+      .should('be.visible')
+      .clear()
+      .type(name);
+    cy.wait(1000);
+  },
+
+  renameDashboardCancelButton: () => {
+    cy.log('listPersesDashboardsPage.renameDashboardCancel');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Cancel')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  renameDashboardRenameButton: () => {
+    cy.log('listPersesDashboardsPage.renameDashboardRename');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Rename')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertRenameDashboardMaxLength: () => {
+    cy.log('listPersesDashboardsPage.assertRenameDashboardMaxLength');
+    cy.byPFRole('dialog')
+      .find(Classes.PersesDialogError)
+      .should('have.text', persesDashboardsRenameDashboard.DIALOG_MAX_LENGTH_VALIDATION)
+      .should('be.visible');
+  },
+
+  clickDuplicateOption: () => {
+    cy.log('listPersesDashboardsPage.clickDuplicateOption');
+    cy.byPFRole('menuitem')
+      .contains('Duplicate dashboard')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertDuplicateProjectDropdown: (project: string) => {
+    cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdown');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).should('be.visible').clear().type(project);
+    cy.byPFRole('option').contains(project).should('be.visible');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+  },
+
+  duplicateDashboardEnterName: (name: string) => {
+    cy.log('listPersesDashboardsPage.duplicateDashboardEnterName');
+    cy.get('#' + IDs.persesDashboardDuplicateDashboardName)
+      .should('be.visible')
+      .clear()
+      .type(name);
+    cy.wait(3000);
+  },
+
+  duplicateDashboardCancelButton: () => {
+    cy.log('listPersesDashboardsPage.duplicateDashboardCancel');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Cancel')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  duplicateDashboardDuplicateButton: () => {
+    cy.log('listPersesDashboardsPage.duplicateDashboardDuplicate');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Duplicate')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertDuplicateDashboardAlreadyExists: (name: string, project: string) => {
+    cy.log('listPersesDashboardsPage.assertDuplicateDashboardAlreadyExists');
+    cy.byPFRole('dialog')
+      .find(Classes.PersesDialogError)
+      .should(
+        'have.text',
+        persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_FED_VALIDATION_1 +
+          name +
+          persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_FED_VALIDATION_2 +
+          project +
+          persesDashboardsDuplicateDashboard.DIALOG_DUPLICATED_NAME_FED_VALIDATION_3,
+      )
+      .should('be.visible');
+  },
+
+  duplicateDashboardSelectProjectDropdown: (project: string) => {
+    cy.log('listPersesDashboardsPage.duplicateDashboardSelectProjectDropdown');
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
+    cy.byPFRole('option').contains(project).should('be.visible').click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertDuplicateProjectDropdownExists: (project: string) => {
+    cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdownExists');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byAriaLabel(persesAriaLabels.dialogProjectInput).clear().type(project);
+    cy.byPFRole('option').contains(project).should('be.visible');
+    cy.log('Project: ' + project + ' is available in the dropdown');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+  },
+
+  assertDuplicateProjectDropdownNotExists: (project: string) => {
+    cy.log('listPersesDashboardsPage.assertDuplicateProjectDropdownNotExists');
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+    cy.byPFRole('listbox')
+      .find('li')
+      .then((items) => {
+        items.each((_index, item) => {
+          cy.log('Project: ' + item.innerText);
+          if (item.innerText === project) {
+            expect(item).to.equal(undefined);
+          }
+        });
+      });
+    cy.byPFRole('dialog').find(Classes.PersesCreateDashboardProjectDropdown).click({ force: true });
+  },
+
+  clickDeleteOption: () => {
+    cy.log('listPersesDashboardsPage.clickDeleteOption');
+    cy.byPFRole('menuitem')
+      .contains('Delete dashboard')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(5000);
+  },
+
+  deleteDashboardCancelButton: () => {
+    cy.log('listPersesDashboardsPage.deleteDashboardCancel');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Cancel')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(5000);
+  },
+
+  deleteDashboardDeleteButton: () => {
+    cy.log('listPersesDashboardsPage.deleteDashboardDelete');
+    cy.byPFRole('dialog')
+      .find('button')
+      .contains('Delete')
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(5000);
+  },
+
+  projectDropdownNotExists: () => {
+    cy.log('listPersesDashboardsPage.projectDropdownNotExists');
+    cy.byLegacyTestID(LegacyTestIDs.NamespaceBarDropdown).should('not.exist');
+    cy.get(Classes.NamespaceDropdown).should('not.exist');
+  },
+
+  clickImportButton: () => {
+    cy.log('listPersesDashboardsPage.clickImportButton');
+    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu)
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+    cy.byPFRole('menuitem').contains('Import').should('be.visible').click({ force: true });
+    cy.wait(2000);
+  },
+
+  dismissDuplicatedDashboardError: () => {
+    cy.log('listPersesDashboardsPage.dismissDuplicatedDashboardError');
+    cy.byAriaLabel(persesAriaLabels.importDashboardDuplicatedDashboardError)
+      .scrollIntoView()
+      .should('be.visible')
+      .click({ force: true });
+    cy.wait(2000);
+  },
+
+  assertImportButtonIsEnabled: () => {
+    cy.log('listPersesDashboardsPage.assertImportButtonIsEnabled');
+    cy.byAriaLabel(persesAriaLabels.dashboardActionsMenu)
+      .scrollIntoView()
+      .should('be.visible')
+      .should('not.have.attr', 'disabled');
+  },
+};
