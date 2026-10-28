@@ -29,7 +29,7 @@ export const fileNaming: Rule.RuleModule = {
     const ext = path.extname(filename);
     const stem = path.basename(filename, ext);
     // Strip spec/test suffix before checking
-    const baseStem = stem.replace(/\.(spec|test)$/, '');
+    const baseStem = stem.replace(/\.(browser\.)?(spec|test)$/, '');
     const isSpec = /\.(spec|test)$/.test(stem);
 
     if (ext === '.tsx') {

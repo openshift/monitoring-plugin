@@ -9,6 +9,8 @@ web/cypress/downloads/
 web/dist/
 web/node_modules/
 web/coverage/
+web/test-results/
+web/.vitest/attachments/
 e2e.test
 plugin-backend
 # Leave these permanently for backwards compatability for backporting

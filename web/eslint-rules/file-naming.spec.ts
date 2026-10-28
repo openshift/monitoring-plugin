@@ -28,6 +28,7 @@ ruleTester.run('file-naming', fileNaming, {
     { code: '', filename: '/src/shared/hooks/useMyHook.tsx' },
     { code: '', filename: '/src/shared/hooks/useMyHook.spec.tsx' },
     { code: '', filename: '/src/features/alerts/MyComponent.spec.tsx' },
+    { code: '', filename: '/src/features/alerts/MyComponent.browser.spec.tsx' },
     { code: '', filename: '/src/shared/utils/my-utils.spec.ts' },
     // Spec files may mirror a PascalCase sibling (DashboardDialogHelpers.tsx exists)
     { code: '', filename: fixture('DashboardDialogHelpers.spec.ts') },
@@ -36,6 +37,11 @@ ruleTester.run('file-naming', fileNaming, {
     { code: '', filename: fixture('myUtils.spec.ts') },
   ],
   invalid: [
+    {
+      code: '',
+      filename: '/src/features/alerts/my-component.browser.spec.tsx',
+      errors: [{ messageId: 'invalidTsxName' }],
+    },
     {
       code: '',
       filename: '/src/features/alerts/my-component.tsx',
