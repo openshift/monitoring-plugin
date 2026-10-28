@@ -8,8 +8,8 @@ import { MemoryRouter } from 'react-router';
 import { AlertsTable } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
 import type { AlertsTableRef } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
 import {
-  defaultVisibleAlertColumns,
-  optionalAlertColumns,
+  alertColumns,
+  defaultAlertColumns,
 } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import {
   AlertGroupBy,
@@ -59,6 +59,45 @@ const table = (props: Partial<ComponentPropsWithRef<typeof AlertsTable>> = {}) =
       {...props}
     />
   </MemoryRouter>
+);
+
+it.each([true, false])(
+  'aligns reordered group and alert cells with aggregation %s',
+  (isAggregated) => {
+    const onSort = vi.fn();
+    render(
+      table({
+        isAggregated,
+        pageGroups: groupAlerts(testAlerts, AlertGroupBy.Scope, isAggregated, defaultAlertSort),
+        columns: ['source', 'total', 'severity', 'name'],
+        onSort,
+      }),
+    );
+    const headers = screen.getAllByRole('columnheader');
+    expect(headers.slice(2, -1).map((header) => header.textContent)).toEqual(
+      isAggregated
+        ? ['Source', 'Total', 'Severity', 'Alert name']
+        : ['Source', 'Severity', 'Alert name'],
+    );
+    expect(
+      screen
+        .getByRole('columnheader', { name: 'Alert name' })
+        .classList.contains('pf-v6-c-table__sticky-cell'),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Source' }));
+    expect(onSort).toHaveBeenCalledWith({ column: 'source', direction: 'asc' });
+    const summary = screen.getByText('Alert scope: Cluster (4 alerts)').closest('tr')!;
+    const cells = within(summary).getAllByRole('cell');
+    expect(cells[2].textContent).toBe('');
+    expect(cells[isAggregated ? 5 : 4].textContent).toContain('Alert scope: Cluster');
+    fireEvent.click(within(summary).getByRole('button'));
+    if (isAggregated) {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Details' })[0]);
+    }
+    for (const row of screen.getAllByRole('row').slice(1)) {
+      expect(within(row).getAllByRole('cell')).toHaveLength(headers.length);
+    }
+  },
 );
 
 it('expands an ungrouped aggregate into its individual rows', () => {
@@ -161,9 +200,7 @@ it('expands an ungrouped aggregate into its individual rows', () => {
 });
 
 it('derives group counts from rows in aligned sibling bodies with optional columns', () => {
-  const { container } = render(
-    table({ columns: new Set(optionalAlertColumns.map(({ key }) => key)) }),
-  );
+  const { container } = render(table({ columns: alertColumns.map(({ key }) => key) }));
   expect(
     container.querySelectorAll('table > tbody'),
     'Grouped rows should render in two sibling table bodies',
@@ -364,7 +401,7 @@ it('keeps the optional description column on a single line', () => {
       aggregatedAlerts: aggregateAlerts([alert]),
       pageGroups: [],
       groupBy: AlertGroupBy.None,
-      columns: new Set([...defaultVisibleAlertColumns, 'description']),
+      columns: [...defaultAlertColumns, 'description'],
     }),
   );
 
@@ -388,7 +425,7 @@ it.each([AlertGroupBy.Severity, AlertGroupBy.Scope, AlertGroupBy.Component])(
         isAggregated: false,
         aggregatedAlerts: pageGroups.flatMap((group) => group.rows),
         pageGroups,
-        columns: new Set(),
+        columns: ['name', 'severity'],
         ref,
         onSelectionChange,
         onSort,

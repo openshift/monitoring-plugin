@@ -8,7 +8,11 @@ import { Link, useLocation } from 'react-router';
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import type { OptionalAlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
+import {
+  AlertColumnCell,
+  SortedColumnCells,
+} from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
+import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
 import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
@@ -73,7 +77,7 @@ type AlertRowProps = {
   hasExpandColumn: boolean;
   isAggregateChild?: boolean;
   startColumns: StartColumnsConfiguration;
-  columns: Set<OptionalAlertColumn>;
+  columns: AlertColumn[];
   selection: AlertSelection;
 };
 
@@ -91,6 +95,100 @@ export function AlertRow({
   const { pathname, search, hash } = useLocation();
   const name = alert.labels.alertname ?? alert.rule.name;
   const firingSince = getFiringSinceTimestamp([alert]);
+
+  const cells: AlertColumnCell[] = [
+    {
+      column: 'name',
+      component: (
+        <Td {...startColumns.nameColumn}>
+          <AlertName name={name}>
+            {isAggregateChild ? (
+              <Link
+                to={{ pathname, search, hash }}
+                onClick={() =>
+                  // eslint-disable-next-line no-console
+                  console.debug(`${name}, namespace: ${alert.labels.namespace ?? ''}`)
+                }
+              >
+                {name}
+              </Link>
+            ) : undefined}
+          </AlertName>
+        </Td>
+      ),
+    },
+    {
+      column: 'severity',
+      component: (
+        <Td>
+          <SeverityBadge severity={alert.labels.severity} />
+        </Td>
+      ),
+    },
+    {
+      column: 'total',
+      component: (
+        <Td>
+          <span
+            style={{
+              display: 'inline-block',
+              minWidth: 'var(--pf-t--global--spacer--xl)',
+              textAlign: 'center',
+            }}
+          >
+            1
+          </span>
+        </Td>
+      ),
+    },
+    {
+      column: 'state',
+      component: (
+        <Td>
+          <AlertState state={alert.state} />
+          <AlertStateDescription alert={alert} />
+        </Td>
+      ),
+    },
+    {
+      column: 'scope',
+      component: (
+        <Td>
+          <Label color="grey">{alert.alertScope}</Label>
+        </Td>
+      ),
+    },
+    {
+      column: 'component',
+      component: (
+        <Td>
+          <Label variant="outline">{alert.component}</Label>
+        </Td>
+      ),
+    },
+    { column: 'source', component: <Td>{getSourceKey(startCase(alert.source), t)}</Td> },
+    {
+      column: 'description',
+      component: <Td>{alert.annotations.description ?? alert.annotations.summary}</Td>,
+    },
+    {
+      column: 'firingSince',
+      component: (
+        <Td>
+          {isAggregateChild ? (
+            <Timestamp timestamp={alert.activeAt} />
+          ) : firingSince !== 0 ? (
+            <Timestamp timestamp={new Date(firingSince).toISOString()} />
+          ) : (
+            '-'
+          )}
+        </Td>
+      ),
+    },
+    { column: 'runbookUrl', component: <Td>{alert.annotations.runbook_url}</Td> },
+    { column: 'namespace', component: <Td>{alert.labels.namespace ?? ''}</Td> },
+    { column: 'resource', component: <Td>{alert.labels.resource ?? ''}</Td> },
+  ];
 
   return (
     <Tr>
@@ -114,71 +212,7 @@ export function AlertRow({
           {...selection}
         />
       </Td>
-      <Td {...startColumns.nameColumn}>
-        <AlertName name={name}>
-          {isAggregateChild ? (
-            <Link
-              to={{ pathname, search, hash }}
-              onClick={() =>
-                // eslint-disable-next-line no-console
-                console.debug(`${name}, namespace: ${alert.labels.namespace ?? ''}`)
-              }
-            >
-              {name}
-            </Link>
-          ) : undefined}
-        </AlertName>
-      </Td>
-      <Td>
-        <SeverityBadge severity={alert.labels.severity} />
-      </Td>
-      {isAggregateChild && columns.has('total') && (
-        <Td>
-          <span
-            style={{
-              display: 'inline-block',
-              minWidth: 'var(--pf-t--global--spacer--xl)',
-              textAlign: 'center',
-            }}
-          >
-            1
-          </span>
-        </Td>
-      )}
-      {columns.has('state') && (
-        <Td>
-          <AlertState state={alert.state} />
-          <AlertStateDescription alert={alert} />
-        </Td>
-      )}
-      {columns.has('scope') && (
-        <Td>
-          <Label color="grey">{alert.alertScope}</Label>
-        </Td>
-      )}
-      {columns.has('component') && (
-        <Td>
-          <Label variant="outline">{alert.component}</Label>
-        </Td>
-      )}
-      {columns.has('source') && <Td>{getSourceKey(startCase(alert.source), t)}</Td>}
-      {columns.has('description') && (
-        <Td>{alert.annotations.description ?? alert.annotations.summary}</Td>
-      )}
-      {columns.has('firingSince') && (
-        <Td>
-          {isAggregateChild ? (
-            <Timestamp timestamp={alert.activeAt} />
-          ) : firingSince !== 0 ? (
-            <Timestamp timestamp={new Date(firingSince).toISOString()} />
-          ) : (
-            '-'
-          )}
-        </Td>
-      )}
-      {columns.has('runbookUrl') && <Td>{alert.annotations.runbook_url}</Td>}
-      {columns.has('namespace') && <Td>{alert.labels.namespace ?? ''}</Td>}
-      {columns.has('resource') && <Td>{alert.labels.resource ?? ''}</Td>}
+      <SortedColumnCells columns={columns} cells={cells} />
       <Td hasAction>
         <AlertActions alert={alert} />
       </Td>

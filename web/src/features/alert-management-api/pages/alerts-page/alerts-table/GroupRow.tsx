@@ -7,7 +7,7 @@ import { AggregatedRow } from '@/features/alert-management-api/pages/alerts-page
 import { AlertRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertRow';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import type { OptionalAlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
+import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import { AlertGroupBy } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import type { AlertGroup } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { compareSeverities } from '@/features/alert-management-api/utils/sort-alerts';
@@ -24,7 +24,7 @@ type GroupRowProps = {
   onGroupToggle: () => void;
   onToggleAggregate: (key: string) => void;
   startColumns: StartColumnsConfiguration;
-  columns: Set<OptionalAlertColumn>;
+  columns: AlertColumn[];
   selection: AlertSelection;
 };
 
@@ -82,26 +82,32 @@ export function GroupRow({
           />
         </Td>
         <Td {...startColumns.selectionColumn} />
-        <Td {...startColumns.nameColumn}>
-          <strong>{label}</strong>
-        </Td>
-        <Td>
-          <Flex spaceItems={{ default: 'spaceItemsSm' }}>
-            {Object.entries(severityCounts)
-              .sort(([first], [second]) => compareSeverities(first, second))
-              .map(([severity, count]) => (
-                <FlexItem key={severity}>
-                  <SeverityBadge severity={severity} count={count} />
-                </FlexItem>
-              ))}
-          </Flex>
-        </Td>
-        {isAggregated && columns.has('total') && (
-          <Td>
-            <Badge isRead>{alertCount}</Badge>
-          </Td>
+        {columns.map((column) =>
+          column === 'name' ? (
+            <Td key={column} {...startColumns.nameColumn}>
+              <strong>{label}</strong>
+            </Td>
+          ) : column === 'severity' ? (
+            <Td key={column}>
+              <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+                {Object.entries(severityCounts)
+                  .sort(([first], [second]) => compareSeverities(first, second))
+                  .map(([severity, count]) => (
+                    <FlexItem key={severity}>
+                      <SeverityBadge severity={severity} count={count} />
+                    </FlexItem>
+                  ))}
+              </Flex>
+            </Td>
+          ) : column === 'total' ? (
+            <Td key={column}>
+              <Badge isRead>{alertCount}</Badge>
+            </Td>
+          ) : (
+            <Td key={column} />
+          ),
         )}
-        <Td colSpan={1 + [...columns].filter((column) => column !== 'total').length} />
+        <Td />
       </Tr>
       {isExpanded &&
         group.rows.map((aggregatedAlert, index) =>

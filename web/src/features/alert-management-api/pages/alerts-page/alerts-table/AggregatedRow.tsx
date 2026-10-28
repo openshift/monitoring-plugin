@@ -11,7 +11,11 @@ import {
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import type { OptionalAlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
+import {
+  AlertColumnCell,
+  SortedColumnCells,
+} from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
+import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
 import { AlertState } from '@/shared/components/AlertState';
@@ -26,7 +30,7 @@ type AggregatedRowProps = {
   isExpanded: boolean;
   onToggle: () => void;
   startColumns: StartColumnsConfiguration;
-  columns: Set<OptionalAlertColumn>;
+  columns: AlertColumn[];
   selection: AlertSelection;
 };
 
@@ -41,6 +45,86 @@ export function AggregatedRow({
 }: AggregatedRowProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const firingSince = getFiringSinceTimestamp(aggregatedAlert.alerts);
+
+  const cells: AlertColumnCell[] = [
+    {
+      column: 'name',
+      component: (
+        <Td {...startColumns.nameColumn}>
+          <AlertName name={aggregatedAlert.name} />
+        </Td>
+      ),
+    },
+    {
+      column: 'severity',
+      component: (
+        <Td>
+          <SeverityBadge severity={aggregatedAlert.severity} />
+        </Td>
+      ),
+    },
+    {
+      column: 'total',
+      component: (
+        <Td>
+          <Badge>{aggregatedAlert.alerts.length}</Badge>
+        </Td>
+      ),
+    },
+    {
+      column: 'state',
+      component: (
+        <Td>
+          {aggregatedAlert.state.map((state, index) => (
+            <Fragment key={state}>
+              {index > 0 && ', '}
+              <AlertState state={state as AlertStates} />
+            </Fragment>
+          ))}
+        </Td>
+      ),
+    },
+    {
+      column: 'scope',
+      component: (
+        <Td>
+          <Label color="grey">{aggregatedAlert.alertScope}</Label>
+        </Td>
+      ),
+    },
+    {
+      column: 'component',
+      component: (
+        <Td>
+          <Label variant="outline">{aggregatedAlert.component}</Label>
+        </Td>
+      ),
+    },
+    { column: 'source', component: <Td>{getSourceKey(startCase(aggregatedAlert.source), t)}</Td> },
+    {
+      column: 'description',
+      component: (
+        <Td>
+          {aggregatedAlert.alerts[0]?.annotations.description ??
+            aggregatedAlert.alerts[0]?.annotations.summary}
+        </Td>
+      ),
+    },
+    {
+      column: 'firingSince',
+      component: (
+        <Td>
+          {firingSince !== 0 ? <Timestamp timestamp={new Date(firingSince).toISOString()} /> : '-'}
+        </Td>
+      ),
+    },
+    {
+      column: 'runbookUrl',
+      component: <Td>{aggregatedAlert.alerts[0]?.annotations.runbook_url}</Td>,
+    },
+    { column: 'namespace', component: <Td /> },
+    { column: 'resource', component: <Td /> },
+  ];
 
   return (
     <>
@@ -62,56 +146,7 @@ export function AggregatedRow({
             {...selection}
           />
         </Td>
-        <Td {...startColumns.nameColumn}>
-          <AlertName name={aggregatedAlert.name} />
-        </Td>
-        <Td>
-          <SeverityBadge severity={aggregatedAlert.severity} />
-        </Td>
-        {columns.has('total') && (
-          <Td>
-            <Badge>{aggregatedAlert.alerts.length}</Badge>
-          </Td>
-        )}
-        {columns.has('state') && (
-          <Td>
-            {aggregatedAlert.state.map((state, index) => (
-              <Fragment key={state}>
-                {index > 0 && ', '}
-                <AlertState state={state as AlertStates} />
-              </Fragment>
-            ))}
-          </Td>
-        )}
-        {columns.has('scope') && (
-          <Td>
-            <Label color="grey">{aggregatedAlert.alertScope}</Label>
-          </Td>
-        )}
-        {columns.has('component') && (
-          <Td>
-            <Label variant="outline">{aggregatedAlert.component}</Label>
-          </Td>
-        )}
-        {columns.has('source') && <Td>{getSourceKey(startCase(aggregatedAlert.source), t)}</Td>}
-        {columns.has('description') && (
-          <Td>
-            {aggregatedAlert.alerts[0]?.annotations.description ??
-              aggregatedAlert.alerts[0]?.annotations.summary}
-          </Td>
-        )}
-        {columns.has('firingSince') && (
-          <Td>
-            {firingSince !== 0 ? (
-              <Timestamp timestamp={new Date(firingSince).toISOString()} />
-            ) : (
-              '-'
-            )}
-          </Td>
-        )}
-        {columns.has('runbookUrl') && <Td>{aggregatedAlert.alerts[0]?.annotations.runbook_url}</Td>}
-        {columns.has('namespace') && <Td />}
-        {columns.has('resource') && <Td />}
+        <SortedColumnCells columns={columns} cells={cells} />
         <Td />
       </Tr>
       {isExpanded &&

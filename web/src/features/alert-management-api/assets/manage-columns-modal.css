@@ -1,7 +1,0 @@
-ul.manage-columns-modal__list {
-  border-block-start: 0;
-}
-
-.manage-columns-modal__list > :last-child {
-  border-block-end: 0;
-}
