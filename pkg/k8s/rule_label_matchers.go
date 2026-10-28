@@ -54,7 +54,7 @@ func ParseRuleMatcherSelectors(rawMatchers []string) ([]*labels.Matcher, error) 
 		if !strings.HasPrefix(selector, "{") || !strings.HasSuffix(selector, "}") {
 			selector = "{" + selector + "}"
 		}
-		matchers, err := parser.ParseMetricSelector(selector)
+		matchers, err := parser.NewParser(parser.Options{}).ParseMetricSelector(selector)
 		if err != nil {
 			return nil, fmt.Errorf("invalid matcher %q: %w", raw, err)
 		}

@@ -52,7 +52,7 @@ func GetAlertingRuleId(alertRule *monitoringv1.Rule) string {
 // strings.Fields would incorrectly collapse (e.g. up{job="job  1"} vs
 // up{job="job 1"} are semantically distinct selectors).
 func NormalizeExpr(expr string) string {
-	parsed, err := parser.ParseExpr(expr)
+	parsed, err := parser.NewParser(parser.Options{}).ParseExpr(expr)
 	if err != nil {
 		// Fall back to simple trimming for recording rules or unparseable input.
 		return strings.TrimSpace(expr)

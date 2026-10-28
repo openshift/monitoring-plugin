@@ -37,11 +37,12 @@ func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]
 		// Only apply relabel configs for platform alerts. User workload alerts
 		// already come from their own stack and should not be relabeled here.
 		if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
-			relabels, keep := relabel.Process(labels.FromMap(alert.Labels), configs...)
+			lb := labels.NewBuilder(labels.FromMap(alert.Labels))
+			keep := relabel.ProcessBuilder(lb, configs...)
 			if !keep {
 				continue
 			}
-			alert.Labels = relabels.Map()
+			alert.Labels = lb.Labels().Map()
 		}
 
 		// Add calculated rule ID and source when not present (labels enrichment)
