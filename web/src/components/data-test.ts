@@ -11,6 +11,31 @@ export const DataTestIDs = {
   AlertingRuleSeverityBadge: 'alerting-rule-severity-badge',
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
+  AlertingRuleCluster: 'alerting-rule-cluster',
+  TimeRangeSelect: {
+    CustomRangeTitle: 'custom-time-range-title',
+    CustomRangeFromInput: 'custom-time-range-from',
+    CustomRangeToInput: 'custom-time-range-to',
+  },
+  AlertManagementAPI: {
+    FiltersPanel: 'alert-management-filters',
+    FilterSelectPrefix: 'alert-management-filter',
+    FilterSearchInputPrefix: 'alert-management-filter-search',
+    FiringTimeSelect: 'alert-management-firing-time',
+    SearchInput: 'alert-management-search',
+    AggregateIdenticalAlertsSwitch: 'aggregate-identical-alerts',
+    RefreshIntervalSelect: 'alert-management-refresh-interval',
+    SelectionCheckboxPrefix: 'alert-management-selection',
+    SelectAllAlertsCheckbox: 'alert-management-selection-all',
+    ExpandRowPrefix: 'alert-management-expand',
+    ColumnsModalTitle: 'alert-management-columns-title',
+    ColumnsModalDescription: 'alert-management-columns-description',
+    ColumnCheckboxPrefix: 'alert-management-column',
+    ColumnNameCheckbox: 'alert-management-column-name',
+    ColumnSeverityCheckbox: 'alert-management-column-severity',
+    QueryOutput: 'alert-management-query-output',
+    SortOutput: 'alert-management-sort-output',
+  },
   LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
@@ -36,6 +61,7 @@ export const DataTestIDs = {
   MetricsPageActionsDropdownButton: 'actions-dropdown-button',
   MetricsPageAddQueryButton: 'add-query-button',
   MetricsPageAddQueryDropdownItem: 'add-query-dropdown-item',
+  MetricsPageCreateAlertRuleDropdownItem: 'create-alert-rule-dropdown-item',
   MetricsPageDeleteAllQueriesDropdownItem: 'delete-all-queries-dropdown-item',
   MetricsPageDeleteQueryDropdownItem: 'delete-query-dropdown-item',
   MetricsPageDisableEnableQuerySwitch: 'disable-enable-query-switch',
@@ -64,6 +90,7 @@ export const DataTestIDs = {
   SeverityBadgeHeader: 'severity-badge-header',
   SeverityBadge: 'severity-badge',
   SilenceAlertDropdownItem: 'silence-alert-dropdown-item',
+  ViewAIInvestigationDropdownItem: 'view-ai-investigation-dropdown-item',
   SilenceButton: 'silence-button',
   SilenceEditDropdownItem: 'silence-edit-dropdown-item',
   SilenceExpireDropdownItem: 'silence-expire-dropdown-item',
@@ -151,6 +178,40 @@ export const DataTestIDs = {
     EndCell: 'incidents-details-end-cell',
     AlertRuleLink: 'incidents-details-alert-rule-link',
   },
+
+  // Overview Page Test IDs
+  OverviewPage: {
+    InfoAlert: 'overview-info-alert',
+    InfoAlertClose: 'overview-info-alert-close',
+    SummarySection: 'overview-observability-stack-summary',
+    SummaryCard: 'overview-summary-card',
+    SummaryCardCount: 'overview-summary-card-count',
+    SummaryCardError: 'overview-summary-card-error',
+    SummaryCardLoading: 'overview-summary-card-loading',
+    CapabilitiesSection: 'overview-installed-capabilities',
+    AdvancedSection: 'overview-recommended-capabilities',
+    InstalledLoading: 'overview-installed-loading',
+    RecommendedLoading: 'overview-recommended-loading',
+    CapabilityCard: 'overview-service-card',
+  },
+};
+
+export const FilterOUIAIDs = {
+  AlertNameFilter: 'AlertNameFilter',
+  AlertStateFilter: 'AlertStateFilter',
+  AlertSeverityFilter: 'AlertSeverityFilter',
+  AlertSourceFilter: 'AlertSourceFilter',
+  AlertClusterFilter: 'AlertClusterFilter',
+  SilenceNameFilter: 'SilenceNameFilter',
+  SilenceStateFilter: 'SilenceStateFilter',
+  SilenceClusterFilter: 'SilenceClusterFilter',
+  RuleNameFilter: 'RuleNameFilter',
+  RuleStateFilter: 'RuleStateFilter',
+  RuleSeverityFilter: 'RuleSeverityFilter',
+  RuleSourceFilter: 'RuleSourceFilter',
+  TargetTextFilter: 'TargetTextFilter',
+  TargetStatusFilter: 'TargetStatusFilter',
+  TargetSourceFilter: 'TargetSourceFilter',
 };
 
 export const LegacyDashboardPageTestIDs = {
@@ -161,8 +222,6 @@ export const LegacyDashboardPageTestIDs = {
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
   DashboardDropdown: 'dashboard-dropdown', //div
-  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
-  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
   Graph: 'graph',
 };
 
@@ -177,64 +236,74 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
-  persesDashboardCount: 'options-menu-top-pagination',
+  persesDashboardCount: ['options-menu-bottom-toggle', 'options-menu-top-toggle'],
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
   persesDashboardAddPanelGroupForm: 'panel-group-editor-form',
   persesDashboardAddPanelForm: 'panel-editor-form',
   persesDashboardDiscardChangesDialog: 'discard-dialog',
-  persesDashboardCreateDashboardName: 'text-input-create-dashboard-dialog-name',
+  persesDashboardCreateDashboardName: 'create-modal-dashboard-name-form-group-text-input',
   persesDashboardRenameDashboardName: 'rename-modal-text-input',
   persesDashboardDuplicateDashboardName: 'duplicate-modal-dashboard-name-form-group-text-input',
+  persesDashboardImportDashboardUploadFileInput: 'import-dashboard-file-filename',
+  persesDashboardRefreshIntervalDropdown: 'refreshInterval',
 };
 
 export const Classes = {
-  ExpandedRow: 'button[class="pf-v6-c-button pf-m-plain pf-m-expanded"]',
-  ToExpandRow: 'button[class="pf-v6-c-button pf-m-plain"]',
-  FilterDropdown: '.pf-v6-c-menu-toggle, .pf-v5-c-menu-toggle',
-  FilterDropdownExpanded: '.pf-v6-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
-  FilterDropdownOption: '.pf-v6-c-menu__item, .pf-c-select__menu-item',
+  ExpandedRow: 'button[class="pf-v5-c-button pf-m-plain pf-m-expanded"]',
+  ToExpandRow: 'button[class="pf-v5-c-button pf-m-plain"]',
+  FilterDropdown: '.pf-v5-c-menu-toggle, .pf-v5-c-menu-toggle',
+  FilterDropdownExpanded: '.pf-v5-c-menu-toggle.pf-m-expanded, .pf-v5-c-menu-toggle.pf-m-expanded',
+  FilterDropdownOption: '.pf-v5-c-menu__list-item, .pf-c-select__menu-item',
+  FilterField: '.pf-v5-c-text-input-group__text-input',
   GraphCardInlineInfo:
-    '.pf-v6-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
-  HorizontalNav: '.pf-v6-c-tabs__item, .co-m-horizontal-nav__menu-item',
-  IndividualTag: '.pf-v6-c-label__text, .pf-v5-c-chip__text',
-  LabelTag: '.pf-v6-c-label__text, .pf-v5-c-label__text',
-  MainTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
-  MenuItem: '.pf-v6-c-menu__item, .pf-c-dropdown__menu-item',
-  MenuItemDisabled: '.pf-v6-c-menu__list-item.pf-m-aria-disabled',
-  MenuToggle: '.pf-v6-c-menu-toggle, .pf-c-dropdown__toggle',
-  MetricsPagePredefinedQueriesMenuItem: '.pf-v6-c-menu__item, .pf-v5-c-select__menu-item',
-  MetricsPageRows: '.pf-v6-c-data-list.pf-m-grid-md',
-  MetricsPageExpandedRowIcon: '.pf-v6-c-data-list__item.pf-m-expanded', //li
-  MetricsPageCollapsedRowIcon: '.pf-v6-c-data-list__item', //li
+    '.pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info, .pf-v5-c-alert.pf-m-inline.pf-m-plain.pf-m-info.query-browser__reduced-resolution',
+  HorizontalNav: '.pf-v5-c-tabs__item, .co-m-horizontal-nav__menu-item',
+  IndividualTag: '.pf-v5-c-label__text, .pf-v5-c-chip__text',
+  LabelTag: '.pf-v5-c-label__text, .pf-v5-c-label__text',
+  MainTag: '.pf-v5-c-label-group__label, .pf-v5-c-chip-group__label',
+  MenuItem: '.pf-v5-c-menu__item, .pf-c-dropdown__menu-item',
+  MenuItemDisabled: '.pf-v5-c-menu__list-item.pf-m-aria-disabled',
+  MenuToggle: '.pf-v5-c-menu-toggle, .pf-c-dropdown__toggle',
+  MetricsPagePredefinedQueriesMenuItem: '.pf-v5-c-menu__item, .pf-v5-c-select__menu-item',
+  MetricsPageRows: '.pf-v5-c-data-list.pf-m-grid-md',
+  MetricsPageExpandedRowIcon: '.pf-v5-c-data-list__item.pf-m-expanded', //li
+  MetricsPageCollapsedRowIcon: '.pf-v5-c-data-list__item', //li
   MetricsPageQueryInput: '.cm-content.cm-lineWrapping',
-  MetricsPageUngraphableResults: '.pf-v6-c-title.pf-m-md',
-  MetricsPageUngraphableResultsDescription: '.pf-v6-c-empty-state__body',
+  MetricsPageUngraphableResults: '.pf-v5-c-title.pf-m-md',
+  MetricsPageUngraphableResultsDescription: '.pf-v5-c-empty-state__body',
   MetricsPageQueryAutocomplete: '.cm-tooltip-autocomplete.cm-tooltip.cm-tooltip-below',
-  MoreLessTag: '.pf-v6-c-label-group__label, .pf-v5-c-chip-group__label',
-  NamespaceDropdown: '.pf-v6-c-menu-toggle.co-namespace-dropdown__menu-toggle',
+  MoreLessTag: '.pf-v5-c-label-group__label, .pf-v5-c-chip-group__label',
+  NamespaceDropdown: '.pf-v5-c-menu-toggle.co-namespace-dropdown__menu-toggle',
   NamespaceDropdownExpanded:
-    '.pf-v6-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
-  PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
-  PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
-  SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
-  TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
-  SilenceAlertTitle: '.pf-v6-c-alert__title, .pf-v5-c-alert__title',
-  SilenceAlertDescription: '.pf-v6-c-alert__description, .pf-v5-c-alert__description',
-  SilenceCommentWithoutError: '.pf-v6-c-form-control.pf-m-textarea.pf-m-resize-both',
-  SilenceCommentWithError: '.pf-v6-c-form-control.pf-m-textarea.pf-m-resize-both.pf-m-error',
-  SilenceCreatorWithError: '.pf-v6-c-form-control.pf-m-error',
-  SilenceHelpText: '.pf-v6-c-helper-text__item-text, .pf-v5-c-helper-text__item-text',
-  SilenceKebabDropdown: '.pf-v6-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
-  SilenceLabelRow: '.pf-v6-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
-  SilenceState: '.pf-v6-l-stack__item, .co-break-word',
+    '.pf-v5-c-menu-toggle.pf-m-expanded.co-namespace-dropdown__menu-toggle',
+  PersesCreateDashboardProjectDropdown: 'button[class="pf-v5-c-menu-toggle__button"]',
+  PersesDialogError: '.pf-v5-c-helper-text__item-text',
+  PersesDuplicateDashboardNameError: '.pf-v5-c-alert__title',
+  PersesCreateDuplicateImportButton: '.pf-v5-c-button.pf-m-primary.pf-m-progress',
+  PersesListDashboardCount: '.pf-v5-c-menu-toggle__text',
+  PersesListPageHeaderSubtitle: '.co-m-pane__help-text.co-help-text',
+  PersesListEmptyStateTitle: '.pf-v5-c-title.pf-m-lg',
+  PersesListEmptyStateBody: '.pf-v5-c-empty-state__body',
+  PersesListDataViewHeaderClearAllFiltersLink: '.pf-v5-c-button.pf-m-primary.pf-c-button.pf-m-link',
+  SectionHeader: '.pf-v5-c-title.pf-m-h2, .co-section-heading',
+  TableHeaderColumn: '.pf-v5-c-table__button, .pf-c-table__button',
+  SilenceAlertTitle: '.pf-v5-c-alert__title, .pf-v5-c-alert__title',
+  SilenceAlertDescription: '.pf-v5-c-alert__description, .pf-v5-c-alert__description',
+  SilenceCommentWithoutError: '.pf-v5-c-form-control.pf-m-textarea.pf-m-resize-both',
+  SilenceCommentWithError: '.pf-v5-c-form-control.pf-m-textarea.pf-m-resize-both.pf-m-error',
+  SilenceCreatorWithError: '.pf-v5-c-form-control.pf-m-error',
+  SilenceHelpText: '.pf-v5-c-helper-text__item-text, .pf-v5-c-helper-text__item-text',
+  SilenceKebabDropdown: '.pf-v5-c-menu-toggle.pf-m-plain, .pf-v5-c-dropdown__toggle.pf-m-plain',
+  SilenceLabelRow: '.pf-v5-l-grid.pf-m-all-12-col-on-sm.pf-m-all-4-col-on-md.pf-m-gutter, .row',
+  SilenceState: '.pf-v5-l-stack__item, .co-break-word',
+  ImportDashboardTextArea: '.view-lines.monaco-mouse-cursor-text',
 };
 
 export const persesAriaLabels = {
   TimeRangeDropdown: 'Select time range. Currently set to [object Object]',
   RefreshButton: 'Refresh',
-  RefreshIntervalDropdown: 'Select refresh interval. Currently set to 0s',
   ZoomInButton: 'Zoom in',
   ZoomOutButton: 'Zoom out',
   ViewJSONButton: 'View JSON',
@@ -266,7 +335,14 @@ export const persesAriaLabels = {
   //Add Panel tabs
   AddPanelTabs: 'Panel configuration tabs',
   //List Page
-  persesDashboardKebabIcon: 'Kebab toggle',
+  persesDashboardKebabIcon: ['Actions', 'Kebab toggle'],
+  //dialogProjectDropdown
+  dialogProjectInput: 'Type to filter',
+  //Import Dashboard
+  dashboardActionsMenu: 'Dashboard actions',
+  importDashboardProjectInputButton: 'Typeahead menu toggle',
+  importDashboardDuplicatedDashboardError: 'Danger alert:document already exists',
+  traceTablePanel_TraceTable: 'Trace name column menu',
 };
 
 //data-testid from MUI components
@@ -284,6 +360,8 @@ export const persesMUIDataTestIDs = {
   editDashboardEditVariableDatasourceEditButton: 'PencilIcon',
   editDashboardEditVariableDatasourceDeleteButton: 'TrashCanIcon',
   addPanelGroupFormName: 'panel-group-editor-name',
+  logsTableContainer: 'log-row-container-0',
+  scatterChartPanel_ScatterPlot: 'ScatterChartPanel_ScatterPlot',
 };
 
 export const persesDashboardDataTestIDs = {
@@ -301,9 +379,7 @@ export const listPersesDashboardsDataTestIDs = {
   PersesBreadcrumbDashboardNameItem: 'perses-dashboards-breadcrumb-dashboard-name-item',
   NameFilter: 'name-filter',
   ProjectFilter: 'project-filter',
-  EmptyStateTitle: 'empty-state-title',
-  EmptyStateBody: 'empty-state-body',
-  ClearAllFiltersButton: 'clear-all-filters-button',
+  TagsFilter: 'tags-filter',
   DashboardLinkPrefix: 'perseslistpage-',
 };
 
