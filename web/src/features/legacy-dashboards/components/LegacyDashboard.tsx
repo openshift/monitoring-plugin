@@ -2,10 +2,7 @@ import {
   RedExclamationCircleIcon,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { DataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import { CustomDataSource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/dashboard-data-source';
 import {
   CardBody,
@@ -53,6 +50,7 @@ import {
 import { MonitoringState } from '@/shared/store/store';
 import type { Variable } from '@/shared/types/types';
 import { downloadCsv } from '@/shared/utils/csv';
+import { isDataSource } from '@/shared/utils/data-source';
 import { GraphUnits } from '@/shared/utils/units';
 
 const QueryBrowserLink = ({

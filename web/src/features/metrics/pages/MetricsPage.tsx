@@ -13,7 +13,6 @@ import {
 import {
   CustomDataSource,
   DataSource,
-  isDataSource,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   Bullseye,
@@ -119,6 +118,7 @@ import {
 } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import { PrometheusAPIError } from '@/shared/types/types';
+import { isDataSource } from '@/shared/utils/data-source';
 import { GraphUnits, isGraphUnit } from '@/shared/utils/units';
 import {
   ALL_NAMESPACES_KEY,

@@ -5,10 +5,7 @@ import {
   useActiveNamespace,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  DataSource,
-  isDataSource,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
+import { DataSource } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-data-source';
 import {
   MenuToggle,
   MenuToggleElement,
@@ -44,6 +41,7 @@ import { getObserveState, usePerspective } from '@/shared/hooks/usePerspective';
 import { dashboardsPatchVariable, dashboardsVariableOptionsLoaded } from '@/shared/store/actions';
 import { MonitoringState } from '@/shared/store/store';
 import type { Variable } from '@/shared/types/types';
+import { isDataSource } from '@/shared/utils/data-source';
 import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
 import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '@/shared/utils/utils';
 
