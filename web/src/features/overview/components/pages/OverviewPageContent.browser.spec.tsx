@@ -63,7 +63,12 @@ describe('OverviewPageContent', () => {
   it('renders a danger alert when the CSV watch fails', async () => {
     await mountContent([[], true, 'Forbidden']);
     await expect
-      .element(page.getByText('Unable to determine services installation status'))
+      .element(
+        page.getByRole('heading', {
+          name: 'Danger alert: Unable to determine services installation status',
+          exact: true,
+        }),
+      )
       .toBeVisible();
     await expect.element(page.getByText('Forbidden', { exact: true })).toBeVisible();
   });
@@ -71,9 +76,9 @@ describe('OverviewPageContent', () => {
   it('reports degraded component health when nothing is installed', async () => {
     await mountContent();
     const card = summaryCard('component-health');
-    await expect.element(card).toHaveTextContent('0');
-    await expect.element(card).toHaveTextContent('Degraded');
-    await expect.element(card).not.toHaveTextContent('Healthy');
+    await expect.element(card).toMatchTextContent('0');
+    await expect.element(card).toMatchTextContent('Degraded');
+    await expect.element(card).not.toMatchTextContent('Healthy');
     await expect
       .element(card.element().querySelector<HTMLElement>(statusIcon('danger')))
       .not.toBeInTheDocument();

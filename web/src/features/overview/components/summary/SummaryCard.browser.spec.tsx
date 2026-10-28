@@ -19,12 +19,12 @@ describe('SummaryCard', () => {
     await mountCard();
     await expect.element(summaryCard('capabilities-ready')).toBeVisible();
     await expect.element(page.getByRole('heading', { name: 'Capabilities ready' })).toBeVisible();
-    await expect.element(summaryCard('capabilities-ready')).toHaveTextContent('3/5');
+    await expect.element(summaryCard('capabilities-ready')).toMatchTextContent('3/5');
   });
 
   it('renders the footer when one is provided', async () => {
     await mountCard({ footer: 'Ready' });
-    await expect.element(summaryCard('capabilities-ready')).toHaveTextContent('Ready');
+    await expect.element(summaryCard('capabilities-ready')).toMatchTextContent('Ready');
   });
 
   it('omits the footer when none is provided', async () => {
@@ -49,8 +49,8 @@ describe('SummaryCard', () => {
     await expect
       .element(card.element().querySelector<HTMLElement>(statusIcon(status)))
       .toBeInTheDocument();
-    await expect.element(card).toHaveTextContent(String(count));
-    if (footer) await expect.element(card).toHaveTextContent(footer);
+    await expect.element(card).toMatchTextContent(String(count));
+    if (footer) await expect.element(card).toMatchTextContent(footer);
   });
 
   it('renders the count without an icon when no status is given', async () => {
@@ -59,13 +59,13 @@ describe('SummaryCard', () => {
     await expect
       .element(card.element().querySelector<HTMLElement>('.pf-v6-c-icon'))
       .not.toBeInTheDocument();
-    await expect.element(card).toHaveTextContent('12');
+    await expect.element(card).toMatchTextContent('12');
   });
 
   it('renders a spinner instead of the count while loading', async () => {
     await mountCard({ loading: true, count: 42 });
     await expect.element(loading()).toBeVisible();
-    await expect.element(summaryCard('capabilities-ready')).not.toHaveTextContent('42');
+    await expect.element(summaryCard('capabilities-ready')).not.toMatchTextContent('42');
   });
 
   it('renders an error icon instead of the count, and keeps the title visible', async () => {
@@ -74,7 +74,7 @@ describe('SummaryCard', () => {
     await expect
       .element(card.element().querySelector<HTMLElement>(statusIcon('danger')))
       .toBeVisible();
-    await expect.element(card).not.toHaveTextContent('42');
+    await expect.element(card).not.toMatchTextContent('42');
     await expect.element(page.getByRole('heading', { name: 'Capabilities ready' })).toBeVisible();
     await expect.element(loading()).not.toBeInTheDocument();
   });

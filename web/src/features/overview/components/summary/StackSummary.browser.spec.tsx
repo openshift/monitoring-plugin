@@ -33,9 +33,9 @@ const mountSummary = (capabilities: ObservabilityCapability[], loaded = true) =>
 
 const expectDegraded = async (count: number) => {
   const card = summaryCard('component-health');
-  await expect.element(card).toHaveTextContent(String(count));
-  await expect.element(card).toHaveTextContent('Degraded');
-  await expect.element(card).not.toHaveTextContent('Healthy');
+  await expect.element(card).toMatchTextContent(String(count));
+  await expect.element(card).toMatchTextContent('Degraded');
+  await expect.element(card).not.toMatchTextContent('Healthy');
   const icon = card.element().querySelector<HTMLElement>(statusIcon('danger'));
   if (count) {
     await expect.element(icon).toBeInTheDocument();
@@ -63,13 +63,13 @@ describe('StackSummary', () => {
     const card = summaryCard('capabilities-ready');
     await expect.element(card).toBeVisible();
     for (const text of ['Capabilities ready', '1/2', 'Ready']) {
-      await expect.element(card).toHaveTextContent(text);
+      await expect.element(card).toMatchTextContent(text);
     }
   });
 
   it('reports 0 ready when nothing is configured', async () => {
     await mountSummary([mixedCapabilities[1]]);
-    await expect.element(summaryCard('capabilities-ready')).toHaveTextContent('0/1');
+    await expect.element(summaryCard('capabilities-ready')).toMatchTextContent('0/1');
   });
 
   it('counts healthy capabilities across the catalog', async () => {
@@ -77,7 +77,7 @@ describe('StackSummary', () => {
     const card = summaryCard('component-health');
     await expect.element(card).toBeVisible();
     for (const text of ['Component health', '1', 'Healthy']) {
-      await expect.element(card).toHaveTextContent(text);
+      await expect.element(card).toMatchTextContent(text);
     }
     await expect
       .element(card.element().querySelector<HTMLElement>(statusIcon('success')))
@@ -119,7 +119,7 @@ describe('StackSummary', () => {
 
   it('renders both cards with an empty capability list', async () => {
     await mountSummary([]);
-    await expect.element(summaryCard('capabilities-ready')).toHaveTextContent('0/0');
+    await expect.element(summaryCard('capabilities-ready')).toMatchTextContent('0/0');
     await expectDegraded(0);
   });
 });
