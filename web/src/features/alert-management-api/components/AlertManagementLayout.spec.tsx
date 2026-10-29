@@ -245,10 +245,18 @@ describe('alert management navigation', () => {
     ).toBeNull();
   });
 
+  it('hides refresh controls and the last refresh time on incidents', () => {
+    renderLayout('/monitoring/v2/incidents?refreshInterval=30000', <McpCmoAlertingPage />);
+
+    expect(screen.getByRole('heading', { name: 'Incidents' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Every 30 seconds' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Refresh off' })).toBeNull();
+    expect(screen.queryByText(/^Last refresh:/)).toBeNull();
+  });
+
   it.each([
     ['/monitoring/v2/management/alertrules', AlertRulesManagementPage, 'Alert rules'],
     ['/monitoring/v2/management/silences', SilencesManagementPage, 'Silences'],
-    ['/monitoring/v2/incidents', McpCmoAlertingPage, 'Incidents'],
   ])('renders the page for %s', (path, Page, message) => {
     renderLayout(path, <Page />);
 
