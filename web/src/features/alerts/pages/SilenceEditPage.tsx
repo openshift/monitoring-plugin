@@ -9,14 +9,9 @@ import { StatusBox } from '@/shared/console/console-shared/src/components/status
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
-import { SilenceResource, silenceState } from '@/shared/utils/utils';
-
-const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
-
-const formatDate = (d: Date): string =>
-  `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(
-    d.getMinutes(),
-  )}:${pad(d.getSeconds())}`;
+import { silenceState } from '@/shared/utils/alerts/formatting';
+import { formatSilenceDate } from '@/shared/utils/date';
+import { SilenceResource } from '@/shared/utils/utils';
 
 const EditInfo = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -47,8 +42,8 @@ const SilenceEditPage = () => {
     'matchers',
     'startsAt',
   ]);
-  defaults.startsAt = isExpired ? undefined : formatDate(new Date(defaults.startsAt));
-  defaults.endsAt = isExpired ? undefined : formatDate(new Date(defaults.endsAt));
+  defaults.startsAt = isExpired ? undefined : formatSilenceDate(new Date(defaults.startsAt));
+  defaults.endsAt = isExpired ? undefined : formatSilenceDate(new Date(defaults.endsAt));
 
   return (
     <StatusBox

@@ -33,13 +33,18 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
-import { SeverityCounts, StateTimestamp } from '@/features/alerts/components/AlertUtils';
+import { SeverityCounts } from '@/features/alerts/components/AlertUtils';
 import {
   ExpireSilenceModal,
   SilenceMatchersList,
   SilenceState,
 } from '@/features/alerts/components/SilencesUtils';
-import { filterSilences } from '@/features/alerts/pages/silences-page/filter-silences';
+import {
+  filterSilences,
+  SilenceFilterOptions,
+  SilenceFilters,
+} from '@/features/alerts/pages/silences-page/filter-silences';
+import { StateTimestamp } from '@/shared/components/AlertState';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
@@ -68,19 +73,8 @@ import {
   getSilenceAlertUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { severitySort, SilenceResource, silenceState } from '@/shared/utils/utils';
-
-export const enum SilenceFilterOptions {
-  NAME = 'name',
-  STATE = 'silence-state',
-  CLUSTER = 'silence-cluster',
-}
-
-export interface SilenceFilters {
-  [SilenceFilterOptions.NAME]: string;
-  [SilenceFilterOptions.STATE]: string[];
-  [SilenceFilterOptions.CLUSTER]?: string[];
-}
+import { severitySort, silenceState } from '@/shared/utils/alerts/formatting';
+import { SilenceResource } from '@/shared/utils/utils';
 
 const SilencesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

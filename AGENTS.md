@@ -49,6 +49,17 @@
 - Hub cluster aggregation
 - Thanos/Alertmanager integration
 
+### When working on Incidents Cypress tests:
+
+Before editing incident specs, the incidents page object, incident fixtures, or
+their schema/mock support code, read
+`.agents/references/incidents-testing-guidelines.md`. This applies to:
+
+- `web/cypress/e2e/incidents/`
+- `web/cypress/views/incidents-page.ts`
+- `web/cypress/fixtures/incident-scenarios/`
+- `web/cypress/support/incidents_prometheus_query_mocks/`
+
 ## Important Decision Points
 
 ### Choosing Between Plugins:
@@ -180,7 +191,7 @@ make test-frontend
 
 The Monitoring Plugin uses a dual testing approach for unit tests:
 
-- **Frontend Unit Tests**: Jest + TypeScript for React components and utilities
+- **Frontend Unit Tests**: Vitest + TypeScript for React components and utilities
 - **Backend Unit Tests**: Go's built-in testing framework for server functionality
 
 Unit tests focus on isolated function testing and run quickly in CI/CD pipelines, while E2E tests (Cypress) validate full user workflows.
@@ -191,8 +202,8 @@ Unit tests focus on isolated function testing and run quickly in CI/CD pipelines
 
 - **Location**: Co-located with source files in `web/src/`
 - **Naming**: `*.spec.ts` (e.g., `format.spec.ts`, `utils.spec.ts`)
-- **Framework**: Jest 30.2.0 with ts-jest
-- **Configuration**: `web/jest.config.js`
+- **Framework**: Vitest 4.1.11
+- **Configuration**: `web/vitest.config.mts`
 
 **Backend Tests:**
 
@@ -211,6 +222,9 @@ make test-frontend
 # Run individually from web directory
 cd web && npm run test:unit
 
+# Run with coverage
+cd web && npm run test:unit:coverage
+
 # Run Go tests directly
 go test ./pkg/... -v
 ```
@@ -228,9 +242,8 @@ Create unit tests when:
 
 **Frontend:**
 
-- `jest` (v30.2.0) - Test runner and assertions
-- `ts-jest` (v29.4.4) - TypeScript support
-- `@types/jest` - TypeScript definitions
+- `vitest` (v4.1.11) - Test runner and assertions
+- `@vitest/coverage-v8` (v4.1.11) - Code coverage (v8 provider)
 
 **Backend:**
 
@@ -240,8 +253,8 @@ Create unit tests when:
 #### Frontend Unit Testing Structure
 
 **Testing Framework & Configuration**
-Test Framework: Jest + ts-jest
-Configuration File: web/jest.config.js
+Test Framework: Vitest
+Configuration File: web/vitest.config.mts
 
 **Test File Location & Naming Convention**
 Pattern: \*.spec.ts files co-located with source code
@@ -319,15 +332,15 @@ npm run cypress:open
 
 For detailed testing instructions, see `web/cypress/CYPRESS_TESTING_GUIDE.md`
 
-### Cypress Component Testing
+### Vitest Browser Component Testing
 
 #### Overview
 
-Cypress component tests mount individual React components in isolation, without requiring a running OpenShift cluster. They are useful for testing component rendering, user interactions, and visual behavior with fast feedback.
+Vitest Browser Mode mounts individual React components in Playwright Chromium without a cluster. Use Jest-style Vitest assertions and `vitest-browser-react` rendering.
 
-- **Test location**: `web/cypress/component/`
-- **Support file**: `web/cypress/support/component.ts`
-- **Config**: `component` section in `web/cypress.config.ts`
+- **Test location**: Co-located `*.browser.spec.tsx` files in `web/src/`
+- **Support file**: `web/vitest.browser.setup.ts`
+- **Config**: `web/vitest.browser.config.mts`
 
 #### When to Create Component Tests
 
@@ -341,27 +354,28 @@ Cypress component tests mount individual React components in isolation, without 
 ```bash
 cd web
 
-# Interactive mode
-npm run cypress:open:component
+npx playwright install chromium
 
 # Headless mode - all component tests
-npm run cypress:run:component
+npm run test:component
 
 # Run a single component test file
-npx cypress run --component --spec cypress/component/labels.cy.tsx
+npm run test:component -- Labels.browser.spec.tsx
 ```
 
 #### Writing a Component Test
 
-Component test files use the `.cy.tsx` extension and go in `web/cypress/component/`:
+Component test files use `.browser.spec.tsx` and are co-located with the source:
 
 ```typescript
+import { render } from 'vitest-browser-react';
+
 import { MyComponent } from '@/shared/components/MyComponent';
 
 describe('MyComponent', () => {
-  it('renders correctly', () => {
-    cy.mount(<MyComponent prop="value" />);
-    cy.contains('expected text').should('be.visible');
+  it('renders correctly', async () => {
+    const screen = await render(<MyComponent prop="value" />);
+    await expect.element(screen.getByText('expected text')).toBeVisible();
   });
 });
 ```
@@ -374,18 +388,38 @@ describe('MyComponent', () => {
 
 ## Skills
 
+Reusable workflows live under `.agents/skills/`. Invoke them with
+`$skill-name` in Codex or `/skill-name` in Claude Code and Cursor. If a client
+does not discover Agent Skills, ask it to read the corresponding
+`.agents/skills/<name>/SKILL.md` explicitly.
+
+| Skill                        | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `backport`                   | Backport a commit with release-branch adaptations.           |
+| `build-images`               | Build both plugin development images with a unique tag.      |
+| `run-perses-dev`             | Start the integrated plugin/Perses tmux environment.         |
+| `cypress-setup`              | Install and configure the Cypress environment.               |
+| `cypress-run`                | Select and run Cypress tests.                                |
+| `generate-incident-fixture`  | Create a schema-valid incident fixture.                      |
+| `validate-incident-fixtures` | Validate one or all incident fixtures.                       |
+| `fixture-schema-reference`   | Explain the incident fixture schema.                         |
+| `generate-regression-test`   | Generate an Incidents regression test from documented flows. |
+| `refactor-regression-test`   | Refactor an existing Incidents regression test.              |
+
 ### Feature Backporting
 
-For backporting features from `main` to release branches (e.g., `release-4.x`, `release-coo-x.y`), use the `/backport` slash command:
+For backporting features from `main` to release branches (for example,
+`release-4.x` or `release-coo-x.y`), invoke the shared `backport` skill:
 
-```bash
-/backport <target-branch> [commit-hash]
-# Examples:
-/backport release-4.18
-/backport release-coo-0.4 abc123
+```text
+# Codex
+$backport release-4.18 [commit-hash]
+
+# Claude Code or Cursor
+/backport release-coo-0.4 [commit-hash]
 ```
 
-The command is located at `.claude/commands/backport.md` and handles:
+The canonical workflow is `.agents/skills/backport/SKILL.md` and handles:
 
 - PatternFly v6 → v5 component transformations
 - React Router v6 → v5 hook adaptations

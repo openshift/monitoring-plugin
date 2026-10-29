@@ -1,0 +1,11 @@
+root = "/opt/app-root"
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -mod=readonly -o ./tmp/plugin-backend ./cmd/plugin-backend.go"
+entrypoint = ["./tmp/plugin-backend"]
+include_dir = ["cmd", "pkg", "config"]
+include_ext = ["go", "json"]
+exclude_dir = ["tmp"]
+delay = 500
+send_interrupt = true

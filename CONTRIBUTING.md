@@ -5,6 +5,7 @@ Thank you for your interest in contributing to the OpenShift Monitoring Plugin! 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Agent Workflows](#agent-workflows)
 - [Pull Request Process](#pull-request-process)
   - [PR Requirements](#pr-requirements)
   - [Labels and Review Process](#labels-and-review-process)
@@ -58,6 +59,23 @@ For detailed setup instructions, see [README.md](./README.md#local-development).
 
 ---
 
+## Agent Workflows
+
+Shared AI-agent workflows are stored as Agent Skills under `.agents/skills/`.
+Use `$skill-name` in Codex and `/skill-name` in Claude Code or Cursor. For
+example:
+
+```text
+$backport release-4.18 abc123
+/cypress-run headless incidents
+```
+
+Clients without skill discovery can be directed to read
+`.agents/skills/<name>/SKILL.md`. Tool permissions, approvals, and native
+invocation syntax remain client-specific; the workflow body is shared.
+
+---
+
 ## Pull Request Process
 
 This project uses [Prow](https://docs.prow.k8s.io/) for CI/CD automation. Pull requests require specific labels to be merged, which are applied based on reviews from team members.
@@ -76,7 +94,7 @@ This project uses [Prow](https://docs.prow.k8s.io/) for CI/CD automation. Pull r
    make lint-backend     # Go fmt and mod tidy
    make test-translations # Verify i18n keys
    make test-backend     # Go unit tests
-   make test-frontend    # Jest unit tests
+   make test-frontend    # Vitest unit tests
    ```
 
 3. **Required checks must pass** in CI before merging.
@@ -162,32 +180,33 @@ The frontend source is split into two top-level directories under `web/src/`:
 - **`web/src/features/`** — one subdirectory per product feature. Each feature directory follows an internal structure of `components/`, `pages/`, `hooks/`, `utils/`, `types/`, and `assets/` as needed. New feature-specific code goes here.
 - **`web/src/shared/`** — code that is used by more than one feature. Organized by kind:
 
-| Directory | Contents | Example files |
-| --------- | -------- | ------------- |
-| `shared/components/` | Reusable UI components | `labels.tsx`, `format.tsx`, `query-browser/query-browser.tsx` |
-| `shared/hooks/` | Shared custom hooks | `useBoolean.ts`, `useAlerts.ts`, `usePerspective.tsx` |
-| `shared/store/` | Redux store, actions, reducers, thunks | `store.ts`, `actions.ts`, `reducers.ts` |
-| `shared/contexts/` | React contexts | `MonitoringContext.tsx` |
-| `shared/constants/` | Shared constants | `data-test.ts`, `query-params.ts` |
-| `shared/types/` | Shared TypeScript types | `types.ts` |
-| `shared/utils/` | Shared pure utility functions | `utils.ts`, `react-router-7-adapter.ts` |
-| `shared/assets/` | Static assets (fonts, images) | `codicon.ttf` |
-| `shared/console/` | Vendored/adapted OpenShift Console internals | `utils/safe-fetch-hook.ts`, `graphs/` |
+| Directory            | Contents                                     | Example files                                                 |
+| -------------------- | -------------------------------------------- | ------------------------------------------------------------- |
+| `shared/components/` | Reusable UI components                       | `labels.tsx`, `format.tsx`, `query-browser/query-browser.tsx` |
+| `shared/hooks/`      | Shared custom hooks                          | `useBoolean.ts`, `useAlerts.ts`, `usePerspective.tsx`         |
+| `shared/store/`      | Redux store, actions, reducers, thunks       | `store.ts`, `actions.ts`, `reducers.ts`                       |
+| `shared/contexts/`   | React contexts                               | `MonitoringContext.tsx`                                       |
+| `shared/constants/`  | Shared constants                             | `data-test.ts`, `query-params.ts`                             |
+| `shared/types/`      | Shared TypeScript types                      | `types.ts`                                                    |
+| `shared/utils/`      | Shared pure utility functions                | `utils.ts`, `react-router-7-adapter.ts`                       |
+| `shared/assets/`     | Static assets (fonts, images)                | `codicon.ttf`                                                 |
+| `shared/console/`    | Vendored/adapted OpenShift Console internals | `utils/safe-fetch-hook.ts`, `graphs/`                         |
 
 **Decision rules**:
+
 - If a file is only ever imported by code inside a single feature directory, it belongs in that feature. If it is (or may be) imported by multiple features, it belongs in `shared/`.
 - If a component or utility is only used by a single page, it should be co-located inside that page's own subdirectory rather than the feature-level `components/` or `utils/` folder. For example, `AggregateAlertTableRow.tsx` lives inside `features/alerts/pages/alerts-page/` because it is only used by `AlertsPage.tsx`. A page that has page-scoped files should be promoted to its own subdirectory (e.g. `alerts-page/AlertsPage.tsx`) rather than being a standalone file at the `pages/` level.
 
 The current features are:
 
-| Feature | Directory |
-| ------- | --------- |
-| Alerting (alerts, silences, alert rules) | `features/alerts/` |
-| Incidents | `features/incidents/` |
-| Legacy Dashboards | `features/legacy-dashboards/` |
-| Metrics / PromQL | `features/metrics/` |
-| Perses Dashboards | `features/perses-dashboards/` |
-| Targets | `features/targets/` |
+| Feature                                  | Directory                     |
+| ---------------------------------------- | ----------------------------- |
+| Alerting (alerts, silences, alert rules) | `features/alerts/`            |
+| Incidents                                | `features/incidents/`         |
+| Legacy Dashboards                        | `features/legacy-dashboards/` |
+| Metrics / PromQL                         | `features/metrics/`           |
+| Perses Dashboards                        | `features/perses-dashboards/` |
+| Targets                                  | `features/targets/`           |
 
 #### Types and Interfaces
 
@@ -231,7 +250,7 @@ export const enum AlertSource {
 ```typescript
 // ✅ Good: Hook definition
 export const useBoolean = (
-  initialValue: boolean
+  initialValue: boolean,
 ): [boolean, () => void, () => void, () => void] => {
   const [value, setValue] = useState(initialValue);
   const toggle = useCallback(() => setValue((v) => !v), []);
@@ -439,21 +458,19 @@ cd web/cypress
 npm run cypress:run --spec "cypress/e2e/**/regression/**"
 ```
 
-### Component Tests (Cypress)
+### Component Tests (Vitest Browser Mode)
 
 For testing individual React components in isolation (no cluster required):
 
-- Test files: `web/cypress/component/` (`.cy.tsx` extension)
-- Support file: `web/cypress/support/component.ts`
+- Test files: co-located `*.browser.spec.tsx` files in `web/src/`
 
 ```bash
 cd web
 
-# Interactive mode
-npm run cypress:open:component
+npx playwright install chromium
 
-# Headless mode
-npm run cypress:run:component
+npm run test:component
+npm run test:component -- Labels.browser.spec.tsx
 ```
 
 ---

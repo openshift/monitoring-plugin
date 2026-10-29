@@ -50,6 +50,7 @@ import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { formatSilenceDate } from '@/shared/utils/date';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '@/shared/utils/utils';
 
 const durationOff = '-';
@@ -72,13 +73,6 @@ type SilenceFormProps = {
 // TODO: These will be available in future versions of the plugin SDK
 const getUser = (state) => state.sdkCore?.user;
 
-const pad = (i: number): string => (i < 10 ? `0${i}` : String(i));
-
-const formatDate = (d: Date): string =>
-  `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(
-    d.getMinutes(),
-  )}:${pad(d.getSeconds())}`;
-
 type DatetimeTextInputProps = TextInputProps & {
   tooltip?: string;
 };
@@ -96,7 +90,7 @@ const DatetimeTextInput = (props: DatetimeTextInputProps) => {
         props.tooltip
           ? props.tooltip
           : isValid
-            ? formatDate(new Date(props.value))
+            ? formatSilenceDate(new Date(props.value))
             : t('Invalid date / time')
       }
     >
@@ -177,7 +171,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   const [createdBy, setCreatedBy] = useState(defaults.createdBy ?? '');
   const [duration, setDuration] = useState(defaultDuration);
   const [endsAt, setEndsAt] = useState(
-    defaults.endsAt ?? formatDate(new Date(new Date(now).setHours(now.getHours() + 2))),
+    defaults.endsAt ?? formatSilenceDate(new Date(new Date(now).setHours(now.getHours() + 2))),
   );
   const [error, setError] = useState<string>();
   const [inProgress, setInProgress] = useState(false);
@@ -191,7 +185,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
 
-  const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatDate(now));
+  const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatSilenceDate(now));
   const user = useSelector(getUser);
   const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
@@ -205,7 +199,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   const getEndsAtValue = (): string => {
     const startsAtDate = Date.parse(startsAt);
     return startsAtDate
-      ? formatDate(new Date(startsAtDate + parsePrometheusDuration(duration)))
+      ? formatSilenceDate(new Date(startsAtDate + parsePrometheusDuration(duration)))
       : '-';
   };
 
@@ -334,7 +328,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
                     isDisabled
                     data-test={DataTestIDs.SilencesPageFormTestIDs.SilenceFrom}
                     value={t('Now')}
-                    tooltip={formatDate(new Date())}
+                    tooltip={formatSilenceDate(new Date())}
                   />
                 ) : (
                   <DatetimeTextInput

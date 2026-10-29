@@ -1,27 +1,32 @@
-FROM brew.registry.redhat.io/rh-osbs/openshift-golang-builder:rhel_9_golang_1.26 AS web-builder
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.26-rhel9 AS web-builder
 
 WORKDIR /opt/app-root
 
 USER 0
+RUN mkdir -p /opt/app-root/tmp
 RUN chgrp -R 0 /opt/app-root
-RUN chmod -R g+rw /opt/app-root
+RUN chmod -R g+rwX /opt/app-root
 RUN mkdir /.devspace
 RUN chgrp -R 0 /.devspace
 RUN chmod -R g+rw /.devspace
 
 ENV HUSKY=0
 ENV CYPRESS_INSTALL_BINARY=0
+ENV GOCACHE=/tmp/go-build-cache
 
 COPY Makefile Makefile
 COPY go.mod go.mod
 COPY go.sum go.sum
 
 RUN make install-backend
+RUN GOFLAGS=-mod=mod GOBIN=/usr/local/bin go install github.com/air-verse/air@v1.67.4
+RUN chgrp -R 0 /tmp/go-build-cache && chmod -R g+rwX /tmp/go-build-cache
 
 COPY config/ config/
 COPY cmd/ cmd/
 COPY pkg/ pkg/
-
-RUN make build-backend
+COPY internal/ internal/
+COPY .air.toml .air.toml
+RUN chgrp -R 0 config cmd pkg internal && chmod -R g+rwX config cmd pkg internal
 
 ENTRYPOINT ["make", "start-devspace-backend"]

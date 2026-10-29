@@ -46,11 +46,6 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import {
-  alertSource,
-  AlertState,
-  AlertStateDescription,
-  AlertStateIcon,
-  getSourceKey,
   Graph,
   isActionWithCallback,
   isActionWithHref,
@@ -58,6 +53,7 @@ import {
   SourceHelp,
 } from '@/features/alerts/components/AlertUtils';
 import { SilencedByList } from '@/features/alerts/components/SilencedByTable';
+import { AlertState, AlertStateDescription, AlertStateIcon } from '@/shared/components/AlertState';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
@@ -87,7 +83,10 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
-import { AlertResource, alertState, RuleResource } from '@/shared/utils/utils';
+import { alertSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
+import { alertState } from '@/shared/utils/alerts/formatting';
+import { startCase } from '@/shared/utils/strings';
+import { AlertResource, RuleResource } from '@/shared/utils/utils';
 
 const AlertsDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -284,7 +283,7 @@ const AlertsDetailsPage_: FC = () => {
                     <DescriptionListGroup>
                       <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
                       <DescriptionListDescription>
-                        {alert.annotations.summary}
+                        <LinkifyExternal>{alert.annotations.summary}</LinkifyExternal>
                       </DescriptionListDescription>
                     </DescriptionListGroup>
                   )}
@@ -321,7 +320,7 @@ const AlertsDetailsPage_: FC = () => {
                       </Popover>
                     </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      {alert && getSourceKey(_.startCase(alertSource(alert)), t)}
+                      {alert && getSourceKey(startCase(alertSource(alert)), t)}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>

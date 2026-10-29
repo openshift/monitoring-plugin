@@ -6,8 +6,8 @@ import { useNavigate, useSearchParams } from 'react-router';
 
 import { useLegacyDashboardsProject } from '@/features/legacy-dashboards/hooks/useLegacyDashboardsProject';
 import { Board, LegacyDashboardMetadata } from '@/features/legacy-dashboards/types/types';
-import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/features/legacy-dashboards/utils/utils';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/shared/constants/legacy-dashboards';
 import { QueryParams } from '@/shared/constants/query-params';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { getLegacyDashboardsUrl, usePerspective } from '@/shared/hooks/usePerspective';

@@ -2,17 +2,13 @@
 The test verifies the whole lifecycle of the Incident feature, without any external dependencies.
 The run time can be 15 - 20 minutes. (Waiting untill the incident detection captures the new alert)
 */
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 import { incidentsPage } from '../../views/incidents-page';
 
 describe('BVT: Incidents - e2e', { tags: ['@cluster-health-analyzer', '@coo', '@slow'] }, () => {
   let currentAlertName: string;
 
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+    cy.beforeBlockCOO({
       dashboards: false,
       troubleshootingPanel: false,
     });

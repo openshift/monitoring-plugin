@@ -11,8 +11,6 @@ declare global {
 }
 
 Cypress.Commands.add('createKubePodCrashLoopingAlert', (testName?: string) => {
-  const kubeconfigPath = Cypress.env('KUBECONFIG_PATH');
-
   const alertName = testName
     ? `CustomPodCrashLooping_${testName}`
     : `CustomPodCrashLooping_${Math.random().toString(36).substring(2, 15)}`;
@@ -34,10 +32,7 @@ Cypress.Commands.add('createKubePodCrashLoopingAlert', (testName?: string) => {
 
         cy.writeFile('./cypress/fixtures/incidents/temp_prometheus_rule.yaml', yamlContent).then(
           () => {
-            cy.exec(
-              `oc apply -f ./cypress/fixtures/incidents/temp_prometheus_rule.yaml ` +
-                `--kubeconfig ${kubeconfigPath}`,
-            );
+            cy.adminCLI(`oc apply -f ./cypress/fixtures/incidents/temp_prometheus_rule.yaml`);
 
             cy.exec('rm ./cypress/fixtures/incidents/temp_prometheus_rule.yaml');
           },
@@ -47,15 +42,13 @@ Cypress.Commands.add('createKubePodCrashLoopingAlert', (testName?: string) => {
   };
 
   const createPod = () => {
-    cy.exec(
-      `oc apply -f ./cypress/fixtures/incidents/pod_crash_loop.yaml --kubeconfig ${kubeconfigPath}`,
-    );
+    cy.adminCLI(`oc apply -f ./cypress/fixtures/incidents/pod_crash_loop.yaml`);
   };
 
   if (shouldReuseResources) {
-    cy.exec(
+    cy.adminCLI(
       `oc get prometheusrule kubernetes-monitoring-podcrash-rules ` +
-        `-n openshift-monitoring -o yaml --kubeconfig ${kubeconfigPath}`,
+        `-n openshift-monitoring -o yaml`,
       { failOnNonZeroExit: false },
     ).then((result) => {
       if (result.code === 0 && result.stdout.includes(`alert: ${alertName}`)) {
@@ -70,10 +63,9 @@ Cypress.Commands.add('createKubePodCrashLoopingAlert', (testName?: string) => {
       }
     });
 
-    cy.exec(
-      `oc get -f ./cypress/fixtures/incidents/pod_crash_loop.yaml --kubeconfig ${kubeconfigPath}`,
-      { failOnNonZeroExit: false },
-    ).then((result) => {
+    cy.adminCLI(`oc get -f ./cypress/fixtures/incidents/pod_crash_loop.yaml`, {
+      failOnNonZeroExit: false,
+    }).then((result) => {
       if (result.code === 0) {
         cy.log('Crash looping pod already exists, reusing it');
       } else {
@@ -95,9 +87,9 @@ Cypress.Commands.add('cleanupIncidentPrometheusRules', () => {
 
   // Delete all PrometheusRules that match our pattern (kubernetes-monitoring-podcrash-rules)
   // This ensures cleanup before tests and after tests
-  cy.exec(
+  cy.adminCLI(
     `oc delete prometheusrule kubernetes-monitoring-podcrash-rules ` +
-      `-n openshift-monitoring --kubeconfig ${kubeconfigPath} --ignore-not-found=true`,
+      `-n openshift-monitoring --ignore-not-found=true`,
   );
 
   // Clear the environment variable if it exists

@@ -6,6 +6,8 @@ export enum QueryParams {
   Datasource = 'datasource',
   Project = 'project',
   Namespace = 'namespace',
+  GroupBy = 'groupBy',
+  Aggregate = 'aggregate',
   Units = 'units',
   // Use openshift-namespace query parameter for dashboards page since grafana variables cannot have
   // a `-` character in their name

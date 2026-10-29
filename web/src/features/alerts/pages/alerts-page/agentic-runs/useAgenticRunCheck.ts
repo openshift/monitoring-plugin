@@ -63,7 +63,16 @@ export const useAgenticRunCheck = (alert: Alert) => {
     const matchesFp = (p: K8sResourceCommon) =>
       p.metadata?.labels?.[AGENTIC_RUN_LABEL_FINGERPRINT] === alertFingerprint;
 
-    return [...(defaultNsData ?? []).filter(matchesFp), ...(alertNsData ?? []).filter(matchesFp)];
+    const createdAt = (p: K8sResourceCommon) => {
+      const ts = p.metadata?.creationTimestamp;
+      const parsed = ts ? Date.parse(ts) : NaN;
+      return Number.isNaN(parsed) ? -Infinity : parsed;
+    };
+
+    return [
+      ...(defaultNsData ?? []).filter(matchesFp),
+      ...(alertNsData ?? []).filter(matchesFp),
+    ].sort((a, b) => createdAt(b) - createdAt(a));
   }, [defaultNsData, alertNsData, alertFingerprint]);
 
   const isFetching = defaultNsFetching || alertNsFetching;

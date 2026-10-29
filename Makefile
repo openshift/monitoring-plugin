@@ -3,8 +3,8 @@ PLATFORMS   ?= linux/arm64,linux/amd64
 ORG         ?= openshift-observability-ui
 PLUGIN_NAME ?=monitoring-plugin
 IMAGE       ?= quay.io/${ORG}/${PLUGIN_NAME}:${VERSION}
-MONITORING_FEATURES    ?=alerting,alerting-management,targets,legacy-dashboards,metrics
-ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards
+MONITORING_FEATURES    ?=alerting,alert-management-api,overview,targets,legacy-dashboards,metrics
+ALL_FEATURES    ?=$(MONITORING_FEATURES),cluster-health-analyzer,perses-dashboards,logging
 MCP_DEVSPACE_FEATURES  ?=cluster-health-analyzer,perses-dashboards,perses-ui-customization,acm-alerting
 
 GOLANGCI_LINT = $(shell pwd)/_output/tools/bin/golangci-lint
@@ -40,6 +40,10 @@ start-mcp-frontend:
 start-console:
 	./scripts/start-console.sh
 
+.PHONY: start-coo-console
+start-coo-console:
+	CONSOLE_PLUGIN_NAME=monitoring-console-plugin make start-console
+
 .PHONY: i18n-frontend
 i18n-frontend:
 	cd web && npm run i18n
@@ -52,6 +56,10 @@ lint-frontend:
 install-backend:
 	go mod download
 
+.PHONY: generate-backend
+generate-backend:
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
+
 .PHONY: build-backend
 build-backend:
 	go build $(BUILD_OPTS) -mod=readonly -o plugin-backend cmd/plugin-backend.go
@@ -62,11 +70,19 @@ start-backend:
 
 .PHONY: start-coo-backend
 start-coo-backend:
-	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -static-path='./web/dist' -features='${ALL_FEATURES}'
+	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -plugin-config-path='./hack/default-config.yaml' -static-path='./web/dist' -features='${ALL_FEATURES}'
 
 .PHONY: test-backend
 test-backend:
-	go test ./pkg/... -v
+	go test ./pkg/... ./internal/... -v
+
+.PHONY: build-e2e
+build-e2e:
+	go test -c -tags e2e ./test/e2e
+
+.PHONY: test-e2e
+test-e2e:
+	go test -tags e2e -v -timeout=150m -count=1 ./test/e2e
 
 .PHONY: test-frontend
 test-frontend:
@@ -75,6 +91,14 @@ test-frontend:
 .PHONY: test-frontend-unit
 test-frontend-unit:
 	cd web && npm run test:unit:ci
+
+.PHONY: test-frontend-component
+test-frontend-component:
+	cd web && npm run test:component
+
+.PHONY: test-logging-ui
+test-logging-ui:
+	./scripts/test-logging-ui.sh
 
 .PHONY: build-image
 build-image:
@@ -107,11 +131,11 @@ build-dev-mcp-image:
 
 .PHONY: start-devspace-backend
 start-devspace-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
+	air -c /opt/app-root/.air.toml -- -port='9443' -cert='/var/cert/tls.crt' -key='/var/cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MONITORING_FEATURES}'
 
 .PHONY: start-devspace-mcp-backend
 start-devspace-mcp-backend:
-	/opt/app-root/plugin-backend -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
+	air -c /opt/app-root/.air.toml -- -port='9443' -cert='/var/serving-cert/tls.crt' -key='/var/serving-cert/tls.key' -static-path='/opt/app-root/web/dist' -config-path='/opt/app-root/config' -features='${MCP_DEVSPACE_FEATURES}' -alertmanager='https://alertmanager.open-cluster-management-observability.svc:9095' -thanos-querier='https://rbac-query-proxy.open-cluster-management-observability.svc:8443'
 
 .PHONY: start-devspace-mcp-backend
 start-devspace-mcp-backend:

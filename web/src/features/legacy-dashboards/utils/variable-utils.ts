@@ -1,9 +1,8 @@
 import * as _ from 'lodash-es';
 
-import {
-  DEFAULT_GRAPH_SAMPLES,
-  MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY,
-} from '@/features/legacy-dashboards/utils/utils';
+import { DEFAULT_GRAPH_SAMPLES } from '@/features/legacy-dashboards/utils/utils';
+import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/shared/constants/legacy-dashboards';
+import type { Variable } from '@/shared/types/types';
 import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
@@ -12,17 +11,6 @@ export const isIntervalVariable = (itemKey: string): boolean =>
   _.some(intervalVariableRegExps, (re) =>
     itemKey?.match(new RegExp(`\\$${re}(?![a-zA-Z0-9_])`, 'g')),
   );
-
-export type Variable = {
-  isHidden?: boolean;
-  isLoading?: boolean;
-  includeAll?: boolean;
-  options?: string[];
-  query?: string;
-  value?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datasource?: any;
-};
 
 /*
  * Escapes a variable value if it is in a regex context (i.e., after =~ or !~ operators).

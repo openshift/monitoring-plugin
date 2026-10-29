@@ -102,7 +102,7 @@ describe('buildImportBoundaryZones', () => {
     mkdir(tmp, 'alerts');
     mkdir(tmp, 'metrics');
     const zones = buildImportBoundaryZones(tmp);
-    const featureZones = zones.filter((z) => z.from === tmp);
+    const featureZones = zones.filter((z) => z.message.startsWith('Feature '));
     expect(featureZones).toHaveLength(2);
   });
 
@@ -125,7 +125,7 @@ describe('buildImportBoundaryZones', () => {
     mkdir(tmp, 'alerts', 'pages', 'silences-page');
     touch(tmp, 'alerts', 'pages', 'AlertsDetailsPage.tsx');
     const zones = buildImportBoundaryZones(tmp);
-    const pageZones = zones.filter((z) => z.from !== tmp);
+    const pageZones = zones.filter((z) => z.message.startsWith('Page '));
     expect(pageZones).toHaveLength(3);
   });
 
@@ -149,11 +149,22 @@ describe('buildImportBoundaryZones', () => {
     mkdir(tmp, 'alerts');
     // No pages/ subdirectory created
     const zones = buildImportBoundaryZones(tmp);
-    const pageZones = zones.filter((z) => z.from !== tmp);
+    const pageZones = zones.filter((z) => z.message.startsWith('Page '));
     expect(pageZones).toHaveLength(0);
   });
 
-  it('returns an empty array when the features directory is empty', () => {
-    expect(buildImportBoundaryZones(tmp)).toEqual([]);
+  it('prevents shared code from importing features', () => {
+    const [zone] = buildImportBoundaryZones(tmp).slice(-1);
+
+    expect(zone).toMatchObject({
+      target: path.resolve(tmp, '../shared'),
+      from: tmp,
+      except: [],
+      message: expect.stringContaining('Shared code must not import from features.'),
+    });
+  });
+
+  it('returns the shared boundary when the features directory is empty', () => {
+    expect(buildImportBoundaryZones(tmp)).toHaveLength(1);
   });
 });

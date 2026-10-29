@@ -1,0 +1,11 @@
+.pf-v6-c-description-list.pf-m-compact.lv-plugin__detail_descripton-list {
+  --pf-v6-c-description-list--RowGap: var(--pf-t--global--spacer--sm);
+}
+
+.lv-plugin__detail__list-term {
+  overflow-wrap: anywhere;
+}
+
+.lv-plugin__detail_descripton-list .pf-v6-c-description-list__group {
+  grid-template-columns: max-content 1fr;
+}

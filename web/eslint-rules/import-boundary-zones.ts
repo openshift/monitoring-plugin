@@ -50,7 +50,14 @@ export function buildImportBoundaryZones(directoryPrefix = './src/features'): Zo
     }));
   });
 
-  return [...crossFeatureZones, ...crossPageZones];
+  const sharedToFeatureZone: Zone = {
+    target: path.resolve(directoryPrefix, '../shared'),
+    from: directoryPrefix,
+    except: [],
+    message: 'Shared code must not import from features. Move shared dependencies to src/shared/.',
+  };
+
+  return [...crossFeatureZones, ...crossPageZones, sharedToFeatureZone];
 }
 
 export const importBoundaryZones = buildImportBoundaryZones(

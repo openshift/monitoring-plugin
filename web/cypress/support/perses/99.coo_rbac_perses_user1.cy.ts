@@ -35,61 +35,13 @@ export function testCOORBACPersesTestsDevUser1(
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
-      cy.assertNamespace('All Projects', true);
       cy.assertNamespace('openshift-cluster-observability-operator', true);
       cy.assertNamespace('observ-test', true);
       cy.assertNamespace('openshift-monitoring', true);
       cy.assertNamespace('perses-dev', false);
       cy.assertNamespace('empty-namespace3', false);
       cy.assertNamespace('empty-namespace4', false);
-
-      cy.log(
-        `1.2. All Projects validation - Dashboard search - ` +
-          `${persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2]} dashboard`,
-      );
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
-      );
-      listPersesDashboardsPage.countDashboards('1');
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
-      );
-
-      cy.log(
-        `1.3. All Projects validation - Dashboard search - ` +
-          `${persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2]} dashboard`,
-      );
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
-      );
-      listPersesDashboardsPage.countDashboards('2');
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
-      );
-
-      cy.log(
-        `1.4. All Projects validation - Dashboard search - ` +
-          `${persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2]} dashboard`,
-      );
-      listPersesDashboardsPage.filter.byName(
-        persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
-      );
-      listPersesDashboardsPage.filter.byProject('perses-dev');
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag(
-        persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
-      );
-      listPersesDashboardsPage.removeTag('perses-dev');
-
-      cy.log(`1.5. All Projects validation - Dashboard search - empty state`);
-      listPersesDashboardsPage.filter.byProject('empty-namespace3');
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag('empty-namespace3');
-
-      cy.log(`1.6. All Projects validation - Dashboard search - empty state`);
-      listPersesDashboardsPage.filter.byProject('openshift-monitoring');
-      listPersesDashboardsPage.emptyState();
-      listPersesDashboardsPage.removeTag('openshift-monitoring');
+      cy.assertNamespace('All Projects', false);
     },
   );
 
@@ -276,12 +228,6 @@ export function testCOORBACPersesTestsDevUser1(
 
     cy.log(`4.5. Verify Create button is enabled`);
     listPersesDashboardsPage.assertCreateButtonIsEnabled();
-
-    cy.log(`4.6 change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`4.7. Verify Create button is enabled`);
-    listPersesDashboardsPage.assertCreateButtonIsEnabled();
   });
 
   it(
@@ -451,28 +397,20 @@ export function testCOORBACPersesTestsDevUser1(
     listPersesDashboardsPage.assertKebabIconOptions();
     listPersesDashboardsPage.clickKebabIcon();
 
-    cy.log(`6.6. Change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
+    cy.log(`6.6. Clear all filters`);
     listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`6.7. Filter by Project and Name`);
+    cy.changeNamespace('observ-test');
     listPersesDashboardsPage.filter.byProject('observ-test');
     listPersesDashboardsPage.filter.byName(
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
     );
     listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.assertKebabRowActionsDisabled();
-    listPersesDashboardsPage.clearAllFilters();
+    listPersesDashboardsPage.clickKebabIcon();
+    listPersesDashboardsPage.assertKebabIconOnlyDuplicate();
+    listPersesDashboardsPage.clickKebabIcon();
 
-    cy.log(`6.8. Filter by Project and Name`);
-    listPersesDashboardsPage.filter.byProject('openshift-cluster-observability-operator');
-    listPersesDashboardsPage.filter.byName(
-      persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
-    );
-    listPersesDashboardsPage.countDashboards('1');
-    listPersesDashboardsPage.clickKebabIcon();
-    listPersesDashboardsPage.assertKebabIconOptions();
-    listPersesDashboardsPage.clickKebabIcon();
     listPersesDashboardsPage.clearAllFilters();
   });
 
@@ -662,12 +600,6 @@ export function testCOORBACPersesTestsDevUser1(
     cy.changeNamespace('openshift-cluster-observability-operator');
 
     cy.log(`10.6. Verify Import button is enabled`);
-    listPersesDashboardsPage.assertImportButtonIsEnabled();
-
-    cy.log(`10.7 change namespace to All Projects`);
-    cy.changeNamespace('All Projects');
-
-    cy.log(`10.8. Verify Import button is enabled`);
     listPersesDashboardsPage.assertImportButtonIsEnabled();
   });
 

@@ -17,18 +17,13 @@ export function testCOORBACPersesTestsDevUser4(perspectiveName: CustomerPerspect
     () => {
       cy.log(`1.1. Namespace validation`);
       listPersesDashboardsPage.noDashboardsFoundState();
-      cy.assertNamespace('All Projects', true);
+      cy.assertNamespace('All Projects', false);
       cy.assertNamespace('openshift-cluster-observability-operator', false);
       cy.assertNamespace('observ-test', false);
       cy.assertNamespace('perses-dev', false);
       cy.assertNamespace('empty-namespace3', false);
       cy.assertNamespace('empty-namespace4', true);
       cy.assertNamespace('openshift-monitoring', true);
-
-      cy.log(`1.2. All Projects validation - Dashboard search - empty state`);
-      cy.changeNamespace('All Projects');
-      listPersesDashboardsPage.noDashboardsFoundState();
-      listPersesDashboardsPage.assertCreateButtonIsEnabled();
 
       cy.log(`1.3. empty-namespace4 validation - Dashboard search - empty state`);
       cy.changeNamespace('empty-namespace4');
@@ -54,6 +49,7 @@ export function testCOORBACPersesTestsDevUser4(perspectiveName: CustomerPerspect
     listPersesDashboardsPage.clickCreateButton();
     persesCreateDashboardsPage.createDashboardShouldBeLoaded();
     persesCreateDashboardsPage.assertCreateAccessDenied('empty-namespace4');
+    persesCreateDashboardsPage.assertCreateAccessDenied('openshift-monitoring');
     persesCreateDashboardsPage.createDashboardDialogCancelButton();
   });
 
@@ -73,6 +69,7 @@ export function testCOORBACPersesTestsDevUser4(perspectiveName: CustomerPerspect
     );
     persesImportDashboardsPage.assertPersesDashboardDetected();
     persesImportDashboardsPage.assertImportAccessDenied('empty-namespace4');
+    persesImportDashboardsPage.assertImportAccessDenied('openshift-monitoring');
     persesImportDashboardsPage.clickCancelButton();
   });
 }

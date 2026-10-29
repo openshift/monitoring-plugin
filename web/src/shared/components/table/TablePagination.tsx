@@ -1,11 +1,13 @@
 import {
+  Flex,
+  FlexItem,
   OnPerPageSelect,
   OnSetPage,
   Pagination,
   PaginationVariant,
   PerPageOptions,
 } from '@patternfly/react-core';
-import type { FC } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const ITEMS_PER_PAGE = [10, 20, 50, 100, 200, 500];
@@ -15,7 +17,7 @@ const defaultPerPageOptions: PerPageOptions[] = ITEMS_PER_PAGE.map((n) => ({
   value: n,
 }));
 
-export const TablePagination: FC<TablePaginationProps> = ({
+export function TablePagination({
   itemCount,
   page,
   perPage,
@@ -25,11 +27,15 @@ export const TablePagination: FC<TablePaginationProps> = ({
   variant = PaginationVariant.bottom,
   onSetPage,
   onPerPageSelect,
-}) => {
+  leftActions,
+  rightActions,
+  isCompact = false,
+}: TablePaginationProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
-  return (
+  const pagination = (
     <Pagination
+      isCompact={isCompact}
       itemCount={itemCount}
       onPerPageSelect={
         onPerPageSelect
@@ -63,7 +69,19 @@ export const TablePagination: FC<TablePaginationProps> = ({
       }}
     />
   );
-};
+
+  return leftActions || rightActions ? (
+    <Flex alignItems={{ default: 'alignItemsCenter' }}>
+      {leftActions && <FlexItem>{leftActions}</FlexItem>}
+      <Flex align={{ default: 'alignRight' }} alignItems={{ default: 'alignItemsCenter' }}>
+        {rightActions && <FlexItem>{rightActions}</FlexItem>}
+        <FlexItem>{pagination}</FlexItem>
+      </Flex>
+    </Flex>
+  ) : (
+    pagination
+  );
+}
 
 type TablePaginationProps = {
   itemCount: number;
@@ -75,4 +93,7 @@ type TablePaginationProps = {
   variant?: 'top' | 'bottom' | PaginationVariant;
   onSetPage?: OnSetPage;
   onPerPageSelect?: OnPerPageSelect;
+  leftActions?: ReactNode;
+  rightActions?: ReactNode;
+  isCompact?: boolean;
 };

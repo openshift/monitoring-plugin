@@ -5,15 +5,17 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import { AlertState } from '@/features/alerts/components/AlertUtils';
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
-import { AggregatedAlertFilters } from '@/features/alerts/pages/alerts-page/AlertsPage';
 import AlertTableRow from '@/features/alerts/pages/alerts-page/AlertTableRow';
-import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
+import {
+  AggregatedAlertFilters,
+  filterAlerts,
+} from '@/features/alerts/pages/alerts-page/filter-alerts';
+import { AlertState } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { AggregatedAlert } from '@/shared/types/types';
 import { RuleResource } from '@/shared/utils/utils';
 
 type AggregateAlertTableRowProps = {

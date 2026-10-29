@@ -1,0 +1,4 @@
+.lv-plugin__histogram__tooltip-line {
+  stroke: var(--pf-t--global--background--color--primary--default);
+  stroke-dasharray: 3;
+}

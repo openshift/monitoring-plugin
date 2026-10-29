@@ -8,7 +8,8 @@ import { useBoolean } from '@/shared/hooks/useBoolean';
 const KebabDropdown: FC<{
   dropdownItems: ReactNode;
   onMouseEnter?: MouseEventHandler;
-}> = ({ dropdownItems, onMouseEnter }) => {
+  ariaLabel?: string;
+}> = ({ dropdownItems, onMouseEnter, ariaLabel = 'Menu toggle' }) => {
   const [isOpen, setIsOpen, setOpen, setClosed] = useBoolean(false);
 
   return (
@@ -20,7 +21,7 @@ const KebabDropdown: FC<{
       toggle={(toggleRef: Ref<MenuToggleElement>) => (
         <MenuToggle
           ref={toggleRef}
-          aria-label="toggle menu"
+          aria-label={ariaLabel}
           data-test-id="kebab-button"
           data-test={DataTestIDs.KebabDropdownButton}
           variant="plain"

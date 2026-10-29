@@ -43,6 +43,12 @@ describe(
 
       // Step 5: Re-login as dev user (now without cluster-admin role)
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
+
+      /**
+       * RBAC permissions for dev user5 (bound directly to the user, no group)
+       * - Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
+       * - openshift-monitoring: admin
+       */
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),
@@ -58,8 +64,6 @@ describe(
       nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
       cy.wait(2000);
       nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      cy.wait(2000);
-      cy.changeNamespace('All Projects');
     });
 
     after(() => {
