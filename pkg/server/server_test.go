@@ -156,6 +156,15 @@ func TestServerRunning(t *testing.T) {
 		t.Fatalf("Failed: could not fetch features endpoint: %v", err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL+"/metrics", nil)
+	require.NoError(t, err)
+	resp, err := httpClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
 	// sanity check - make sure we cannot get to a bogus context path
 	if _, err = getRequestResults(t, httpClient, serverURL+"/badroot"); err == nil {
 		t.Fatalf("Failed: Should have failed going to /badroot")
