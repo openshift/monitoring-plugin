@@ -344,13 +344,13 @@ const LogsDevPage: FC<LogsDevPageProps> = ({ ns: namespaceFromProps }) => {
   );
 };
 
-const LogsDevPageWrapper: FC<LogsDevPageProps> = memo((props) => {
+const WrappedLogsDevPage: FC<LogsDevPageProps> = memo((props) => {
   return (
     <LogsConfigProvider>
       <LogsDevPage {...props} />
     </LogsConfigProvider>
   );
 });
-LogsDevPageWrapper.displayName = 'LogsDevPageWrapper';
+WrappedLogsDevPage.displayName = 'WrappedLogsDevPage';
 
-export default LogsDevPageWrapper;
+export default WrappedLogsDevPage;

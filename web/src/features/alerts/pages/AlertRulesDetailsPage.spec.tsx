@@ -2,7 +2,7 @@
 
 import { render, screen } from '@testing-library/react';
 
-import { PrometheusTemplate } from '@/features/alerts/pages/AlertRulesDetailsPage';
+import { PrometheusTemplate } from '@/features/alerts/components/ActiveAlerts';
 
 describe('PrometheusTemplate', () => {
   it('linkifies plain-text parts and keeps template tags as code', () => {

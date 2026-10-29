@@ -7,7 +7,7 @@ import { usePerspective } from '@/shared/hooks/usePerspective';
 // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by
 // Alertmanager). The Prometheus UI specifies the PromQL query with the GET param `g0.expr`, so we
 // use that if it exists. Otherwise, just go to the query browser page with no query.
-const PrometheusRouterRedirect: FC = () => {
+const PrometheusRedirectPage: FC = () => {
   const { urlRoot } = usePerspective();
 
   const [params] = useSearchParams();
@@ -15,4 +15,4 @@ const PrometheusRouterRedirect: FC = () => {
   return <Navigate to={buildPrometheusRedirectUrl(params, urlRoot)} />;
 };
 
-export default PrometheusRouterRedirect;
+export default PrometheusRedirectPage;
