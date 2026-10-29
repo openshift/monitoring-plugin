@@ -4,6 +4,7 @@ import { MonitoringContext } from '@/shared/contexts/MonitoringContext';
 
 export const useMonitoring = () => {
   const {
+    perspective,
     prometheus,
     plugin,
     useAlertsTenancy,
@@ -12,6 +13,7 @@ export const useMonitoring = () => {
     displayNamespaceSelector,
   } = useContext(MonitoringContext);
   return {
+    perspective,
     prometheus,
     plugin,
     useAlertsTenancy,

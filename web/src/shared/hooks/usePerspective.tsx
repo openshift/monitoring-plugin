@@ -1,4 +1,4 @@
-import { PrometheusAlert, Rule, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusAlert, Rule } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
 import {
@@ -10,6 +10,7 @@ import {
   UrlRootName,
 } from '@/shared/constants/perspective';
 import { QueryParams } from '@/shared/constants/query-params';
+import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { MonitoringState } from '@/shared/store/store';
 import { AlertSource } from '@/shared/types/types';
 import { GraphUnits } from '@/shared/utils/units';
@@ -32,7 +33,7 @@ type usePerspectiveReturn = {
 };
 
 export const usePerspective = (): usePerspectiveReturn => {
-  const [perspective] = useActivePerspective();
+  const { perspective } = useMonitoring();
 
   switch (perspective) {
     case PerspectiveName.Developer:

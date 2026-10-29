@@ -1,10 +1,5 @@
 /* eslint-disable import/no-restricted-paths */
-import {
-  HorizontalNav,
-  ListPageHeader,
-  NamespaceBar,
-  useActivePerspective,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { HorizontalNav, ListPageHeader, NamespaceBar } from '@openshift-console/dynamic-plugin-sdk';
 import type { FC } from 'react';
 import { lazy, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -66,10 +61,9 @@ const namespacedPages = [
 const AlertingPage: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const dispatch = useDispatch();
-  const [perspective] = useActivePerspective();
   const { setNamespace, namespace } = useMonitoringNamespace();
 
-  const { plugin, prometheus, useAlertsTenancy } = useMonitoring();
+  const { perspective, plugin, prometheus, useAlertsTenancy } = useMonitoring();
 
   const { pathname } = useLocation();
 

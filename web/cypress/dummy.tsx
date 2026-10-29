@@ -24,6 +24,5 @@ export const ListPageFilter = () => <input data-test="name-filter-input"></input
 
 export const Timestamp = () => <div>Mock_Timestamp</div>;
 
-export const useActivePerspective = () => ['admin'];
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useListPageFilter = (data, _rowFilters) => [data, data, () => {}];

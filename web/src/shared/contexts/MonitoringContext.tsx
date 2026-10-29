@@ -1,11 +1,15 @@
 import { useAccessReview } from '@openshift-console/dynamic-plugin-sdk';
 import { createContext, FC, PropsWithChildren, useMemo } from 'react';
+import { useLocation } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
+import { Perspective, PerspectiveName } from '@/shared/constants/perspective';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 import { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';
 
 type MonitoringContextType = {
+  /** Perspective of the page route, independent of the active Console perspective. */
+  perspective: Perspective;
   /** Dictates which plugin this code is being run in */
   plugin: MonitoringPlugins;
   /** Dictates which prometheus instance this code should contact */
@@ -28,6 +32,7 @@ type MonitoringContextType = {
 };
 
 export const MonitoringContext = createContext<MonitoringContextType>({
+  perspective: PerspectiveName.Admin,
   plugin: 'monitoring-plugin',
   prometheus: 'cmo',
   useAlertsTenancy: false,
@@ -35,6 +40,20 @@ export const MonitoringContext = createContext<MonitoringContextType>({
   accessCheckLoading: true,
   displayNamespaceSelector: true,
 });
+
+const getPerspectiveForPath = (pathname: string): Perspective => {
+  const root = pathname.split('/')[1];
+  switch (root) {
+    case 'multicloud':
+      return PerspectiveName.ACM;
+    case 'dev-monitoring':
+      return PerspectiveName.Developer;
+    case 'virt-monitoring':
+      return PerspectiveName.Virtualization;
+    default:
+      return PerspectiveName.Admin;
+  }
+};
 
 export const MonitoringProvider: FC<
   PropsWithChildren<{
@@ -45,6 +64,8 @@ export const MonitoringProvider: FC<
     };
   }>
 > = ({ children, monitoringContext }) => {
+  const { pathname } = useLocation();
+  const perspective = getPerspectiveForPath(pathname);
   const [allNamespaceAlertsTenancy, alertAccessCheckLoading] = useAccessReview({
     group: 'monitoring.coreos.com',
     resource: 'prometheusrules',
@@ -62,6 +83,7 @@ export const MonitoringProvider: FC<
   const monContext = useMemo(() => {
     return {
       ...monitoringContext,
+      perspective,
       // We only need to use the tenancy path when we are querying the in cluster monitoring
       useAlertsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceAlertsTenancy,
       useMetricsTenancy: monitoringContext.prometheus === 'cmo' && !allNamespaceMeticsTenancy,
@@ -70,6 +92,7 @@ export const MonitoringProvider: FC<
     };
   }, [
     monitoringContext,
+    perspective,
     allNamespaceAlertsTenancy,
     alertAccessCheckLoading,
     allNamespaceMeticsTenancy,
