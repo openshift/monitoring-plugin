@@ -35,6 +35,10 @@ describe('TraceDomain.fromQuery', () => {
   it.each([
     ...roundtrip,
     {
+      query: `trace:span:{ }`,
+      url: `observe/traces?${tempo}`,
+    },
+    {
       query: `trace:span:{resource.service.name="shop-backend"}`,
       url: `observe/traces?${tempo}&q=%7Bresource.service.name%3D%22shop-backend%22%7D`,
     },

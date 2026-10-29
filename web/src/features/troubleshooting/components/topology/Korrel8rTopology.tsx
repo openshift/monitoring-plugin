@@ -43,11 +43,20 @@ import {
   withSelection,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  FC,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getIcon } from '@/features/troubleshooting/components/Icons';
+import { fallbackIcon, getIcon } from '@/features/troubleshooting/components/Icons';
 import {
   mergeStatusCounts,
   statusForNode,
@@ -170,7 +179,7 @@ const Korrel8rTopologyNode: FC<
         </>
       }
     >
-      <g transform={`translate(25, 25)`}>{getIcon(node?.class)}</g>
+      <g transform={`translate(25, 25)`}>{node?.class ? getIcon(node.class) : fallbackIcon}</g>
     </DefaultNode>
   );
   if (node.disabled) {
@@ -194,6 +203,38 @@ const Korrel8rEdge: FC<{ element: Edge<EdgeModel, { rules: korrel8r.Rule[] }> }>
     <DefaultEdge element={element} {...rest}>
       {ruleNames && <title>{ruleNames}</title>}
     </DefaultEdge>
+  );
+};
+
+// Context-menu items read the current constraint and navigation from React context and hooks,
+// so the component factory stays stable and is registered once per controller.
+const ConstraintContext = createContext<korrel8r.Constraint | undefined>(undefined);
+
+const Korrel8rNodeMenuItem: FC<{ qc: korrel8r.QueryCount; onSelect: () => void }> = ({
+  qc,
+  onSelect,
+}) => {
+  const navigateToQuery = useNavigateToQuery();
+  const constraint = useContext(ConstraintContext);
+  return (
+    <ContextMenuItem
+      onClick={() => {
+        navigateToQuery(qc.query, constraint);
+        onSelect();
+        navigator.clipboard.writeText(qc.query.toString());
+      }}
+    >
+      <Badge>{`${qc.count}`}</Badge> {qc.query.selector}
+      {qc.statuses?.length > 0 && (
+        <LabelGroup>
+          {qc.statuses.map(({ status, count }) => (
+            <Label key={status} isCompact status={statusName(toStatus(status))}>
+              {status} {count}
+            </Label>
+          ))}
+        </LabelGroup>
+      )}
+    </ContextMenuItem>
   );
 };
 
@@ -297,11 +338,13 @@ export const Korrel8rTopology: FC<{
     (selected: Array<string>) => {
       const id = selected?.[0]; // Select only one at a time.
       setSelectedIds([id]);
-      const node = graph.node(id);
+      // Use the rendered model: it carries the plugin-availability disabled state.
+      const node = nodes.find((n) => n.id === id)?.data as TopologyNodeData | undefined;
       if (!node || node.disabled) return;
-      navigateToQuery(node.queries?.[0]?.query, constraint);
+      const query = node.queries?.find((qc) => !qc.error)?.query;
+      if (query) navigateToQuery(query, constraint);
     },
-    [graph, navigateToQuery, setSelectedIds, constraint],
+    [nodes, navigateToQuery, setSelectedIds, constraint],
   );
 
   const nodeMenu = useCallback(
@@ -319,32 +362,20 @@ export const Korrel8rTopology: FC<{
           <Title headingLevel="h4">{node.class.toString()}</Title>
         </ContextMenuItem>,
       ];
-      node?.queries?.forEach((qc) =>
-        menu.push(
-          <ContextMenuItem
-            key={qc.query.toString()}
-            onClick={() => {
-              navigateToQuery(qc.query, constraint);
-              setSelectedIds([node.id]);
-              navigator.clipboard.writeText(qc.query.toString());
-            }}
-          >
-            <Badge>{`${qc.count}`}</Badge> {qc.query.selector}
-            {qc.statuses?.length > 0 && (
-              <LabelGroup>
-                {qc.statuses.map(({ status, count }) => (
-                  <Label key={status} isCompact status={statusName(toStatus(status))}>
-                    {status} {count}
-                  </Label>
-                ))}
-              </LabelGroup>
-            )}
-          </ContextMenuItem>,
-        ),
-      );
+      node?.queries
+        ?.filter((qc) => !qc.error && qc.query)
+        .forEach((qc) =>
+          menu.push(
+            <Korrel8rNodeMenuItem
+              key={qc.query.toString()}
+              qc={qc}
+              onSelect={() => setSelectedIds([node.id])}
+            />,
+          ),
+        );
       return menu;
     },
-    [navigateToQuery, setSelectedIds, constraint],
+    [setSelectedIds],
   );
 
   const componentFactory: ComponentFactory = useCallback(
@@ -391,15 +422,23 @@ export const Korrel8rTopology: FC<{
     return controller;
   }, [nodes, edges, rankdir]);
 
-  // NOTE: For some reason, the controller function above cannot depend on memoized functions
-  // like selectionAction or componentfactory. Using a separate memo works. Strange.
+  // The component factory must be registered before the Visualization renders, so it is done in
+  // a memo; componentFactory is stable, so it is registered once per controller. PatternFly has no
+  // way to unregister a factory, and it caches each element's component per controller.
   // The Visualization below must depend on controller 2.
   const controller2 = useMemo(() => {
-    controller.addEventListener(SELECTION_EVENT, selectionAction);
     controller.registerComponentFactory(componentFactory);
     controller.setFitToScreenOnLayout(true, PADDING);
     return controller;
-  }, [controller, selectionAction, componentFactory]);
+  }, [controller, componentFactory]);
+
+  // selectionAction changes with the constraint and on navigation; replace the listener.
+  useEffect(() => {
+    controller.addEventListener(SELECTION_EVENT, selectionAction);
+    return () => {
+      controller.removeEventListener(SELECTION_EVENT, selectionAction);
+    };
+  }, [controller, selectionAction]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -456,9 +495,11 @@ export const Korrel8rTopology: FC<{
           />
         }
       >
-        <VisualizationProvider controller={controller2}>
-          <VisualizationSurface state={{ selectedIds }} />
-        </VisualizationProvider>
+        <ConstraintContext.Provider value={constraint}>
+          <VisualizationProvider controller={controller2}>
+            <VisualizationSurface state={{ selectedIds }} />
+          </VisualizationProvider>
+        </ConstraintContext.Provider>
       </TopologyView>
     </div>
   );

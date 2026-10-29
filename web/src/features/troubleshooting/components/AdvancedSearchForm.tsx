@@ -95,9 +95,9 @@ export const AdvancedSearchForm: FC<AdvancedSearchFormProps> = ({ search, onSear
     () =>
       search.searchType !== searchType ||
       search.queryStr !== queryStr ||
-      search.depth !== depth ||
-      search.goal !== goal ||
-      search.limit !== limit,
+      (search.depth ?? defaultSearch.depth) !== depth ||
+      (search.goal ?? '') !== goal ||
+      (search.limit ?? defaultSearch.limit) !== limit,
     [
       search.searchType,
       search.queryStr,

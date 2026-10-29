@@ -29,7 +29,7 @@ export const DateTimePicker: FC<{
         <TimePicker
           time={date}
           onChange={(_event, _time, hour, minute, second, isValid) => {
-            if (isValid) onChange(setTime(date, hour, minute, second));
+            if (isValid) onChange(setTime(new Date(date), hour, minute, second));
           }}
           is24Hour={true}
           menuAppendTo={() => document.body}
