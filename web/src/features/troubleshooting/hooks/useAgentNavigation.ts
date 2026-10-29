@@ -79,8 +79,8 @@ const useAgentNavigation = ({
             } catch {
               // ignore unparseable queries
             }
-            if (event.view) {
-              navigateToQueryRef.current(parsedQuery || Query.parse(event.view), null);
+            if (event.view && parsedQuery) {
+              navigateToQueryRef.current(parsedQuery, null);
             }
             if (eventSearch) {
               dispatch(setSearch(eventSearch));

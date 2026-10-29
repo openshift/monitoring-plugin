@@ -52,7 +52,7 @@ export class TraceDomain extends Domain {
       namespace: tempoNamespace,
       name: tempoName,
       tenant: tempoTenant,
-      q: !traceID && !traceQL.match(/{[:space:]*}/) && traceQL,
+      q: !traceID && !/^\{\s*\}$/.test(traceQL) && traceQL,
       ...timeParams,
     });
   }
