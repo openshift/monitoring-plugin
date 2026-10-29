@@ -76,6 +76,7 @@ describe('getPageScopes', () => {
 
   it('excludes files not matching *Page.tsx', () => {
     touch(tmp, 'AlertsDetailsPage.tsx');
+    touch(tmp, 'AlertsDetailsPage.ts');
     touch(tmp, 'filter-alerts.ts');
     touch(tmp, 'utils.tsx');
     expect(getPageScopes(tmp)).toEqual(['AlertsDetailsPage.tsx']);
@@ -130,9 +131,8 @@ describe('buildImportBoundaryZones', () => {
     touch(tmp, 'beta', 'pages', 'BetaPage.ts');
     touch(tmp, 'beta', 'pages', 'beta-page', 'helpers.ts');
     const [zone] = buildImportBoundaryZones(tmp);
-    expect(zone.except).toEqual(
-      expect.arrayContaining(['./beta/pages/beta-page/BetaPage.tsx', './beta/pages/BetaPage.ts']),
-    );
+    expect(zone.except).toEqual(['./alerts', './beta/pages/beta-page/BetaPage.tsx']);
+    expect(zone.except).not.toContain('./beta/pages/BetaPage.ts');
     expect(zone.except).not.toContain('./beta/pages/beta-page/helpers.ts');
   });
 

@@ -14,7 +14,7 @@ export function getPageScopes(pagesDirectory: string): string[] {
   return fs
     .readdirSync(pagesDirectory, { withFileTypes: true })
     .filter((entry) =>
-      entry.isDirectory() ? entry.name.endsWith('-page') : /Page\.tsx?$/.test(entry.name),
+      entry.isDirectory() ? entry.name.endsWith('-page') : /Page\.tsx$/.test(entry.name),
     )
     .map((entry) => entry.name);
 }
@@ -37,7 +37,7 @@ export function getPageComponentFiles(featuresDir: string, relativeTo?: string):
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (/Page\.tsx?$/.test(entry.name)) {
+      } else if (/Page\.tsx$/.test(entry.name)) {
         pageFiles.push(`./${path.relative(baseDir, full)}`);
       }
     }
