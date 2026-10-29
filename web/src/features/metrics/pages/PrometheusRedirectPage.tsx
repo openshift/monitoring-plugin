@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
 
 import { buildPrometheusRedirectUrl } from '@/features/metrics/utils/prometheus-redirect';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { usePerspective } from '@/shared/hooks/usePerspective';
 
 // Handles links that have the Prometheus UI's URL format (expected for links in alerts sent by
@@ -15,4 +16,10 @@ const PrometheusRouterRedirect: FC = () => {
   return <Navigate to={buildPrometheusRedirectUrl(params, urlRoot)} />;
 };
 
-export default PrometheusRouterRedirect;
+const PrometheusRedirectPage: FC = () => (
+  <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
+    <PrometheusRouterRedirect />
+  </MonitoringProvider>
+);
+
+export default PrometheusRedirectPage;

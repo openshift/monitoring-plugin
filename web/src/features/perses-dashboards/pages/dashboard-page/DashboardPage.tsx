@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type FC, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
-import { QueryParamProvider } from 'use-query-params';
 
 import { ProjectEmptyState } from '@/features/perses-dashboards/components/emptystates/ProjectEmptyState';
 import { ToastProvider } from '@/features/perses-dashboards/components/ToastProvider';
@@ -10,7 +9,7 @@ import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboa
 import { OCPDashboardApp } from '@/features/perses-dashboards/pages/dashboard-page/DashboardApp';
 import { DashboardFrame } from '@/features/perses-dashboards/pages/dashboard-page/DashboardFrame';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
-import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import '@/features/perses-dashboards/pages/dashboard-page/dashboard-page.css';
 
 const queryClient = new QueryClient({
@@ -101,13 +100,13 @@ const DashboardPage_: FC = () => {
 
 const DashboardPage: FC = () => {
   return (
-    <QueryParamProvider adapter={ReactRouter7Adapter}>
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <DashboardPage_ />
         </ToastProvider>
       </QueryClientProvider>
-    </QueryParamProvider>
+    </MonitoringProvider>
   );
 };
 

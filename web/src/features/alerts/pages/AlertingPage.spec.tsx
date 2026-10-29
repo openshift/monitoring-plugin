@@ -18,7 +18,6 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   NamespaceBar: ({ onNamespaceChange }: { onNamespaceChange: (namespace: string) => void }) => (
     <button onClick={() => onNamespaceChange('#ALL_NS#')}>Select All Projects</button>
   ),
-  useActivePerspective: () => ['admin'],
 }));
 
 vi.mock('react-i18next', () => ({
@@ -39,6 +38,7 @@ vi.mock('@/shared/contexts/MonitoringContext', () => ({
 
 vi.mock('@/shared/hooks/useMonitoring', () => ({
   useMonitoring: () => ({
+    perspective: 'admin',
     plugin: 'monitoring-plugin',
     prometheus: 'cmo',
     useAlertsTenancy: mocks.useAlertsTenancy,

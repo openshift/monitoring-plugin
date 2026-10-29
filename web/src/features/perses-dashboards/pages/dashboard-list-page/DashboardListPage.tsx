@@ -1,10 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type FC } from 'react';
-import { QueryParamProvider } from 'use-query-params';
 
 import { ToastProvider } from '@/features/perses-dashboards/components/ToastProvider';
 import { DashboardList } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardList';
-import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
+import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,13 +17,13 @@ const queryClient = new QueryClient({
 
 const DashboardListPage: FC = () => {
   return (
-    <QueryParamProvider adapter={ReactRouter7Adapter}>
+    <MonitoringProvider monitoringContext={{ plugin: 'monitoring-plugin', prometheus: 'cmo' }}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <DashboardList />
         </ToastProvider>
       </QueryClientProvider>
-    </QueryParamProvider>
+    </MonitoringProvider>
   );
 };
 
