@@ -1,35 +1,26 @@
+import { CustomerPerspectiveName } from '../../../src/components/perspective';
 import { nav } from '../../views/nav';
-import { runBVTCOOPersesTests } from '../../support/perses/00.coo_bvt_perses_admin.cy';
-import { guidedTour } from '../../views/tour';
+//TODO: rename after customizable-dashboards gets merged
+import { testBVTCOOPerses1 } from '../../support/perses/00.coo_bvt_perses_admin.cy';
 
-// Set constants for the operators that need to be installed for tests.
-const MCP = {
-  namespace: 'openshift-cluster-observability-operator',
-  packageName: 'cluster-observability-operator',
-  operatorName: 'Cluster Observability Operator',
-  config: {
-    kind: 'UIPlugin',
-    name: 'monitoring',
+describe(
+  'BVT: COO - Dashboards (Perses) - Core platform perspective',
+  { tags: ['@perses-dashboards', '@coo'] },
+  () => {
+    before(() => {
+      cy.beforeBlockCOO({
+        dashboards: true,
+        troubleshootingPanel: false,
+      });
+      cy.switchPerspective('Core platform');
+      cy.cleanupPersesTestDashboardsBeforeTests();
+    });
+
+    beforeEach(() => {
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    });
+
+    //TODO: rename after customizable-dashboards gets merged
+    testBVTCOOPerses1(CustomerPerspectiveName.CorePlatform);
   },
-};
-
-const MP = {
-  namespace: 'openshift-monitoring',
-  operatorName: 'Cluster Monitoring Operator',
-};
-
-describe('BVT: COO - Dashboards (Perses) - Administrator perspective', { tags: ['@smoke', '@dashboards', '@perses'] }, () => {
-
-  before(() => {
-    cy.beforeBlockCOO(MCP, MP);
-  });
-
-  beforeEach(() => {
-    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-  });
-
-  runBVTCOOPersesTests({
-    name: 'Administrator',
-  });
-
-});
+);

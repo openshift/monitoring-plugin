@@ -1,0 +1,64 @@
+import { CustomerPerspectiveName } from '../../../src/components/perspective';
+import { nav } from '../../views/nav';
+import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
+import { operatorAuthUtils } from '../../support/commands/auth-commands';
+
+describe(
+  'RBAC Group containing User1: COO - Dashboards (Perses) - Administrator perspective',
+  { tags: ['@perses-dashboards', '@coo'] },
+  () => {
+    before(() => {
+      // Setup COO and Perses dashboards (requires admin privileges)
+      operatorAuthUtils.loginAndAuth();
+      cy.switchPerspective('Core platform');
+      cy.cleanupPersesTestDashboardsBeforeTests();
+      cy.setupPersesRBACandExtraDashboardsForGroup();
+
+      // Clear Cypress session cache and logout
+      // This is critical because beforeBlockCOO uses cy.session() which caches the login state
+      cy.log('Clearing Cypress session cache to ensure fresh login');
+      cy.then(() => {
+        Cypress.session.clearAllSavedSessions();
+      });
+
+      // Clear all cookies and storage to fully reset browser state
+      cy.clearAllCookies();
+      cy.clearAllLocalStorage();
+      cy.clearAllSessionStorage();
+
+      // Re-login as dev user (now without cluster-admin role)
+      // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
+
+      /**
+       * RBAC permissions for Group1 (perses-e2e-group1 / dev user1)
+       * - Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
+       * - observ-test: view, persesdashboard-viewer-role, persesdatasource-viewer-role
+       * - openshift-cluster-observability-operator: view, persesdashboard-editor-role,
+       *   persesdatasource-editor-role
+       * - openshift-monitoring: view
+       */
+      cy.log('Re-logging in as dev user with limited permissions');
+      cy.relogin(
+        Cypress.env('LOGIN_IDP_DEV_USER'),
+        Cypress.env('LOGIN_USERNAME1'),
+        Cypress.env('LOGIN_PASSWORD1'),
+      );
+      cy.validateLogin();
+      cy.closeOnboardingModalIfPresent();
+    });
+
+    beforeEach(() => {
+      cy.switchPerspective('Core platform');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      cy.wait(2000);
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    });
+
+    after(() => {
+      cy.cleanupExtraDashboards();
+    });
+
+    //TODO: rename after customizable-dashboards gets merged
+    testCOORBACPersesTestsDevUser1(CustomerPerspectiveName.CorePlatform);
+  },
+);
