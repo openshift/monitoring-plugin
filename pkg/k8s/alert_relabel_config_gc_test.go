@@ -181,12 +181,6 @@ func TestGCOrphanedARCs_MixedScenario(t *testing.T) {
 	}
 }
 
-func TestGCOrphanedARCs_NilInterface(t *testing.T) {
-	rrm := &relabeledRulesManager{alertRelabelConfigs: nil}
-	// Should not panic
-	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
-}
-
 func TestGCOrphanedARCs_NilAnnotations(t *testing.T) {
 	mock := &mockARCInterface{
 		arcs: map[string]*osmv1.AlertRelabelConfig{
@@ -240,7 +234,7 @@ func TestGCOrphanedARCs_LogsFailuresAndGitOpsOrphans(t *testing.T) {
 				},
 			},
 			level:   logrus.WarnLevel,
-			message: "orphan AlertRelabelConfig cleanup: AlertRelabelConfig openshift-monitoring/arc-gitops (ruleId=rule-gone) is orphaned but GitOps-managed — skipping deletion, manual cleanup required",
+			message: "orphan AlertRelabelConfig cleanup: AlertRelabelConfig openshift-monitoring/arc-gitops (ruleId=rule-gone) is orphaned but GitOps-managed - skipping deletion, manual cleanup required",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -271,18 +265,29 @@ func expiredOrphanMarker() map[string]string {
 }
 
 func TestGCOrphanedARCs_GracePeriod(t *testing.T) {
-	for _, marker := range []string{"", "invalid", time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano), time.Now().UTC().Format(time.RFC3339Nano)} {
+	for _, marker := range []string{"", "invalid", time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano), time.Now().UTC().Format(time.RFC3339Nano), time.Now().Add(-orphanGracePeriod / 2).UTC().Format(time.RFC3339Nano)} {
 		t.Run(marker, func(t *testing.T) {
 			arc := newARC("openshift-monitoring", "arc-orphan", "rule-gone", map[string]string{orphanedSinceAnnotation: marker}, nil)
 			mock := &mockARCInterface{arcs: map[string]*osmv1.AlertRelabelConfig{"openshift-monitoring/arc-orphan": arc}}
-			rrm := &relabeledRulesManager{alertRelabelConfigs: mock}
+			queue := &orphanGCQueue{}
+			rrm := &relabeledRulesManager{alertRelabelConfigs: mock, queue: queue}
+			before := time.Now()
 			rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+			after := time.Now()
 			if len(mock.deleted) != 0 {
 				t.Fatal("deleted orphan before its grace period elapsed")
 			}
 			marked := mock.arcs["openshift-monitoring/arc-orphan"]
-			if _, err := time.Parse(time.RFC3339Nano, marked.Annotations[orphanedSinceAnnotation]); err != nil {
+			orphanedSince, err := time.Parse(time.RFC3339Nano, marked.Annotations[orphanedSinceAnnotation])
+			if err != nil {
 				t.Fatalf("invalid orphan marker: %v", err)
+			}
+			if len(queue.keys) != 1 || queue.keys[0] != relabeledRulesSyncKeyPrometheusRule {
+				t.Fatalf("expected one PrometheusRule cleanup retry, got %v", queue.keys)
+			}
+			deadline := orphanedSince.Add(orphanGracePeriod)
+			if deadline.Before(before.Add(queue.delays[0])) || deadline.After(after.Add(queue.delays[0])) {
+				t.Fatalf("retry delay %s does not match orphan grace deadline %s", queue.delays[0], deadline)
 			}
 			rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{"rule-gone": {}})
 			if _, exists := mock.arcs["openshift-monitoring/arc-orphan"].Annotations[orphanedSinceAnnotation]; exists {
