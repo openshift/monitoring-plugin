@@ -1,6 +1,6 @@
 {
   "name": "monitoring-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "repository": "git@github.com:openshift/monitoring-plugin.git",
   "scripts": {
@@ -189,7 +189,7 @@
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "displayName": "OpenShift console monitoring plugin",
     "description": "This plugin adds the monitoring UI to the OpenShift web console",
     "exposedModules": {
