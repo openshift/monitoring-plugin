@@ -24,6 +24,11 @@ const config: Configuration = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
+      // development build was using development ReactDOM, sub it out for production version
+      'react-dom$': path.join(
+        path.dirname(require.resolve('react-dom/package.json')),
+        'cjs/react-dom.production.min.js',
+      ),
       // @console/internal modules are provided by the OpenShift Console at runtime.
       // Stub them out during development builds to prevent webpack resolution errors.
       '@console/internal': false,

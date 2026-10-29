@@ -9,8 +9,8 @@ import { AlertsTableHeader } from '@/features/alert-management-api/pages/alerts-
 import { GroupRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/GroupRow';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
 import {
-  defaultVisibleAlertColumns,
-  OptionalAlertColumn,
+  AlertColumn,
+  defaultAlertColumns,
 } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import {
   AlertGroup,
@@ -31,7 +31,7 @@ type AlertsTableProps = {
   pageGroups?: AlertGroup[];
   groupBy?: AlertGroupBy;
   isAggregated: boolean;
-  columns?: Set<OptionalAlertColumn>;
+  columns?: AlertColumn[];
   sort: AlertSort;
   onSort: (nextSort: AlertSort) => void;
   selectedAlertKeys: Set<string>;
@@ -44,7 +44,7 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
     pageGroups: groups = [],
     groupBy = AlertGroupBy.None,
     isAggregated,
-    columns = new Set<OptionalAlertColumn>(defaultVisibleAlertColumns),
+    columns: configuredColumns = defaultAlertColumns,
     sort,
     onSort,
     selectedAlertKeys,
@@ -98,7 +98,8 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
     });
   };
 
-  const startColumns = getStartColumnConfiguration(hasExpandColumn);
+  const columns = configuredColumns.filter((column) => isAggregated || column !== 'total');
+  const startColumns = getStartColumnConfiguration(hasExpandColumn, columns[0] === 'name');
   const selection: AlertSelection = { selectedAlertKeys, onSelectionChange };
   let rowOffset = 0;
 
@@ -119,7 +120,6 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
           alerts={alerts}
           startColumns={startColumns}
           hasExpandColumn={hasExpandColumn}
-          isAggregated={isAggregated}
           columns={columns}
           sort={sort}
           onSort={onSort}
@@ -189,15 +189,15 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
 
 AlertsTable.displayName = 'AlertsTable';
 
-const getStartColumnConfiguration = (hasExpandColumn: boolean) => {
+const getStartColumnConfiguration = (hasExpandColumn: boolean, isNameFirst: boolean) => {
   const expandColumn: StartColumnsConfiguration['expandColumn'] = {
     modifier: 'fitContent' as const,
     isStickyColumn: true,
     stickyMinWidth: '3rem',
   };
   const nameColumn: StartColumnsConfiguration['nameColumn'] = {
-    isStickyColumn: true,
-    hasRightBorder: true,
+    isStickyColumn: isNameFirst,
+    hasRightBorder: isNameFirst,
     stickyMinWidth: '12rem',
     stickyLeftOffset: hasExpandColumn ? '5rem' : '2rem',
   };

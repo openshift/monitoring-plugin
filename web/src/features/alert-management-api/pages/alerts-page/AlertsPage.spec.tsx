@@ -2,7 +2,7 @@
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { ReactNode } from 'react';
-import { MemoryRouter, useLocation } from 'react-router';
+import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
 import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
@@ -180,30 +180,17 @@ it('manages optional table columns while keeping alert name and severity visible
     'The column manager should open',
   ).toBeDefined();
   expect(
-    (document.getElementById(DataTestIDs.AlertManagementAPI.ColumnNameCheckbox) as HTMLInputElement)
-      .disabled,
+    (screen.getByTestId('column-check-name') as HTMLInputElement).disabled,
     'Alert name should remain a required column',
   ).toBe(true);
   expect(
-    (
-      document.getElementById(
-        DataTestIDs.AlertManagementAPI.ColumnSeverityCheckbox,
-      ) as HTMLInputElement
-    ).disabled,
+    (screen.getByTestId('column-check-severity') as HTMLInputElement).disabled,
     'Severity should remain a required column',
   ).toBe(true);
-  fireEvent.click(
-    document.getElementById(`${DataTestIDs.AlertManagementAPI.ColumnCheckboxPrefix}-source`)!,
-  );
-  fireEvent.click(
-    document.getElementById(`${DataTestIDs.AlertManagementAPI.ColumnCheckboxPrefix}-description`)!,
-  );
-  fireEvent.click(
-    document.getElementById(`${DataTestIDs.AlertManagementAPI.ColumnCheckboxPrefix}-namespace`)!,
-  );
-  fireEvent.click(
-    document.getElementById(`${DataTestIDs.AlertManagementAPI.ColumnCheckboxPrefix}-resource`)!,
-  );
+  fireEvent.click(screen.getByTestId('column-check-source'));
+  fireEvent.click(screen.getByTestId('column-check-description'));
+  fireEvent.click(screen.getByTestId('column-check-namespace'));
+  fireEvent.click(screen.getByTestId('column-check-resource'));
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
   expect(
@@ -269,6 +256,62 @@ it('restores aggregation from the URL and removes the parameter when re-enabled'
   expect((restoredSwitch as HTMLInputElement).checked).toBe(true);
   expect(queryParams().has('aggregate')).toBe(false);
   expect(screen.getByRole('columnheader', { name: 'Total' })).toBeDefined();
+});
+
+it('restores ordered columns from shared links and browser history', () => {
+  const columns = ['severity', 'total', 'source', 'name'];
+  const History = () => {
+    const navigate = useNavigate();
+    return <button onClick={() => navigate(-1)}>Back</button>;
+  };
+  render(
+    <MemoryRouter
+      initialEntries={[
+        `/monitoring/v2/alerts?name=Alert&columns=${encodeURIComponent(JSON.stringify(columns))}`,
+      ]}
+    >
+      <AlertsPage />
+      <Query />
+      <History />
+    </MemoryRouter>,
+  );
+  const headers = () =>
+    screen
+      .getAllByRole('columnheader')
+      .slice(2, -1)
+      .map((header) => header.textContent);
+  expect(headers()).toEqual(['Severity', 'Total', 'Source', 'Alert name']);
+  fireEvent.click(screen.getByRole('switch', { name: 'Aggregate identical alerts' }));
+  expect(JSON.parse(queryParams().get('columns')!)).toEqual(columns);
+  expect(screen.queryByRole('columnheader', { name: 'Total' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Manage columns' }));
+  fireEvent.click(screen.getByTestId('column-check-source'));
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(JSON.parse(queryParams().get('columns')!)).toEqual(['severity', 'total', 'name']);
+  expect(queryParams().get('name')).toBe('Alert');
+  fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+  expect(screen.getByRole('columnheader', { name: 'Source' })).toBeDefined();
+  fireEvent.click(screen.getByRole('switch', { name: 'Aggregate identical alerts' }));
+  expect(headers()).toEqual(['Severity', 'Total', 'Source', 'Alert name']);
+});
+
+it('cancels column changes and resets sorting when the sorted column is hidden', () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts?sort=source&sortDirection=desc']}>
+      <AlertsPage />
+      <Query />
+    </MemoryRouter>,
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Manage columns' }));
+  fireEvent.click(screen.getByTestId('column-check-source'));
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+  expect(queryParams().has('columns')).toBe(false);
+  expect(queryParams().get('sort')).toBe('source');
+  fireEvent.click(screen.getByRole('button', { name: 'Manage columns' }));
+  fireEvent.click(screen.getByTestId('column-check-source'));
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(queryParams().has('sort')).toBe(false);
+  expect(queryParams().has('sortDirection')).toBe(false);
 });
 
 it('displays selected filter chips and clears them individually', () => {

@@ -24,8 +24,8 @@ import type { AlertsTableRef } from '@/features/alert-management-api/pages/alert
 import { ExportAlertsButton } from '@/features/alert-management-api/pages/alerts-page/components/ExportAlertsButton';
 import { GroupByDropdown } from '@/features/alert-management-api/pages/alerts-page/components/GroupByDropdown';
 import {
-  defaultVisibleAlertColumns,
-  OptionalAlertColumn,
+  AlertColumn,
+  parseAlertColumns,
 } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import { AlertGroupByParam } from '@/features/alert-management-api/pages/alerts-page/utils/alert-group-by-param';
 import {
@@ -35,7 +35,6 @@ import {
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { AlertFilters, ManagedAlert } from '@/features/alert-management-api/types/types';
 import { filterAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
-import { defaultAlertSort } from '@/features/alert-management-api/utils/sort-alerts';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { TablePagination } from '@/shared/components/table/TablePagination';
 import { DataTestIDs } from '@/shared/constants/data-test';
@@ -57,9 +56,8 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
 
   const isAggregated = searchParams.get(QueryParams.Aggregate) !== '0';
 
-  const [visibleColumns, setVisibleColumns] = useState<Set<OptionalAlertColumn>>(
-    () => new Set(defaultVisibleAlertColumns),
-  );
+  const columnsParam = searchParams.get('columns');
+  const visibleColumns = useMemo(() => parseAlertColumns(columnsParam), [columnsParam]);
   const [isManageColumnsOpen, setManageColumnsOpen] = useState(false);
 
   const [selectedAlertKeys, setSelectedAlertKeys] = useState<Set<string>>(() => new Set());
@@ -96,14 +94,17 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
     }
   }, [filterKey, groupBy, aggregatedAlerts.length, page, perPage, onSetPage]);
 
-  const saveColumns = (newColumns: Set<OptionalAlertColumn>) => {
-    if (
-      !newColumns.has(sort.column as OptionalAlertColumn) &&
-      !['name', 'severity'].includes(sort.column)
-    ) {
-      setSort(defaultAlertSort);
-    }
-    setVisibleColumns(newColumns);
+  const saveColumns = (newColumns: AlertColumn[]) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('columns', JSON.stringify(newColumns));
+      if (!newColumns.includes(sort.column)) {
+        next.delete('sort');
+        next.delete('sortDirection');
+        next.set('page', '1');
+      }
+      return next;
+    });
   };
 
   return (
