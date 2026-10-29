@@ -114,7 +114,17 @@ export const AdvancedSearchForm: FC<AdvancedSearchFormProps> = ({ search, onSear
 
   const [searchTypeSelectOpen, setSearchTypeSelectOpen] = useState(false);
   const handleSubmit = () => {
-    if (isValid && hasChanged) onSearch({ ...search, queryStr, searchType, depth, goal, limit });
+    if (isValid && hasChanged) {
+      // Submit the trimmed values that validation checked.
+      onSearch({
+        ...search,
+        queryStr: queryStr?.trim(),
+        searchType,
+        depth,
+        goal: goal?.trim(),
+        limit,
+      });
+    }
   };
   const handleEnter = (e: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
     if (e.key === 'Enter' && !e.shiftKey) {
