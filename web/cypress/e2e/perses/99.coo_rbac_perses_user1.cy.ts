@@ -1,10 +1,6 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 import { nav } from '../../views/nav';
 import { testCOORBACPersesTestsDevUser1 } from '../../support/perses/99.coo_rbac_perses_user1.cy';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
 
 describe(
   'RBAC User1: COO - Dashboards (Perses) - Administrator perspective',
@@ -12,7 +8,7 @@ describe(
   () => {
     before(() => {
       // Setup COO and Perses dashboards (requires admin privileges)
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -34,6 +30,15 @@ describe(
 
       // Re-login as dev user (now without cluster-admin role)
       // Using cy.relogin() because it doesn't require oauthurl and handles the login page directly
+
+      /**
+       * RBAC permissions for dev user1 (bound directly to the user, no group)
+       * - Cluster-wide: perses-prometheus-api-editor, persesglobaldatasource-viewer-role
+       * - observ-test: view, persesdashboard-viewer-role, persesdatasource-viewer-role
+       * - openshift-cluster-observability-operator: view, persesdashboard-editor-role,
+       *   persesdatasource-editor-role
+       * - openshift-monitoring: view
+       */
       cy.log('Re-logging in as dev user with limited permissions');
       cy.relogin(
         Cypress.env('LOGIN_IDP_DEV_USER'),

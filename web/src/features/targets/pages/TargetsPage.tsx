@@ -40,7 +40,11 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 
-import { filterTargets } from '@/features/targets/utils/filter-targets';
+import {
+  filterTargets,
+  TargetsFilterOptions,
+  TargetsFilters,
+} from '@/features/targets/utils/filter-targets';
 import { Labels } from '@/shared/components/Labels';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
@@ -72,20 +76,6 @@ import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { AlertSource, PrometheusAPIError, Target } from '@/shared/types/types';
 import { PROMETHEUS_BASE_PATH } from '@/shared/utils/utils';
-
-export const enum TargetsFilterOptions {
-  NAME = 'name',
-  STATUS = 'status',
-  LABEL = 'label',
-  SOURCE = 'source',
-}
-
-export interface TargetsFilters {
-  [TargetsFilterOptions.NAME]: string;
-  [TargetsFilterOptions.STATUS]: string[];
-  [TargetsFilterOptions.LABEL]: string;
-  [TargetsFilterOptions.SOURCE]: string[];
-}
 
 enum MonitorType {
   ServiceMonitor = 'serviceMonitor',

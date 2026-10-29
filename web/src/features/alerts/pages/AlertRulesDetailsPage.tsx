@@ -41,14 +41,8 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 
-import {
-  alertingRuleSource,
-  AlertState,
-  getSourceKey,
-  Graph,
-  SeverityHelp,
-  SourceHelp,
-} from '@/features/alerts/components/AlertUtils';
+import { Graph, SeverityHelp, SourceHelp } from '@/features/alerts/components/AlertUtils';
+import { AlertState } from '@/shared/components/AlertState';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
@@ -56,7 +50,7 @@ import { ToggleGraph } from '@/shared/components/ToggleGraph';
 import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '@/shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink } from '@/shared/console/utils/Link';
+import { ExternalLink, LinkifyExternal } from '@/shared/console/utils/Link';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
@@ -68,15 +62,23 @@ import {
   getQueryBrowserUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
-import { alertDescription, RuleResource } from '@/shared/utils/utils';
+import { alertingRuleSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
+import { alertDescription } from '@/shared/utils/alerts/formatting';
+import { startCase } from '@/shared/utils/strings';
+import { RuleResource } from '@/shared/utils/utils';
 
-// Renders Prometheus template text and highlights any {{ ... }} tags that it contains
-const PrometheusTemplate = ({ text }: { text: string }) => (
+// Renders Prometheus template text and highlights any {{ ... }} tags that it contains.
+// Plain-text parts are linkified (scheme-less URLs are assumed https://).
+export const PrometheusTemplate = ({ text }: { text: string }) => (
   <>
     {text
       ?.split(/(\{\{[^{}]*\}\})/)
       ?.map((part: string, i: number) =>
-        part.match(/^\{\{[^{}]*\}\}$/) ? <code key={i}>{part}</code> : part,
+        part.match(/^\{\{[^{}]*\}\}$/) ? (
+          <code key={i}>{part}</code>
+        ) : (
+          <LinkifyExternal key={i}>{part}</LinkifyExternal>
+        ),
       )}
   </>
 );
@@ -258,7 +260,7 @@ const AlertRulesDetailsPage_: FC = () => {
                     <DescriptionListGroup>
                       <DescriptionListTerm>{t('Summary')}</DescriptionListTerm>
                       <DescriptionListDescription>
-                        {rule.annotations.summary}
+                        <PrometheusTemplate text={rule.annotations.summary} />
                       </DescriptionListDescription>
                     </DescriptionListGroup>
                   )}
@@ -295,7 +297,7 @@ const AlertRulesDetailsPage_: FC = () => {
                       </Popover>
                     </DescriptionListTermHelpText>
                     <DescriptionListDescription>
-                      {rule && getSourceKey(_.startCase(alertingRuleSource(rule)), t)}
+                      {rule && getSourceKey(startCase(alertingRuleSource(rule)), t)}
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   {_.isInteger(rule?.duration) && (

@@ -1,12 +1,4 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import {
-  CLUSTER_LOGGING_OPERATOR,
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-  LOKI_OPERATOR,
-  OPENTELEMETRY_OPERATOR,
-  TEMPO_OPERATOR,
-} from '../../support/operators';
 import { testCOOCreateImportPerses } from '../../support/perses/05.coo_create_import_perses_admin.cy';
 import { nav } from '../../views/nav';
 
@@ -15,20 +7,20 @@ describe(
   { tags: ['@perses-dashboards', '@coo', '@xfail'] },
   () => {
     before(() => {
-      cy.beforeBlockTempo(TEMPO_OPERATOR);
-      cy.beforeBlockOtel(OPENTELEMETRY_OPERATOR);
+      cy.beforeBlockTempo();
+      cy.beforeBlockOtel();
       cy.configureBase();
       cy.configureTracingApps();
 
-      cy.beforeBlockLoki(LOKI_OPERATOR);
-      cy.beforeBlockLogging(CLUSTER_LOGGING_OPERATOR);
+      cy.beforeBlockLoki();
+      cy.beforeBlockLogging();
       cy.configureLoggingLoki();
 
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupLoggingUIPlugin();
       cy.cleanupExtraDashboards();
 
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.beforeBlockCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
@@ -53,17 +45,17 @@ describe(
       cy.cleanupLoggingUIPlugin();
       cy.cleanupDistributeTracingUIPlugin();
       cy.cleanupExtraDashboards();
-      cy.cleanupCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR, {
+      cy.cleanupCOO({
         dashboards: true,
         troubleshootingPanel: false,
       });
       cy.cleanupLoggingLoki();
-      cy.cleanupLogging(CLUSTER_LOGGING_OPERATOR);
-      cy.cleanupLoki(LOKI_OPERATOR);
+      cy.cleanupLogging();
+      cy.cleanupLoki();
       cy.cleanupTracingApps();
       cy.cleanupBase();
-      cy.cleanupOtel(OPENTELEMETRY_OPERATOR);
-      cy.cleanupTempo(TEMPO_OPERATOR);
+      cy.cleanupOtel();
+      cy.cleanupTempo();
     });
 
     testCOOCreateImportPerses(CustomerPerspectiveName.CorePlatform);

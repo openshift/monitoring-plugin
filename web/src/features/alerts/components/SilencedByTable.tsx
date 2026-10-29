@@ -12,12 +12,13 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 
-import { SeverityCounts, StateTimestamp } from '@/features/alerts/components/AlertUtils';
+import { SeverityCounts } from '@/features/alerts/components/AlertUtils';
 import {
   ExpireSilenceModal,
   SilenceMatchersList,
   SilenceState,
 } from '@/features/alerts/components/SilencesUtils';
+import { StateTimestamp } from '@/shared/components/AlertState';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {

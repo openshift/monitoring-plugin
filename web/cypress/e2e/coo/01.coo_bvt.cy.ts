@@ -1,20 +1,20 @@
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-} from '../../support/operators';
+import { overview } from '../../views/overview';
 import { commonPages } from '../../views/common';
 import { nav } from '../../views/nav';
 import { troubleshootingPanelPage } from '../../views/troubleshooting-panel';
 
 describe('BVT: COO', { tags: ['@alerting', '@coo'] }, () => {
   before(() => {
-    cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+    cy.beforeBlockCOO();
   });
 
   it('1. Admin perspective - Observe Menu', () => {
     cy.log('Admin perspective - Observe Menu and verify all submenus');
     cy.reload(true);
     cy.wait(10000);
+    nav.sidenav.clickNavLink(['Observe', 'Observability services']);
+    commonPages.titleShouldHaveText('Observability services');
+    overview.shouldBeLoaded();
     nav.sidenav.clickNavLink(['Observe', 'Alerting']);
     commonPages.titleShouldHaveText('Alerting');
     nav.tabs.switchTab('Silences');

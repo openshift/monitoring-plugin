@@ -12,7 +12,8 @@ import {
 } from '@/shared/store/actions';
 import { fetchAlerts } from '@/shared/store/fetch-alerts';
 import type { RootState } from '@/shared/store/store';
-import { getAlertsAndRules, getSilenceName, Prometheus } from '@/shared/utils/utils';
+import { getAlertsAndRules, getSilenceName } from '@/shared/utils/alerts/formatting';
+import { Prometheus } from '@/shared/utils/utils';
 
 export const fetchAlertingData =
   (

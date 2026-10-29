@@ -1,11 +1,6 @@
 import { Alert } from '@openshift-console/dynamic-plugin-sdk';
 
-export type AggregatedAlert = {
-  severity: Alert['labels']['severity'];
-  alerts: Alert[];
-  name: Alert['labels']['alertname'];
-  state: Alert['state'];
-};
+import type { AggregatedAlert } from '@/shared/types/types';
 
 export const getAggregatedAlertKey = (alert: Alert): string =>
   `${alert.labels.alertname}-${alert.labels?.severity}-${alert.state}`;

@@ -5,8 +5,13 @@ web/cypress/screenshots/
 web/cypress/export-env.sh
 web/screenshots/
 web/cypress/videos/
+web/cypress/downloads/
 web/dist/
 web/node_modules/
+web/coverage/
+web/test-results/
+web/.vitest/attachments/
+e2e.test
 plugin-backend
 # Leave these permanently for backwards compatability for backporting
 node_modules/
@@ -14,6 +19,12 @@ dist/
 .devspace
 web/po-files/
 .claude/commands/configs
+.agents/local/
 .claude/settings.local.json
 _output/
 .tokensave/
+tasks/
+web/dist-logging/
+.monitoring-plugin-bridge-sa-token
+.loki-service-ca.crt
+.bridge-ca-bundle.crt

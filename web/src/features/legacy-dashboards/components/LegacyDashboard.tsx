@@ -30,20 +30,17 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
 import { useQueryParam } from 'use-query-params';
 
-import {
-  evaluateVariableTemplate,
-  Variable,
-} from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
+import { evaluateVariableTemplate } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
 import BarChart from '@/features/legacy-dashboards/components/panels/BarChart';
 import Graph from '@/features/legacy-dashboards/components/panels/Graph';
 import SingleStat from '@/features/legacy-dashboards/components/panels/SingleStat';
 import Table from '@/features/legacy-dashboards/components/panels/Table';
 import { Panel, Row } from '@/features/legacy-dashboards/types/types';
-import { RefreshIntervalParam, TimeRangeParam } from '@/features/legacy-dashboards/utils/utils';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { LegacyDashboardPageTestIDs } from '@/shared/constants/data-test';
 import type { Perspective } from '@/shared/constants/perspective';
 import { QueryParams } from '@/shared/constants/query-params';
+import { RefreshIntervalParam, TimeRangeParam } from '@/shared/constants/timespan';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useIsVisible } from '@/shared/hooks/useIsVisible';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
@@ -54,6 +51,8 @@ import {
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { MonitoringState } from '@/shared/store/store';
+import type { Variable } from '@/shared/types/types';
+import { downloadCsv } from '@/shared/utils/csv';
 import { GraphUnits } from '@/shared/utils/units';
 
 const QueryBrowserLink = ({
@@ -187,12 +186,7 @@ const Card = memo(({ panel, perspective, dashboardName }: CardProps) => {
       csvString += `${dateTime},${temp.join(',')}\n`;
     }
 
-    const blobCsvData = new Blob([csvString], { type: 'text/csv' });
-    const csvURL = URL.createObjectURL(blobCsvData);
-    const link = document.createElement('a');
-    link.href = csvURL;
-    link.download = `graphData.csv`;
-    link.click();
+    downloadCsv(new Blob([csvString], { type: 'text/csv' }), 'graphData.csv');
   };
 
   const isThereCsvData = () => {

@@ -47,7 +47,7 @@ export const legacyDashboardsPage = {
       .find('button')
       .should('be.visible')
       .click();
-    cy.get('#' + LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
+    cy.byTestID(LegacyDashboardPageTestIDs.TimeRangeDropdownOptions)
       .find(Classes.MenuItem)
       .contains(timeRange)
       .should('be.visible')
@@ -63,7 +63,7 @@ export const legacyDashboardsPage = {
     const timeRanges = Object.values(LegacyDashboardsTimeRange);
     timeRanges.forEach((timeRange) => {
       cy.log('Time range: ' + timeRange);
-      cy.get('#' + LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
+      cy.byTestID(LegacyDashboardPageTestIDs.TimeRangeDropdownOptions)
         .find(Classes.MenuItem)
         .contains(timeRange)
         .should('be.visible');
@@ -80,7 +80,7 @@ export const legacyDashboardsPage = {
       .find('button')
       .should('be.visible')
       .click();
-    cy.get('#' + LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
+    cy.byTestID(LegacyDashboardPageTestIDs.PollIntervalDropdownOptions)
       .find(Classes.MenuItem)
       .contains(interval)
       .should('be.visible')
@@ -97,7 +97,7 @@ export const legacyDashboardsPage = {
     const intervals = Object.values(MonitoringRefreshInterval);
     intervals.forEach((interval) => {
       cy.log('Refresh interval: ' + interval);
-      cy.get('#' + LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
+      cy.byTestID(LegacyDashboardPageTestIDs.PollIntervalDropdownOptions)
         .find(Classes.MenuItem)
         .contains(interval)
         .should('be.visible');

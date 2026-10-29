@@ -1,0 +1,7 @@
+.lv-plugin__attribute-filter .pf-v6-c-select__toggle-wrapper {
+  flex-wrap: nowrap;
+}
+
+.lv-plugin__attribute-filter .lv-plugin__attribute-filter__text {
+  min-width: 200px;
+}

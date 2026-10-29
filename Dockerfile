@@ -26,6 +26,7 @@ RUN make install-backend
 
 COPY cmd/ cmd/
 COPY pkg/ pkg/
+COPY internal/ internal/
 
 ENV GOEXPERIMENT=strictfipsruntime
 ENV CGO_ENABLED=1

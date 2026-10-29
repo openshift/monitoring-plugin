@@ -1,0 +1,154 @@
+.lv-plugin__table .lv-plugin__table__expand {
+  font-size: var(--pf-t--global--font--size--sm);
+  --pf-v6-c-table--cell--Width: 50px;
+  --pf-v6-c-table--cell--MaxWidth: 50px;
+  --pf-v6-c-table--cell--MinWidth: 0px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.lv-plugin__table .lv-plugin__table__details {
+  font-size: var(--pf-t--global--font--size--sm);
+  padding: var(--pf-t--global--spacer--lg);
+  display: block;
+}
+
+.lv-plugin__table .lv-plugin__table__time {
+  --pf-v6-c-table--cell--Width: 270px;
+  --pf-v6-c-table--cell--MaxWidth: 270px;
+  --pf-v6-c-table--cell--MinWidth: 270px;
+  --pf-v6-c-table--cell--WhiteSpace: nowrap;
+  font-size: var(--pf-t--global--font--size--sm);
+  padding: var(--pf-t--global--spacer--xs);
+  font-family: monospace;
+  vertical-align: middle;
+}
+
+.lv-plugin__table .lv-plugin__table__time-header {
+  font-size: var(--pf-t--global--font--size--sm);
+}
+
+.lv-plugin__table .lv-plugin__table__message {
+  font-size: var(--pf-t--global--font--size--sm);
+  padding: var(--pf-t--global--spacer--xs);
+  padding-right: var(--pf-t--global--spacer--md);
+  font-family: monospace;
+  word-break: break-all;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.lv-plugin__table .lv-plugin__table__resources {
+  --pf-v6-c-table--cell--FontSize: var(--pf-t--global--font--size--md);
+  margin-top: var(--pf-t--global--spacer--xs);
+}
+
+.lv-plugin__table__row::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  left: 3px;
+  background-color: var(--lv-severity-color, var(--pf-t--global--text--color--disabled));
+}
+
+.lv-plugin__table__row--expanded::before {
+  bottom: 0;
+}
+
+.lv-plugin__table__row--expanded-details::before {
+  top: 0;
+}
+
+.lv-plugin__table__row-info {
+  font-size: var(--pf-t--global--font--size--xs);
+  background-color: var(--pf-t--global--background--color--primary--default);
+  --pf-v6-c-table--cell--PaddingBlockEnd: var(--pf-t--global--spacer--xs);
+  --pf-v6-c-table--cell--PaddingBlockStart: var(--pf-t--global--spacer--xs);
+}
+
+.lv-plugin__table__row-info td {
+  text-align: center;
+}
+
+.lv-plugin__table__row-info .pf-v6-c-alert {
+  text-align: center;
+  --pf-v6-c-alert__icon--FontSize: 0.9rem;
+  --pf-v6-c-alert__icon--FontSize: 0.9rem;
+}
+
+.lv-plugin__table__row-info .pf-v6-c-alert__title {
+  font-size: 0.8rem;
+}
+
+.lv-plugin__table__row-more-data td {
+  text-align: center;
+}
+
+.lv-plugin__table__row-more-data--clickable td {
+  cursor: pointer;
+}
+
+.lv-plugin__table__row-error,
+.lv-plugin__table__row-streaming {
+  display: grid;
+  justify-content: center;
+  justify-items: center;
+}
+
+.lv-plugin__table__row-header {
+  padding: var(--pf-t--global--spacer--xs);
+  font-size: var(--pf-t--global--font--size--md);
+  vertical-align: middle;
+}
+
+.pf-v6-c-table .lv-plugin__table__row.lv-plugin__table__row--expanded {
+  border-bottom: none;
+}
+
+.pf-v6-c-table__tbody.ReactVirtualized__VirtualGrid__innerScrollContainer {
+  pointer-events: auto !important;
+}
+
+.lv-plugin__virtualized-table--export-csv-button {
+  margin-bottom: 20px;
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table .pf-v6-c-table__action {
+  padding-left: 0px !important;
+  width: 5% !important;
+
+  @media screen and (max-width: 992px) {
+    width: 10% !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .lv-plugin__virtualized-table .pf-v6-c-table .pf-v6-c-table__check {
+    width: 16.66% !important;
+  }
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table .pf-v6-c-table__check {
+  width: 8.333% !important;
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table tr {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table tr > * {
+  height: auto;
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table {
+  table-layout: fixed;
+}
+
+.lv-plugin__virtualized-table .pf-v6-c-table tbody > tr:first-child::before {
+  content: none;
+}

@@ -4,18 +4,19 @@ This plugin enables frontend UI based on feature flags passed to the backend. Th
 
 ## Feature Flags
 
-Feature flags should be added to the Feature enum [here](pkg/server/server.go) and to the useFeatures hook [here](web/src/shared/hooks/useFeatures.ts). Whenever a feature is enabled, a set of related feature extension points is included in the plugin-manifest.json served by the backend. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply. UI-only flags, such as `alerting-management`, do not need a manifest patch and can be checked directly by frontend components. Some feature flags, such as `acm-alerting` require other flags to be set such as `alertmanager` and `thanos-querier` to instruct the backend how to communicate with the observability signals they utilize
+Feature flags should be added to the Feature enum [here](pkg/server/server.go) and to the useFeatures hook [here](web/src/shared/hooks/useFeatures.ts). Whenever a feature is enabled, a set of related feature extension points is included in the plugin-manifest.json served by the backend. These feature extension points are created through the use of [json-patches](https://datatracker.ietf.org/doc/html/rfc6902), such as the `acm-alerting` patch [here](config/acm-alerting.patch.json). The server looks for a patch in the format of `{feature-flag-name}.patch.json` to apply. UI-only flags, such as `alert-management-api`, do not need a manifest patch and can be checked directly by frontend components. Some feature flags, such as `acm-alerting` require other flags to be set such as `alertmanager` and `thanos-querier` to instruct the backend how to communicate with the observability signals they utilize
 
-| Feature             | OCP Version |
-| ------------------- | ----------- |
-| acm-alerting        | 4.14+       |
-| perses-dashboards   | 4.14+       |
-| incidents           | 4.17+       |
-| alerting            | 5.0+        |
-| alerting-management | 5.1+        |
-| legacy-dashboards   | 5.0+        |
-| metrics             | 5.0+        |
-| targets             | 5.0+        |
+| Feature              | OCP Version |
+| -------------------- | ----------- |
+| acm-alerting         | 4.14+       |
+| perses-dashboards    | 4.14+       |
+| incidents            | 4.17+       |
+| alerting             | 5.0+        |
+| legacy-dashboards    | 5.0+        |
+| metrics              | 5.0+        |
+| targets              | 5.0+        |
+| overview             | 5.1+        |
+| alert-management-api | 5.1+        |
 
 ## monitoring-plugin
 
@@ -51,7 +52,7 @@ NOTE: If you have a Mac with Apple silicon, you will need to add the flag `--pla
 
 Install the [devspace](https://www.devspace.sh/docs/getting-started/installation) cli.
 
-Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration works by running the go backend normally in the devspace pod, and then syncing the changes from your `web/dist` folder to the `/opt/app-root/web/dist` folder which is where the go backend serves the frontend files from.
+Devspace works by "taking over" a pod. It does this by scaling down the original, forwarding the traffic to its own pod, copying any mounted files and directories (like certs) and then syncing changes you make locally into that pod. Our configuration syncs `web/dist` to `/opt/app-root/web/dist`, where the Go backend serves the frontend files from, and syncs the `cmd`, `pkg`, and `config` directories into the pod. Air watches the Go source files and JSON config patches, rebuilding and restarting the backend when they change.
 
 By running the webpack dev server locally any changes to your frontend files they will be rebuilt and then copied into the pod. You will need to disable your network cache in your dev tools to allow for overriding the previous webpack chunks and then perform a page refresh to see your changes.
 
@@ -170,7 +171,7 @@ $ make start-console
 $ make start-coo-backend
 ```
 
-`make start-coo-backend` will inject the `alerting,targets,legacy-dashboards,metrics,incidents,perses-dashboards` features.
+`make start-coo-backend` will inject the `alerting,targets,overview,legacy-dashboards,metrics,incidents,perses-dashboards` features.
 
 #### Local Development with Perses Proxy
 
@@ -212,3 +213,31 @@ curl "http://localhost:9090/api/v1/query?query=up"
 ```
 
 Adjust Perses local instance http://localhost:8080/ to use the a proxy to http://localhost:9090/ instead of http://demo.prometheus.io.
+
+#### Local Development with the Logging View (LokiStack)
+
+The logging view runs under the `monitoring-console-plugin` identity and is
+not part of any default feature set. To test it locally against a cluster that
+runs a LokiStack (for example one set up with
+[development-tools](https://github.com/observability-ui/development-tools/blob/main/logging/setup-logging-stack.sh)):
+
+```
+# In a separate terminal: forward the LokiStack gateway; start-console.sh
+# proxies https://logging-loki-gateway-http.openshift-logging.svc:8080 to it
+oc -n openshift-logging port-forward svc/logging-loki-gateway-http 8080:8080
+
+# Frontend under the console-plugin identity (manifest name + i18n namespace)
+make start-mcp-frontend
+
+# Backend with logging enabled (not in MONITORING_FEATURES by default)
+make start-coo-backend
+
+# Console bridge
+make start-coo-console
+```
+
+`start-console.sh` fetches the cluster's service CA so the bridge can verify
+the gateway's TLS certificate and registers
+`/api/proxy/plugin/monitoring-console-plugin/loki/` for it. Override
+`LOKI_HOST`, `LOKI_NAME` or `LOKI_NAMESPACE` for non-default LokiStacks, e.g.
+`LOKI_HOST=http://localhost:3100` for a plain-HTTP local Loki.

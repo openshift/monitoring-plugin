@@ -2,14 +2,14 @@ import { Alert, PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin
 import type { PanelDefinition } from '@perses-dev/spec';
 import * as _ from 'lodash-es';
 
+import { DEFAULT_TIMESPAN } from '@/shared/constants/timespan';
 import {
   DaysFilters,
   IncidentSeverityFilters,
   IncidentStateFilters,
-} from '@/features/incidents/types/model';
-import { Variable } from '@/features/legacy-dashboards/components/LegacyVariableDropdowns';
-import { MONITORING_DASHBOARDS_DEFAULT_TIMESPAN } from '@/features/legacy-dashboards/utils/utils';
-import { Silences } from '@/shared/types/types';
+  Silences,
+  Variable,
+} from '@/shared/types/types';
 
 export type RootState = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,7 +81,7 @@ export const defaultObserveState: ObserveState = {
   queryBrowser: {
     pollInterval: null,
     queries: [newQueryBrowserQuery()],
-    timespan: MONITORING_DASHBOARDS_DEFAULT_TIMESPAN,
+    timespan: DEFAULT_TIMESPAN,
     dismissNamespaceAlert: false,
     lastRequestTime: Date.now(),
   },

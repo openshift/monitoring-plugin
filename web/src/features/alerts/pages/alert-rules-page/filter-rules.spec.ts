@@ -1,20 +1,8 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
-  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
-}));
-
-jest.mock('../../components/AlertUtils', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alertingRuleSource: (rule: any) =>
-    rule.labels?.prometheus === 'openshift-monitoring/k8s' ? 'platform' : 'user',
-}));
-
 import { AlertStates, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
 import {
   AlertRulesFilterOptions,
   AlertRulesFilters,
-} from '@/features/alerts/pages/alert-rules-page/AlertRulesPage';
-import {
   filterRules,
   ruleHasAlertState,
 } from '@/features/alerts/pages/alert-rules-page/filter-rules';
@@ -28,25 +16,22 @@ const emptyFilters: AlertRulesFilters = {
   [AlertRulesFilterOptions.LABEL]: '',
 };
 
-const makeRule = (overrides: Partial<Rule> & { name: string }): Rule =>
-  ({
-    alerts: [],
-    labels: {},
-    ...overrides,
-  }) as unknown as Rule;
+const makeRule = (overrides): Rule => ({
+  alerts: [],
+  labels: {},
+  ...overrides,
+});
 
 const platformRule = makeRule({
   name: 'HighMemory',
   labels: { severity: 'critical', prometheus: 'openshift-monitoring/k8s' },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alerts: [{ state: AlertStates.Firing, labels: {}, annotations: {} }] as any,
+  alerts: [{ state: AlertStates.Firing, labels: {}, annotations: {} }],
 });
 
 const userRule = makeRule({
   name: 'CustomAlert',
   labels: { severity: 'warning' },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alerts: [{ state: AlertStates.Pending, labels: {}, annotations: {} }] as any,
+  alerts: [{ state: AlertStates.Pending, labels: {}, annotations: {} }],
 });
 
 const silentRule = makeRule({
@@ -57,33 +42,38 @@ const silentRule = makeRule({
 
 const rules = [platformRule, userRule, silentRule];
 
+const expectRuleNames = (result: Rule[], names: string[]) => {
+  expect(result.filter(({ name }) => names.includes(name)).map(({ name }) => name)).toEqual(names);
+  expect(result.every(({ name }) => names.includes(name))).toBe(true);
+};
+
 describe('filterRules', () => {
   it('should return empty array for null input', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(filterRules(null as any, emptyFilters)).toEqual([]);
+    expect(filterRules(null, emptyFilters)).toEqual([]);
   });
 
   it('should return empty array for undefined input', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(filterRules(undefined as any, emptyFilters)).toEqual([]);
+    expect(filterRules(undefined, emptyFilters)).toEqual([]);
   });
 
   it('should return all rules when no filters are set', () => {
-    expect(filterRules(rules, emptyFilters)).toHaveLength(3);
+    expectRuleNames(filterRules(rules, emptyFilters), [
+      'HighMemory',
+      'CustomAlert',
+      'SilencedRule',
+    ]);
   });
 
   it('should filter by name (case insensitive, fuzzy)', () => {
     const filters = { ...emptyFilters, [AlertRulesFilterOptions.NAME]: 'high' };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('HighMemory');
+    expectRuleNames(result, ['HighMemory']);
   });
 
   it('should filter by state - Firing', () => {
     const filters = { ...emptyFilters, [AlertRulesFilterOptions.STATE]: [AlertStates.Firing] };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('HighMemory');
+    expectRuleNames(result, ['HighMemory']);
   });
 
   it('should filter by state - NotFiring (rules with no alerts)', () => {
@@ -92,8 +82,7 @@ describe('filterRules', () => {
       [AlertRulesFilterOptions.STATE]: [AlertStates.NotFiring],
     };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('SilencedRule');
+    expectRuleNames(result, ['SilencedRule']);
   });
 
   it('should filter by multiple states', () => {
@@ -102,14 +91,13 @@ describe('filterRules', () => {
       [AlertRulesFilterOptions.STATE]: [AlertStates.Firing, AlertStates.Pending],
     };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(2);
+    expectRuleNames(result, ['HighMemory', 'CustomAlert']);
   });
 
   it('should filter by severity', () => {
     const filters = { ...emptyFilters, [AlertRulesFilterOptions.SEVERITY]: ['warning'] };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('CustomAlert');
+    expectRuleNames(result, ['CustomAlert']);
   });
 
   it('should filter by source', () => {
@@ -118,7 +106,7 @@ describe('filterRules', () => {
       [AlertRulesFilterOptions.SOURCE]: [AlertSource.User],
     };
     const result = filterRules(rules, filters);
-    expect(result.every((r) => r.labels?.prometheus !== 'openshift-monitoring/k8s')).toBe(true);
+    expectRuleNames(result, ['CustomAlert', 'SilencedRule']);
   });
 
   describe('label filter', () => {
@@ -128,8 +116,7 @@ describe('filterRules', () => {
         [AlertRulesFilterOptions.LABEL]: 'severity=critical',
       };
       const result = filterRules(rules, filters);
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('HighMemory');
+      expectRuleNames(result, ['HighMemory']);
     });
 
     it('should filter by multiple comma-separated labels', () => {
@@ -138,8 +125,7 @@ describe('filterRules', () => {
         [AlertRulesFilterOptions.LABEL]: 'severity=critical,prometheus=openshift-monitoring/k8s',
       };
       const result = filterRules(rules, filters);
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('HighMemory');
+      expectRuleNames(result, ['HighMemory']);
     });
 
     it('should exclude rules that do not match all labels', () => {
@@ -148,7 +134,7 @@ describe('filterRules', () => {
         [AlertRulesFilterOptions.LABEL]: 'severity=critical,prometheus=user-workload',
       };
       const result = filterRules(rules, filters);
-      expect(result).toHaveLength(0);
+      expectRuleNames(result, []);
     });
 
     it('should reject malformed label matchers', () => {
@@ -157,7 +143,7 @@ describe('filterRules', () => {
         [AlertRulesFilterOptions.LABEL]: 'badformat',
       };
       const result = filterRules(rules, filters);
-      expect(result).toHaveLength(0);
+      expectRuleNames(result, []);
     });
   });
 
@@ -170,8 +156,7 @@ describe('filterRules', () => {
       [AlertRulesFilterOptions.LABEL]: '',
     };
     const result = filterRules(rules, filters);
-    expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('HighMemory');
+    expectRuleNames(result, ['HighMemory']);
   });
 });
 

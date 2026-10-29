@@ -2,11 +2,12 @@ import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
+import { CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
 export {};
 
 export const cooInstallUtils = {
-  installCOO(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string; packageName: string }): void {
+  installCOO(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       cy.log('SKIP_COO_INSTALL is set. Skipping Cluster Observability Operator installation.');
     } else if (Cypress.env('COO_UI_INSTALL')) {
@@ -19,42 +20,34 @@ export const cooInstallUtils = {
       cy.get('.co-clusterserviceversion-install__heading', {
         timeout: installTimeoutMilliseconds,
       }).should('include.text', 'Operator installed successfully');
-      cy.exec(
+      cy.adminCLI(
         `oc label namespace ${
           CLUSTER_OBSERVABILITY_OPERATOR.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}"`,
+        } openshift.io/cluster-monitoring=true --overwrite=true`,
       );
     } else if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE')) {
       cy.log(
         'KONFLUX_COO_BUNDLE_IMAGE is set. COO operator will be installed from Konflux bundle.',
       );
       cy.log('Install Cluster Observability Operator');
-      cy.exec(
-        `oc --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      );
+      cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
       cy.exec(
         `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
           `"${Cypress.env(
             'KUBECONFIG_PATH',
           )}" --dry-run=client -o yaml | oc apply --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" -f -`,
       );
-      cy.exec(
+      cy.adminCLI(
         `oc label namespace ${
           CLUSTER_OBSERVABILITY_OPERATOR.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}"`,
+        } openshift.io/cluster-monitoring=true --overwrite=true`,
       );
-      cy.exec(
+      cy.adminCLI(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           CLUSTER_OBSERVABILITY_OPERATOR.namespace
         } --security-context-config restricted ${Cypress.env(
           'KONFLUX_COO_BUNDLE_IMAGE',
-        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
+        )} --verbose `,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
@@ -62,11 +55,7 @@ export const cooInstallUtils = {
         'CUSTOM_COO_BUNDLE_IMAGE is set. COO operator will be installed from custom built bundle.',
       );
       cy.log('Install Cluster Observability Operator');
-      cy.exec(
-        `oc --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      );
+      cy.adminCLI(`oc apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
       cy.log(`Creating namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
       cy.exec(
         `oc create namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ` +
@@ -78,29 +67,21 @@ export const cooInstallUtils = {
         `Labeling namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} with ` +
           `openshift.io/cluster-monitoring=true`,
       );
-      cy.exec(
+      cy.adminCLI(
         `oc label namespace ${
           CLUSTER_OBSERVABILITY_OPERATOR.namespace
-        } openshift.io/cluster-monitoring=true --overwrite=true --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}"`,
+        } openshift.io/cluster-monitoring=true --overwrite=true`,
       );
-      cy.exec(
+      cy.adminCLI(
         `operator-sdk run bundle --timeout=10m --install-mode=AllNamespaces --namespace ${
           CLUSTER_OBSERVABILITY_OPERATOR.namespace
-        } --security-context-config restricted ${Cypress.env(
-          'CUSTOM_COO_BUNDLE_IMAGE',
-        )} --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}" --verbose `,
+        } --security-context-config restricted ${Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')} --verbose`,
         { timeout: installTimeoutMilliseconds },
       );
     } else if (Cypress.env('FBC_STAGE_COO_IMAGE')) {
       cy.log('FBC_COO_IMAGE is set. COO operator will be installed from FBC image.');
       cy.log('Install Cluster Observability Operator');
-      cy.exec(
-        `oc --kubeconfig "${Cypress.env(
-          'KUBECONFIG_PATH',
-        )}" apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`,
-      );
+      cy.adminCLI(`oc  apply -f ./cypress/fixtures/coo/coo-imagecontentsourcepolicy.yaml`);
       cy.exec('./cypress/fixtures/coo/coo_stage.sh', {
         env: {
           FBC_STAGE_COO_IMAGE: Cypress.env('FBC_STAGE_COO_IMAGE'),
@@ -115,11 +96,11 @@ export const cooInstallUtils = {
     }
   },
 
-  waitForCOOReady(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  waitForCOOReady(): void {
     cy.log('Check Cluster Observability Operator status');
     const kubeconfig = Cypress.env('KUBECONFIG_PATH');
 
-    cy.exec(`oc project ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${kubeconfig}`);
+    cy.adminCLI(`oc project ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
 
     cy.waitUntil(
       () =>
@@ -148,9 +129,9 @@ export const cooInstallUtils = {
         const podName = podOutput.trim();
         cy.log(`Found COO pod: ${podName}`);
 
-        cy.exec(
+        cy.adminCLI(
           `oc wait --for=condition=Ready ${podName} -n ` +
-            `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --timeout=120s --kubeconfig ${kubeconfig}`,
+            `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --timeout=120s`,
           { timeout: readyTimeoutMilliseconds, failOnNonZeroExit: true },
         ).then((result) => {
           expect(result.code).to.eq(0);
@@ -177,21 +158,20 @@ export const cooInstallUtils = {
     }
   },
 
-  enableOpenShiftMode(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  enableOpenShiftMode(): void {
     if (!Cypress.env('KONFLUX_COO_BUNDLE_IMAGE') && !Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
       return;
     }
 
-    const kubeconfig = Cypress.env('KUBECONFIG_PATH');
     const ns = CLUSTER_OBSERVABILITY_OPERATOR.namespace;
     cy.log('Enabling OpenShift mode on bundle-installed COO');
 
     // Patch the CSV so OLM's source of truth includes the flag.
     // Find the correct CSV and deployment index for observability-operator.
-    cy.exec(
+    cy.adminCLI(
       `oc get csv -n ${ns} -o jsonpath=` +
         `'{range .items[?(@.status.phase=="Succeeded")]}` +
-        `{.metadata.name}{"\\n"}{end}' --kubeconfig ${kubeconfig}`,
+        `{.metadata.name}{"\\n"}{end}'`,
     ).then((result) => {
       const csvNames = result.stdout.trim().split('\n').filter(Boolean);
       const csvName = csvNames.find((name) => name.includes('observability-operator'));
@@ -203,10 +183,10 @@ export const cooInstallUtils = {
       }
       cy.log(`Found CSV: ${csvName}`);
 
-      cy.exec(
+      cy.adminCLI(
         `oc get csv ${csvName} -n ${ns} -o jsonpath=` +
           `'{range .spec.install.spec.deployments[*]}` +
-          `{.name}{"\\n"}{end}' --kubeconfig ${kubeconfig}`,
+          `{.name}{"\\n"}{end}'`,
       ).then((deploymentsResult) => {
         const deploymentNames = deploymentsResult.stdout.trim().split('\n').filter(Boolean);
         const opIdx = deploymentNames.indexOf('observability-operator');
@@ -216,50 +196,47 @@ export const cooInstallUtils = {
           );
         }
         cy.log(`Patching CSV ${csvName} deployment[${opIdx}] to add --openshift.enabled=true`);
-        cy.exec(
+        cy.adminCLI(
           `oc patch csv ${csvName} -n ${ns} --type=json ` +
             `-p '[{"op":"add","path":"/spec/install/spec/deployments/` +
             `${opIdx}/spec/template/spec/containers/0/args/-",` +
-            `"value":"--openshift.enabled=true"}]' ` +
-            `--kubeconfig ${kubeconfig}`,
+            `"value":"--openshift.enabled=true"}]'`,
         );
       });
     });
 
     // Step 2: Patch the deployment directly to apply the change immediately.
     cy.log('Patching deployment to add --openshift.enabled=true');
-    cy.exec(
+    cy.adminCLI(
       `oc patch deployment observability-operator -n ${ns} --type=json ` +
         `-p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-",` +
-        `"value":"--openshift.enabled=true"}]' ` +
-        `--kubeconfig ${kubeconfig}`,
+        `"value":"--openshift.enabled=true"}]'`,
     );
 
     // Step 3: Wait for the rollout to complete.
-    cy.exec(
-      `oc rollout status deployment/observability-operator -n ${ns} ` +
-        `--timeout=120s --kubeconfig ${kubeconfig}`,
+    cy.adminCLI(
+      `oc rollout status deployment/observability-operator -n ${ns} ` + `--timeout=120s`,
       { timeout: 130000 },
     );
 
     // Final verification: confirm the running pod actually has the flag.
-    cy.exec(
+    cy.adminCLI(
       `oc get deployment observability-operator -n ${ns} ` +
-        `-o jsonpath="{.spec.template.spec.containers[0].args}" --kubeconfig ${kubeconfig}`,
+        `-o jsonpath="{.spec.template.spec.containers[0].args}"`,
     ).then((result) => {
       const args = result.stdout;
       cy.log(`Deployment args after rollout: ${args}`);
       if (!args.includes('openshift.enabled=true')) {
-        cy.exec(`oc get csv -n ${ns} -o yaml --kubeconfig ${kubeconfig}`, {
+        cy.adminCLI(`oc get csv -n ${ns} -o yaml`, {
           failOnNonZeroExit: false,
         }).then((csvResult) => {
           cy.log(`CSV YAML:\n${csvResult.stdout.substring(0, 3000)}`);
         });
-        cy.exec(
-          `oc get deployment observability-operator -n ${ns} -o yaml --kubeconfig ${kubeconfig}`,
-        ).then((yamlResult) => {
-          cy.log(`Deployment YAML:\n${yamlResult.stdout}`);
-        });
+        cy.adminCLI(`oc get deployment observability-operator -n ${ns} -o yaml`).then(
+          (yamlResult) => {
+            cy.log(`Deployment YAML:\n${yamlResult.stdout}`);
+          },
+        );
         cy.then(() => {
           throw new Error(
             '--openshift.enabled=true NOT found in deployment args after rollout. ' +
@@ -269,16 +246,14 @@ export const cooInstallUtils = {
       }
     });
 
-    cy.exec(
-      `oc logs -l app.kubernetes.io/name=observability-operator -n ${ns} ` +
-        `--tail=5 --kubeconfig ${kubeconfig}`,
-      { failOnNonZeroExit: false },
-    ).then((result) => {
+    cy.adminCLI(`oc logs -l app.kubernetes.io/name=observability-operator -n ${ns} ` + `--tail=5`, {
+      failOnNonZeroExit: false,
+    }).then((result) => {
       cy.log(`Operator logs after restart:\n${result.stdout}`);
     });
   },
 
-  cleanupCOONamespace(CLUSTER_OBSERVABILITY_OPERATOR: { namespace: string }): void {
+  cleanupCOONamespace(): void {
     if (Cypress.env('SKIP_COO_INSTALL')) {
       return;
     }
@@ -291,9 +266,9 @@ export const cooInstallUtils = {
     // (not the CLUSTER_OBSERVABILITY_OPERATOR.packageName
     // which is "cluster-observability-operator" used for catalog installs).
     if (Cypress.env('KONFLUX_COO_BUNDLE_IMAGE') || Cypress.env('CUSTOM_COO_BUNDLE_IMAGE')) {
-      cy.exec(
+      cy.adminCLI(
         `operator-sdk cleanup observability-operator -n ` +
-          `${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
+          `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
         { failOnNonZeroExit: false, timeout: 60000 },
       ).then((result) => {
         if (result.code === 0) {
@@ -304,20 +279,17 @@ export const cooInstallUtils = {
       });
     }
 
-    cy.exec(
-      `oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace} --kubeconfig ${Cypress.env('KUBECONFIG_PATH')}`,
-      {
-        timeout: readyTimeoutMilliseconds,
-        failOnNonZeroExit: false,
-      },
-    ).then((checkResult) => {
+    cy.adminCLI(`oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`, {
+      timeout: readyTimeoutMilliseconds,
+      failOnNonZeroExit: false,
+    }).then((checkResult) => {
       if (checkResult.code === 0) {
         cy.log('Namespace exists, proceeding with deletion');
 
-        cy.exec(
+        cy.adminCLI(
           `oc delete csv --all -n ${
             CLUSTER_OBSERVABILITY_OPERATOR.namespace
-          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+          } --ignore-not-found --wait=false`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -327,10 +299,10 @@ export const cooInstallUtils = {
           }
         });
 
-        cy.exec(
+        cy.adminCLI(
           `oc delete subscription --all -n ${
             CLUSTER_OBSERVABILITY_OPERATOR.namespace
-          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+          } --ignore-not-found --wait=false`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -342,10 +314,10 @@ export const cooInstallUtils = {
           }
         });
 
-        cy.exec(
+        cy.adminCLI(
           `oc delete namespace ${
             CLUSTER_OBSERVABILITY_OPERATOR.namespace
-          } --ignore-not-found --wait=false --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
+          } --ignore-not-found --wait=false`,
           { timeout: 30000, failOnNonZeroExit: false },
         ).then((result) => {
           if (result.code === 0) {
@@ -358,11 +330,9 @@ export const cooInstallUtils = {
         cy.waitUntil<boolean>(
           () =>
             cy
-              .exec(
-                `oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}` +
-                  ` --kubeconfig "${Cypress.env('KUBECONFIG_PATH')}"`,
-                { failOnNonZeroExit: false },
-              )
+              .adminCLI(`oc get namespace ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`, {
+                failOnNonZeroExit: false,
+              })
               .then((result) => {
                 if (result.code !== 0) {
                   Cypress.log({

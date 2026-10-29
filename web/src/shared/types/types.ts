@@ -54,6 +54,30 @@ export type TimeRange = {
   duration: number;
 };
 
+export type Variable = {
+  isHidden?: boolean;
+  isLoading?: boolean;
+  includeAll?: boolean;
+  options?: string[];
+  query?: string;
+  value?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  datasource?: any;
+};
+
+export type DaysFilters = '1 day' | '3 days' | '7 days' | '15 days';
+
+export type IncidentStateFilters = 'Resolved' | 'Firing';
+
+export type IncidentSeverityFilters = 'Critical' | 'Warning' | 'Informative';
+
+export type AggregatedAlert = {
+  severity: Alert['labels']['severity'];
+  alerts: Alert[];
+  name: Alert['labels']['alertname'];
+  state: Alert['state'];
+};
+
 export type PatternflyToken = {
   name: string;
   value: string;

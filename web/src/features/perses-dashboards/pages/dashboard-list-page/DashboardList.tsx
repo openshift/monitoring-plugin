@@ -19,7 +19,7 @@ import { useDataViewSort } from '@patternfly/react-data-view/dist/dynamic/Hooks'
 import RhUiEllipsisVerticalFillIcon from '@patternfly/react-icons/dist/esm/icons/rh-ui-ellipsis-vertical-fill-icon';
 import { ActionsColumn } from '@patternfly/react-table';
 import type { DashboardResource } from '@perses-dev/client';
-import { type FC, memo, type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type FC, memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
 
@@ -31,10 +31,14 @@ import {
 import { useDashboardsData } from '@/features/perses-dashboards/hooks/useDashboardsData';
 import { usePersesDashboardAccess } from '@/features/perses-dashboards/hooks/usePersesDashboardAccess';
 import { DashboardListFrame } from '@/features/perses-dashboards/pages/dashboard-list-page/DashboardListFrame';
+import {
+  type DashboardRow,
+  type DashboardRowNameLink,
+  sortDashboardData,
+} from '@/features/perses-dashboards/pages/dashboard-list-page/sort-dashboards';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
-import { directedSort, localeCompareSort } from '@/shared/components/table/sort-utils';
 import {
   TableFilter,
   TableFilterOption,
@@ -131,61 +135,11 @@ const DashboardActionsCell = memo(
 
 DashboardActionsCell.displayName = 'DashboardActionsCell';
 
-interface DashboardRowNameLink {
-  link: ReactNode;
-  label: string;
-}
-
-interface DashboardRow {
-  name: DashboardRowNameLink;
-  tags: ReactNode;
-  project: string;
-  created: ReactNode;
-  modified: ReactNode;
-  // Raw values for sorting
-  createdAt?: string;
-  updatedAt?: string;
-  // Reference to original dashboard data
-  dashboard: DashboardResource;
-}
-
 interface DashboardRowFilters {
   name?: string;
   'project-filter'?: string;
   tags?: string;
 }
-
-const sortDashboardData = (
-  data: DashboardRow[],
-  sortBy: string | undefined,
-  direction: 'asc' | 'desc' | undefined,
-): DashboardRow[] => {
-  if (!sortBy || !direction) {
-    return data;
-  }
-  if (sortBy === rowFilter('name')) {
-    return [...data].sort((a, b) => localeCompareSort(a.name.label, b.name.label, direction));
-  }
-  if (sortBy === rowFilter('project')) {
-    return [...data].sort((a, b) => localeCompareSort(a.project, b.project, direction));
-  }
-  if (sortBy === rowFilter('created')) {
-    return [...data].sort((a, b) => localeCompareSort(a.createdAt, b.createdAt, direction));
-  }
-  if (sortBy === rowFilter('modified')) {
-    return [...data].sort((a, b) => localeCompareSort(a.updatedAt, b.updatedAt, direction));
-  }
-  if (sortBy === rowFilter('tags')) {
-    return [...data].sort((a, b) =>
-      directedSort(
-        (a.dashboard.metadata?.tags?.length || 0) - (b.dashboard.metadata?.tags?.length || 0),
-        direction,
-      ),
-    );
-  }
-
-  return data;
-};
 
 interface DashboardsTableProps {
   persesDashboards: DashboardResource[];
@@ -216,7 +170,19 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
 
   const columnKeys = useMemo(
     () => [
-      { label: t('Dashboard'), key: rowFilter('name') },
+      { label: t('Display Name'), key: rowFilter('name') },
+      {
+        label: t('Name'),
+        key: rowFilter('id'),
+        props: {
+          info: {
+            tooltip: t(
+              'This is the immutable, unique identifier for the dashboard. It cannot be changed after the dashboard is created.',
+            ),
+            ariaLabel: t('More information on Dashboard ID'),
+          },
+        },
+      },
       { label: t('Project'), key: rowFilter('project') },
       { label: t('Tags'), key: rowFilter('tags') },
       { label: t('Created on'), key: rowFilter('created') },
@@ -233,7 +199,8 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
     }
     return persesDashboards.map((board) => {
       const metadata = board?.metadata;
-      const displayName = board?.spec?.display?.name || metadata?.name;
+      const id = metadata?.name;
+      const displayName = board?.spec?.display?.name || id;
       const dashboardsParams = `?dashboard=${metadata?.name}&project=${metadata?.project}`;
       const dashboardName: DashboardRowNameLink = {
         link: (
@@ -263,6 +230,7 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
 
       return {
         name: dashboardName,
+        id: id,
         project: board?.metadata?.project || '',
         tags: dashboardTags,
         created: <Timestamp timestamp={metadata?.createdAt} />,
@@ -331,8 +299,9 @@ const DashboardsTable: FC<DashboardsTableProps> = ({
   const pageRows: DataViewTr[] = useMemo(() => {
     return sortedAndFilteredData
       .slice((page - 1) * perPage, (page - 1) * perPage + perPage)
-      .map(({ name, project, tags, created, modified, dashboard }) => [
+      .map(({ name, id, project, tags, created, modified, dashboard }) => [
         name.link,
+        id,
         project,
         tags,
         created,

@@ -1,9 +1,5 @@
 import { CustomerPerspectiveName } from '@/shared/constants/perspective';
-import {
-  CLUSTER_MONITORING_OPERATOR,
-  CLUSTER_OBSERVABILITY_OPERATOR,
-  KUBEVIRT_HYPERCONVERGED_OPERATOR,
-} from '../../support/operators';
+
 import { alerts } from '../../fixtures/monitoring/alert';
 import { testAlertsRegression } from '../../support/monitoring/01.reg_alerts.cy';
 import { commonPages } from '../../views/common';
@@ -15,7 +11,7 @@ describe(
   { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockCOO(CLUSTER_OBSERVABILITY_OPERATOR, CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlockCOO();
       cy.log('Installation: COO and setting up Monitoring Plugin');
     });
   },
@@ -26,7 +22,7 @@ describe(
   { tags: ['@alerting', '@coo', '@virtualization', '@slow'] },
   () => {
     before(() => {
-      cy.beforeBlockVirtualization(KUBEVIRT_HYPERCONVERGED_OPERATOR);
+      cy.beforeBlockVirtualization();
     });
 
     it('1. Virtualization perspective - Observe Menu', () => {

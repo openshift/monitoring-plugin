@@ -1,0 +1,8 @@
+/* Needed to style the console header component */
+.alert-management-header__page-title {
+  display: contents;
+}
+
+.alert-management-header__page-title .pf-v6-c-page__main-section {
+  padding-block-end: 0;
+}

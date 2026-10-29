@@ -1,7 +1,3 @@
-jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
-  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types'),
-}));
-
 import { Alert, AlertStates, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 import {

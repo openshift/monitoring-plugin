@@ -2,9 +2,10 @@ import { Button, ButtonVariant } from '@patternfly/react-core';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AggregatedAlert } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { usePerspective } from '@/shared/hooks/usePerspective';
+import { AggregatedAlert } from '@/shared/types/types';
+import { downloadCsv, formatCsv } from '@/shared/utils/csv';
 
 type DownloadCSVButtonProps = {
   loaded: boolean;
@@ -39,35 +40,18 @@ const DownloadCSVButton: FC<DownloadCSVButtonProps> = ({ loaded, filteredData })
     return [csvColumns, ...getCsvRows()];
   };
 
-  const formatToCsv = (tableData, delimiter = ',') =>
-    tableData
-      ?.map((row) =>
-        row?.map((rowItem) => (isNaN(rowItem) ? `"${rowItem}"` : rowItem)).join(delimiter),
-      )
-      ?.join('\n');
-
   let csvData: string;
   if (loaded) {
-    csvData = formatToCsv(getTableData()) ?? undefined;
+    csvData = formatCsv(getTableData()) ?? undefined;
   }
 
-  const downloadCsv = () => {
-    // csvData should be formatted as comma-seperated values
-    // (e.g. `"a","b","c", \n"d","e","f", \n"h","i","j"`)
-    const blobCsvData = new Blob([csvData], { type: 'text/csv' });
-    const csvURL = URL.createObjectURL(blobCsvData);
-    const link = document.createElement('a');
-    link.href = csvURL;
-    link.download = `openshift.csv`;
-    link.click();
-
-    // Clean up the URL object after the download is triggered
-    URL.revokeObjectURL(csvURL);
+  const handleDownloadCsv = () => {
+    downloadCsv(new Blob([csvData], { type: 'text/csv' }), 'openshift.csv');
   };
 
   return (
     <Button
-      onClick={downloadCsv}
+      onClick={handleDownloadCsv}
       variant={ButtonVariant.link}
       data-test={DataTestIDs.DownloadCSVButton}
     >

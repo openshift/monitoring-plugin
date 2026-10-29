@@ -10,7 +10,7 @@ describe(
   { tags: ['@alerting'] },
   () => {
     before(() => {
-      cy.beforeBlock(CLUSTER_MONITORING_OPERATOR);
+      cy.beforeBlock();
     });
 
     beforeEach(() => {

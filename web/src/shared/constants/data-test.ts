@@ -12,6 +12,30 @@ export const DataTestIDs = {
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
   AlertingRuleCluster: 'alerting-rule-cluster',
+  TimeRangeSelect: {
+    CustomRangeTitle: 'custom-time-range-title',
+    CustomRangeFromInput: 'custom-time-range-from',
+    CustomRangeToInput: 'custom-time-range-to',
+  },
+  AlertManagementAPI: {
+    FiltersPanel: 'alert-management-filters',
+    FilterSelectPrefix: 'alert-management-filter',
+    FilterSearchInputPrefix: 'alert-management-filter-search',
+    FiringTimeSelect: 'alert-management-firing-time',
+    SearchInput: 'alert-management-search',
+    AggregateIdenticalAlertsSwitch: 'aggregate-identical-alerts',
+    RefreshIntervalSelect: 'alert-management-refresh-interval',
+    SelectionCheckboxPrefix: 'alert-management-selection',
+    SelectAllAlertsCheckbox: 'alert-management-selection-all',
+    ExpandRowPrefix: 'alert-management-expand',
+    ColumnsModalTitle: 'alert-management-columns-title',
+    ColumnsModalDescription: 'alert-management-columns-description',
+    ColumnCheckboxPrefix: 'alert-management-column',
+    ColumnNameCheckbox: 'alert-management-column-name',
+    ColumnSeverityCheckbox: 'alert-management-column-severity',
+    QueryOutput: 'alert-management-query-output',
+    SortOutput: 'alert-management-sort-output',
+  },
   LabelSuggestion: 'suggestion-line',
   CancelButton: 'cancel-button',
   Breadcrumb: 'breadcrumb',
@@ -154,6 +178,22 @@ export const DataTestIDs = {
     EndCell: 'incidents-details-end-cell',
     AlertRuleLink: 'incidents-details-alert-rule-link',
   },
+
+  // Overview Page Test IDs
+  OverviewPage: {
+    InfoAlert: 'overview-info-alert',
+    InfoAlertClose: 'overview-info-alert-close',
+    SummarySection: 'overview-observability-stack-summary',
+    SummaryCard: 'overview-summary-card',
+    SummaryCardCount: 'overview-summary-card-count',
+    SummaryCardError: 'overview-summary-card-error',
+    SummaryCardLoading: 'overview-summary-card-loading',
+    CapabilitiesSection: 'overview-installed-capabilities',
+    AdvancedSection: 'overview-recommended-capabilities',
+    InstalledLoading: 'overview-installed-loading',
+    RecommendedLoading: 'overview-recommended-loading',
+    CapabilityCard: 'overview-service-card',
+  },
 };
 
 export const FilterOUIAIDs = {
@@ -182,8 +222,6 @@ export const LegacyDashboardPageTestIDs = {
   Inspect: 'inspect',
   ExportAsCsv: 'export-as-csv',
   DashboardDropdown: 'dashboard-dropdown', //div
-  DashboardTimeRangeDropdownMenu: 'monitoring-time-range-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardTimeRangeDropdownMenu)
-  DashboardRefreshIntervalDropdownMenu: 'refresh-interval-dropdown', //div using get('#'+LegacyDashboardPageTestIDs.DashboardRefreshIntervalDropdownMenu)
   Graph: 'graph',
 };
 
@@ -198,7 +236,7 @@ export const LegacyTestIDs = {
 export const IDs = {
   ChartAxis0ChartLabel: 'chart-axis-0-ChartLabel', //id^=IDs.ChartAxis0ChartLabel AxisX
   ChartAxis1ChartLabel: 'chart-axis-1-ChartLabel', //id^=IDs.ChartAxis1ChartLabel AxisY
-  persesDashboardCount: 'options-menu-bottom-toggle',
+  persesDashboardCount: ['options-menu-bottom-toggle', 'options-menu-top-toggle'],
   persesDashboardDownloadButton: 'download-dashboard-button',
   persesDashboardActionMenuModal: 'action-menu',
   persesDashboardEditVariablesModalBuiltinButton: 'builtin',
@@ -242,6 +280,7 @@ export const Classes = {
   PersesCreateDashboardProjectDropdown: 'button[class="pf-v6-c-menu-toggle__button"]',
   PersesCreateDashboardDashboardNameError: '.pf-v6-c-helper-text__item-text',
   PersesDuplicateDashboardNameError: '.pf-v6-c-alert__title',
+  PersesCreateDuplicateImportButton: '.pf-v6-c-button.pf-m-primary.pf-m-progress',
   PersesListDashboardCount: '.pf-v6-c-menu-toggle__text',
   SectionHeader: '.pf-v6-c-title.pf-m-h2, .co-section-heading',
   TableHeaderColumn: '.pf-v6-c-table__button, .pf-c-table__button',
@@ -291,7 +330,7 @@ export const persesAriaLabels = {
   //Add Panel tabs
   AddPanelTabs: 'Panel configuration tabs',
   //List Page
-  persesDashboardKebabIcon: 'Kebab toggle',
+  persesDashboardKebabIcon: ['Actions', 'Kebab toggle'],
   //dialogProjectDropdown
   dialogProjectInput: 'Type to filter',
   //Import Dashboard

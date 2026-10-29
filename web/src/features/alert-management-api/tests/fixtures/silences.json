@@ -1,0 +1,43 @@
+[
+  {
+    "id": "mock-silence-1",
+    "status": { "state": "active" },
+    "updatedAt": "2026-09-29T13:02:00.055Z",
+    "comment": "Mock silence for demonstration alerts",
+    "createdBy": "mock-user",
+    "endsAt": "2026-09-29T15:02:00.017Z",
+    "matchers": [
+      {
+        "isEqual": true,
+        "isRegex": false,
+        "name": "managed_cluster",
+        "value": "mock-cluster-1"
+      },
+      {
+        "isEqual": true,
+        "isRegex": false,
+        "name": "namespace",
+        "value": "openshift-monitoring"
+      },
+      {
+        "isEqual": true,
+        "isRegex": false,
+        "name": "prometheus",
+        "value": "openshift-monitoring/k8s"
+      },
+      {
+        "isEqual": true,
+        "isRegex": false,
+        "name": "severity",
+        "value": "none"
+      },
+      {
+        "isEqual": true,
+        "isRegex": false,
+        "name": "alertname",
+        "value": "Watchdog"
+      }
+    ],
+    "startsAt": "2026-09-29T13:02:00.055Z"
+  }
+]

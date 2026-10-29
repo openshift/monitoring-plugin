@@ -11,12 +11,13 @@ import { useTranslation } from 'react-i18next';
 
 import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
 import AggregateAlertTableRow from '@/features/alerts/pages/alerts-page/AggregateAlertTableRow';
-import {
-  AggregatedAlert,
-  getAggregateAlertsLists,
-} from '@/features/alerts/pages/alerts-page/alerts-aggregates';
+import { getAggregateAlertsLists } from '@/features/alerts/pages/alerts-page/alerts-aggregates';
 import DownloadCSVButton from '@/features/alerts/pages/alerts-page/DownloadCSVButton';
-import { filterAlerts } from '@/features/alerts/pages/alerts-page/filter-alerts';
+import {
+  AggregatedAlertFilters,
+  AlertFilterOptions,
+  filterAlerts,
+} from '@/features/alerts/pages/alerts-page/filter-alerts';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
@@ -38,26 +39,9 @@ import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useDeepMemo } from '@/shared/hooks/useDeepMemo';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { usePerspective } from '@/shared/hooks/usePerspective';
-import { AlertSource } from '@/shared/types/types';
-import { ALL_NAMESPACES_KEY, severitySort } from '@/shared/utils/utils';
-
-export const enum AlertFilterOptions {
-  NAME = 'name',
-  STATE = 'alert-state',
-  SEVERITY = 'alert-severity',
-  LABEL = 'label',
-  SOURCE = 'alert-source',
-  CLUSTER = 'alert-cluster',
-}
-
-export interface AggregatedAlertFilters {
-  [AlertFilterOptions.NAME]: string;
-  [AlertFilterOptions.STATE]: string[];
-  [AlertFilterOptions.SEVERITY]: string[];
-  [AlertFilterOptions.LABEL]: string;
-  [AlertFilterOptions.SOURCE]?: AlertSource[];
-  [AlertFilterOptions.CLUSTER]?: string[];
-}
+import { AggregatedAlert, AlertSource } from '@/shared/types/types';
+import { severitySort } from '@/shared/utils/alerts/formatting';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const AlertsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -280,7 +264,11 @@ const AlertsPage_: FC = () => {
                   ))}
                 </TableFilters>
               }
-              actions={<DownloadCSVButton loaded={loaded} filteredData={aggregatedAlerts} />}
+              actions={
+                aggregatedAlerts?.length > 0 && (
+                  <DownloadCSVButton loaded={loaded} filteredData={aggregatedAlerts} />
+                )
+              }
               pagination={
                 <TablePagination
                   variant={PaginationVariant.top}

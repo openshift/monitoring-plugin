@@ -689,6 +689,7 @@ export const metricsPage = {
     cy.byTestID(DataTestIDs.MetricsPageDisableEnableQuerySwitch)
       .eq(index)
       .parent('label')
+      .scrollIntoView()
       .should('be.visible')
       .click();
   },

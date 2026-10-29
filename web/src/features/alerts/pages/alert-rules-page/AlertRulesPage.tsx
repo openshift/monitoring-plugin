@@ -17,13 +17,13 @@ import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
-import {
-  alertingRuleSource,
-  AlertStateIcon,
-  getAlertStateKey,
-  SilencesNotLoadedWarning,
-} from '@/features/alerts/components/AlertUtils';
+import { SilencesNotLoadedWarning } from '@/features/alerts/components/AlertUtils';
 import { filterRules } from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import {
+  AlertRulesFilterOptions,
+  AlertRulesFilters,
+} from '@/features/alerts/pages/alert-rules-page/filter-rules';
+import { AlertStateIcon, getAlertStateKey } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
@@ -46,23 +46,9 @@ import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import { getRuleUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
-import { alertingRuleStateSort, RuleResource, severitySort } from '@/shared/utils/utils';
-
-export const enum AlertRulesFilterOptions {
-  NAME = 'name',
-  STATE = 'alert-state',
-  SEVERITY = 'alert-severity',
-  SOURCE = 'alert-source',
-  LABEL = 'label',
-}
-
-export interface AlertRulesFilters {
-  [AlertRulesFilterOptions.NAME]: string;
-  [AlertRulesFilterOptions.STATE]: string[];
-  [AlertRulesFilterOptions.SEVERITY]: string[];
-  [AlertRulesFilterOptions.SOURCE]?: AlertSource[];
-  [AlertRulesFilterOptions.LABEL]: string;
-}
+import { alertingRuleSource } from '@/shared/utils/alerts/alert-source';
+import { alertingRuleStateSort, severitySort } from '@/shared/utils/alerts/formatting';
+import { RuleResource } from '@/shared/utils/utils';
 
 const AlertRulesPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

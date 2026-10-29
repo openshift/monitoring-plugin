@@ -11,7 +11,6 @@ import {
   Alert,
   AlertsChartBar,
   AlertsIntervalsArray,
-  DaysFilters,
   Incident,
   IncidentFiltersCombined,
   IncidentsDetailsAlert,
@@ -19,6 +18,7 @@ import {
   Timestamps,
 } from '@/features/incidents/types/model';
 import { setIncidentsActiveFilters } from '@/shared/store/actions';
+import type { DaysFilters } from '@/shared/types/types';
 
 /**
  * The Prometheus query step interval in seconds.

@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Perses RBAC test users — permissions summary
+# (direct user bindings; mirrored via group membership in
+# rbac_perses_e2e_group1_to_group6.sh)
+#
+# | User  | Cluster-wide ClusterRoleBindings                                 | Namespace                                | Built-in Role | Perses Dashboard Role       | Perses Datasource Role       |
+# |-------|------------------------------------------------------------------|------------------------------------------|---------------|-----------------------------|------------------------------|
+# | user1 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | observ-test                              | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |       |                                                                  | openshift-cluster-observability-operator | view          | persesdashboard-editor-role | persesdatasource-editor-role |
+# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | user2 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | perses-dev                               | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | user3 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace3                         | view          | persesdashboard-editor-role | persesdatasource-editor-role |
+# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | user4 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | empty-namespace4                         | view          | persesdashboard-viewer-role | persesdatasource-viewer-role |
+# |       |                                                                  | openshift-monitoring                     | view          | -                           | -                            |
+# | user5 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | openshift-monitoring                     | admin         | -                           | -                            |
+# | user6 | perses-prometheus-api-editor, persesglobaldatasource-viewer-role | -                                        | -             | -                           | -                            |
+
 # User variables (passed as arguments)
 USER1="${USER1}"
 USER2="${USER2}"
@@ -1385,6 +1403,12 @@ roleRef:
   kind: ClusterRole
   name: persesdatasource-viewer-role
 EOF
+
+oc -n observ-test policy add-role-to-user view ${USER1}
+oc -n openshift-cluster-observability-operator policy add-role-to-user view ${USER1}
+oc -n perses-dev policy add-role-to-user view ${USER2}
+oc -n empty-namespace3 policy add-role-to-user view ${USER3}
+oc -n empty-namespace4 policy add-role-to-user view ${USER4}
 
 oc -n openshift-monitoring policy add-role-to-user view ${USER1}
 oc -n openshift-monitoring policy add-role-to-user view ${USER2}
