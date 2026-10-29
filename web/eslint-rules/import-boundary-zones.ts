@@ -26,16 +26,43 @@ export type Zone = {
   message: string;
 };
 
+export function getPageComponentFiles(featuresDir: string, relativeTo?: string): string[] {
+  const pagesDir = path.join(featuresDir, 'pages');
+  if (!fs.existsSync(pagesDir)) return [];
+
+  const baseDir = relativeTo ?? featuresDir;
+  const pageFiles: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (/Page\.tsx?$/.test(entry.name)) {
+        pageFiles.push(`./${path.relative(baseDir, full)}`);
+      }
+    }
+  };
+  walk(pagesDir);
+  return pageFiles;
+}
+
 export function buildImportBoundaryZones(directoryPrefix = './src/features'): Zone[] {
   const features = getSubdirectories(directoryPrefix);
+
+  // Page components may be imported across features (e.g. by routers), so
+  // every page file is added as an explicit exception to each zone.
+  const pageExceptionPaths = features.flatMap((feature) =>
+    getPageComponentFiles(path.join(directoryPrefix, feature), directoryPrefix),
+  );
 
   const crossFeatureZones: Zone[] = features.map((feature) => ({
     target: `${directoryPrefix}/${feature}`,
     from: directoryPrefix,
-    except: [`./${feature}`],
+    except: [`./${feature}`, ...pageExceptionPaths],
     message:
       `Feature '${feature}' must not import from other features. ` +
-      'Move shared code to src/shared/ instead.',
+      'Page components (*Page.tsx) are exempt and may be imported across features; ' +
+      'all other shared code belongs in src/shared/ instead.',
   }));
 
   const crossPageZones: Zone[] = features.flatMap((feature) => {
