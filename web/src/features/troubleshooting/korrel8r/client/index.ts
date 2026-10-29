@@ -57,7 +57,6 @@ export type {
   ListGoalsErrors,
   ListGoalsResponse,
   ListGoalsResponses,
-  StatusCount,
   Neighbors,
   Node,
   Object,
@@ -79,5 +78,6 @@ export type {
   SetConsoleResponse,
   SetConsoleResponses,
   Start,
+  StatusCount,
   Store,
 } from './types.gen';

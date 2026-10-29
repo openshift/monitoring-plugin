@@ -281,6 +281,10 @@ because Console only shows it for the legacy
 `troubleshooting-panel-console-plugin`, and log and netflow graph nodes are
 disabled because the `logging-view-plugin` and `netobserv-plugin` are not loaded.
 
+The Korrel8r client in `web/src/features/troubleshooting/korrel8r/client/` is
+generated: after updating `korrel8r-openapi.yaml` next to it, run
+`npm run generate-korrel8r-client` from `web/` instead of editing it by hand.
+
 Cypress smoke: `CYPRESS_TROUBLESHOOTING_ENABLED=true npm run test-cypress-troubleshooting`
 from `web/`. To check the disabled state, restart the backend without
 `troubleshooting` (`'ALL_FEATURES=$(MONITORING_FEATURES)'`) and leave
