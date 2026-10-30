@@ -19,20 +19,20 @@ Located in `e2e/coo/`
 
 | File               | Test Suite | Test Scenario                       | Description                                                                                             |
 | ------------------ | ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `01.coo_bvt.cy.ts` | BVT: COO   | 1. Admin perspective - Observe Menu | Verifies Observe menu navigation and submenus (Alerting, Silences, Alerting rules, Dashboards (Perses)) |
+| `coo_bvt.cy.ts` | BVT: COO   | 1. Admin perspective - Observe Menu | Verifies Observe menu navigation and submenus (Alerting, Silences, Alerting rules, Dashboards (Perses)) |
 
 ### ACM Alerting UI Tests
 
 | File                       | Test Suite      | Test Scenario                                  | Description                                                                                                                                                              |
 | -------------------------- | --------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `02.acm_alerting_ui.cy.ts` | ACM Alerting UI | 1. Fleet Management perspective - ACM Alerting | Validates ACM integration with COO, Fleet Management perspective navigation, local-cluster access, and ACM alert visibility (Watchdog, Watchdog-spoke, ClusterCPUHealth) |
+| `acm_alerting_ui.cy.ts` | ACM Alerting UI | 1. Fleet Management perspective - ACM Alerting | Validates ACM integration with COO, Fleet Management perspective navigation, local-cluster access, and ACM alert visibility (Watchdog, Watchdog-spoke, ClusterCPUHealth) |
 
 ### OLS (OpenShift LightSpeed) Integration Tests
 
 | File                                      | Test Suite                      | Test Scenario                                                                    | Description                                                                                                                                                                                                            |
 | ----------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `03.coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | switches to troubleshooting mode, sends a prompt, and renders a Perses dashboard | **Non-deterministic** — sends a natural-language prompt to the live OLS AI and asserts it responds with a `show_timeseries` tool call that renders a Perses chart.                                                     |
-| `03.coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | adds the rendered chart to a new Perses dashboard via Add to Dashboard button    | **Non-deterministic** — creates a new Perses dashboard, sends a prompt to OLS, then uses the "Add to Dashboard" button to add the rendered chart to the dashboard. Verifies the panel appears and persists after save. |
+| `coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | switches to troubleshooting mode, sends a prompt, and renders a Perses dashboard | **Non-deterministic** — sends a natural-language prompt to the live OLS AI and asserts it responds with a `show_timeseries` tool call that renders a Perses chart.                                                     |
+| `coo_lightspeed_show_timeseries.cy.ts` | COO-LightSpeed: show_timeseries | adds the rendered chart to a new Perses dashboard via Add to Dashboard button    | **Non-deterministic** — creates a new Perses dashboard, sends a prompt to OLS, then uses the "Add to Dashboard" button to add the rendered chart to the dashboard. Verifies the panel appears and persists after save. |
 
 ---
 
@@ -46,25 +46,25 @@ These tests verify the Monitoring Plugin functionality within the Virtualization
 
 | File                                 | Test Suite                                                             | Test Scenario                                             | Perspective    | Namespace Scope      |
 | ------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------- | -------------- | -------------------- |
-| `01.coo_ivt.cy.ts`                   | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
-| `01.coo_ivt.cy.ts`                   | Installation: Virtualization                                           | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
-| `01.coo_ivt.cy.ts`                   | IVT: Monitoring + Virtualization                                       | _Runs BVT Monitoring Tests_                               | Virtualization | All Projects         |
-| `01.coo_ivt.cy.ts`                   | IVT: Monitoring + Virtualization - Namespaced                          | _Runs BVT Monitoring Tests (Namespace)_                   | Virtualization | openshift-monitoring |
+| `coo_ivt.cy.ts`                   | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
+| `coo_ivt.cy.ts`                   | Installation: Virtualization                                           | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
+| `coo_ivt.cy.ts`                   | IVT: Monitoring + Virtualization                                       | _Runs BVT Monitoring Tests_                               | Virtualization | All Projects         |
+| `coo_ivt.cy.ts`                   | IVT: Monitoring + Virtualization - Namespaced                          | _Runs BVT Monitoring Tests (Namespace)_                   | Virtualization | openshift-monitoring |
 |                                      |                                                                        |                                                           |                |
-| `02.coo_ivt_alerts.cy.ts`            | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
-| `02.coo_ivt_alerts.cy.ts`            | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
-| `02.coo_ivt_alerts.cy.ts`            | Regression: Monitoring - Alerts (Virtualization)                       | _Runs All Regression Alerts Tests_                        | Virtualization | All Projects         |
-| `02.coo_ivt_alerts.cy.ts`            | Regression: Monitoring - Alerts Namespaced (Virtualization)            | _Runs All Regression Alerts Tests (Namespace)_            | Virtualization | openshift-monitoring |
+| `coo_ivt_alerts.cy.ts`            | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
+| `coo_ivt_alerts.cy.ts`            | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
+| `coo_ivt_alerts.cy.ts`            | Regression: Monitoring - Alerts (Virtualization)                       | _Runs All Regression Alerts Tests_                        | Virtualization | All Projects         |
+| `coo_ivt_alerts.cy.ts`            | Regression: Monitoring - Alerts Namespaced (Virtualization)            | _Runs All Regression Alerts Tests (Namespace)_            | Virtualization | openshift-monitoring |
 |                                      |                                                                        |                                                           |                |
-| `03.coo_ivt_metrics.cy.ts`           | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
-| `03.coo_ivt_metrics.cy.ts`           | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
-| `03.coo_ivt_metrics.cy.ts`           | Regression: Monitoring - Metrics (Virtualization)                      | _Runs All Regression Metrics Tests_                       | Virtualization | All Projects         |
-| `03.coo_ivt_metrics.cy.ts`           | Regression: Monitoring - Metrics Namespaced (Virtualization)           | _Runs All Regression Metrics Tests (Namespace)_           | Virtualization | openshift-monitoring |
+| `coo_ivt_metrics_1.cy.ts`, `coo_ivt_metrics_2.cy.ts` | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
+| `coo_ivt_metrics_1.cy.ts`, `coo_ivt_metrics_2.cy.ts` | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
+| `coo_ivt_metrics_1.cy.ts`, `coo_ivt_metrics_2.cy.ts` | Regression: Monitoring - Metrics (Virtualization)                      | _Runs All Regression Metrics Tests_                       | Virtualization | All Projects         |
+| `coo_ivt_metrics_1.cy.ts`, `coo_ivt_metrics_2.cy.ts` | Regression: Monitoring - Metrics Namespaced (Virtualization)           | _Runs All Regression Metrics Tests (Namespace)_           | Virtualization | openshift-monitoring |
 |                                      |                                                                        |                                                           |                |
-| `04.coo_ivt_legacy_dashboards.cy.ts` | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
-| `04.coo_ivt_legacy_dashboards.cy.ts` | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
-| `04.coo_ivt_legacy_dashboards.cy.ts` | Regression: Monitoring - Legacy Dashboards (Virtualization)            | _Runs All Regression Legacy Dashboards Tests_             | Virtualization | All Projects         |
-| `04.coo_ivt_legacy_dashboards.cy.ts` | Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization) | _Runs All Regression Legacy Dashboards Tests (Namespace)_ | Virtualization | openshift-monitoring |
+| `coo_ivt_legacy_dashboards.cy.ts` | Setting up Monitoring Plugin                                           | 1. Setting up Monitoring Plugin                           | N/A            | N/A                  |
+| `coo_ivt_legacy_dashboards.cy.ts` | IVT: Monitoring UIPlugin + Virtualization                              | 1. Virtualization perspective - Observe Menu              | Virtualization | N/A                  |
+| `coo_ivt_legacy_dashboards.cy.ts` | Regression: Monitoring - Legacy Dashboards (Virtualization)            | _Runs All Regression Legacy Dashboards Tests_             | Virtualization | All Projects         |
+| `coo_ivt_legacy_dashboards.cy.ts` | Regression: Monitoring - Legacy Dashboards Namespaced (Virtualization) | _Runs All Regression Legacy Dashboards Tests (Namespace)_ | Virtualization | openshift-monitoring |
 
 ---
 
@@ -76,28 +76,28 @@ Located in `e2e/monitoring/`
 
 | File                 | Test Suite                   | Test Scenario                                               | Description                                                    | Namespace Scope      |
 | -------------------- | ---------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------- | -------------------- |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring              | 1. Admin perspective - Observe Menu                         | Verifies all Observe submenus navigation                       | All Projects         |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring              | 2. Admin perspective - Overview Page > Status - View alerts | Verifies navigation from Overview status card to Alerting page | All Projects         |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring              | 3. Admin perspective - Cluster Utilization - Metrics        | Verifies navigation from cluster utilization to Metrics page   | All Projects         |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring              | _Runs BVT Monitoring Tests_                                 | Additional monitoring scenarios from support module            | All Projects         |
+| `bvt_admin.cy.ts` | BVT: Monitoring              | 1. Admin perspective - Observe Menu                         | Verifies all Observe submenus navigation                       | All Projects         |
+| `bvt_admin.cy.ts` | BVT: Monitoring              | 2. Admin perspective - Overview Page > Status - View alerts | Verifies navigation from Overview status card to Alerting page | All Projects         |
+| `bvt_admin.cy.ts` | BVT: Monitoring              | 3. Admin perspective - Cluster Utilization - Metrics        | Verifies navigation from cluster utilization to Metrics page   | All Projects         |
+| `bvt_admin.cy.ts` | BVT: Monitoring              | _Runs BVT Monitoring Tests_                                 | Additional monitoring scenarios from support module            | All Projects         |
 |                      |                              |                                                             |                                                                |                      |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Observe Menu                            | Verifies all Observe submenus navigation with namespace scope  | openshift-monitoring |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Overview Page > Status - View alerts    | Verifies navigation from Overview status card to Alerting page | openshift-monitoring |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Cluster Utilization - Metrics           | Verifies navigation from cluster utilization to Metrics page   | openshift-monitoring |
-| `00.bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | _Runs BVT Monitoring Tests (Namespace)_                     | Additional monitoring scenarios from support module            | openshift-monitoring |
+| `bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Observe Menu                            | Verifies all Observe submenus navigation with namespace scope  | openshift-monitoring |
+| `bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Overview Page > Status - View alerts    | Verifies navigation from Overview status card to Alerting page | openshift-monitoring |
+| `bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | Admin perspective - Cluster Utilization - Metrics           | Verifies navigation from cluster utilization to Metrics page   | openshift-monitoring |
+| `bvt_admin.cy.ts` | BVT: Monitoring - Namespaced | _Runs BVT Monitoring Tests (Namespace)_                     | Additional monitoring scenarios from support module            | openshift-monitoring |
 
 ### Regression Tests
 
 | File                                              | Test Suite                                                            | Test Scenario                                             | Feature Area | Namespace Scope      |
 | ------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- | ------------ | -------------------- |
-| `regression/01.reg_alerts_admin.cy.ts`            | Regression: Monitoring - Alerts (Administrator)                       | _Runs All Regression Alerts Tests_                        | Alerts       | All Projects         |
-| `regression/01.reg_alerts_admin.cy.ts`            | Regression: Monitoring - Alerts Namespaced (Administrator)            | _Runs All Regression Alerts Tests (Namespace)_            | Alerts       | openshift-monitoring |
+| `regression/reg_alerts_admin.cy.ts`            | Regression: Monitoring - Alerts (Administrator)                       | _Runs All Regression Alerts Tests_                        | Alerts       | All Projects         |
+| `regression/reg_alerts_admin.cy.ts`            | Regression: Monitoring - Alerts Namespaced (Administrator)            | _Runs All Regression Alerts Tests (Namespace)_            | Alerts       | openshift-monitoring |
 |                                                   |                                                                       |                                                           |              |                      |
-| `regression/02.reg_metrics_admin.cy.ts`           | Regression: Monitoring - Metrics (Administrator)                      | _Runs All Regression Metrics Tests_                       | Metrics      | All Projects         |
-| `regression/02.reg_metrics_admin.cy.ts`           | Regression: Monitoring - Metrics Namespaced (Administrator)           | _Runs All Regression Metrics Tests (Namespace)_           | Metrics      | openshift-monitoring |
+| `regression/reg_metrics_admin_1.cy.ts`, `regression/reg_metrics_admin_2.cy.ts` | Regression: Monitoring - Metrics (Administrator)                      | _Runs All Regression Metrics Tests_                       | Metrics      | All Projects         |
+| `regression/reg_metrics_admin_1.cy.ts`, `regression/reg_metrics_admin_2.cy.ts` | Regression: Monitoring - Metrics Namespaced (Administrator)           | _Runs All Regression Metrics Tests (Namespace)_           | Metrics      | openshift-monitoring |
 |                                                   |                                                                       |                                                           |              |                      |
-| `regression/03.reg_legacy_dashboards_admin.cy.ts` | Regression: Monitoring - Legacy Dashboards (Administrator)            | _Runs All Regression Legacy Dashboards Tests_             | Dashboards   | All Projects         |
-| `regression/03.reg_legacy_dashboards_admin.cy.ts` | Regression: Monitoring - Legacy Dashboards Namespaced (Administrator) | _Runs All Regression Legacy Dashboards Tests (Namespace)_ | Dashboards   | openshift-monitoring |
+| `regression/reg_legacy_dashboards_admin.cy.ts` | Regression: Monitoring - Legacy Dashboards (Administrator)            | _Runs All Regression Legacy Dashboards Tests_             | Dashboards   | All Projects         |
+| `regression/reg_legacy_dashboards_admin.cy.ts` | Regression: Monitoring - Legacy Dashboards Namespaced (Administrator) | _Runs All Regression Legacy Dashboards Tests (Namespace)_ | Dashboards   | openshift-monitoring |
 
 ---
 
@@ -107,7 +107,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 
 ### Alerts Tests
 
-#### Non-Namespaced Alerts (`01.reg_alerts.cy.ts`)
+#### Non-Namespaced Alerts (`reg_alerts.cy.ts`)
 
 | Test Scenario                                                                               | Description                                                                                                                                       |
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -116,7 +116,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 | `{perspective} perspective - Alerting > Alerts / Silences > Kebab icon on List and Details` | Comprehensive test covering: silence creation, silence expiration, kebab menu actions on alerts and silences, recreate/edit silence functionality |
 | `{perspective} perspective - Alerting > Alerting Rules`                                     | Tests alerting rules page: filtering, searching, silence creation from alerting rule, kebab menu validation                                       |
 
-#### Namespaced Alerts (`04.reg_alerts_namespace.cy.ts`)
+#### Namespaced Alerts (`reg_alerts_namespace.cy.ts`)
 
 | Test Scenario                                                                               | Description                                                                                  |
 | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -128,7 +128,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 
 ### Metrics Tests
 
-#### Non-Namespaced Metrics (`02.reg_metrics.cy.ts`)
+#### Non-Namespaced Metrics (`reg_metrics_1.cy.ts`, `reg_metrics_2.cy.ts`)
 
 | Test Scenario                                                                | Description                                                                                                                                          |
 | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -142,7 +142,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 | `{perspective} perspective - Metrics > No Datapoints`                        | Tests empty state when query returns no data                                                                                                         |
 | `{perspective} perspective - Metrics > No Datapoints with alert`             | Tests error alert display for invalid queries                                                                                                        |
 
-#### Namespaced Metrics (`05.reg_metrics_namespace.cy.ts`)
+#### Namespaced Metrics (`reg_metrics_namespace_1.cy.ts`, `reg_metrics_namespace_2.cy.ts`)
 
 | Test Scenario                                       | Description                                                       |
 | --------------------------------------------------- | ----------------------------------------------------------------- |
@@ -153,7 +153,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 
 ### Legacy Dashboards Tests
 
-#### Non-Namespaced Legacy Dashboards (`03.reg_legacy_dashboards.cy.ts`)
+#### Non-Namespaced Legacy Dashboards (`reg_legacy_dashboards.cy.ts`)
 
 | Test Scenario                                                                                           | Description                                                                                                                                      |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -162,7 +162,7 @@ These test scenarios are reusable test suites called by the main E2E test files.
 | `{perspective} perspective - Dashboards (legacy) - No kebab dropdown`                                   | Validates that Single Stat and Table panels don't show kebab menu                                                                                |
 | `{perspective} perspective - OU-897 - Hide Graph / Show Graph on Metrics, Alert Details and Dashboards` | Tests Hide/Show graph state persistence across Metrics, Dashboards, Alert details, and Alerting rule details pages                               |
 
-#### Namespaced Legacy Dashboards (`06.reg_legacy_dashboards_namespace.cy.ts`)
+#### Namespaced Legacy Dashboards (`reg_legacy_dashboards_namespace.cy.ts`)
 
 | Test Scenario                                                                                           | Description                                                                      |
 | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -173,14 +173,14 @@ These test scenarios are reusable test suites called by the main E2E test files.
 
 ### BVT Monitoring Tests
 
-#### Non-Namespaced BVT (`00.bvt_monitoring.cy.ts`)
+#### Non-Namespaced BVT (`bvt_monitoring.cy.ts`)
 
 | Test Scenario                                                                            | Description                                                                                                                |
 | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `{perspective} perspective - Alerting > Alerting Details page > Alerting Rule > Metrics` | Tests full navigation flow: Alerts list → Alert details → Alerting rule details → Metrics page, validates expression query |
 | `{perspective} perspective - Creates and expires a Silence`                              | Tests complete silence lifecycle: creation, validation on multiple pages (Alerts, Silences, Alerting Rules), expiration    |
 
-#### Namespaced BVT (`00.bvt_monitoring_namespace.cy.ts`)
+#### Namespaced BVT (`bvt_monitoring_namespace.cy.ts`)
 
 | Test Scenario                                                                            | Description                                                                                 |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
