@@ -76,6 +76,7 @@ describe('getPageScopes', () => {
 
   it('excludes files not matching *Page.tsx', () => {
     touch(tmp, 'AlertsDetailsPage.tsx');
+    touch(tmp, 'AlertsDetailsPage.ts');
     touch(tmp, 'filter-alerts.ts');
     touch(tmp, 'utils.tsx');
     expect(getPageScopes(tmp)).toEqual(['AlertsDetailsPage.tsx']);
@@ -108,10 +109,31 @@ describe('buildImportBoundaryZones', () => {
 
   it('cross-feature zone targets and exceptions are correct', () => {
     mkdir(tmp, 'alerts');
+    mkdir(tmp, 'incidents', 'pages');
+    touch(tmp, 'incidents', 'pages', 'IncidentsPage.tsx');
+    touch(tmp, 'incidents', 'pages', 'not-a-page.tsx');
     const [zone] = buildImportBoundaryZones(tmp);
     expect(zone.target).toBe(`${tmp}/alerts`);
     expect(zone.from).toBe(tmp);
-    expect(zone.except).toEqual(['./alerts']);
+    expect(zone.except).toEqual(['./alerts', './incidents/pages/IncidentsPage.tsx']);
+  });
+
+  it('cross-feature zone message mentions the page exception', () => {
+    mkdir(tmp, 'alerts');
+    const [zone] = buildImportBoundaryZones(tmp);
+    expect(zone.message).toContain('Page components (*Page.tsx) are exempt');
+  });
+
+  it('finds nested page components recursively', () => {
+    mkdir(tmp, 'alerts');
+    mkdir(tmp, 'beta', 'pages', 'beta-page');
+    touch(tmp, 'beta', 'pages', 'beta-page', 'BetaPage.tsx');
+    touch(tmp, 'beta', 'pages', 'BetaPage.ts');
+    touch(tmp, 'beta', 'pages', 'beta-page', 'helpers.ts');
+    const [zone] = buildImportBoundaryZones(tmp);
+    expect(zone.except).toEqual(['./alerts', './beta/pages/beta-page/BetaPage.tsx']);
+    expect(zone.except).not.toContain('./beta/pages/BetaPage.ts');
+    expect(zone.except).not.toContain('./beta/pages/beta-page/helpers.ts');
   });
 
   it('cross-feature zone message names the feature', () => {
