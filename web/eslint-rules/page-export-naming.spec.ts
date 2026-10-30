@@ -41,6 +41,18 @@ ruleTester.run('page-export-naming', pageExportNaming, {
       filename: pageFile,
     },
     {
+      code: 'type AlertsPageProps = { title: string }; export { type AlertsPageProps };',
+      filename: pageFile,
+    },
+    {
+      code: 'const AlertsPage = () => <div />; type AlertsPageProps = { a: number }; export { AlertsPage, type AlertsPageProps };',
+      filename: pageFile,
+    },
+    {
+      code: "export * as AlertsPage from './AlertsPage';",
+      filename: pageFile,
+    },
+    {
       code: 'export { default as AlertsPage } from "./AlertsPage";',
       filename: pageFile,
     },
@@ -136,6 +148,37 @@ ruleTester.run('page-export-naming', pageExportNaming, {
     },
     {
       code: 'export const AlertsPage = () => <div />; export const AlertsTable = () => <div />;',
+      filename: pageFile,
+      errors: [
+        { messageId: 'invalidPageExport', data: { file: 'AlertsPage.tsx', name: 'AlertsTable' } },
+      ],
+    },
+    {
+      code: "export * from './helpers';",
+      filename: pageFile,
+      errors: [{ messageId: 'noStarReexport', data: { file: 'AlertsPage.tsx' } }],
+    },
+    {
+      code: 'const utils = { helper: () => {} }; export const { helper } = utils;',
+      filename: pageFile,
+      errors: [
+        { messageId: 'invalidPageExport', data: { file: 'AlertsPage.tsx', name: 'helper' } },
+      ],
+    },
+    {
+      code: 'const arr = [() => {}]; export const [first] = arr;',
+      filename: pageFile,
+      errors: [{ messageId: 'invalidPageExport', data: { file: 'AlertsPage.tsx', name: 'first' } }],
+    },
+    {
+      code: "export * as helpers from './helpers';",
+      filename: pageFile,
+      errors: [
+        { messageId: 'invalidPageExport', data: { file: 'AlertsPage.tsx', name: 'helpers' } },
+      ],
+    },
+    {
+      code: 'const AlertsTable = () => <div />; export { AlertsTable, type AlertsTableProps };',
       filename: pageFile,
       errors: [
         { messageId: 'invalidPageExport', data: { file: 'AlertsPage.tsx', name: 'AlertsTable' } },
