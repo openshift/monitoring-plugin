@@ -249,6 +249,14 @@ Cypress.Commands.add('ensureMonitoringConsolePlugin', (options?: COOSetupOptions
       } else {
         beforeCOO(opts);
       }
+      validateMonitoringConsolePlugin(opts).then((remainingReasons) => {
+        if (remainingReasons.length) {
+          throw new Error(
+            'Monitoring console plugin validation failed after setup: ' +
+              remainingReasons.map(({ error }) => error).join('; '),
+          );
+        }
+      });
     } else {
       operatorAuthUtils.loginAndAuth();
     }

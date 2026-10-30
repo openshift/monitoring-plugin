@@ -1,4 +1,5 @@
 import { load } from 'js-yaml';
+import { monitoringConfigErrors, monitoringFeatureErrors } from './monitoring-capabilities';
 import type { COOSetupOptions } from './operator-commands';
 import {
   CLUSTER_LOGGING_OPERATOR,
@@ -15,6 +16,7 @@ export enum ValidationType {
   MonitoringPlugin = 'MonitoringPlugin',
   ClusterObservabilityOperator = 'ClusterObservabilityOperator',
   MonitoringConsolePlugin = 'MonitoringConsolePlugin',
+  MonitoringConsolePluginConfiguration = 'MonitoringConsolePluginConfiguration',
   PersesDashboards = 'PersesDashboards',
   PersesDatasource = 'PersesDatasource',
   PersesServer = 'PersesServer',
@@ -163,13 +165,30 @@ function validatePods(
   return reasons;
 }
 
-function monitoringConsolePluginChecks(namespace: string): ValidationCheck[] {
+function monitoringConsolePluginChecks(
+  namespace: string,
+  opts: Required<COOSetupOptions>,
+): ValidationCheck[] {
   return [
-    { type: ValidationType.MonitoringConsolePlugin, command: 'oc get uiplugin monitoring' },
+    {
+      type: ValidationType.MonitoringConsolePlugin,
+      command: 'oc get uiplugin monitoring -o json',
+      validate: (stdout) =>
+        monitoringConfigErrors(JSON.parse(stdout).spec?.monitoring, opts).map((error) => ({
+          type: ValidationType.MonitoringConsolePluginConfiguration,
+          error,
+        })),
+    },
     {
       type: ValidationType.MonitoringConsolePlugin,
       command: `oc get pods -l app.kubernetes.io/instance=monitoring -n ${namespace} -o json`,
-      validate: (stdout, check) => validatePods(stdout, check, Cypress.env('MCP_CONSOLE_IMAGE')),
+      validate: (stdout, check) => [
+        ...validatePods(stdout, check, Cypress.env('MCP_CONSOLE_IMAGE')),
+        ...monitoringFeatureErrors(JSON.parse(stdout).items || [], opts).map((error) => ({
+          type: ValidationType.MonitoringConsolePluginConfiguration,
+          error,
+        })),
+      ],
     },
   ];
 }
@@ -280,7 +299,7 @@ export function validateMonitoringConsolePlugin(
   const namespace = CLUSTER_OBSERVABILITY_OPERATOR.namespace;
   const checks: ValidationCheck[] = [
     ...clusterObservabilityOperatorChecks(namespace),
-    ...monitoringConsolePluginChecks(namespace),
+    ...monitoringConsolePluginChecks(namespace, opts),
     ...(opts.dashboards ? persesDashboardsChecks(namespace) : []),
     ...(opts.troubleshootingPanel ? troubleshootingPanelChecks(namespace) : []),
     ...(opts.healthAnalyzer ? healthAnalyzerChecks(namespace) : []),
