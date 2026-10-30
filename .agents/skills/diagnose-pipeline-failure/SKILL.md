@@ -20,16 +20,18 @@ Signed links expire, and an expired one is a ~220-byte XML body (`<Code>ExpiredT
 like a log file but contains no test output. Drop the query string — the bucket is public:
 
 ```bash
-node .agents/skills/diagnose-pipeline-failure/scripts/prow-logs.mjs report <url>
+node .agents/skills/diagnose-pipeline-failure/scripts/prow-logs.mjs report '<url>'
 node .agents/skills/diagnose-pipeline-failure/scripts/prow-logs.mjs report <job-name> <run-id> [--history N]
 ```
 
+Quote the URL — signed links contain `&`, which the shell would otherwise treat as a command separator.
 A URL carries the job and run id; a bare job name (periodic jobs only) needs the run id passed too. `selftest` checks the
 parsing without touching the network. It needs nothing but Node — no dependencies, no Python.
 
-The report prints the verdict, failed steps, the failure line, the Cypress block, artifacts for the
-failing step (screenshots, videos, junit, per-step `build-log.txt`) and the pass/fail history of the last
-runs with a `same-signature` / `different` marker. The log is saved to
+The script prints the result, the failed steps, the signature taken from the first failed step's
+output, artifacts for that step (screenshots, videos, junit, per-step `build-log.txt`) and the pass/fail
+history of the last runs with a `same-signature` / `different` marker. It is evidence, not a verdict:
+you compose the six-field report (step 5) after collecting the evidence. The log is saved to
 `/tmp/prow-<run-id>/build-log.txt` — read the saved log with the `read` tool.
 
 The script reads only the public bucket. Private jobs live in `test-platform-results` and need auth; on a
@@ -59,9 +61,12 @@ symptoms this repository's periodics have produced before.
 
 ## 4. Determinism before editing anything
 
-Two or more consecutive failed runs with the same signature (the script marks them) means a deterministic
-regression — fix it. A different signature each run, or failures in install/gather steps, means flake or
-environment — report it, do not rewrite test code to chase it.
+Two or more consecutive failed runs with the same signature (the script marks them) show the failure is
+repeatable — not, by themselves, that this repository regressed. Before changing code, also find a recent
+passing baseline (and what changed since) or other evidence that the cause is repository-owned (a spec,
+selector, or helper that no longer matches). A different signature each run points to flake — report it, do
+not rewrite test code to chase it. Classify install and gather step failures from their log evidence like
+any other step; do not assume they are environmental.
 
 ## 5. Fix or report
 

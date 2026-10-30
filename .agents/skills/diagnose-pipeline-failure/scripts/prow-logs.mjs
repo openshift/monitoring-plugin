@@ -91,6 +91,25 @@ async function listObjects(prefix) {
   ]);
 }
 
+const FAILED_STEP = /Step (\S+) failed after (\S+?)\./g;
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Output of the first failed step: from its 'Running step' line through its 'failed after' line.
+// ci-operator dumps the step's pod logs in between. Falls back to the whole log. Input must be ANSI-free.
+function failure(text) {
+  const steps = [...text.matchAll(FAILED_STEP)];
+  const step = steps[0]?.[1];
+  let block = text;
+  if (step) {
+    const end = text.indexOf('\n', steps[0].index);
+    const head = text.slice(0, steps[0].index);
+    const starts = [...head.matchAll(new RegExp(`Running step ${escape(step)}\\.`, 'g'))];
+    const start = starts.length ? starts[starts.length - 1].index : 0;
+    block = text.slice(start, end === -1 ? text.length : end);
+  }
+  return { steps, block, signature: signature(block) };
+}
+
 // The single line that best names this failure. Input must be ANSI-free.
 function signature(text) {
   const lines = text
@@ -122,8 +141,9 @@ function cypressBlocks(text, maxLines = 20) {
 }
 
 // Artifacts live at artifacts/<test>/<step>/; build-log names steps '<test>-<step>'.
+// Returns { items } on a successful listing, { error } when the listing itself failed.
 async function artifactsFor(runDir, step) {
-  if (!step) return [];
+  if (!step) return { items: [] };
   const base = `${runDir}/artifacts/`;
   try {
     for (const test of await listPrefixes(base)) {
@@ -136,13 +156,13 @@ async function artifactsFor(runDir, step) {
           if (ARTIFACT.test(name))
             out.push(`${objectUrl(PUBLIC, `${prefix}${name}`)} (${size} bytes)`);
         }
-        return out;
+        return { items: out };
       }
     }
-  } catch {
-    return []; // private run, or the step wrote nothing
+  } catch (err) {
+    return { error: err.message }; // private run, network error, or API failure
   }
-  return [];
+  return { items: [] };
 }
 
 async function history(jobDir, run, limit, ownSignature) {
@@ -171,7 +191,7 @@ async function history(jobDir, run, limit, ownSignature) {
     let same = ' different';
     try {
       const text = (await fetchObject(`${jobDir}/${other}/build-log.txt`)).replace(ANSI, '');
-      if (normalize(signature(text)) === normalize(ownSignature)) same = ' same-signature';
+      if (normalize(failure(text).signature) === normalize(ownSignature)) same = ' same-signature';
     } catch {
       same = '';
     }
@@ -196,8 +216,7 @@ async function report(target, runId, limit) {
     /* unfinished run */
   }
 
-  const steps = [...text.matchAll(/Step (\S+) failed after (\S+?)\./g)];
-  const own = signature(text);
+  const { steps, block, signature: own } = failure(text);
 
   console.log(`job     : ${job}`);
   console.log(`run     : ${run}`);
@@ -211,16 +230,17 @@ async function report(target, runId, limit) {
 
   console.log(`\nfailure:\n  ${own}`);
 
-  const block = cypressBlocks(text)[0];
-  if (block) {
+  const cypress = cypressBlocks(block)[0];
+  if (cypress) {
     console.log('\ncypress block:');
-    for (const line of block.split('\n')) console.log(`  ${line}`);
+    for (const line of cypress.split('\n')) console.log(`  ${line}`);
   }
 
   console.log('\nartifacts for the first failed step:');
   const artifacts = await artifactsFor(runDir, steps[0]?.[1]);
-  for (const line of artifacts) console.log(`  ${line}`);
-  if (!artifacts.length) console.log('  none listed (the step wrote nothing)');
+  if (artifacts.error) console.log(`  listing unavailable (${artifacts.error})`);
+  else if (!artifacts.items.length) console.log('  none listed (the step wrote nothing)');
+  for (const line of artifacts.items || []) console.log(`  ${line}`);
 
   if (text.includes('creating the session')) {
     console.log('\nnote: session/before-all setup failed - no product assertion ran.');
@@ -273,10 +293,22 @@ function selftest() {
     job: 'job-name',
     run: '99',
   });
-  const sample =
-    'INFO Step a-b failed after 3m.\n   1) "before all" hook for X\n   AssertionError: nope\n';
-  eq(signature(sample), 'AssertionError: nope');
-  if (!cypressBlocks(sample)[0].startsWith('   1) "before all"'))
+  const sample = [
+    'INFO Running step a-pre.',
+    '   AssertionError: unrelated earlier failure',
+    'INFO Step a-pre succeeded after 1m.',
+    'INFO Running step a-b.',
+    'INFO Logs for container test in pod a-b:',
+    '   1) "before all" hook for X',
+    '   AssertionError: nope',
+    'INFO Step a-b failed after 3m.',
+    '   AssertionError: later noise',
+  ].join('\n');
+  const parsed = failure(sample);
+  eq(parsed.steps[0][1], 'a-b');
+  eq(parsed.signature, 'AssertionError: nope');
+  eq(failure('no steps here\nError: boom').signature, 'Error: boom');
+  if (!cypressBlocks(parsed.block)[0].startsWith('   1) "before all"'))
     throw new Error('cypress block parse failed');
   eq(
     normalize('INFO[2026-10-30T06:05:28Z] Step e2e-ui failed after 8m27s.'),
