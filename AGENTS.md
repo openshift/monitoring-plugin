@@ -393,18 +393,19 @@ Reusable workflows live under `.agents/skills/`. Invoke them with
 does not discover Agent Skills, ask it to read the corresponding
 `.agents/skills/<name>/SKILL.md` explicitly.
 
-| Skill                        | Purpose                                                      |
-| ---------------------------- | ------------------------------------------------------------ |
-| `backport`                   | Backport a commit with release-branch adaptations.           |
-| `build-images`               | Build both plugin development images with a unique tag.      |
-| `run-perses-dev`             | Start the integrated plugin/Perses tmux environment.         |
-| `cypress-setup`              | Install and configure the Cypress environment.               |
-| `cypress-run`                | Select and run Cypress tests.                                |
-| `generate-incident-fixture`  | Create a schema-valid incident fixture.                      |
-| `validate-incident-fixtures` | Validate one or all incident fixtures.                       |
-| `fixture-schema-reference`   | Explain the incident fixture schema.                         |
-| `generate-regression-test`   | Generate an Incidents regression test from documented flows. |
-| `refactor-regression-test`   | Refactor an existing Incidents regression test.              |
+| Skill                        | Purpose                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `backport`                   | Backport a commit with release-branch adaptations.                      |
+| `build-images`               | Build both plugin development images with a unique tag.                 |
+| `run-perses-dev`             | Start the integrated plugin/Perses tmux environment.                    |
+| `cypress-setup`              | Install and configure the Cypress environment.                          |
+| `cypress-run`                | Select and run Cypress tests.                                           |
+| `diagnose-pipeline-failure`  | Diagnose a failed Prow/CI job; report it and leave any fix uncommitted. |
+| `generate-incident-fixture`  | Create a schema-valid incident fixture.                                 |
+| `validate-incident-fixtures` | Validate one or all incident fixtures.                                  |
+| `fixture-schema-reference`   | Explain the incident fixture schema.                                    |
+| `generate-regression-test`   | Generate an Incidents regression test from documented flows.            |
+| `refactor-regression-test`   | Refactor an existing Incidents regression test.                         |
 
 ### Feature Backporting
 
