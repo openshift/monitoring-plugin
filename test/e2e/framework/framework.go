@@ -40,6 +40,8 @@ type Framework struct {
 
 type CleanupFunc func() error
 
+// Namespace teardown must still run after the test's context expires, while
+// keeping the independent cleanup request bounded.
 const namespaceCleanupTimeout = 20 * time.Second
 
 func e2eEnvironment() (string, string, error) {

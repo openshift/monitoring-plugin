@@ -9,7 +9,9 @@ import (
 
 const (
 	orphanedSinceAnnotation = "monitoring.openshift.io/orphaned-since"
-	orphanGracePeriod       = resyncPeriod
+	// Allow temporarily removed rules to return before deleting their configs.
+	// Cleanup schedules its own retry, independently of informer resyncs.
+	orphanGracePeriod = 15 * time.Minute
 )
 
 // gcOrphanedARCs deletes AlertRelabelConfigs whose associated alert rule no
@@ -27,10 +29,6 @@ const (
 // IDs are recorded in collectAlerts before the drop continue, so a Drop
 // AlertRelabelConfig for a disabled rule is not treated as an orphan.
 func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleIDs map[string]struct{}) {
-	if rrm.alertRelabelConfigs == nil {
-		return
-	}
-
 	arcs, err := rrm.alertRelabelConfigs.List(ctx, "")
 	if err != nil {
 		log.Errorf("orphan AlertRelabelConfig cleanup: failed to list AlertRelabelConfigs: %v", err)
@@ -57,7 +55,7 @@ func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleID
 		}
 
 		if IsManagedByGitOps(arc.Annotations, arc.Labels) {
-			log.Warnf("orphan AlertRelabelConfig cleanup: AlertRelabelConfig %s/%s (ruleId=%s) is orphaned but GitOps-managed — skipping deletion, manual cleanup required", arc.Namespace, arc.Name, ruleID)
+			log.Warnf("orphan AlertRelabelConfig cleanup: AlertRelabelConfig %s/%s (ruleId=%s) is orphaned but GitOps-managed - skipping deletion, manual cleanup required", arc.Namespace, arc.Name, ruleID)
 			continue
 		}
 
@@ -72,9 +70,7 @@ func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleID
 			orphanedSince = now
 		}
 		if remaining := orphanGracePeriod - now.Sub(orphanedSince); remaining > 0 {
-			if rrm.queue != nil {
-				rrm.queue.AddAfter(relabeledRulesSyncKeyPrometheusRule, remaining)
-			}
+			rrm.queue.AddAfter(relabeledRulesSyncKeyPrometheusRule, remaining)
 			continue
 		}
 
