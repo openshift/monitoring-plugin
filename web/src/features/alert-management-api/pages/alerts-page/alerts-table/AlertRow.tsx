@@ -13,6 +13,7 @@ import {
   SortedColumnCells,
 } from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
+import { getAlertDetailsSearch } from '@/features/alert-management-api/pages/alerts-page/utils/alert-details';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
 import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
@@ -102,17 +103,9 @@ export function AlertRow({
       component: (
         <Td {...startColumns.nameColumn}>
           <AlertName name={name}>
-            {isAggregateChild ? (
-              <Link
-                to={{ pathname, search, hash }}
-                onClick={() =>
-                  // eslint-disable-next-line no-console
-                  console.debug(`${name}, namespace: ${alert.labels.namespace ?? ''}`)
-                }
-              >
-                {name}
-              </Link>
-            ) : undefined}
+            <Link to={{ pathname, search: getAlertDetailsSearch(search, alert), hash }}>
+              {name}
+            </Link>
           </AlertName>
         </Td>
       ),

@@ -12,6 +12,10 @@ export const DataTestIDs = {
   AlertingRuleStateBadge: 'alerting-rule-state-badge',
   AlertingRuleTotalAlertsBadge: 'alerting-rule-total-alerts-badge',
   AlertingRuleCluster: 'alerting-rule-cluster',
+  PageWithSidepanel: {
+    Backdrop: 'page-with-sidepanel-backdrop',
+    Panel: 'page-with-sidepanel-panel',
+  },
   TimeRangeSelect: {
     CustomRangeTitle: 'custom-time-range-title',
     CustomRangeFromInput: 'custom-time-range-from',
