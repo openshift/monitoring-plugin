@@ -11,6 +11,7 @@
     "cypress:run": "cypress run",
     "cypress:run:ci": "NO_COLOR=1 npx cypress run --browser chrome",
     "delete:reports": "rm -rf gui_test_screenshots/* || true",
+    "generate-korrel8r-client": "openapi-ts",
     "i18n": "i18n-scripts/build-i18n.sh",
     "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
     "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
@@ -38,9 +39,10 @@
     "test-cypress-alerts": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@alerting --@acm --@virtualization --@flaky --@xfail'",
     "test-cypress-metrics": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@metrics --@virtualization --@acm --@flaky --@xfail'",
     "test-cypress-dashboards": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@legacy-dashboards --@acm --@virtualization --@flaky --@xfail'",
-    "test-cypress-coo": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo --@logging --@acm --@virtualization --@flaky --@xfail'",
-    "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo --@logging --@acm --@virtualization --@xfail'",
+    "test-cypress-coo": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo --@logging --@troubleshooting --@acm --@virtualization --@flaky --@xfail'",
+    "test-cypress-coo-bvt": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@coo --@logging --@troubleshooting --@acm --@virtualization --@xfail'",
     "test-cypress-logging": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@logging --@acm --@virtualization --@flaky --@xfail'",
+    "test-cypress-troubleshooting": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@troubleshooting --@acm --@virtualization --@flaky --@xfail'",
     "test-cypress-virtualization": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@virtualization --@acm --@flaky --@xfail'",
     "test-cypress-incidents": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@acm --@virtualization --@flaky --@xfail'",
     "test-cypress-incidents-e2e": "node --max-old-space-size=4096 ./node_modules/.bin/cypress run --browser chrome --headless --env grepTags='@cluster-health-analyzer --@acm --@virtualization --@flaky --@xfail'",
@@ -67,6 +69,10 @@
     "@codemirror/view": "^6.0.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fortawesome/fontawesome-common-types": "^7.1.0",
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^0.2.6",
     "@grafana/lezer-logql": "^0.2.6",
     "@hookform/resolvers": "^5.9.1",
     "@lezer/common": "^1.2.0",
@@ -96,6 +102,7 @@
     "fuzzysearch": "1.0.x",
     "i18next": "^25.10.5",
     "immer": "^10.1.3",
+    "immutable": "^5.1.4",
     "js-yaml": "4.3.2",
     "linkify-react": "^4.3.3",
     "linkifyjs": "^4.3.3",
@@ -111,6 +118,7 @@
     "react-virtualized": "^9.22.6",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
+    "typesafe-actions": "^5.1.0",
     "use-query-params": "^2.2.2",
     "victory": "^37.3.6"
   },
@@ -120,7 +128,9 @@
     "@eslint/compat": "2.0.3",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
+    "@hey-api/openapi-ts": "0.97.3",
     "@openshift-console/dynamic-plugin-sdk-webpack": "4.23.0",
+    "@patternfly/react-topology": "~6.6.0",
     "@swc/core": "^1.15.3",
     "@swc/helpers": "0.5.23",
     "@testing-library/dom": "10.4.1",
@@ -186,7 +196,10 @@
     "qs": "6.16.1",
     "undici": "8.12.2",
     "dompurify": "3.4.17",
-    "fast-uri": "3.1.9"
+    "fast-uri": "3.1.9",
+    "@hey-api/json-schema-ref-parser": {
+      "js-yaml": "4.3.2"
+    }
   },
   "consolePlugin": {
     "name": "monitoring-plugin",
@@ -220,7 +233,11 @@
       "LogsDevPage": "./features/logging/pages/LogsDevPage",
       "getUserAlertingRules": "./features/logging/utils/get-user-alerting-rules",
       "getPlatformAlertingRules": "./features/logging/utils/get-platform-alerting-rules",
-      "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics"
+      "LogsAlertMetrics": "./features/logging/components/alerts/LogsAlertsMetrics",
+      "TroubleshootingPanelActionsProvider": "./features/troubleshooting/hooks/useTroubleshootingPanel",
+      "TPReducer": "./features/troubleshooting/store/reducers",
+      "NullContextProvider": "./features/troubleshooting/components/NullContextProvider",
+      "usePopover": "./features/troubleshooting/hooks/usePopover"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

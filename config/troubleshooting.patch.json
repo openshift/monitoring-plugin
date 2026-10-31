@@ -1,0 +1,35 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.action/provider",
+      "properties": {
+        "contextId": "alert-detail-toolbar-actions",
+        "provider": { "$codeRef": "TroubleshootingPanelActionsProvider" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.redux-reducer",
+      "properties": {
+        "scope": "tp",
+        "reducer": { "$codeRef": "TPReducer" }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.context-provider",
+      "properties": {
+        "provider": { "$codeRef": "NullContextProvider" },
+        "useValueHook": { "$codeRef": "usePopover" }
+      }
+    }
+  }
+]
