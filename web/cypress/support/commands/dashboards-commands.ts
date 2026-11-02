@@ -1,6 +1,6 @@
 import 'cypress-wait-until';
 import { DataTestIDs, LegacyTestIDs } from '@/shared/constants/data-test';
-import { waitForPodsReady, waitForResourceCondition } from './wait-utils';
+import { waitForPodsReady } from './wait-utils';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
 import { CLUSTER_OBSERVABILITY_OPERATOR } from '../operators';
 
@@ -70,21 +70,6 @@ export const dashboardsUtils = {
       installTimeoutMilliseconds,
     );
     cy.log(`Perses-0 pod is now running in namespace: ${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`);
-
-    waitForResourceCondition(
-      'servicemonitor/health-analyzer',
-      "jsonpath='{.metadata.name}'=health-analyzer",
-      CLUSTER_OBSERVABILITY_OPERATOR.namespace,
-      readyTimeoutMilliseconds,
-    );
-    cy.log(
-      `Health-analyzer service monitor is now running in namespace: ` +
-        `${CLUSTER_OBSERVABILITY_OPERATOR.namespace}`,
-    );
-
-    cy.reload(true);
-    cy.visit('/monitoring/v2/dashboards');
-    cy.url().should('include', '/monitoring/v2/dashboards');
   },
 
   setupTroubleshootingPanel(): void {

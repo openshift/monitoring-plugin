@@ -10,7 +10,7 @@ Generate automated regression tests from test documentation in `docs/incident_de
 
 **Actions**:
 
-- Read test flow files from `docs/incident_detection/tests/` (for example, `1.filtering_flows.md` or `2.ui_display_flows.md`)
+- Read test flow files from `docs/incident_detection/tests/` (for example, `filtering_flows.md` or `ui_display_flows.md`)
 - Locate the specified section by number
 - Extract:
   - Section title and description
@@ -69,11 +69,11 @@ Generate automated regression tests from test documentation in `docs/incident_de
 
 **File location**: `web/cypress/e2e/incidents/regression/`
 
-**Naming convention**: `XX.reg_<section-name>.cy.ts`
+**Naming convention**: `reg_<section-name>.cy.ts`
 
-- Use next available number (check existing files)
+- Use a unique descriptive section name (check existing files)
 - Convert section title to kebab-case
-- Examples: `05.reg_tooltip_positioning.cy.ts`, `06.reg_silence_matching.cy.ts`
+- Examples: `reg_tooltip_positioning.cy.ts`, `reg_silence_matching.cy.ts`
 
 **File structure**:
 
@@ -90,7 +90,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 
 describe("Regression: [Section Name]", () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {
@@ -470,8 +470,8 @@ Continue? (y/n/specify)
 
 **Automated checks (AI should verify):**
 
-- [ ] File naming matches `XX.reg_<section-name>.cy.ts`
-- [ ] Uses `cy.beforeBlockCOO()` in `before()` hook
+- [ ] File naming matches `reg_<section-name>.cy.ts`
+- [ ] Uses `cy.ensureMonitoringConsolePlugin()` in `before()` hook
 - [ ] Uses `incidentsPage.goTo()` in `beforeEach()`
 - [ ] Uses `cy.mockIncidentFixture()` with valid fixture path
 - [ ] No emojis in cy.log() statements
@@ -505,7 +505,7 @@ Continue? (y/n/specify)
    - Flow 2: User explores multi-component incident details via tooltip
 4. Check for fixture - not found
 5. Prompt: "Fixture needed with 14 incidents at varying Y positions. Create?"
-6. Generate `05.reg_tooltip_positioning.cy.ts` with **comprehensive multi-step tests**:
+6. Generate `reg_tooltip_positioning.cy.ts` with **comprehensive multi-step tests**:
 
 ```typescript
 /*
@@ -522,7 +522,7 @@ import { incidentsPage } from "../../../views/incidents-page";
 
 describe("Regression: Tooltip Positioning", () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {
@@ -619,7 +619,7 @@ describe("Regression: Tooltip Positioning", () => {
 3. **Design comprehensive flow**: Instead of separate tests for each filter type, create complete filtering workflows
    - Flow 1: User applies multiple filters in sequence, verifies each step, then clears all
    - Flow 2: User changes time range while filters are active, verifies data updates
-4. Generate `01.reg_filtering.cy.ts` with **comprehensive multi-step tests**
+4. Generate `reg_filtering.cy.ts` with **comprehensive multi-step tests**
 5. Each test should have 5-8 steps covering realistic filter combinations and transitions
 
 ## Output Format

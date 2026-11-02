@@ -15,7 +15,7 @@ After generating and verifying a regression test works correctly, this workflow:
 
 ### 1. Analyze Existing Test
 
-**Input**: Path to test file (e.g., `web/cypress/e2e/incidents/regression/05.reg_tooltip_positioning.cy.ts`)
+**Input**: Path to test file (e.g., `web/cypress/e2e/incidents/regression/reg_tooltip_positioning.cy.ts`)
 
 **Read and analyze**:
 - Test structure and flow

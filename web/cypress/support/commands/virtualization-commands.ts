@@ -2,7 +2,7 @@ import 'cypress-wait-until';
 import { operatorHubPage } from '../../views/operator-hub-page';
 import { nav } from '../../views/nav';
 import { operatorAuthUtils } from './auth-commands';
-import { guidedTour } from '../../views/tour';
+import { validateVirtualization } from './validate';
 import { installTimeoutMilliseconds, readyTimeoutMilliseconds } from '../timeouts';
 import { KUBEVIRT_HYPERCONVERGED_OPERATOR } from '../operators';
 
@@ -12,13 +12,11 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      beforeBlockVirtualization();
-      cleanupCNV();
+      ensureVirtualization(): Chainable<void>;
+      cleanupCNV(): Chainable<void>;
     }
   }
 }
-
-const useSession = Cypress.env('SESSION');
 
 const virtualizationUtils = {
   installVirtualization(): void {
@@ -255,43 +253,23 @@ const virtualizationUtils = {
   },
 };
 
-Cypress.Commands.add('beforeBlockVirtualization', () => {
-  if (useSession) {
-    const sessionKey = operatorAuthUtils.generateKNVSessionKey();
-    cy.session(
-      sessionKey,
-      () => {
-        cy.log('Before block Virtualization (session)');
+function beforeVirtualization(): void {
+  cy.cleanupCNV();
+  operatorAuthUtils.loginAndAuth();
+  virtualizationUtils.installVirtualization();
+  virtualizationUtils.waitForVirtualizationReady();
+  virtualizationUtils.setupHyperconverged();
+}
 
-        cy.cleanupCNV();
-
-        operatorAuthUtils.loginAndAuthNoSession();
-        virtualizationUtils.installVirtualization();
-        virtualizationUtils.waitForVirtualizationReady();
-        virtualizationUtils.setupHyperconverged();
-        cy.log('Before block Virtualization (session) completed');
-      },
-      {
-        cacheAcrossSpecs: true,
-        validate() {
-          cy.validateLogin();
-          // Additional validation for Virtualization setup
-          cy.switchPerspective('Virtualization');
-          guidedTour.closeKubevirtTour();
-        },
-      },
-    );
-  } else {
-    cy.log('Before block Virtualization (no session)');
-
-    cy.cleanupCNV();
-
-    operatorAuthUtils.loginAndAuth();
-    virtualizationUtils.installVirtualization();
-    virtualizationUtils.waitForVirtualizationReady();
-    virtualizationUtils.setupHyperconverged();
-    cy.log('Before block Virtualization (no session) completed');
-  }
+Cypress.Commands.add('ensureVirtualization', () => {
+  validateVirtualization().then((reasons) => {
+    if (!reasons.length) {
+      operatorAuthUtils.loginAndAuth();
+    } else {
+      cy.log(`Virtualization validation failed: ${reasons.map(({ error }) => error).join('; ')}`);
+      beforeVirtualization();
+    }
+  });
 });
 
 Cypress.Commands.add('cleanupCNV', () => {

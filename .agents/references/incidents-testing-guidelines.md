@@ -79,8 +79,8 @@ getData: (): Cypress.Chainable<DataType> => {
 
 ### File Naming Convention
 - Location: `web/cypress/e2e/incidents/regression/`
-- Pattern: `XX.reg_<section-name>.cy.ts`
-- Examples: `05.reg_tooltip_positioning.cy.ts`, `01.reg_filtering.cy.ts`
+- Pattern: `reg_<section-name>.cy.ts`
+- Examples: `reg_tooltip_positioning.cy.ts`, `reg_filtering.cy.ts`
 
 ### Test File Structure
 ```typescript
@@ -94,7 +94,7 @@ import { incidentsPage } from '../../../views/incidents-page';
 
 describe('Regression: <Section Name>', () => {
   before(() => {
-    cy.beforeBlockCOO();
+    cy.ensureMonitoringConsolePlugin();
   });
 
   beforeEach(() => {
@@ -116,7 +116,7 @@ describe('Regression: <Section Name>', () => {
 ### Required Elements
 - File header comment with purpose and issue reference (e.g., "Verifies: OU-XXX")
 - Import `incidentsPage` from relative path
-- Use `cy.beforeBlockCOO()` in `before()` hook
+- Use `cy.ensureMonitoringConsolePlugin()` in `before()` hook
 - Use `incidentsPage.goTo()` in `beforeEach()`
 - Use `cy.mockIncidentFixture()` for test data
 

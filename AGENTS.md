@@ -321,7 +321,7 @@ cd web/cypress
 npm run cypress:run --spec "cypress/e2e/**/regression/**"
 
 # Run BVT (Build Verification Tests)
-npm run cypress:run --spec "cypress/e2e/monitoring/00.bvt_admin.cy.ts"
+npm run cypress:run --spec "cypress/e2e/monitoring/bvt_admin.cy.ts"
 
 # Run COO tests
 npm run cypress:run --spec "cypress/e2e/coo/*.cy.ts"

@@ -78,8 +78,8 @@ export const overview = {
   shouldBeLoaded: () => {
     cy.log('overview.shouldBeLoaded');
     commonPages.titleShouldHaveText(OVERVIEW_PAGE_TITLE);
-    overview.elements.summarySection().should('be.visible');
-    cy.contains('h2', 'Stack summary').should('be.visible');
+    overview.elements.summarySection().scrollIntoView().should('be.visible');
+    cy.contains('h2', 'Stack summary').scrollIntoView().should('be.visible');
     cy.waitUntil(
       () =>
         Cypress.$(`[data-test="${DataTestIDs.OverviewPage.InstalledLoading}"]`).length === 0 &&
@@ -96,8 +96,8 @@ export const overview = {
 
   dismissInfoAlert: () => {
     cy.log('overview.dismissInfoAlert');
-    overview.elements.infoAlert().should('be.visible');
-    overview.elements.infoAlertClose().should('be.visible').click();
+    overview.elements.infoAlert().scrollIntoView().should('be.visible');
+    overview.elements.infoAlertClose().scrollIntoView().should('be.visible').click();
     overview.elements.infoAlert().should('not.exist');
   },
 
@@ -110,6 +110,7 @@ export const overview = {
       .join('|');
     overview.elements
       .summaryCard('capabilities-ready')
+      .scrollIntoView()
       .should('be.visible')
       .and('contain.text', 'Capabilities ready')
       .and('contain.text', 'Ready')
@@ -121,6 +122,7 @@ export const overview = {
     cy.log('overview.assertComponentHealthCard');
     overview.elements
       .summaryCard('component-health')
+      .scrollIntoView()
       .should('be.visible')
       .and('contain.text', 'Component health')
       .invoke('text')
@@ -136,6 +138,7 @@ export const overview = {
     cy.log(`overview.assertCapabilityCard - ${capabilityId}`);
     overview.elements
       .capabilityCard(capabilityId)
+      .scrollIntoView()
       .should('be.visible')
       .and('contain.text', title)
       .within(() => {

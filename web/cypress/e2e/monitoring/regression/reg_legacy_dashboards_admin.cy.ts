@@ -1,0 +1,55 @@
+import { CustomerPerspectiveName } from '@/shared/constants/perspective';
+import { CLUSTER_MONITORING_OPERATOR } from '../../../support/operators';
+import { testLegacyDashboardsRegression } from '../../../support/monitoring/reg_legacy_dashboards.cy';
+import { testLegacyDashboardsRegressionNamespace } from '../../../support/monitoring/reg_legacy_dashboards_namespace.cy';
+import { commonPages } from '../../../views/common';
+import { nav } from '../../../views/nav';
+
+// Test suite for Administrator perspective
+describe(
+  'Regression: Monitoring - Legacy Dashboards (Administrator)',
+  { tags: ['@legacy-dashboards'] },
+  () => {
+    before(() => {
+      cy.ensureMonitoringPlugin();
+    });
+
+    beforeEach(() => {
+      cy.restoreLogin();
+      // When running only this file, ensureMonitoringPlugin changes the namespace
+      // to openshift-monitoring, so
+      // we need to change it back to All Projects before landing to Dashboards page in order to
+      // have API Performance dashboard loaded by default
+      nav.sidenav.clickNavLink(['Observe', 'Metrics']);
+      commonPages.titleShouldHaveText('Metrics');
+      cy.changeNamespace('All Projects');
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace('All Projects');
+    });
+
+    // Run tests in Administrator perspective
+    testLegacyDashboardsRegression(CustomerPerspectiveName.CorePlatform);
+  },
+);
+
+// Test suite for Administrator perspective
+describe(
+  'Regression: Monitoring - Legacy Dashboards Namespaced (Administrator)',
+  { tags: ['@legacy-dashboards'] },
+  () => {
+    before(() => {
+      cy.ensureMonitoringPlugin();
+    });
+
+    beforeEach(() => {
+      cy.restoreLogin();
+      nav.sidenav.clickNavLink(['Observe', 'Dashboards']);
+      commonPages.titleShouldHaveText('Dashboards');
+      cy.changeNamespace(CLUSTER_MONITORING_OPERATOR.namespace);
+    });
+
+    // Run tests in Administrator perspective
+    testLegacyDashboardsRegressionNamespace(CustomerPerspectiveName.CorePlatform);
+  },
+);

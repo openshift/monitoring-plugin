@@ -3,6 +3,7 @@ import { CustomerPerspectiveName } from '@/shared/constants/perspective';
 
 export const operatorHubPage = {
   installOperator: (operatorName, csName, installNamespace?) => {
+    cy.visit('/');
     cy.switchPerspective(CustomerPerspectiveName.CorePlatform, 'Administrator');
     cy.visit(
       `/operatorhub/subscribe?pkg=${operatorName}&catalog=${csName}` +

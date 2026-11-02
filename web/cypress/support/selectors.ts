@@ -13,8 +13,8 @@ declare global {
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
       ): Chainable<Element>;
-      byOUIAID(selector: string): Chainable<Element>;
-      byClass(selector: string): Chainable<Element>;
+      byOUIAID(selector: string): Chainable<JQuery<HTMLElement>>;
+      byClass(selector: string): Chainable<JQuery<HTMLElement>>;
       byLegacyTestID(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
