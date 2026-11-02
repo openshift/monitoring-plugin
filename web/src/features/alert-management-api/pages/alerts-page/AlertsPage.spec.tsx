@@ -1,16 +1,21 @@
 /** @vitest-environment jsdom */
 
+import { AlertVariant } from '@patternfly/react-core';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
 import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
+import { getAlertDetailsSearch } from '@/features/alert-management-api/pages/alerts-page/utils/alert-details';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
+const addToast = vi.hoisted(() => vi.fn());
+
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  useToast: () => ({ addToast }),
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },
   DocumentTitle: () => null,
@@ -78,6 +83,114 @@ const AlertsPage = () => (
   <QueryParamProvider adapter={ReactRouter7Adapter}>
     <AlertManagementAlertsPage />
   </QueryParamProvider>
+);
+
+let navigateHistory: ReturnType<typeof useNavigate>;
+
+const HistoryControls = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigateHistory = navigate;
+  }, [navigate]);
+  return null;
+};
+
+it('opens an individual alert while preserving the list and its query parameters', () => {
+  const search =
+    '?aggregate=0&severity=critical&severity=warning&page=2&perPage=2&refreshInterval=30s';
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts' + search]}>
+      <AlertsPage />
+      <Query />
+    </MemoryRouter>,
+  );
+  const table = screen.getByRole('grid');
+  const link = screen.getByRole('link', { name: 'Alert3' });
+  const checkbox = screen.getByRole('checkbox', { name: 'Select Alert3 alerts' });
+  fireEvent.click(checkbox);
+  fireEvent.click(link);
+
+  const panel = screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel);
+  expect(within(panel).getByRole('heading', { name: 'Alert3' })).toBeDefined();
+  expect(within(panel).getByText('TODO')).toBeDefined();
+  expect(screen.getByRole('grid')).toBe(table);
+  const params = queryParams();
+  expect(params.get('alertRuleID')).toBe(testAlerts[3].rule.id);
+  expect(params.get('alertID')).toHaveLength(16);
+  for (const [key] of new URLSearchParams(search)) {
+    expect(params.getAll(key)).toEqual(new URLSearchParams(search).getAll(key));
+  }
+
+  fireEvent.click(within(panel).getByRole('button', { name: 'Close panel' }));
+  expect(screen.queryByText('TODO')).toBeNull();
+  expect(screen.getByRole('grid')).toBe(table);
+  expect((checkbox as HTMLInputElement).checked).toBe(true);
+  expect(queryParams().has('alertRuleID')).toBe(false);
+  expect(queryParams().has('alertID')).toBe(false);
+});
+
+it('resolves direct links independently of list filters and supports history navigation', () => {
+  const search = getAlertDetailsSearch('?name=Alert5&aggregate=0', testAlerts[0]);
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts' + search]}>
+      <AlertsPage />
+      <HistoryControls />
+      <Query />
+    </MemoryRouter>,
+  );
+  const panel = screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel);
+  expect(within(panel).getByRole('heading', { name: 'Alert1' })).toBeDefined();
+  expect(screen.getByRole('link', { name: 'Alert5' })).toBeDefined();
+  fireEvent.click(within(panel).getByRole('button', { name: 'Close panel' }));
+  expect(screen.queryByText('TODO')).toBeNull();
+  expect(queryParams().get('name')).toBe('Alert5');
+
+  act(() => navigateHistory(-1));
+  expect(
+    within(screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel)).getByRole('heading', {
+      name: 'Alert1',
+    }),
+  ).toBeDefined();
+  act(() => navigateHistory(1));
+  expect(screen.queryByText('TODO')).toBeNull();
+});
+
+it('preserves aggregate expansion when opening and closing a child alert', () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts']}>
+      <AlertsPage />
+    </MemoryRouter>,
+  );
+  const expand = screen.getAllByRole('button', { name: 'Details' })[0];
+  fireEvent.click(expand);
+  const link = screen.getAllByRole('link', { name: 'Alert1' })[0];
+  fireEvent.click(link);
+  fireEvent.click(screen.getByRole('button', { name: 'Close panel' }));
+  expect(expand.getAttribute('aria-expanded')).toBe('true');
+  expect(screen.getAllByRole('link', { name: 'Alert1' })[0]).toBe(link);
+});
+
+it.each(['alertRuleID=missing', 'alertID=missing', 'alertRuleID=missing&alertID=missing'])(
+  'clears invalid selection %s and shows an alert-not-found warning toast',
+  (selection) => {
+    addToast.mockClear();
+    render(
+      <MemoryRouter initialEntries={['/monitoring/v2/alerts?refreshInterval=30s&' + selection]}>
+        <AlertsPage />
+        <Query />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText('TODO')).toBeNull();
+    expect(addToast).toHaveBeenCalledExactlyOnceWith({
+      title: 'Alert Not Found',
+      variant: AlertVariant.warning,
+      content: 'No alert found with specified rule ID and label set',
+      dismissible: true,
+    });
+    expect(queryParams().has('alertRuleID')).toBe(false);
+    expect(queryParams().has('alertID')).toBe(false);
+    expect(queryParams().get('refreshInterval')).toBe('30s');
+  },
 );
 
 it('sorts from each column header and saves column and direction in the URL', () => {

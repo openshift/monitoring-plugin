@@ -25,10 +25,12 @@ import { useTranslation } from 'react-i18next';
 
 import { AlertSeverityButton } from '@/features/alert-management-api/components/AlertSeverityButton';
 import { PageWithFilters } from '@/features/alert-management-api/components/PageWithFilters';
+import { PageWithSidepanel } from '@/features/alert-management-api/components/PageWithSidepanel';
 import { useAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
 import { AlertsResults } from '@/features/alert-management-api/pages/alerts-page/AlertsResults';
 import { AlertsFilterDrawer } from '@/features/alert-management-api/pages/alerts-page/components/AlertsFilterDrawer';
 import { SelectedFilters } from '@/features/alert-management-api/pages/alerts-page/components/SelectedFilters';
+import { useAlertDetailsSidebar } from '@/features/alert-management-api/pages/alerts-page/hooks/useAlertDetailsSidebar';
 import { useAlertManagementFilters } from '@/features/alert-management-api/pages/alerts-page/hooks/useAlertFilters';
 import { selectedAlertFilterLabels } from '@/features/alert-management-api/pages/alerts-page/utils/filter-labels';
 import type { AlertFilters } from '@/features/alert-management-api/types/types';
@@ -47,6 +49,10 @@ export function AlertManagementAlertsPage() {
   const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   const alerts = data?.alerts;
+  const { selectedAlert, closeAlertDetails } = useAlertDetailsSidebar(
+    rulesQuery.isError ? undefined : alerts,
+  );
+
   const counts = (alerts ?? []).reduce(
     (result, alert) => {
       result.states[alert.state] = (result.states[alert.state] ?? 0) + 1;
@@ -69,93 +75,100 @@ export function AlertManagementAlertsPage() {
   }
 
   return (
-    <PageSection hasBodyWrapper={false} isFilled>
-      {silencesQuery.isError && (
-        <Alert isInline variant="warning" title={t('Silences could not be loaded')} />
-      )}
-      <PageWithFilters
-        filtersId={DataTestIDs.AlertManagementAPI.FiltersPanel}
-        filters={
-          isFilterDrawerOpen && (
-            <AlertsFilterDrawer
-              alerts={alerts ?? []}
-              filters={filters}
-              onChange={setFilters}
-              onClose={() => setFilterDrawerOpen(false)}
-            />
-          )
-        }
-      >
-        <Panel variant="bordered">
-          <PanelHeader>
-            <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
-              <Title headingLevel="h2" size="lg">
-                {t('Alerts')}
-              </Title>
-              <Flex alignItems={{ default: 'alignItemsCenter' }}>
-                <AlertStateCounts states={counts.states} />
-                <Divider orientation={{ default: 'vertical' }} />
-                <AlertSeverityActions
-                  severities={counts.severities}
+    <PageWithSidepanel
+      isOpen={Boolean(selectedAlert)}
+      onClose={closeAlertDetails}
+      title={selectedAlert?.labels.alertname ?? selectedAlert?.rule.name ?? ''}
+      panel={<>TODO</>}
+    >
+      <PageSection hasBodyWrapper={false} isFilled>
+        {silencesQuery.isError && (
+          <Alert isInline variant="warning" title={t('Silences could not be loaded')} />
+        )}
+        <PageWithFilters
+          filtersId={DataTestIDs.AlertManagementAPI.FiltersPanel}
+          filters={
+            isFilterDrawerOpen && (
+              <AlertsFilterDrawer
+                alerts={alerts ?? []}
+                filters={filters}
+                onChange={setFilters}
+                onClose={() => setFilterDrawerOpen(false)}
+              />
+            )
+          }
+        >
+          <Panel variant="bordered">
+            <PanelHeader>
+              <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+                <Title headingLevel="h2" size="lg">
+                  {t('Alerts')}
+                </Title>
+                <Flex alignItems={{ default: 'alignItemsCenter' }}>
+                  <AlertStateCounts states={counts.states} />
+                  <Divider orientation={{ default: 'vertical' }} />
+                  <AlertSeverityActions
+                    severities={counts.severities}
+                    filters={filters}
+                    onChange={setFilters}
+                  />
+                </Flex>
+              </Flex>
+            </PanelHeader>
+            <Divider />
+            <PanelMain>
+              <PanelMainBody style={{ paddingBlock: 'var(--pf-t--global--spacer--sm)' }}>
+                <Flex alignItems={{ default: 'alignItemsCenter' }}>
+                  <FlexItem>
+                    <Button
+                      variant="control"
+                      icon={<RhUiFilterFillIcon />}
+                      aria-expanded={isFilterDrawerOpen}
+                      aria-controls={DataTestIDs.AlertManagementAPI.FiltersPanel}
+                      aria-label={t('Open alert filters')}
+                      onClick={() => setFilterDrawerOpen((open) => !open)}
+                    >
+                      {t('Filters')}
+                    </Button>
+                  </FlexItem>
+                  <FlexItem grow={{ default: 'grow' }}>
+                    <SearchInput
+                      id={DataTestIDs.AlertManagementAPI.SearchInput}
+                      aria-label={t('Search alert name')}
+                      value={filters.name}
+                      placeholder={t('Search alert name')}
+                      onChange={(_event, name) => setFilters({ ...filters, name })}
+                      onClear={() => setFilters({ ...filters, name: '' })}
+                    />
+                  </FlexItem>
+                  <FlexItem align={{ default: 'alignRight' }}>
+                    <TimeRangeSelect
+                      id={DataTestIDs.AlertManagementAPI.FiringTimeSelect}
+                      includeAnyTime
+                      toggleWidth="180px"
+                      toggleProps={{ icon: <ClockIcon /> }}
+                    />
+                  </FlexItem>
+                </Flex>
+                <SelectedFilters
                   filters={filters}
+                  labels={selectedAlertFilterLabels}
+                  getLabelStatus={(key, value) =>
+                    key === 'severity' ? getSeverityColors(value).labelStatus : undefined
+                  }
+                  formatLabelText={(key, value) =>
+                    ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value
+                  }
                   onChange={setFilters}
                 />
-              </Flex>
-            </Flex>
-          </PanelHeader>
-          <Divider />
-          <PanelMain>
-            <PanelMainBody style={{ paddingBlock: 'var(--pf-t--global--spacer--sm)' }}>
-              <Flex alignItems={{ default: 'alignItemsCenter' }}>
-                <FlexItem>
-                  <Button
-                    variant="control"
-                    icon={<RhUiFilterFillIcon />}
-                    aria-expanded={isFilterDrawerOpen}
-                    aria-controls={DataTestIDs.AlertManagementAPI.FiltersPanel}
-                    aria-label={t('Open alert filters')}
-                    onClick={() => setFilterDrawerOpen((open) => !open)}
-                  >
-                    {t('Filters')}
-                  </Button>
-                </FlexItem>
-                <FlexItem grow={{ default: 'grow' }}>
-                  <SearchInput
-                    id={DataTestIDs.AlertManagementAPI.SearchInput}
-                    aria-label={t('Search alert name')}
-                    value={filters.name}
-                    placeholder={t('Search alert name')}
-                    onChange={(_event, name) => setFilters({ ...filters, name })}
-                    onClear={() => setFilters({ ...filters, name: '' })}
-                  />
-                </FlexItem>
-                <FlexItem align={{ default: 'alignRight' }}>
-                  <TimeRangeSelect
-                    id={DataTestIDs.AlertManagementAPI.FiringTimeSelect}
-                    includeAnyTime
-                    toggleWidth="180px"
-                    toggleProps={{ icon: <ClockIcon /> }}
-                  />
-                </FlexItem>
-              </Flex>
-              <SelectedFilters
-                filters={filters}
-                labels={selectedAlertFilterLabels}
-                getLabelStatus={(key, value) =>
-                  key === 'severity' ? getSeverityColors(value).labelStatus : undefined
-                }
-                formatLabelText={(key, value) =>
-                  ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value
-                }
-                onChange={setFilters}
-              />
-            </PanelMainBody>
-          </PanelMain>
-          <Divider />
-          <AlertsResults alerts={alerts ?? []} filters={filters} />
-        </Panel>
-      </PageWithFilters>
-    </PageSection>
+              </PanelMainBody>
+            </PanelMain>
+            <Divider />
+            <AlertsResults alerts={alerts ?? []} filters={filters} />
+          </Panel>
+        </PageWithFilters>
+      </PageSection>
+    </PageWithSidepanel>
   );
 }
 

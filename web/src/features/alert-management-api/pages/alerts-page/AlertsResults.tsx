@@ -65,7 +65,7 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   const { sort, setSort } = useAlertManagementSort();
   const { column, direction } = sort;
   const pagination = useTablePagination({ perPage: 20 });
-  const { page, perPage, onSetPage } = pagination;
+  const { page, perPage, setPage } = pagination;
 
   const filterKey = JSON.stringify(filters);
   const previousFilters = useRef(filterKey);
@@ -87,12 +87,12 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
     if (previousFilters.current !== filterKey || previousGroupBy.current !== groupBy) {
       previousFilters.current = filterKey;
       previousGroupBy.current = groupBy;
-      onSetPage(undefined, 1);
+      setPage(1, { replace: true });
     } else {
       const lastPage = Math.max(1, Math.ceil(aggregatedAlerts.length / perPage));
-      if (page > lastPage) onSetPage(undefined, lastPage);
+      if (page > lastPage) setPage(lastPage, { replace: true });
     }
-  }, [filterKey, groupBy, aggregatedAlerts.length, page, perPage, onSetPage]);
+  }, [filterKey, groupBy, aggregatedAlerts.length, page, perPage, setPage]);
 
   const saveColumns = (newColumns: AlertColumn[]) => {
     setSearchParams((current) => {
@@ -198,10 +198,7 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
           sort={sort}
           selectedAlertKeys={selectedAlertKeys}
           onSelectionChange={setSelectedAlertKeys}
-          onSort={(nextSort) => {
-            pagination.onSetPage(undefined, 1);
-            setSort(nextSort);
-          }}
+          onSort={setSort}
         />
         {aggregatedAlerts.length > 0 && (
           <TablePagination

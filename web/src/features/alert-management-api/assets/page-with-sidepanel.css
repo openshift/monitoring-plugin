@@ -1,0 +1,25 @@
+.alert-management-api__page-with-sidepanel {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.alert-management-api__page-with-sidepanel > .pf-v6-c-drawer__main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.alert-management-api__page-with-sidepanel__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: var(--pf-v6-c-drawer__content--ZIndex);
+  background-color: var(--pf-t--global--background--color--backdrop--default);
+}
+
+.alert-management-api__page-with-sidepanel__body {
+  padding-block: var(--pf-t--global--spacer--md);
+  padding-inline: var(--pf-t--global--spacer--lg);
+}

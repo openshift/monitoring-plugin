@@ -102,7 +102,7 @@ export function AlertManagementHeader({
           <BreadcrumbItem isActive>{t(activePrimaryTab?.name)}</BreadcrumbItem>
         </Breadcrumb>
       </PageBreadcrumb>
-      <div className="alert-management-header__page-title">
+      <div className="alert-management-api__alert-management-header__page-title">
         <ListPageHeader title={t('Alerting')}>
           {/* incidents page doesn't support polling currently, can be
             added as a feature to that page at a later time */}

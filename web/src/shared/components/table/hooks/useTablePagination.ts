@@ -2,8 +2,8 @@ import {
   PaginationParams,
   UseDataViewPaginationProps,
 } from '@patternfly/react-data-view/dist/dynamic/Hooks';
-import { KeyboardEvent, MouseEvent as ReactMouseEvent, useCallback, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { KeyboardEvent, MouseEvent as ReactMouseEvent, useCallback } from 'react';
+import { NavigateOptions, useSearchParams } from 'react-router';
 
 const parsePositiveInt = (value: string | null, fallback: number) => {
   const parsed = Number.parseInt(value ?? '', 10);
@@ -18,13 +18,13 @@ export const useTablePagination = ({
 }: UseDataViewPaginationProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [state, setState] = useState({
+  const state = {
     page: parsePositiveInt(searchParams?.get(pageParam), page),
     perPage: parsePositiveInt(searchParams?.get(perPageParam), perPage),
-  });
+  };
 
   const updateSearchParams = useCallback(
-    (page: number, perPage: number) => {
+    (page: number, perPage: number, options?: NavigateOptions) => {
       setSearchParams?.((prev) => {
         const prevParams = new URLSearchParams(prev);
         prevParams.set(pageParam, `${page}`);
@@ -34,7 +34,7 @@ export const useTablePagination = ({
           return prevParams;
         }
         return prev;
-      });
+      }, options);
     },
     [setSearchParams, pageParam, perPageParam],
   );
@@ -45,23 +45,24 @@ export const useTablePagination = ({
   ) => {
     if (newPerPage !== state.perPage) {
       updateSearchParams(1, newPerPage);
-      setState({ perPage: newPerPage, page: 1 });
+    }
+  };
+
+  const setPage = (newPage: number, options?: NavigateOptions) => {
+    if (newPage !== state.page) {
+      updateSearchParams(newPage, state.perPage, options);
     }
   };
 
   const onSetPage = (
     _event: ReactMouseEvent | KeyboardEvent | MouseEvent | undefined,
     newPage: number,
-  ) => {
-    if (newPage !== state.page) {
-      updateSearchParams(newPage, state.perPage);
-      setState((prev) => ({ ...prev, page: newPage }));
-    }
-  };
+  ) => setPage(newPage);
 
   return {
     ...state,
     onPerPageSelect,
     onSetPage,
+    setPage,
   };
 };
