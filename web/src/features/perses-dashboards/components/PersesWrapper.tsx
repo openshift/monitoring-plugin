@@ -1,6 +1,7 @@
 import '@/features/perses-dashboards/utils/perses-config';
 import '@/features/perses-dashboards/assets/perses-patternfly-tokens.css';
 import { ThemeOptions, ThemeProvider } from '@mui/material';
+import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
   chart_color_blue_100,
@@ -14,7 +15,7 @@ import {
   t_global_background_color_100,
   t_global_background_color_400,
 } from '@patternfly/react-tokens';
-import { DashboardResource, Kind } from '@perses-dev/client';
+import { DashboardResource, FetchProvider, Kind } from '@perses-dev/client';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -434,22 +435,24 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   const content = (
     <ThemeProvider theme={muiTheme}>
-      <RouterProvider RouterComponent={Link} navigate={navigate}>
-        <ChartsProvider chartsTheme={chartsTheme}>
-          <SnackbarProvider
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            variant="default"
-          >
-            <PluginRegistry pluginLoader={pluginLoader}>
-              {!project ? (
-                <>{children}</>
-              ) : (
-                <InnerWrapper project={project}>{children}</InnerWrapper>
-              )}
-            </PluginRegistry>
-          </SnackbarProvider>
-        </ChartsProvider>
-      </RouterProvider>
+      <FetchProvider fetchFn={consoleFetch}>
+        <RouterProvider RouterComponent={Link} navigate={navigate}>
+          <ChartsProvider chartsTheme={chartsTheme}>
+            <SnackbarProvider
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              variant="default"
+            >
+              <PluginRegistry pluginLoader={pluginLoader}>
+                {!project ? (
+                  <>{children}</>
+                ) : (
+                  <InnerWrapper project={project}>{children}</InnerWrapper>
+                )}
+              </PluginRegistry>
+            </SnackbarProvider>
+          </ChartsProvider>
+        </RouterProvider>
+      </FetchProvider>
     </ThemeProvider>
   );
 
