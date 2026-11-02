@@ -1,11 +1,8 @@
 import {
   AlertingRuleChartExtension,
-  AlertStates,
   DocumentTitle,
   isAlertingRuleChart,
-  PrometheusAlert,
   ResourceIcon,
-  Timestamp,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -20,7 +17,6 @@ import {
   DescriptionListTermHelpText,
   DescriptionListTermHelpTextButton,
   Divider,
-  DropdownItem,
   Flex,
   FlexItem,
   Grid,
@@ -35,114 +31,33 @@ import {
   ToolbarGroup,
   ToolbarItem,
 } from '@patternfly/react-core';
-import { Table, TableVariant, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import * as _ from 'lodash-es';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
+import { ActiveAlerts, PrometheusTemplate } from '@/features/alerts/components/ActiveAlerts';
 import { Graph, SeverityHelp, SourceHelp } from '@/features/alerts/components/AlertUtils';
-import { AlertState } from '@/shared/components/AlertState';
-import KebabDropdown from '@/shared/components/KebabDropdown';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
 import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
 import { formatPrometheusDuration } from '@/shared/console/console-shared/src/datetime/prometheus';
-import { ExternalLink, LinkifyExternal } from '@/shared/console/utils/Link';
+import { ExternalLink } from '@/shared/console/utils/Link';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
 import {
   getAlertRulesUrl,
-  getAlertUrl,
-  getNewSilenceAlertUrl,
   getQueryBrowserUrl,
   usePerspective,
 } from '@/shared/hooks/usePerspective';
 import { alertingRuleSource, getSourceKey } from '@/shared/utils/alerts/alert-source';
-import { alertDescription } from '@/shared/utils/alerts/formatting';
 import { startCase } from '@/shared/utils/strings';
 import { RuleResource } from '@/shared/utils/utils';
 
-// Renders Prometheus template text and highlights any {{ ... }} tags that it contains.
-// Plain-text parts are linkified (scheme-less URLs are assumed https://).
-export const PrometheusTemplate = ({ text }: { text: string }) => (
-  <>
-    {text
-      ?.split(/(\{\{[^{}]*\}\})/)
-      ?.map((part: string, i: number) =>
-        part.match(/^\{\{[^{}]*\}\}$/) ? (
-          <code key={i}>{part}</code>
-        ) : (
-          <LinkifyExternal key={i}>{part}</LinkifyExternal>
-        ),
-      )}
-  </>
-);
-
-type ActiveAlertsProps = {
-  alerts: PrometheusAlert[];
-  ruleID: string;
-};
-
-export const ActiveAlerts: FC<ActiveAlertsProps> = ({ alerts, ruleID }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
-  const navigate = useNavigate();
-  const { namespace } = useMonitoringNamespace();
-
-  return (
-    <Table variant={TableVariant.compact}>
-      <Thead>
-        <Tr>
-          <Th width={60}>{t('Description')}</Th>
-          <Th width={15} visibility={['hiddenOnSm', 'visibleOnMd']}>
-            {t('Active since')}
-          </Th>
-          <Th width={10}>{t('State')}</Th>
-          <Th width={15}>{t('Value')}</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {_.sortBy<PrometheusAlert>(alerts, alertDescription).map((a, i) => (
-          <Tr key={i}>
-            <Td>
-              <Link
-                data-test={DataTestIDs.AlertResourceLink}
-                to={getAlertUrl(perspective, a, ruleID, namespace)}
-              >
-                {alertDescription(a)}
-              </Link>
-            </Td>
-            <Td>
-              <Timestamp timestamp={a.activeAt} />
-            </Td>
-            <Td>
-              <AlertState state={a.state} />
-            </Td>
-            <Td modifier="truncate">{a.value}</Td>
-            {a.state !== AlertStates.Silenced && (
-              <KebabDropdown
-                dropdownItems={[
-                  <DropdownItem
-                    component="button"
-                    key="silence"
-                    onClick={() => navigate(getNewSilenceAlertUrl(perspective, a, namespace))}
-                  >
-                    {t('Silence alert')}
-                  </DropdownItem>,
-                ]}
-              />
-            )}
-          </Tr>
-        ))}
-      </Tbody>
-    </Table>
-  );
-};
 const AlertRulesDetailsPage_: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const params = useParams<{ id: string }>();

@@ -329,13 +329,13 @@ const LogsDetailPage: FC<LogsDetailPageProps> = ({
   );
 };
 
-const LogsDetailPageWrapper: FC<LogsDetailPageProps> = memo((props) => {
+const WrappedLogsDetailPage: FC<LogsDetailPageProps> = memo((props) => {
   return (
     <LogsConfigProvider>
       <LogsDetailPage {...props} />
     </LogsConfigProvider>
   );
 });
-LogsDetailPageWrapper.displayName = 'LogsDetailPageWrapper';
+WrappedLogsDetailPage.displayName = 'WrappedLogsDetailPage';
 
-export default LogsDetailPageWrapper;
+export default WrappedLogsDetailPage;

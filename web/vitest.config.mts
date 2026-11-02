@@ -9,7 +9,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.spec.{ts,tsx}'],
+    include: ['src/**/*.spec.{ts,tsx}', 'eslint-rules/**/*.spec.ts'],
     exclude: [...configDefaults.exclude, 'src/**/*.browser.spec.tsx'],
     coverage: {
       provider: 'v8',

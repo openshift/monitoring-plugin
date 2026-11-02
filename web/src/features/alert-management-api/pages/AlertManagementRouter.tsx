@@ -3,12 +3,12 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
 import { AlertManagementLayout } from '@/features/alert-management-api/components/AlertManagementLayout';
+import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
 import {
   AlertRulesManagementPage,
-  IncidentsManagementPage,
   SilencesManagementPage,
-} from '@/features/alert-management-api/pages//PlaceholderPages';
-import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
+} from '@/features/alert-management-api/pages/PlaceholderPages';
+import { McpCmoAlertingPage } from '@/features/incidents/pages/IncidentsPage';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import type { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';
 
@@ -52,7 +52,7 @@ function AlertManagementRouter() {
       children = <SilencesManagementPage />;
       break;
     case incidentsPath:
-      children = <IncidentsManagementPage />;
+      children = <McpCmoAlertingPage />;
       break;
     default:
       children = <Navigate to={alertsPath} replace />;

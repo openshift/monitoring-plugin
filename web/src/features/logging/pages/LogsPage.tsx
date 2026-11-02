@@ -313,13 +313,13 @@ const LogsPage: FC = () => {
   );
 };
 
-const LogsPageWrapper: FC = memo(() => {
+const WrappedLogsPage: FC = memo(() => {
   return (
     <LogsConfigProvider>
       <LogsPage />
     </LogsConfigProvider>
   );
 });
-LogsPageWrapper.displayName = 'LogsPageWrapper';
+WrappedLogsPage.displayName = 'WrappedLogsPage';
 
-export default LogsPageWrapper;
+export default WrappedLogsPage;

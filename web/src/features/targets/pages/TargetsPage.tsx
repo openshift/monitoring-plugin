@@ -98,7 +98,7 @@ const PodsWatchContext = createContext([]);
 
 const getReference = ({ group, version, kind }) => [group || 'core', version, kind].join('~');
 
-export const getReferenceForModel = (model: K8sModel) =>
+const getReferenceForModel = (model: K8sModel) =>
   getReference({ group: model.apiGroup, version: model.apiVersion, kind: model.kind });
 
 const PodMonitor: FC<{ target: Target }> = ({ target }) => {

@@ -104,7 +104,11 @@ export function AlertManagementHeader({
       </PageBreadcrumb>
       <div className="alert-management-header__page-title">
         <ListPageHeader title={t('Alerting')}>
-          {refresh && <RefreshControl pageKey={pathname} {...refresh} />}
+          {/* incidents page doesn't support polling currently, can be
+            added as a feature to that page at a later time */}
+          {refresh && pathname !== topLevelTabs.incidents.href && (
+            <RefreshControl pageKey={pathname} {...refresh} />
+          )}
         </ListPageHeader>
       </div>
       <PageSection hasBodyWrapper={false} style={{ paddingBlockStart: 0 }} type="subnav">

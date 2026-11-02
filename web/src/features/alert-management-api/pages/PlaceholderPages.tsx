@@ -1,7 +1,5 @@
 import { PageSection, Title } from '@patternfly/react-core';
 
-import { AlertManagementProvider } from '@/features/alert-management-api/pages/AlertManagementRouter';
-
 function PlaceholderPage({ name }: { name: string }) {
   return (
     <PageSection>
@@ -16,14 +14,4 @@ export function AlertRulesManagementPage() {
 
 export function SilencesManagementPage() {
   return <PlaceholderPage name="Silences" />;
-}
-
-export function IncidentsManagementPage() {
-  return (
-    <AlertManagementProvider
-      monitoringContext={{ plugin: 'monitoring-console-plugin', prometheus: 'cmo' }}
-    >
-      <PlaceholderPage name="Incidents" />
-    </AlertManagementProvider>
-  );
 }

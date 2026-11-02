@@ -9,15 +9,23 @@ import { AlertManagementLayout } from '@/features/alert-management-api/component
 import { AlertManagementProvider } from '@/features/alert-management-api/pages/AlertManagementRouter';
 import {
   AlertRulesManagementPage,
-  IncidentsManagementPage,
   SilencesManagementPage,
 } from '@/features/alert-management-api/pages/PlaceholderPages';
+import { McpCmoAlertingPage } from '@/features/incidents/pages/IncidentsPage';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
 const flags = vi.hoisted(() => ({ incidents: false }));
 const queryTimes = vi.hoisted(() => ({
   rules: Date.UTC(2026, 8, 29, 12, 15, 0),
   silences: Date.UTC(2026, 8, 29, 12, 16, 15),
+}));
+
+vi.mock('@/features/incidents/pages/IncidentsPage', () => ({
+  McpCmoAlertingPage: () => (
+    <div>
+      <h2>Incidents</h2>
+    </div>
+  ),
 }));
 
 vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
@@ -217,7 +225,7 @@ describe('alert management navigation', () => {
 
   it('shows top-level alerts and management tabs from incidents', () => {
     flags.incidents = true;
-    renderLayout('/monitoring/v2/incidents', <IncidentsManagementPage />);
+    renderLayout('/monitoring/v2/incidents', <McpCmoAlertingPage />);
 
     expect(
       screen.getByRole('tab', { name: 'Incidents' }),
@@ -237,11 +245,19 @@ describe('alert management navigation', () => {
     ).toBeNull();
   });
 
+  it('hides refresh controls and the last refresh time on incidents', () => {
+    renderLayout('/monitoring/v2/incidents?refreshInterval=30000', <McpCmoAlertingPage />);
+
+    expect(screen.getByRole('heading', { name: 'Incidents' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Every 30 seconds' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Refresh off' })).toBeNull();
+    expect(screen.queryByText(/^Last refresh:/)).toBeNull();
+  });
+
   it.each([
     ['/monitoring/v2/management/alertrules', AlertRulesManagementPage, 'Alert rules'],
     ['/monitoring/v2/management/silences', SilencesManagementPage, 'Silences'],
-    ['/monitoring/v2/incidents', IncidentsManagementPage, 'Incidents'],
-  ])('renders the placeholder for %s', (path, Page, message) => {
+  ])('renders the page for %s', (path, Page, message) => {
     renderLayout(path, <Page />);
 
     expect(
