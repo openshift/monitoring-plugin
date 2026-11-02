@@ -98,8 +98,10 @@ func TestGetRules_ParsesQueryParams(t *testing.T) {
 	q := url.Values{}
 	q.Set("namespace", "ns1")
 	q.Set("severity", "critical")
-	q.Set("state", "firing")
+	q.Set("state", " FIRING ")
+	q.Set("labels", "custom")
 	q.Add("match[]", `alertname=~"Kube.*"`)
+	q.Add("match[]", `{severity="critical",namespace="ns1"}`)
 	w := f.get(t, "/api/v1/alerting/rules?"+q.Encode())
 
 	if w.Code != http.StatusOK {
@@ -114,8 +116,11 @@ func TestGetRules_ParsesQueryParams(t *testing.T) {
 	if captured.Labels["severity"] != "critical" {
 		t.Errorf("expected severity=critical, got %q", captured.Labels["severity"])
 	}
-	if len(captured.Matchers) != 1 || captured.Matchers[0] != `alertname=~"Kube.*"` {
-		t.Errorf("expected matchers [alertname=~\"Kube.*\"], got %v", captured.Matchers)
+	if captured.Labels["labels"] != "custom" {
+		t.Errorf("expected literal labels=custom filter, got %v", captured.Labels)
+	}
+	if len(captured.Matchers) != 2 || captured.Matchers[0] != `alertname=~"Kube.*"` || captured.Matchers[1] != `{severity="critical",namespace="ns1"}` {
+		t.Errorf("unexpected matchers: %v", captured.Matchers)
 	}
 }
 

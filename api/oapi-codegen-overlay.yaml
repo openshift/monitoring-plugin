@@ -1,0 +1,18 @@
+overlay: "1.0.0"
+info:
+  title: Preserve raw-query label filter parsing in the Go router
+  version: "1.0.0"
+actions:
+  - target: $.paths.*.get.parameters[?(@['$ref'] == '#/components/parameters/LabelFilters')]
+    description: >
+      Label filters are sent as individual query parameters, such as
+      ?severity=critical&namespace=monitoring. The OpenAPI parameter named "labels"
+      is needed for the frontend client to groups these filters, but the
+      generated Go code interprets the query parameter "labels" as an encoded object. So
+      ?labels=custom as would attempt to unmarshall "custom" as the object and be rejected.
+      The correct behavior would be for the label "labels" to filter to the value "custom".
+      The existing parseStateLabelsAndMatchers function provides a custom parsing implementation
+      for the query parameters. This overlay removes the labels parameter from the go generator
+      so that the generated code doesn't attempt and fail to unmarshall before parseStateLabelsAndMatchers
+      is called.
+    remove: true

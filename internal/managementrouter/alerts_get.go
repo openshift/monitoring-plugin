@@ -7,7 +7,7 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
-func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request) {
+func (hr *httpRouter) GetAlerts(w http.ResponseWriter, req *http.Request, _ GetAlertsParams) {
 	state, labels, _, err := parseStateLabelsAndMatchers(req.URL.Query(), validAlertStates)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
