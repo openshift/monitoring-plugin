@@ -1,7 +1,6 @@
 import '@/features/perses-dashboards/utils/perses-config';
 import '@/features/perses-dashboards/assets/perses-patternfly-tokens.css';
 import { ThemeOptions, ThemeProvider } from '@mui/material';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
 import {
   chart_color_blue_100,
@@ -53,6 +52,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
+import { consoleFetchFn } from '@/features/perses-dashboards/utils/console-fetch-fn';
 import { OcpDatasourceApi } from '@/features/perses-dashboards/utils/datasource-api';
 import { CachedDatasourceAPI } from '@/features/perses-dashboards/utils/perses/datasource-cache-api';
 import {
@@ -435,7 +435,7 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   const content = (
     <ThemeProvider theme={muiTheme}>
-      <FetchProvider fetchFn={consoleFetch}>
+      <FetchProvider fetchFn={consoleFetchFn}>
         <RouterProvider RouterComponent={Link} navigate={navigate}>
           <ChartsProvider chartsTheme={chartsTheme}>
             <SnackbarProvider
