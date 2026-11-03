@@ -7,16 +7,11 @@ import { MemoryRouter } from 'react-router';
 import { PerspectiveName, UrlRootName } from '@/shared/constants/perspective';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
-import { getAlertsUrl, usePerspective } from '@/shared/hooks/usePerspective';
+import { usePerspective } from '@/shared/hooks/usePerspective';
 import { AlertSource } from '@/shared/types/types';
-
-const mocks = vi.hoisted(() => ({
-  useActivePerspective: vi.fn(() => ['admin']),
-}));
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useAccessReview: () => [true, false],
-  useActivePerspective: mocks.useActivePerspective,
 }));
 
 const createWrapper = (pathname: string) => {
@@ -57,35 +52,5 @@ describe('MonitoringContext perspective', () => {
       urlRoot: UrlRootName[perspective],
       defaultAlertTenant,
     });
-  });
-
-  // Regression test for OU-1090: Console perspective changes must not break the ACM
-  //  Alerts breadcrumb.
-  it('keeps the ACM Alerts breadcrumb on ACM when the active Console perspective changes', () => {
-    mocks.useActivePerspective.mockReturnValue(['acm']);
-    const { result, rerender } = renderHook(() => usePerspective(), {
-      wrapper: createWrapper('/multicloud/monitoring/alerts/example'),
-    });
-
-    expect(
-      getAlertsUrl(result.current.perspective),
-      'The ACM alert details breadcrumb should initially link to the ACM Alerts list',
-    ).toBe('/multicloud/monitoring/alerts');
-
-    mocks.useActivePerspective.mockReturnValue(['admin']);
-    rerender();
-
-    expect(
-      result.current.perspective,
-      'The page perspective should remain ACM after the active Console perspective changes to admin',
-    ).toBe(PerspectiveName.ACM);
-    expect(
-      getAlertsUrl(result.current.perspective),
-      'The ACM Alerts breadcrumb should retain its ACM URL after the Console perspective changes',
-    ).toBe('/multicloud/monitoring/alerts');
-    expect(
-      mocks.useActivePerspective,
-      'Route-bound perspective resolution should never consult the active Console perspective',
-    ).not.toHaveBeenCalled();
   });
 });

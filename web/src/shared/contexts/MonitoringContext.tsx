@@ -3,7 +3,11 @@ import { createContext, FC, PropsWithChildren, useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
-import { Perspective, PerspectiveName } from '@/shared/constants/perspective';
+import {
+  getPerspectiveForPath,
+  Perspective,
+  PerspectiveName,
+} from '@/shared/constants/perspective';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 import { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';
 
@@ -40,20 +44,6 @@ export const MonitoringContext = createContext<MonitoringContextType>({
   accessCheckLoading: true,
   displayNamespaceSelector: true,
 });
-
-const getPerspectiveForPath = (pathname: string): Perspective => {
-  const root = pathname.split('/')[1];
-  switch (root) {
-    case 'multicloud':
-      return PerspectiveName.ACM;
-    case 'dev-monitoring':
-      return PerspectiveName.Developer;
-    case 'virt-monitoring':
-      return PerspectiveName.Virtualization;
-    default:
-      return PerspectiveName.Admin;
-  }
-};
 
 export const MonitoringProvider: FC<
   PropsWithChildren<{
