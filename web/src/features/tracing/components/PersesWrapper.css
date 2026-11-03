@@ -1,0 +1,57 @@
+/* This theme styles Material UI components to look like PatternFly components */
+
+.mui-pf-theme {
+    --mui-palette-text-primary: var(--pf-t--global--text--color--regular);
+    --mui-shape-borderRadius: var(--pf-t--global--border--radius--small);
+}
+
+/* <Select> component */
+.mui-pf-theme .MuiSelect-root {
+    background-color: var(--pf-t--global--background--color--control--default);
+}
+
+.mui-pf-theme .MuiSelect-root fieldset {
+    border: var(--pf-t--global--border--width--action--default) solid var(--pf-t--global--border--color--default);
+}
+
+.mui-pf-theme .MuiSelect-root:hover fieldset {
+    border: var(--pf-t--global--border--width--action--default) solid var(--pf-t--global--border--color--hover);
+}
+
+/* When the Select is open */
+.mui-pf-theme .MuiSelect-root.Mui-focused fieldset {
+    border: var(--pf-t--global--border--width--action--clicked) solid var(--pf-t--global--border--color--clicked);
+}
+
+/* When the MUI Menu is open, it is attached directly to <body> */
+.MuiMenu-root .MuiMenu-paper {
+    background-color: var(--pf-t--global--background--color--floating--default);
+}
+
+.MuiMenu-root .MuiMenuItem-root:hover {
+    background-color: var(--pf-t--global--background--color--action--plain--hover);
+}
+
+.mui-pf-theme .MuiSvgIcon-root {
+    color: var(--pf-t--global--text--color--regular);
+}
+
+/* When the MUI Tooltip is open, it is attached directly to <body> */
+.MuiTooltip-tooltip {
+    background-color: var(--pf-t--global--background--color--inverse--default) !important;
+    color: var(--pf-t--global--text--color--inverse);
+    font-size: var(--pf-t--global--font--size--sm);
+    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md) !important;
+}
+
+/* <InfoTooltip> of Perses adds a nested <Typography> to the content */
+.MuiTooltip-tooltip span {
+    color: var(--pf-t--global--text--color--inverse);
+    font-size: var(--pf-t--global--font--size--body--sm);
+    font-weight: var(--pf-t--global--font--weight--body--default);
+}
+
+/* required because of <InfoTooltip> styling */
+.MuiTooltip-tooltip .MuiTooltip-arrow {
+    color: var(--pf-t--global--background--color--inverse--default) !important;
+}

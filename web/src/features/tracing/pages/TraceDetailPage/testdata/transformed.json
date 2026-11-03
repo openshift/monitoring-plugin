@@ -1,0 +1,684 @@
+{
+    "traceId": "96a7c567e4acb97ed110df053cb5146f",
+    "resourceSpans": [
+        {
+            "attributes": {
+                "k6": "true",
+                "service.name": "shop-backend"
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "k6-scope-name/kfN5Xrqx0W01pqh"
+                    },
+                    "spans": [
+                        {
+                            "spanId": "c5215ba45bb63284",
+                            "name": "article-to-cart",
+                            "kind": "SPAN_KIND_SERVER",
+                            "startTimeUnixNano": "1768569824361451151",
+                            "endTimeUnixNano": "1768569825345335099",
+                            "durationMs": 983.884,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.sock.host.addr": "192.168.204.98",
+                                "net.host.name": "shop-backend.local",
+                                "net.host.port": 8285,
+                                "http.flavor": "1.1",
+                                "http.response.header.content-type": [
+                                    "application/json"
+                                ],
+                                "http.scheme": "https",
+                                "http.target": "/article-to-cart",
+                                "http.response_content_length": 362316,
+                                "http.request_content_length": 12288,
+                                "http.method": "PUT",
+                                "http.url": "https://shop-backend.local:8285/article-to-cart",
+                                "http.status_code": 202
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.v9MjXxVAaa",
+                                    "timeUnixNano": "1768569824855418091",
+                                    "attributes": {
+                                        "k6.LY1M0M2cDV9PoEd": "BFwj4fF4H0Sd5dq92ye6tQGLiwiV5j",
+                                        "k6.tj95FRqSB19F1WZ": "52mx4r0iC3HPyLwnffXHSJof3FtlMq",
+                                        "k6.HMhSVgVljKRBREB": "0LOL5OjMQ00djtTkDlWshfDuJitvVn"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.pUE0g0mLQ7",
+                                    "timeUnixNano": "1768569825036006404",
+                                    "attributes": {
+                                        "k6.qFunTyrvW17bT0W": "hzDjaUBQX2064BcF5PzO0uye87czU9",
+                                        "k6.kGQL7shF7L8TsLf": "h9gTWiap8hG4mhooVG6bxlJT2utrwS",
+                                        "k6.EPkZE4fjZC6iqAP": "h3PVhYen7cOrA8QThLf7DBdLegzVa3"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824457484736",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.2iXz6lGr7bLwkPoF7MXB",
+                                        "exception.stacktrace": "panic: runtime error: can't divide by 0\ntrace.makespan()",
+                                        "exception.type": "error.type_k6.i6KWUeKWpA",
+                                        "k6.TiaDkVZOVd4gFFC": "MZHVl5Qw3AhRF6pGOShTeuhi8KOKZx",
+                                        "k6.3bRFoMcOruOsLvO": "ToR3FZFQZ7BBMlrioDmUgDVyIdf9nG",
+                                        "k6.sDSlQHiU2YqmYhB": "ohz0pV09025XIIZkYkefd8uTRerVRi"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "spanId": "31f208a57340650a",
+                            "parentSpanId": "c5215ba45bb63284",
+                            "name": "authenticate",
+                            "kind": "SPAN_KIND_CLIENT",
+                            "startTimeUnixNano": "1768569824454644201",
+                            "endTimeUnixNano": "1768569824547035585",
+                            "durationMs": 92.392,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.peer.port": 8612,
+                                "http.flavor": "1.1",
+                                "net.sock.peer.addr": "192.168.74.137",
+                                "net.peer.name": "auth-service.local",
+                                "http.request.header.accept": [
+                                    "application/xml"
+                                ],
+                                "http.response_content_length": 507261,
+                                "http.method": "PATCH",
+                                "http.url": "https://auth-service.local:8969/authenticate",
+                                "http.status_code": 204
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.0KhsBx8DtL",
+                                    "timeUnixNano": "1768569824524678221",
+                                    "attributes": {
+                                        "k6.qxNmcI9DF4g60MP": "NpAjxr4Hm2FrdwoDSrEJ4ZdG51jcL4",
+                                        "k6.GdRxCmGz2ATsONX": "srSaxfHbtEgubkZEBWimT8vgyPkqVE",
+                                        "k6.qknoYmWQyHqGofs": "qiqUuadYuICPSSe0wQqXAnuJkex3CX"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.A2uiVgD5MM",
+                                    "timeUnixNano": "1768569824502635595",
+                                    "attributes": {
+                                        "k6.FxosZDYisHhb3fc": "kRFUYzOTBdpTaVHrkq6VdbvO0Alvbo",
+                                        "k6.CqOrEejLoRNObLu": "uqie8B66zrCu0C72uR2PYmYTMKRGID",
+                                        "k6.KENlEegrgoOqWIl": "0qtPtWueDmBPtfOQo6fAc5I4tXa1B3"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824473550947",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.trOe1lQR8jozCs0n5HgE",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\nmain.main()",
+                                        "exception.type": "error.type_k6.BT7iV1MTLf",
+                                        "k6.R00i0sovQvcm4TK": "KyMZDIUosMNIpaGpBZj3HXNKuouqVt",
+                                        "k6.A2z8OuI2C6A8Msl": "PrVI3FJFcYmZySizpTvWk5JV6hbOwa",
+                                        "k6.PB5JUbU71cuk7to": "xxk409MxvGBTWrbHzzMeluvGaMvbyN"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "spanId": "f73eeb42536e1661",
+                            "parentSpanId": "c5215ba45bb63284",
+                            "name": "get-article",
+                            "kind": "SPAN_KIND_CLIENT",
+                            "startTimeUnixNano": "1768569824427863967",
+                            "endTimeUnixNano": "1768569825029374742",
+                            "durationMs": 601.511,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.peer.port": 8273,
+                                "http.flavor": "1.1",
+                                "net.sock.peer.addr": "192.168.1.108",
+                                "net.peer.name": "article-service.local",
+                                "http.request.header.accept": [
+                                    "application/json"
+                                ],
+                                "http.response_content_length": 413296,
+                                "http.method": "PATCH",
+                                "http.url": "https://article-service.local:8941/get-article",
+                                "http.status_code": 201
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.dsIQ3551aI",
+                                    "timeUnixNano": "1768569825001503935",
+                                    "attributes": {
+                                        "k6.XO7JzcWWsPFddvp": "8CwniM212rhiUqvhFBsRkfI1Bczd6y",
+                                        "k6.ScCMyP12gqceytr": "c02x8FyEHI9xekuH4xSJmbiKl3s5EE",
+                                        "k6.g8W6C6oSpbZeTxN": "2bJmfyfMEL1E2CRjyooGA105kwqVy4"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.x2TGRuOsEP",
+                                    "timeUnixNano": "1768569824810895820",
+                                    "attributes": {
+                                        "k6.IT54N8hswWWgkXN": "2rsONcFMN1bNgaBr6SLELFoNIWUexZ",
+                                        "k6.hcNVNKpBdfjbpwU": "5FtTb6lJJFvUQcwpv5h30Pl8fLhZdw",
+                                        "k6.GUUeKYt07rRKNL3": "8mRlA6u3Tb4aswTWKTiZAENaz1UaMA"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569825001345466",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.Ivjq8H1JgrgG3Ol8VU6t",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\naccount.login()",
+                                        "exception.type": "error.type_k6.1m6BkXmdQt",
+                                        "k6.rBYd12szyFvpCis": "V0wGQT8Nq39BpQ381M62gVJjjeqQUx",
+                                        "k6.SVgI3Ok8RQS0uJR": "xJgP0u9aTXAaM09DLDFKsuGv5phNGb",
+                                        "k6.SGvBqXPINjFDtH8": "oTuYSB8YmSQMvvk1yC5BjhOHZLOLH2"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "spanId": "f6de1040ba81bb85",
+                            "parentSpanId": "c5215ba45bb63284",
+                            "name": "place-articles",
+                            "kind": "SPAN_KIND_CLIENT",
+                            "startTimeUnixNano": "1768569824421034184",
+                            "endTimeUnixNano": "1768569825007283395",
+                            "durationMs": 586.249,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.peer.port": 8833,
+                                "http.flavor": "1.1",
+                                "net.sock.peer.addr": "192.168.188.20",
+                                "net.peer.name": "cart-service.local",
+                                "http.request.header.accept": [
+                                    "application/json"
+                                ],
+                                "http.response_content_length": 989971,
+                                "http.method": "GET",
+                                "http.url": "https://cart-service.local:8568/place-articles",
+                                "http.status_code": 201
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.xaw67z8T7M",
+                                    "timeUnixNano": "1768569824444409462",
+                                    "attributes": {
+                                        "k6.FfK8FZRjJcZpSsd": "gSQv519Nkr94ZJkgklNKZ5yF0SH1No",
+                                        "k6.uTfOblN7j2g8ezP": "D6tUZprr2PlrQS4Qn4bvH5LErxnf2D",
+                                        "k6.DXCmriICDjikjDt": "ZFXHlaJe6kF107vOhmhLFz8Oeaosen"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.re9rHu5zy6",
+                                    "timeUnixNano": "1768569824820365831",
+                                    "attributes": {
+                                        "k6.kwVdjL9lnsTGzet": "kllkRwej2OGzra2B70CLswnPknJHzo",
+                                        "k6.VZ46sLlGXR8y5K6": "iI3T2hDlHRROXQd2p07rdTpJ3BalAS",
+                                        "k6.NPJUrYXTSpn8hC5": "NkEsuHVgGNP8Ynq3O9GzOTR409Ii24"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824650208650",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.vUgCIBFBFFyh9MsvVXFk",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\ntrace.makespan()",
+                                        "exception.type": "error.type_k6.7OxR7Z5uRh",
+                                        "k6.a8Qv9U7F8PPtGQ7": "vteFfcJ0aofMMCqEw5ePpV77TFIs59",
+                                        "k6.iyijoKYpz9fIJet": "zOhckxGKN8jNvqhRmIePMxt96dyuef",
+                                        "k6.cS3nnpYaQf8avnN": "RoX3k3LydzhrM1VLeOYe102G90SyHj"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "attributes": {
+                "k6": "true",
+                "service.name": "auth-service"
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "k6-scope-name/tCXULHpBqndTL6g"
+                    },
+                    "spans": [
+                        {
+                            "spanId": "af9f4fa0e09f73ea",
+                            "parentSpanId": "31f208a57340650a",
+                            "name": "authenticate",
+                            "kind": "SPAN_KIND_SERVER",
+                            "startTimeUnixNano": "1768569824462588831",
+                            "endTimeUnixNano": "1768569824525053917",
+                            "durationMs": 62.465,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.sock.host.addr": "192.168.74.137",
+                                "net.host.name": "auth-service.local",
+                                "net.host.port": 8969,
+                                "http.flavor": "1.1",
+                                "http.response.header.content-type": [
+                                    "application/xml"
+                                ],
+                                "http.scheme": "https",
+                                "http.target": "/authenticate",
+                                "http.response_content_length": 507261,
+                                "http.request_content_length": 25082,
+                                "http.method": "PATCH",
+                                "http.url": "https://auth-service.local:8969/authenticate",
+                                "http.status_code": 204
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.wEGQtztXpI",
+                                    "timeUnixNano": "1768569824516205754",
+                                    "attributes": {
+                                        "k6.TM1D4lZrDbQ6qXQ": "obN8I8PpCz6ObOAROBFrtdiomZPepd",
+                                        "k6.NoG3vvXED6jNFOY": "eWEFvbMJV22qde2SYCZ8byf8Ox7A1I",
+                                        "k6.017SzhGnNLGj1Jr": "ZTRJc9u0zKiagF5XL4Kzg25PYVZFuH"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.oD72a2YZmN",
+                                    "timeUnixNano": "1768569824488323655",
+                                    "attributes": {
+                                        "k6.6T2GF889L8FXLsn": "Zv1KSES2zYROd6erADPxlUNU1pZwDn",
+                                        "k6.nu7JT8cG4sLmKJs": "wHjvkWZE5Nw9xkLgiivxE7Djdcw0JG",
+                                        "k6.aJk72yDO1V6gr8m": "8ga0yQ8U0e5DSlg5gzfcf1k0H3j25d"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824517707719",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.ggpURjjWVjSnFp0hSt8F",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\npayment.collect()",
+                                        "exception.type": "error.type_k6.PqBwDmla4O",
+                                        "k6.Bv3IoRJc54Bovxg": "GKvWd7ovxRaViY1IDhejuSbzWM61LJ",
+                                        "k6.wzA4hCuMAkTGW33": "onGvAM8eMfa59bPRRpo40iBOrv4Ety",
+                                        "k6.dRff60QOuV82yqY": "ZgS0ar4HYN6yZF2ihXsedkKxdyujme"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "attributes": {
+                "k6": "true",
+                "service.name": "article-service"
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "k6-scope-name/m77jNU7Mqum2YtV"
+                    },
+                    "spans": [
+                        {
+                            "spanId": "3792600662b0b931",
+                            "parentSpanId": "f73eeb42536e1661",
+                            "name": "get-article",
+                            "kind": "SPAN_KIND_SERVER",
+                            "startTimeUnixNano": "1768569824463045089",
+                            "endTimeUnixNano": "1768569824839954642",
+                            "durationMs": 376.91,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.sock.host.addr": "192.168.1.108",
+                                "net.host.name": "article-service.local",
+                                "net.host.port": 8941,
+                                "http.flavor": "1.1",
+                                "http.response.header.content-type": [
+                                    "application/json"
+                                ],
+                                "http.scheme": "https",
+                                "http.target": "/get-article",
+                                "http.response_content_length": 413296,
+                                "http.request_content_length": 69596,
+                                "http.method": "PATCH",
+                                "http.url": "https://article-service.local:8941/get-article",
+                                "http.status_code": 201
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.jth6Hbj7Rv",
+                                    "timeUnixNano": "1768569824640610925",
+                                    "attributes": {
+                                        "k6.bQl56QFWcnqqdrY": "po1GxtLvLWnxnVSn8tA7RyhSW9N1rn",
+                                        "k6.vtxWXx18xFb5RnX": "19iUV7c4pMs16RdtdPXx5Od1zbcnbJ",
+                                        "k6.BGStnaDqankUiOA": "XjK60PWT5jhTghp6pmhVyqtsNH3loL"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.PSFEBZGCQC",
+                                    "timeUnixNano": "1768569824754060301",
+                                    "attributes": {
+                                        "k6.SGyyI5gFxgQnNrT": "mHbh6QCk0dAZjKUEVysZIeULobvI8V",
+                                        "k6.ewFm33IkQWsj4Ht": "6MB6ZUgr56bc9cpanaD5zSqQMKnpjF",
+                                        "k6.zxJ49ePeXWEtjdN": "6M0Q3Hv0vsx8RXL5nCHtBFoDMT89p9"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824576743350",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.FznYRuYPUhaFn3HGH2RD",
+                                        "exception.stacktrace": "panic: runtime error: can't divide by 0\ntrace.makespan()",
+                                        "exception.type": "error.type_k6.3jIhGGeady",
+                                        "k6.0duTOEc3VFk8gSy": "s7ZescBfHiI8fNJmzpU1TQveEdIgfw",
+                                        "k6.4qE2Ss4KwnrciQj": "cNBQDmrhfwFJgF9mYPn9sfNlPWfwtH",
+                                        "k6.AsfpRhAEXkV1ne6": "d5VOSP5W1RiBaioAe3YBysngKFUixG"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "spanId": "e6f93d20d5111b37",
+                            "parentSpanId": "3792600662b0b931",
+                            "name": "select-articles",
+                            "kind": "SPAN_KIND_CLIENT",
+                            "startTimeUnixNano": "1768569824497214066",
+                            "endTimeUnixNano": "1768569824728275410",
+                            "durationMs": 231.062,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.peer.port": 8569,
+                                "net.sock.peer.addr": "192.168.32.226",
+                                "net.peer.name": "postgres.local"
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.TmJdtrvKYQ",
+                                    "timeUnixNano": "1768569824690580369",
+                                    "attributes": {
+                                        "k6.ljOQDH9ZDAAb00m": "IiLS24ksV9uIMl6F2gmLfL4bcfyuG0",
+                                        "k6.BOemKmCrWrmSkxr": "iWxBOq4sxDdds5ic44I6AP4jKB7XC1",
+                                        "k6.GeKzffLpc2naW9K": "7TdHFvAxvSY5LYEg8n2buE4mYhZ7w2"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.0tL5rkDCPW",
+                                    "timeUnixNano": "1768569824666339984",
+                                    "attributes": {
+                                        "k6.dBFDdGpbZKo1TQg": "WlS9Z23p2cLhD4YxeBhHIx7e5Ys40k",
+                                        "k6.9i4rR7CeArJJrju": "mTRqhYvL7v5H1EwNZukvmF1xBgBHIq",
+                                        "k6.GuhMMDA8TsJauod": "8b6BU9slN0AKdureusjpCHBT5gGnYW"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824633956069",
+                                    "attributes": {
+                                        "exception.type": "error.type_k6.n3Fqxd5QWA",
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.oEYytAQtyo2PZ3KTGEpB",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\nmain.main()",
+                                        "k6.xBByClistJww6Ia": "yxPXa0n3ErNMYCqsNPNCPzoCcV41SU",
+                                        "k6.XhLdFGmyFaUk9LK": "J9LEBMfpsZK1PjLNZQe4CtZ69auZkC",
+                                        "k6.hMFe9Juet23czqY": "Os2BzudQMc5K8yNnQrhYX2QRGDFaIO"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "attributes": {
+                "k6": "true",
+                "service.name": "postgres"
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "k6-scope-name/7lJ9Ge8SWBStsY9"
+                    },
+                    "spans": [
+                        {
+                            "spanId": "65d64af14f0c045c",
+                            "parentSpanId": "e6f93d20d5111b37",
+                            "name": "query-articles",
+                            "kind": "SPAN_KIND_SERVER",
+                            "startTimeUnixNano": "1768569824519848652",
+                            "endTimeUnixNano": "1768569824659813066",
+                            "durationMs": 139.964,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "k6.YoeUqmzNp9pDPKc": "CjFj253KPoGW5OTzZlj5v4eRqBvVPw",
+                                "k6.SqPJ9Hiej4FpXC9": "GNZZQSuXoB2zFliRvzTc308OVO7pFT",
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.sock.host.addr": "192.168.32.226",
+                                "net.host.name": "postgres.local",
+                                "net.host.port": 8881
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.76vpcGwFVZ",
+                                    "timeUnixNano": "1768569824529833535",
+                                    "attributes": {
+                                        "k6.cx2HbEJ0tcrIgh4": "LVK5LouxI7YoAkOP0TeMU0HeRMy8qn",
+                                        "k6.0NF0blWpggBepbN": "nWJkTcZO6GEA9L5NTkhnwtPbYxd9K9",
+                                        "k6.GNE7o5Il3nSk1yA": "AMPuiiMlkOhJjdVt8BTcYUFttbE47F"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.RlledPXTN6",
+                                    "timeUnixNano": "1768569824583200903",
+                                    "attributes": {
+                                        "k6.59AvNXTgQ5vxCky": "25iafaoW5qHow8JhgbeSEONQhdR1xq",
+                                        "k6.uPFbZxSXzNwBmZt": "7yowZciZgwHTDkwWvXd0WXM3fxYOZt",
+                                        "k6.vOh5Wrlg60k81X0": "IMjz2R3guE0nXYNSE9KE4c40h08Jod"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824659682664",
+                                    "attributes": {
+                                        "exception.stacktrace": "panic: runtime error: index out of range\naccount.login()",
+                                        "exception.type": "error.type_k6.nNdIN1kvfg",
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.Y9sIbYPPUQVntaxTts49",
+                                        "k6.wexT5vSsAqmEMpu": "2RddkaJGBHH1PoB5lmuAUWrAHu514K",
+                                        "k6.mVovJKIgkIzW1K8": "oKpGRozjXXkmDUcy3qHllHhOTlCjkA",
+                                        "k6.wOhp2pmQIfwow2K": "5vFF53qaBwOb2pq6uFtXLKxrQktPl5"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "attributes": {
+                "k6": "true",
+                "service.name": "cart-service"
+            },
+            "scopeSpans": [
+                {
+                    "scope": {
+                        "name": "k6-scope-name/KVSnhzrdDLThJqr"
+                    },
+                    "spans": [
+                        {
+                            "spanId": "7b41377766124faf",
+                            "parentSpanId": "f6de1040ba81bb85",
+                            "name": "place-articles",
+                            "kind": "SPAN_KIND_SERVER",
+                            "startTimeUnixNano": "1768569824454052715",
+                            "endTimeUnixNano": "1768569824786482580",
+                            "durationMs": 332.43,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ],
+                                "article.count": 1,
+                                "net.transport": "ip_tcp",
+                                "net.sock.family": "inet",
+                                "net.sock.host.addr": "192.168.188.20",
+                                "net.host.name": "cart-service.local",
+                                "net.host.port": 8568,
+                                "http.flavor": "1.1",
+                                "http.response.header.content-type": [
+                                    "application/json"
+                                ],
+                                "http.scheme": "https",
+                                "http.target": "/place-articles",
+                                "http.response_content_length": 989971,
+                                "http.method": "GET",
+                                "http.url": "https://cart-service.local:8568/place-articles",
+                                "http.status_code": 201
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.JlM1rg8WdU",
+                                    "timeUnixNano": "1768569824713325709",
+                                    "attributes": {
+                                        "k6.afU6GcqBfy0dNLf": "w8xO8bITOnY8GWuTet0A0wPjTunxN4",
+                                        "k6.yyvP84hJ6gF0Xjf": "8XHFWhmlRJd78hBx4pJmyYi6jr4T8w",
+                                        "k6.VoOKqPKhDTJ2Jii": "zitMLup5khsl2tR33fY98YnmSX3vuZ"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.E3nJ2IxZEv",
+                                    "timeUnixNano": "1768569824703383534",
+                                    "attributes": {
+                                        "k6.bgwuUYKmVc6lhDF": "b2k9IwsQp4ImPXBKfaBiCthHGgIkb5",
+                                        "k6.YE3HtEiovoNMjDt": "T4Er1RVgn9ZvbzUbMExfWoG6B8hxK2",
+                                        "k6.QOkluNdYgaDaN4j": "U7EHjcnCAa1z9Ks3VXGyv9u2HTzw6M"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824476157173",
+                                    "attributes": {
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.7KMGUT7Jx2Y2u3ND7O5P",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\nmain.main()",
+                                        "exception.type": "error.type_k6.kf38Izr6yT",
+                                        "k6.fb5kXmheRyAR1mS": "ztdiildhJDszEurB2EJaXINikx4vvB",
+                                        "k6.6tX5p6Ud1Pvrl1z": "8ZXuzN8AqMWBrOyCZoGElCxw07YkGL",
+                                        "k6.hW0rbtWnp49LZmC": "dFQxhpQpJK4g4UxQlGgfr25ttxYzQD"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "spanId": "47137787872b5236",
+                            "parentSpanId": "7b41377766124faf",
+                            "name": "persist-cart",
+                            "kind": "SPAN_KIND_INTERNAL",
+                            "startTimeUnixNano": "1768569824480651637",
+                            "endTimeUnixNano": "1768569824703827531",
+                            "durationMs": 223.176,
+                            "attributes": {
+                                "numbers": [
+                                    "one",
+                                    "two",
+                                    "three"
+                                ]
+                            },
+                            "events": [
+                                {
+                                    "name": "event_k6.nizinsUXJn",
+                                    "timeUnixNano": "1768569824539091357",
+                                    "attributes": {
+                                        "k6.jnmsoCIHHhM6llG": "dWOqcVob833dXN0FzeerTv3pPVi518",
+                                        "k6.MYYqYQHf9TUg6Yr": "RB8OmCw6kq4HriSmnJ66KNnn1y9wMT",
+                                        "k6.08LQ8CJ0d7TRefe": "ANEOgRFd5aWFzl2w0hGSdl7QDf0TVh"
+                                    }
+                                },
+                                {
+                                    "name": "event_k6.hVDHc5rmvo",
+                                    "timeUnixNano": "1768569824492681099",
+                                    "attributes": {
+                                        "k6.gC0gB8Nw19U4xMm": "xNKG1lBazO951wZdhi8U20NABIsCFT",
+                                        "k6.JoEZr6IgleQrrtI": "hsQBbh1PzCodToqMU3qiEBZ8mbpSCe",
+                                        "k6.wMICukgve5KDhpN": "NzugeLOZo5CvYQmvVvN2tWckW3JxAZ"
+                                    }
+                                },
+                                {
+                                    "name": "exception",
+                                    "timeUnixNano": "1768569824558581415",
+                                    "attributes": {
+                                        "exception.type": "error.type_k6.KVvqgvYc5B",
+                                        "exception.escape": false,
+                                        "exception.message": "error: k6.we7nUiYMT1q1Df0c4VS8",
+                                        "exception.stacktrace": "panic: runtime error: index out of range\naccount.login()",
+                                        "k6.VG5DWbkWkOQSz8d": "K1Otm1LvFr85I6aWZ8PtdVcGt0o2u4",
+                                        "k6.vrxEOMWXkkS44J5": "a5h7TC1cwVuvFBJSTJuqq3vFOM6aRe",
+                                        "k6.xglz10EITwOKrBO": "zopl41A3jpySqbqCFzuvdEM0vuBvEA"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

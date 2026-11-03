@@ -6,6 +6,8 @@ module.exports = defineConfig({
   locales: ['en'],
   extract: {
     input: ['src/**/*.{js,jsx,ts,tsx}'],
+    // Temporary: distributed-tracing strings are excluded until it adopts this namespace.
+    ignore: ['src/features/tracing/**'],
     output: 'locales/{{language}}/{{namespace}}.json',
     defaultNS: 'plugin__monitoring-plugin',
     nsSeparator: '~',
