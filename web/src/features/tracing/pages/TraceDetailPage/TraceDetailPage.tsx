@@ -50,7 +50,7 @@ function TraceDetailPage() {
 export default TraceDetailPage;
 
 function TraceDetailPageBody() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { traceId } = useParams();
   const [tempo] = useTempoInstance();
   const location = useLocation();
@@ -162,7 +162,7 @@ function GanttChart({ traceId, selectedSpanId }: GanttChartProps) {
 }
 
 function PageTitle() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const traceName = useTraceName();
 
   return (
@@ -208,7 +208,7 @@ interface LightspeedButtonProps {
 }
 
 function LightspeedButton({ useOpenOLS, traceName, traceYaml }: LightspeedButtonProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const openOLS = useOpenOLS();
 
   const handleTraceAISummaryClick = () => {

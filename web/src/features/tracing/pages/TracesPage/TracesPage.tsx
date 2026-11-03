@@ -44,7 +44,7 @@ const viewInstallationDocsLink =
   'https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/distributed_tracing';
 
 function TracesPage() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <TracingApp>
@@ -61,7 +61,7 @@ export default TracesPage;
  * "No Tempo instances created yet" and shows an empty state instead of the query browser.
  */
 function TracesPageBody() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { isLoading, error, data: tempoResources } = useTempoResources();
   const [tempo] = useTempoInstance();
 
@@ -92,7 +92,7 @@ function TracesPageBody() {
 }
 
 function TempoOperatorNotInstalledState() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const installOperatorLink = getInstallOperatorLink();
 
   return (
@@ -125,7 +125,7 @@ function TempoOperatorNotInstalledState() {
 }
 
 function NoTempoInstance() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [isOpen, setOpen] = useState(false);
 
   return (
@@ -195,7 +195,7 @@ interface ErrorStateProps {
 }
 
 function ErrorState({ errorType, error }: ErrorStateProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   return (
     <>
       <PageSection>

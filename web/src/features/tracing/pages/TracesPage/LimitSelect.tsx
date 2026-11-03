@@ -19,7 +19,7 @@ interface LimitSelectProps {
 }
 
 export function LimitSelect({ limit, setLimit }: LimitSelectProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <Form>

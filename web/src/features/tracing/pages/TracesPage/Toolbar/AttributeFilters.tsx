@@ -63,7 +63,7 @@ const statusOptions = [
 ];
 
 export function AttributeFilters(props: AttributeFiltersProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { tempo, query, runQuery } = props;
   const [activeFilter, setActiveFilter] = useState<string | undefined>(
     attributeFilterOptions[0].value,
@@ -244,7 +244,7 @@ interface DurationAttributeFilterProps {
 }
 
 function DurationAttributeFilter(props: DurationAttributeFilterProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { filterName, show, value, setValue } = props;
   const { min, max } = value;
 
@@ -299,7 +299,7 @@ type DurationTextInputProps = Omit<
 const durationFormatRegex = /^([0-9]+\.)?[0-9]+(ns|ms|s|m|h)$/;
 
 export function DurationTextInput(props: DurationTextInputProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <DebouncedTextInput
@@ -322,7 +322,7 @@ interface CustomAttributesFilterProps {
 
 function CustomAttributesFilter(props: CustomAttributesFilterProps) {
   const { filterName, show, value, setValue } = props;
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <ToolbarFilter

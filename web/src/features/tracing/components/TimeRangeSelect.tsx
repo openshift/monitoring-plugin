@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import '@/features/tracing/components/TimeRangeSelect.css';
 
 export const TimeRangeSelect = () => {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { timeZone, setTimeZone } = useTimeZoneParams('local');
 
   return (

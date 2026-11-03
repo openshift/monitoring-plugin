@@ -35,7 +35,7 @@ export const codemirrorTheme = EditorView.theme({
 });
 
 export function TraceQLEditor({ id, tempo, query, setQuery, runQuery }: TraceQLEditorProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { theme } = usePatternFlyTheme();
   const { absoluteTimeRange } = useTimeRange();
 

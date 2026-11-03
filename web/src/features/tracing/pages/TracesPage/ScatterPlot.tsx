@@ -12,7 +12,7 @@ import {
 import { linkToTrace } from '@/features/tracing/utils/links';
 
 export function ScatterPlot() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [isVisible, setVisible] = useState(true);
   const [ref, width] = useRefWidth();
   const { loading, hasTraceData } = usePersesTraceData();

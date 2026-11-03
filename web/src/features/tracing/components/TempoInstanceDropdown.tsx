@@ -19,7 +19,7 @@ interface TempoResourceOption extends TypeaheadSelectOption {
 }
 
 export const TempoInstanceDropdown = ({ tempo, setTempo }: TempoInstanceDropdownProps) => {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { isLoading, data: tempoResources } = useTempoResources();
 
   const options: TempoResourceOption[] = (tempoResources ?? [])

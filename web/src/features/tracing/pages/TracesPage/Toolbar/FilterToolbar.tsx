@@ -29,7 +29,7 @@ interface FilterToolbarProps {
 }
 
 export function FilterToolbar(props: FilterToolbarProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { tempo, setTempo, query, runQuery } = props;
   const [showAttributeFilters, setShowAttributeFilters] = useState(isSimpleTraceQLQuery(query));
 
