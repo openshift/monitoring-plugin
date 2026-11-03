@@ -1,7 +1,8 @@
 import { TempoDatasource } from '@perses-dev/tempo-plugin';
 import { useQuery } from '@tanstack/react-query';
-import { TempoInstance } from './useTempoInstance';
-import { getProxyURLFor } from './api';
+
+import { getProxyURLFor } from '@/features/tracing/hooks/api';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
 
 export function useTagValues(
   tempo: TempoInstance | undefined,
@@ -28,7 +29,8 @@ export function useTagValues(
     staleTime: 60 * 1000, // cache tag value response for 1m
     // Keep the previous query result during loading.
     // Without this setting, the select boxes in the filter bar flicker on every selection,
-    // because the select box data goes from list of values -> undefined (during loading state) -> list of values.
+    // because the select box data goes from list of values -> undefined (during loading state) ->
+    // list of values.
     // The select box values are refreshed because the absolute time range changes.
     keepPreviousData: true,
   });

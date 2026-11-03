@@ -1,7 +1,7 @@
 import { Form, FormGroup } from '@patternfly/react-core';
-import { useTranslation } from 'react-i18next';
 import { TimeRangeControls, useTimeZoneParams } from '@perses-dev/plugin-system';
-import './TimeRangeSelect.css';
+import { useTranslation } from 'react-i18next';
+import '@/features/tracing/components/TimeRangeSelect.css';
 
 export const TimeRangeSelect = () => {
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');

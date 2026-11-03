@@ -3,10 +3,11 @@ import {
   FieldExpression,
   FieldOp,
   IntrinsicField,
-  Static,
   parser,
+  Static,
 } from '@grafana/lezer-traceql';
-import { DurationField, Filter } from './filter';
+
+import { DurationField, Filter } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/filter';
 
 interface Matcher {
   operator: string;

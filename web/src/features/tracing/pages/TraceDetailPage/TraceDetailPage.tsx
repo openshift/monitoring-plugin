@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,26 +9,31 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { MagicIcon } from '@patternfly/react-icons';
+import { useDataQueries } from '@perses-dev/plugin-system';
+import { dump as dumpYAML } from 'js-yaml';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router';
+import { StringParam, useQueryParam } from 'use-query-params';
+
 import {
   PersesDashboardWrapper,
   PersesTempoDatasourceWrapper,
   PersesTracePanelWrapper,
   PersesWrapper,
-} from '../../components/PersesWrapper';
-import { useDataQueries } from '@perses-dev/plugin-system';
-import { useTempoInstance } from '../../hooks/useTempoInstance';
-import { TracingApp } from '../../TracingApp';
-import { linkToSpan, linkToTrace, spanAttributeLinks } from '../../links';
-import { StringParam, useQueryParam } from 'use-query-params';
-import './TraceDetailPage.css';
-import { MagicIcon } from '@patternfly/react-icons';
-import { dump as dumpYAML } from 'js-yaml';
-import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
-import { AttachmentTypes, isOpenOLSHandlerExtension, OpenOLSHandlerProps } from '../../hooks/ols';
-import { transformTrace } from './transformTrace';
+} from '@/features/tracing/components/PersesWrapper';
+import { TracingApp } from '@/features/tracing/components/TracingApp';
+import {
+  AttachmentTypes,
+  isOpenOLSHandlerExtension,
+  OpenOLSHandlerProps,
+} from '@/features/tracing/hooks/ols';
+import { useTempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { transformTrace } from '@/features/tracing/pages/TraceDetailPage/transform-trace';
+import { linkToSpan, linkToTrace, spanAttributeLinks } from '@/features/tracing/utils/links';
+
+import '@/features/tracing/pages/TraceDetailPage/TraceDetailPage.css';
 
 function TraceDetailPage() {
   return (
@@ -98,7 +104,8 @@ function GanttChart({ traceId, selectedSpanId }: GanttChartProps) {
     : undefined;
 
   // Due to some Perses <Panel> internals, useMemo() doesn't work reliably inside panelOptions.extra
-  // Therefore we'll perform the trace transformation in this component and pass it to <LightspeedButton> as a prop.
+  // Therefore we'll perform the trace transformation in this component and pass it to
+  // <LightspeedButton> as a prop.
   const lightspeedBtn = useMemo(() => {
     if (!useOpenOLS) return null;
     if (!trace) return null;
@@ -112,6 +119,7 @@ function GanttChart({ traceId, selectedSpanId }: GanttChartProps) {
 
       traceYaml = dumpYAML(transformedTrace, { lineWidth: -1 });
     } catch (e) {
+      // eslint-disable-next-line no-console -- Imported error logging, kept as-is.
       console.error('Error while transforming trace', e);
       return null;
     }

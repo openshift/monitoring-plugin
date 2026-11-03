@@ -1,4 +1,17 @@
 import {
+  Button,
+  MenuToggle,
+  MenuToggleElement,
+  Select,
+  SelectList,
+  SelectOption,
+  SelectOptionProps,
+  TextInputGroup,
+  TextInputGroupMain,
+  TextInputGroupUtilities,
+} from '@patternfly/react-core';
+import { TimesIcon } from '@patternfly/react-icons';
+import {
   CSSProperties,
   FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
@@ -9,20 +22,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  Select,
-  SelectOption,
-  SelectList,
-  SelectOptionProps,
-  MenuToggle,
-  MenuToggleElement,
-  TextInputGroup,
-  TextInputGroupMain,
-  TextInputGroupUtilities,
-  Button,
-} from '@patternfly/react-core';
-import { TimesIcon } from '@patternfly/react-icons';
-import { TypeaheadSelectOption } from './TypeaheadSelect';
+
+import { TypeaheadSelectOption } from '@/features/tracing/components/TypeaheadSelect';
 
 export interface TypeaheadCheckboxSelectProps {
   placeholder: string;
@@ -158,7 +159,8 @@ export function TypeaheadCheckboxSelect(props: TypeaheadCheckboxSelectProps) {
     }
 
     if (key === 'ArrowUp') {
-      // When no index is set or at the first index, focus to the last, otherwise decrement focus index
+      // When no index is set or at the first index, focus to the last, otherwise decrement focus
+      // index
       if (focusedItemIndex === null || focusedItemIndex === 0) {
         indexToFocus = selectOptions.length - 1;
       } else {
@@ -175,7 +177,8 @@ export function TypeaheadCheckboxSelect(props: TypeaheadCheckboxSelectProps) {
     }
 
     if (key === 'ArrowDown') {
-      // When no index is set or at the last index, focus to the first, otherwise increment focus index
+      // When no index is set or at the last index, focus to the first, otherwise increment focus
+      // index
       if (focusedItemIndex === null || focusedItemIndex === selectOptions.length - 1) {
         indexToFocus = 0;
       } else {

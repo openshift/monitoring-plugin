@@ -1,29 +1,34 @@
-import { ReactElement, ReactNode, useState } from 'react';
 import {
-  ToolbarGroup,
-  ToolbarItem,
-  ToolbarFilter,
-  Popover,
   Form,
   FormGroup,
+  Popover,
+  ToolbarFilter,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import { FilterIcon, HelpIcon } from '@patternfly/react-icons';
+import { useTimeRange } from '@perses-dev/plugin-system';
+import { getUnixTimeRange } from '@perses-dev/tempo-plugin';
+import { ReactElement, ReactNode, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { TempoInstance } from '../../../hooks/useTempoInstance';
-import { ControlledSimpleSelect } from '../../../components/ControlledSelects';
-import { TypeaheadSelectOption } from '../../../components/TypeaheadSelect';
-import { filterToTraceQL } from './Filter/traceql_from_filter';
+import { Link } from 'react-router';
+
+import { ControlledSimpleSelect } from '@/features/tracing/components/ControlledSelects';
 import {
   DebouncedTextInput,
   DebouncedTextInputProps,
-} from '../../../components/DebouncedTextInput';
-import { traceQLToFilter } from './Filter/traceql_to_filter';
-import { TypeaheadCheckboxSelect } from '../../../components/TypeaheadCheckboxSelect';
-import { DurationField, Filter, splitByUnquotedWhitespace } from './Filter/filter';
-import { useTagValues } from '../../../hooks/useTagValues';
-import { Link } from 'react-router';
-import { useTimeRange } from '@perses-dev/plugin-system';
-import { getUnixTimeRange } from '@perses-dev/tempo-plugin';
+} from '@/features/tracing/components/DebouncedTextInput';
+import { TypeaheadCheckboxSelect } from '@/features/tracing/components/TypeaheadCheckboxSelect';
+import { TypeaheadSelectOption } from '@/features/tracing/components/TypeaheadSelect';
+import { useTagValues } from '@/features/tracing/hooks/useTagValues';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import {
+  DurationField,
+  Filter,
+  splitByUnquotedWhitespace,
+} from '@/features/tracing/pages/TracesPage/Toolbar/Filter/filter';
+import { filterToTraceQL } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-from-filter';
+import { traceQLToFilter } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-to-filter';
 
 const k8sAttributesProcessorLink =
   'https://docs.redhat.com/en/documentation/red_hat_build_of_opentelemetry/latest/html/configuring_the_collector/otel-collector-processors#otel-processors-kubernetes-attributes-processor_otel-collector-processors';

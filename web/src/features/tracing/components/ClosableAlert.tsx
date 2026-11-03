@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
 import { Alert, AlertActionCloseButton, AlertProps } from '@patternfly/react-core';
+import { useCallback, useState } from 'react';
 
 export function ClosableAlert(props: AlertProps) {
   const [isVisible, setVisible] = useState(true);

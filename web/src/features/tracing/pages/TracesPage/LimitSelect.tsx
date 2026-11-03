@@ -1,6 +1,7 @@
 import { Form, FormGroup } from '@patternfly/react-core';
-import { ControlledSimpleSelect } from '../../components/ControlledSelects';
 import { useTranslation } from 'react-i18next';
+
+import { ControlledSimpleSelect } from '@/features/tracing/components/ControlledSelects';
 
 export const DEFAULT_LIMIT = 20;
 const limitOptions = [

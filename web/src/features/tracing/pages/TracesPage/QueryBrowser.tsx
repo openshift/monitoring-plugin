@@ -1,20 +1,21 @@
-import { useCallback, useEffect, useRef } from 'react';
 import { Divider, PageSection, Split, SplitItem, Stack, Title } from '@patternfly/react-core';
+import { useDataQueries, useTimeRange } from '@perses-dev/plugin-system';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TimeRangeSelect } from '../../components/TimeRangeSelect';
-import { ScatterPlot } from './ScatterPlot';
-import { TraceTable } from './TraceTable';
+import { NumberParam, StringParam, useQueryParam, withDefault } from 'use-query-params';
+
+import { ClosableAlert } from '@/features/tracing/components/ClosableAlert';
 import {
   PersesDashboardWrapper,
   PersesTempoDatasourceWrapper,
   PersesWrapper,
-} from '../../components/PersesWrapper';
-import { NumberParam, StringParam, useQueryParam, withDefault } from 'use-query-params';
-import { useTempoInstance } from '../../hooks/useTempoInstance';
-import { useDataQueries, useTimeRange } from '@perses-dev/plugin-system';
-import { FilterToolbar } from './Toolbar/FilterToolbar';
-import { DEFAULT_LIMIT, LimitSelect } from './LimitSelect';
-import { ClosableAlert } from '../../components/ClosableAlert';
+} from '@/features/tracing/components/PersesWrapper';
+import { TimeRangeSelect } from '@/features/tracing/components/TimeRangeSelect';
+import { useTempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { DEFAULT_LIMIT, LimitSelect } from '@/features/tracing/pages/TracesPage/LimitSelect';
+import { ScatterPlot } from '@/features/tracing/pages/TracesPage/ScatterPlot';
+import { FilterToolbar } from '@/features/tracing/pages/TracesPage/Toolbar/FilterToolbar';
+import { TraceTable } from '@/features/tracing/pages/TracesPage/TraceTable';
 
 export function QueryBrowser() {
   return (
@@ -35,10 +36,11 @@ export function QueryBrowserBody() {
   const isInitialRender = useRef(true);
 
   // Refresh query if Tempo instance or tenant changes.
-  // The Perses data source is selected via a mock DatasourceApiImpl implementation in <PersesWrapper>,
-  // therefore Perses doesn't refresh automatically if the Tempo instance changes.
+  // The Perses data source is selected via a mock DatasourceApiImpl implementation in
+  // <PersesWrapper>, therefore Perses doesn't refresh automatically if the Tempo instance changes.
   useEffect(() => {
-    // Only call refresh() if the Tempo instance changed, not on the initial render of this component.
+    // Only call refresh() if the Tempo instance changed, not on the initial render of this
+    // component.
     if (isInitialRender.current) {
       isInitialRender.current = false;
       return;

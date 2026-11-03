@@ -1,11 +1,15 @@
-import { useState } from 'react';
 import { Button, Flex, FlexItem } from '@patternfly/react-core';
-import { useTranslation } from 'react-i18next';
-import { PersesPanelPluginWrapper, usePersesTraceData } from '../../components/PersesWrapper';
-import { ExpandIcon, CompressIcon } from '@patternfly/react-icons';
-import { useRefWidth } from '../../components/console/utils/ref-width-hook';
-import { linkToTrace } from '../../links';
+import { CompressIcon, ExpandIcon } from '@patternfly/react-icons';
 import { ScatterChart } from '@perses-dev/scatter-chart-plugin';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { useRefWidth } from '@/features/tracing/components/console/utils/ref-width-hook';
+import {
+  PersesPanelPluginWrapper,
+  usePersesTraceData,
+} from '@/features/tracing/components/PersesWrapper';
+import { linkToTrace } from '@/features/tracing/utils/links';
 
 export function ScatterPlot() {
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');

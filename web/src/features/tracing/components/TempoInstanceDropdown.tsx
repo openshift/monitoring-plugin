@@ -1,11 +1,12 @@
-import { Form, FormGroup, Popover, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
-import { useTranslation } from 'react-i18next';
-import { TempoResource, useTempoResources } from '../hooks/useTempoResources';
-import { TempoInstance } from '../hooks/useTempoInstance';
 import { ResourceIcon } from '@openshift-console/dynamic-plugin-sdk';
-import { ControlledTypeaheadSelect } from './ControlledSelects';
-import { TypeaheadSelectOption } from './TypeaheadSelect';
+import { Form, FormGroup, Popover, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
+import { useTranslation } from 'react-i18next';
+
+import { ControlledTypeaheadSelect } from '@/features/tracing/components/ControlledSelects';
+import { TypeaheadSelectOption } from '@/features/tracing/components/TypeaheadSelect';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { TempoResource, useTempoResources } from '@/features/tracing/hooks/useTempoResources';
 
 interface TempoInstanceDropdownProps {
   tempo: TempoInstance | undefined;
@@ -33,9 +34,11 @@ export const TempoInstanceDropdown = ({ tempo, setTempo }: TempoInstanceDropdown
   let selected: TempoResourceOption | undefined = undefined;
   if (tempo) {
     if (isLoading) {
-      // Preselect the dropdown option without waiting until the list of TempoResources is loaded to prevent flickering.
+      // Preselect the dropdown option without waiting until the list of TempoResources is loaded
+      // to prevent flickering.
       // To accomplish this, we'll create a slightly inaccurate TempoResourceSelectOption,
-      // because the kind and the list of tenants is not known before the list of TempoResources is loaded.
+      // because the kind and the list of tenants is not known before the list of TempoResources
+      // is loaded.
       selected = {
         value: `${tempo.namespace}__${tempo.name}`,
         content: `${tempo.namespace} / ${tempo.name}`,
@@ -66,7 +69,8 @@ export const TempoInstanceDropdown = ({ tempo, setTempo }: TempoInstanceDropdown
       setTempo({
         namespace: option.tempo.namespace,
         name: option.tempo.name,
-        tenant: option.tempo.tenants?.[0], // select first tenant by default, or undefined if no tenants
+        // select first tenant by default, or undefined if no tenants
+        tenant: option.tempo.tenants?.[0],
       });
     }
   };

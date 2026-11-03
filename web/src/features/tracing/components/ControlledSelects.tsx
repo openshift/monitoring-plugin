@@ -1,8 +1,14 @@
-import { useMemo } from 'react';
 import { SimpleSelect, SimpleSelectOption, SimpleSelectProps } from '@patternfly/react-templates';
-import { TypeaheadSelect, TypeaheadSelectOption, TypeaheadSelectProps } from './TypeaheadSelect';
+import { useMemo } from 'react';
 
-// This file provides controlled variants of the Select components of the @patternfly/react-templates package.
+import {
+  TypeaheadSelect,
+  TypeaheadSelectOption,
+  TypeaheadSelectProps,
+} from '@/features/tracing/components/TypeaheadSelect';
+
+// This file provides controlled variants of the Select components of the
+// @patternfly/react-templates package.
 
 interface ControlledSimpleSelectProps extends Omit<SimpleSelectProps, 'initialOptions'> {
   options: SimpleSelectOption[];

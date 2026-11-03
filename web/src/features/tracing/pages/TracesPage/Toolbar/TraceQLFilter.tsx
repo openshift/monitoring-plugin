@@ -1,8 +1,9 @@
+import { Button, Form, FormGroup, ToolbarGroup, ToolbarItem } from '@patternfly/react-core';
 import { useCallback, useEffect, useRef } from 'react';
-import { ToolbarGroup, ToolbarItem, Button, Form, FormGroup } from '@patternfly/react-core';
 import { useTranslation } from 'react-i18next';
-import { TempoInstance } from '../../../hooks/useTempoInstance';
-import { TraceQLEditor } from './TraceQLEditor';
+
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { TraceQLEditor } from '@/features/tracing/pages/TracesPage/Toolbar/TraceQLEditor';
 
 interface TraceQLFilterProps {
   tempo: TempoInstance | undefined;
@@ -13,9 +14,11 @@ interface TraceQLFilterProps {
 export function TraceQLFilter({ tempo, query, runQuery }: TraceQLFilterProps) {
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
 
-  // For performance and UX reasons, the search results should not be refreshed on every key press of the TraceQL editor.
+  // For performance and UX reasons, the search results should not be refreshed on every key press
+  // of the TraceQL editor.
   // Also, the query editor should not be re-rendered on every key press.
-  // Therefore we create a derived state, 'draftQuery', which holds the current query from the editor (which may or may have been executed).
+  // Therefore we create a derived state, 'draftQuery', which holds the current query from the
+  // editor (which may or may have been executed).
   const draftQuery = useRef<string>(query);
   const setDraftQuery = useCallback((query: string) => {
     draftQuery.current = query;

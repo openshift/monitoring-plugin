@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { useTempoResources } from '../../hooks/useTempoResources';
-import { QueryBrowser } from './QueryBrowser';
+import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
   Dropdown,
@@ -14,15 +12,18 @@ import {
   PageSection,
   Title,
 } from '@patternfly/react-core';
-import { PlusCircleIcon, WrenchIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
-import { useTranslation, Trans } from 'react-i18next';
-import { ErrorAlert } from '../../components/ErrorAlert';
-import { DocumentTitle } from '@openshift-console/dynamic-plugin-sdk';
+import { ExternalLinkAltIcon, PlusCircleIcon, WrenchIcon } from '@patternfly/react-icons';
+import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { useTempoInstance } from '../../hooks/useTempoInstance';
-import { LoadingState } from '../../components/LoadingState';
-import { TracingApp } from '../../TracingApp';
-import { getOCPVersion } from '../../components/console/utils/getOCPVersion';
+
+import { getOCPVersion } from '@/features/tracing/components/console/utils/get-ocp-version';
+import { ErrorAlert } from '@/features/tracing/components/ErrorAlert';
+import { LoadingState } from '@/features/tracing/components/LoadingState';
+import { TracingApp } from '@/features/tracing/components/TracingApp';
+import { useTempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { useTempoResources } from '@/features/tracing/hooks/useTempoResources';
+import { QueryBrowser } from '@/features/tracing/pages/TracesPage/QueryBrowser';
 
 function getInstallOperatorLink() {
   const v = getOCPVersion();
@@ -56,8 +57,8 @@ function TracesPage() {
 export default TracesPage;
 
 /**
- * TracesPageBody catches major error states like "Tempo Operator not installed" or "No Tempo instances created yet"
- * and shows an empty state instead of the query browser.
+ * TracesPageBody catches major error states like "Tempo Operator not installed" or
+ * "No Tempo instances created yet" and shows an empty state instead of the query browser.
  */
 function TracesPageBody() {
   const { t } = useTranslation('plugin__distributed-tracing-console-plugin');

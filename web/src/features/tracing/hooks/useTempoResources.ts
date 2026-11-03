@@ -1,10 +1,12 @@
-import { cancellableFetch, FetchError } from '../cancellable-fetch';
-import { APIResponse, BACKEND_URL } from './api';
 import { useQuery } from '@tanstack/react-query';
+
+import { APIResponse, BACKEND_URL } from '@/features/tracing/hooks/api';
+import { cancellableFetch, FetchError } from '@/features/tracing/utils/cancellable-fetch';
 
 /**
  * Definition of a TempoStack or TempoMonolithic Custom Resource in the cluster.
- * This is different from TempoInstance, which represents a selected Tempo instance including the tenant.
+ * This is different from TempoInstance, which represents a selected Tempo instance including the
+ * tenant.
  */
 export type TempoResource = {
   kind: 'TempoStack' | 'TempoMonolithic';

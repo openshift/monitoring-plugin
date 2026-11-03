@@ -1,17 +1,4 @@
 import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useState,
-  useRef,
-  FunctionComponent,
-  Ref,
-  MouseEvent as ReactMouseEvent,
-  KeyboardEvent as ReactKeyboardEvent,
-  FormEvent as ReactFormEvent,
-  CSSProperties,
-} from 'react';
-import {
   Button,
   MenuToggle,
   MenuToggleElement,
@@ -21,20 +8,35 @@ import {
   SelectOption,
   SelectOptionProps,
   SelectProps,
+  Spinner,
   TextInputGroup,
   TextInputGroupMain,
   TextInputGroupUtilities,
-  Spinner,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
+import {
+  CSSProperties,
+  forwardRef,
+  FunctionComponent,
+  FormEvent as ReactFormEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  Ref,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 /**
  * based on https://github.com/patternfly/patternfly-react/blob/38727b625e70363c36b749541736ea46bf5970dc/packages/react-templates/src/components/Select/TypeaheadSelect.tsx
  * MIT License, Copyright (c) Red Hat, Inc.
  *
  * Custom modifications:
- * - in useEffect(..., [initialOptions]): always run setInputValue(), otherwise the display value is wrong if the selection in initialOptions changes
- * - move openMenu() to top, wrap in useCallback(), and declare it as dependency of useEffect(..., [])
+ * - in useEffect(..., [initialOptions]): always run setInputValue(), otherwise the display value is
+ *   wrong if the selection in initialOptions changes
+ * - move openMenu() to top, wrap in useCallback(), and declare it as dependency of
+ *   useEffect(..., [])
  * - add allowClear prop
  * - add loading prop
  */
@@ -206,7 +208,8 @@ export const TypeaheadSelectBase: FunctionComponent<TypeaheadSelectProps> = ({
   ]);
 
   useEffect(() => {
-    // If the selected option changed and the current input value is the previously selected item, update the displayed value.
+    // If the selected option changed and the current input value is the previously selected item,
+    // update the displayed value.
     const selectedOption = initialOptions.find((o) => o.selected);
     // if (inputValue === selected && selectedOption?.value !== selected) {
     setInputValue(String(selectedOption?.content ?? '')); // eslint-disable-line react-hooks/set-state-in-effect
@@ -286,7 +289,8 @@ export const TypeaheadSelectBase: FunctionComponent<TypeaheadSelectProps> = ({
     }
 
     if (key === 'ArrowUp') {
-      // When no index is set or at the first index, focus to the last, otherwise decrement focus index
+      // When no index is set or at the first index, focus to the last, otherwise decrement focus
+      // index
       if (focusedItemIndex === null || focusedItemIndex === 0) {
         indexToFocus = selectOptions.length - 1;
       } else {
@@ -303,7 +307,8 @@ export const TypeaheadSelectBase: FunctionComponent<TypeaheadSelectProps> = ({
     }
 
     if (key === 'ArrowDown') {
-      // When no index is set or at the last index, focus to the first, otherwise increment focus index
+      // When no index is set or at the last index, focus to the first, otherwise increment focus
+      // index
       if (focusedItemIndex === null || focusedItemIndex === selectOptions.length - 1) {
         indexToFocus = 0;
       } else {

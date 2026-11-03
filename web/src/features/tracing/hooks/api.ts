@@ -1,4 +1,4 @@
-import { TempoInstance } from './useTempoInstance';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
 
 export const BACKEND_URL = '/api/proxy/plugin/distributed-tracing-console-plugin/backend';
 
