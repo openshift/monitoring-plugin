@@ -12,7 +12,7 @@ interface TraceQLFilterProps {
 }
 
 export function TraceQLFilter({ tempo, query, runQuery }: TraceQLFilterProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   // For performance and UX reasons, the search results should not be refreshed on every key press
   // of the TraceQL editor.

@@ -3,7 +3,7 @@ import { CubesIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 
 export function NoTempoInstanceSelectedState() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   return (
     <EmptyState titleText={t('No Tempo instance selected')} headingLevel="h4" icon={CubesIcon}>

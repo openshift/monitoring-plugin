@@ -18,7 +18,7 @@ interface TraceTableProps {
 }
 
 export function TraceTable({ setQuery }: TraceTableProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const noResults = (
     <EmptyState titleText={t('No results found')} headingLevel="h4" icon={SearchIcon}>

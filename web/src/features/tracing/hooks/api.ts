@@ -1,6 +1,6 @@
 import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
 
-export const BACKEND_URL = '/api/proxy/plugin/distributed-tracing-console-plugin/backend';
+export const BACKEND_URL = '/api/proxy/plugin/monitoring-console-plugin/backend';
 
 export interface APIResponse<T> {
   status: 'success' | 'error';

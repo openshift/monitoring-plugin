@@ -28,7 +28,7 @@ export function QueryBrowser() {
 }
 
 export function QueryBrowserBody() {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const [tempo, setTempo] = useTempoInstance();
   const [query, setQuery] = useQueryParam('q', withDefault(StringParam, '{}'));
   const [limit, setLimit] = useQueryParam('limit', withDefault(NumberParam, DEFAULT_LIMIT));
@@ -94,7 +94,7 @@ interface TraceSearchResultsProps {
 }
 
 function TraceSearchResults({ setQuery }: TraceSearchResultsProps) {
-  const { t } = useTranslation('plugin__distributed-tracing-console-plugin');
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { queryResults } = useDataQueries('TraceQuery');
   const hasMoreResults = queryResults.some((traceData) => traceData.data?.metadata?.hasMoreResults);
 
