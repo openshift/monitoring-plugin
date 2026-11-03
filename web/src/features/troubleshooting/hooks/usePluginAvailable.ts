@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useBoolean } from '@/features/troubleshooting/hooks/useBoolean';
+import { useBoolean } from '@/shared/hooks/useBoolean';
 
 export const usePluginAvailable = (pluginName: string): [boolean, boolean] => {
   const [isPluginAvailable, , setPluginAvailable, setPluginUnavailable] = useBoolean(false);

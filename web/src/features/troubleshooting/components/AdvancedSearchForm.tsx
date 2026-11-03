@@ -91,12 +91,14 @@ export const AdvancedSearchForm: FC<AdvancedSearchFormProps> = ({ search, onSear
   };
 
   const isValid = useMemo(() => !queryError && !classError, [queryError, classError]);
+  // Compare against trimmed values: handleSubmit submits trimmed values, so the
+  // Search button must also become disabled when only whitespace was added.
   const hasChanged = useMemo(
     () =>
       search.searchType !== searchType ||
-      search.queryStr !== queryStr ||
+      search.queryStr !== queryStr?.trim() ||
       (search.depth ?? defaultSearch.depth) !== depth ||
-      (search.goal ?? '') !== goal ||
+      (search.goal ?? '') !== goal?.trim() ||
       (search.limit ?? defaultSearch.limit) !== limit,
     [
       search.searchType,

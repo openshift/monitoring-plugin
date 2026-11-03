@@ -59,7 +59,7 @@ export default function Popover({ closeOverlay }: { closeOverlay: () => void }) 
               </Title>
             </FlexItem>
             <FlexItem>
-              <Button variant="plain" aria-label="Close" onClick={close}>
+              <Button variant="plain" aria-label={t('Close')} onClick={close}>
                 <TimesCircleIcon className="tp-plugin__popover-close" />
               </Button>
             </FlexItem>
