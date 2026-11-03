@@ -37,7 +37,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 
 import { ActiveAlerts, PrometheusTemplate } from '@/features/alerts/components/ActiveAlerts';
-import { Graph, SeverityHelp, SourceHelp } from '@/features/alerts/components/AlertUtils';
+import { SeverityHelp, SourceHelp } from '@/features/alerts/components/AlertUtils';
+import { AlertGraph } from '@/shared/components/AlertGraph';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
@@ -275,7 +276,7 @@ const AlertRulesDetailsPage_: FC = () => {
               </ToolbarContent>
             </Toolbar>
             {!sourceId || sourceId === 'prometheus' ? (
-              <Graph
+              <AlertGraph
                 formatSeriesTitle={formatSeriesTitle}
                 query={rule?.query}
                 ruleDuration={rule?.duration}

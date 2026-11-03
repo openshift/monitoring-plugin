@@ -49,6 +49,10 @@ export function PageWithSidepanel({
               data-testid={DataTestIDs.PageWithSidepanel.Panel}
               aria-label={title}
               focusTrap={{ enabled: isOpen }}
+              isResizable
+              resizeAriaLabel={t('Resize details panel')}
+              minSize="min(20rem, 100%)"
+              maxSize="100%"
               widths={{ default: 'width_100', lg: 'width_50', xl: 'width_33' }}
             >
               {isOpen && (

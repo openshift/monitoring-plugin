@@ -17,9 +17,9 @@ vi.mock('@/shared/console/models', () => ({
   AgenticRunModel: { kind: 'AgenticRun' },
 }));
 
-import { getAlertFingerprintPrefix } from '@/features/alerts/pages/alerts-page/agentic-runs/alert-identifier';
-import { AGENTIC_RUN_LABEL_FINGERPRINT } from '@/features/alerts/pages/alerts-page/agentic-runs/constants';
-import { useAgenticRunCheck } from '@/features/alerts/pages/alerts-page/agentic-runs/useAgenticRunCheck';
+import { getAlertFingerprintPrefix } from '@/shared/hooks/agentic-runs/alert-identifier';
+import { AGENTIC_RUN_LABEL_FINGERPRINT } from '@/shared/hooks/agentic-runs/constants';
+import { useAgenticRunCheck } from '@/shared/hooks/agentic-runs/useAgenticRunCheck';
 
 const createWrapper = () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

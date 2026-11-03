@@ -3,7 +3,7 @@ import { Alert, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk'
 import {
   AGENTIC_RUN_LABEL_FINGERPRINT,
   FINGERPRINT_PREFIX_LEN,
-} from '@/features/alerts/pages/alerts-page/agentic-runs/constants';
+} from '@/shared/hooks/agentic-runs/constants';
 import { computeAlertFingerprint } from '@/shared/utils/alerts/alert-fingerprint';
 
 export const getAlertFingerprintPrefix = (labels: Record<string, string>): string =>

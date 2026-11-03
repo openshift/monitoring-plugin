@@ -27,6 +27,9 @@ import { AlertSeverityButton } from '@/features/alert-management-api/components/
 import { PageWithFilters } from '@/features/alert-management-api/components/PageWithFilters';
 import { PageWithSidepanel } from '@/features/alert-management-api/components/PageWithSidepanel';
 import { useAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
+// The alerts page hosts the alert-details panel rather than navigating to a separate page.
+// eslint-disable-next-line import/no-restricted-paths
+import { AlertDetailsPanel } from '@/features/alert-management-api/pages/alert-details/AlertDetailsPanel';
 import { AlertsResults } from '@/features/alert-management-api/pages/alerts-page/AlertsResults';
 import { AlertsFilterDrawer } from '@/features/alert-management-api/pages/alerts-page/components/AlertsFilterDrawer';
 import { SelectedFilters } from '@/features/alert-management-api/pages/alerts-page/components/SelectedFilters';
@@ -79,7 +82,7 @@ export function AlertManagementAlertsPage() {
       isOpen={Boolean(selectedAlert)}
       onClose={closeAlertDetails}
       title={selectedAlert?.labels.alertname ?? selectedAlert?.rule.name ?? ''}
-      panel={<>TODO</>}
+      panel={<AlertDetailsPanel alert={selectedAlert} />}
     >
       <PageSection hasBodyWrapper={false} isFilled>
         {silencesQuery.isError && (
