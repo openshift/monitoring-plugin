@@ -6,6 +6,7 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/oapi-codegen/runtime v1.5.0
 	github.com/openshift/api v0.0.0-20251122153900-88cca31a44c9
 	github.com/openshift/client-go v0.0.0-20251123231646-4685125c2287
