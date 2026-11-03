@@ -1,4 +1,3 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FormHelperText,
   HelperText,
@@ -6,8 +5,9 @@ import {
   TextInput,
   TextInputProps,
 } from '@patternfly/react-core';
-import { debounce } from 'lodash-es';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
+import { debounce } from 'lodash-es';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 export interface DebouncedTextInputProps extends TextInputProps {
   waitTime: number;
@@ -19,7 +19,8 @@ export interface DebouncedTextInputProps extends TextInputProps {
 
 /**
  * <DebouncedTextInput> is a <TextInput> which validates the input (format e.g. 1s) and
- * debounces the onChange events until the user stopped typing for waitTime milliseconds, or the cursor left the input field.
+ * debounces the onChange events until the user stopped typing for waitTime milliseconds, or the
+ * cursor left the input field.
  * Without debouncing, every keypress would trigger an API request and re-render.
  */
 export function DebouncedTextInput({

@@ -1,7 +1,8 @@
 // Note: this file must be kept in sync with the route definitions in console-extensions.json
 
 export function linkToTrace() {
-  // by capturing the entire URL search params, we can provide a breadcrumb to the previous page with the Tempo instance and query filled out
+  // by capturing the entire URL search params, we can provide a breadcrumb to the previous page
+  // with the Tempo instance and query filled out
   const params = new URLSearchParams(window.location.search);
   const queryString = params.toString();
 
@@ -10,11 +11,13 @@ export function linkToTrace() {
 }
 
 export function linkToSpan() {
-  // by capturing the entire URL search params, we can provide a breadcrumb to the previous page with the Tempo instance and query filled out
+  // by capturing the entire URL search params, we can provide a breadcrumb to the previous page
+  // with the Tempo instance and query filled out
   const params = new URLSearchParams(window.location.search);
   params.set('selectSpan', 'SPANID');
 
-  // add ${...} syntax after the URL is URL-encoded, because the characters ${} must not be URL-encoded
+  // add ${...} syntax after the URL is URL-encoded, because the characters ${} must not be
+  // URL-encoded
   const queryString = params.toString().replace('SPANID', '${spanId}');
 
   // ${...} will be replaced by Perses, it is not a JavaScript template string

@@ -17,7 +17,8 @@ export const useRefWidth = () => {
   const clientWidth = ref.current?.clientWidth; // eslint-disable-line react-hooks/refs
 
   useEffect(() => {
-    if (width !== clientWidth) setWidth(clientWidth); // eslint-disable-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (width !== clientWidth) setWidth(clientWidth);
   }, [clientWidth, width]); // eslint-disable-line react-hooks/refs
 
   return [ref, width] as [Ref<HTMLDivElement>, number];

@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 const PF_THEME_DARK_CLASSES = ['pf-v6-theme-dark', 'pf-v5-theme-dark', 'pf-theme-dark'];
 
 /**
- * The @openshift-console/dynamic-plugin-sdk package does not expose the theme setting of the user preferences,
- * therefore check if the root <html> element has the PatternFly css class set for the dark theme.
+ * The @openshift-console/dynamic-plugin-sdk package does not expose the theme setting of the user
+ * preferences, therefore check if the root <html> element has the PatternFly css class set for the
+ * dark theme.
  */
 function getTheme(): 'light' | 'dark' {
   const classList = document.documentElement.classList;
@@ -18,7 +19,8 @@ function getTheme(): 'light' | 'dark' {
 }
 
 /**
- * In case the user sets "system default" theme in the user preferences, update the theme if the system theme changes.
+ * In case the user sets "system default" theme in the user preferences, update the theme if the
+ * system theme changes.
  */
 export function usePatternFlyTheme() {
   const [theme, setTheme] = useState(getTheme());

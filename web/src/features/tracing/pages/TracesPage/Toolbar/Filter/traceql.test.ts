@@ -1,5 +1,5 @@
-import { filterToTraceQL } from './traceql_from_filter';
-import { traceQLToFilter } from './traceql_to_filter';
+import { filterToTraceQL } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-from-filter';
+import { traceQLToFilter } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-to-filter';
 
 describe('TraceQL query', () => {
   it.each([

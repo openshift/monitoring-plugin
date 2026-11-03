@@ -1,4 +1,4 @@
-import { splitByUnquotedWhitespace } from './filter';
+import { splitByUnquotedWhitespace } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/filter';
 
 describe('Filter', () => {
   it.each([

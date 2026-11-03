@@ -1,23 +1,24 @@
-import { useState } from 'react';
 import {
+  Button,
+  Form,
+  FormGroup,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
-  Button,
   ToolbarToggleGroup,
-  Form,
-  FormGroup,
 } from '@patternfly/react-core';
 import { FilterIcon } from '@patternfly/react-icons';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TempoInstance } from '../../../hooks/useTempoInstance';
-import { AttributeFilters } from './AttributeFilters';
-import { TempoInstanceDropdown } from '../../../components/TempoInstanceDropdown';
-import { filterToTraceQL } from './Filter/traceql_from_filter';
-import { TraceQLFilter } from './TraceQLFilter';
-import { traceQLToFilter } from './Filter/traceql_to_filter';
-import './FilterToolbar.css';
+
+import { TempoInstanceDropdown } from '@/features/tracing/components/TempoInstanceDropdown';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { AttributeFilters } from '@/features/tracing/pages/TracesPage/Toolbar/AttributeFilters';
+import { filterToTraceQL } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-from-filter';
+import { traceQLToFilter } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/traceql-to-filter';
+import { TraceQLFilter } from '@/features/tracing/pages/TracesPage/Toolbar/TraceQLFilter';
+import '@/features/tracing/pages/TracesPage/Toolbar/FilterToolbar.css';
 
 interface FilterToolbarProps {
   tempo: TempoInstance | undefined;
@@ -67,6 +68,7 @@ export function FilterToolbar(props: FilterToolbarProps) {
 }
 
 function isSimpleTraceQLQuery(query: string) {
-  // if a query can be transformed to a filter and back to the original query, we can show the attribute filter toolbar
+  // if a query can be transformed to a filter and back to the original query, we can show the
+  // attribute filter toolbar
   return filterToTraceQL(traceQLToFilter(query)) === query;
 }

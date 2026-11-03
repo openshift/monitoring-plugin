@@ -1,6 +1,5 @@
 import { EmptyState, EmptyStateBody } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
-
 import { useTranslation } from 'react-i18next';
 
 export function NoTempoInstanceSelectedState() {

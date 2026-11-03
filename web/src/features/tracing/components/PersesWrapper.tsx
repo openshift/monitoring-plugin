@@ -1,4 +1,6 @@
-import { ComponentProps, ReactElement, ReactNode, useMemo } from 'react';
+import { ThemeProvider } from '@mui/material';
+import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
+import { DatasourceApi, DatasourceResource, GlobalDatasourceResource } from '@perses-dev/client';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -6,7 +8,12 @@ import {
   PersesChartsTheme,
   typography,
 } from '@perses-dev/components';
-import { ThemeProvider } from '@mui/material';
+import {
+  PanelProps as DashboardPanelProps,
+  DatasourceStoreProvider,
+  Panel,
+  VariableProvider,
+} from '@perses-dev/dashboards';
 import {
   DataQueriesProvider,
   dynamicImportPluginLoader,
@@ -21,28 +28,22 @@ import {
   useDataQueriesContext,
   useInitialTimeRange,
 } from '@perses-dev/plugin-system';
-import { DatasourceResource, GlobalDatasourceResource, DatasourceApi } from '@perses-dev/client';
-import {
-  DatasourceStoreProvider,
-  Panel,
-  PanelProps as DashboardPanelProps,
-  VariableProvider,
-} from '@perses-dev/dashboards';
-import * as tempoPlugin from '@perses-dev/tempo-plugin';
 import * as scatterChartPlugin from '@perses-dev/scatter-chart-plugin';
+import { DurationString, QueryDefinition, TraceData, UnknownSpec } from '@perses-dev/spec';
+import * as tempoPlugin from '@perses-dev/tempo-plugin';
 import * as traceTablePlugin from '@perses-dev/trace-table-plugin';
 import * as tracingGanttChartPlugin from '@perses-dev/tracing-gantt-chart-plugin';
-import { ChartThemeColor, getThemeColors } from '@patternfly/react-charts/victory';
-import { TempoInstance } from '../hooks/useTempoInstance';
-import { getProxyURLFor } from '../hooks/api';
+import { ComponentProps, ReactElement, ReactNode, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ErrorAlert } from './ErrorAlert';
-import { NoTempoInstanceSelectedState } from './NoTempoInstanceSelectedState';
-import { LoadingState } from './LoadingState';
-import { usePatternFlyTheme } from './console/utils/usePatternFlyTheme';
 import { Link as RouterLink, useNavigate } from 'react-router';
-import './PersesWrapper.css';
-import { DurationString, QueryDefinition, TraceData, UnknownSpec } from '@perses-dev/spec';
+
+import { usePatternFlyTheme } from '@/features/tracing/components/console/utils/usePatternFlyTheme';
+import { ErrorAlert } from '@/features/tracing/components/ErrorAlert';
+import { LoadingState } from '@/features/tracing/components/LoadingState';
+import { NoTempoInstanceSelectedState } from '@/features/tracing/components/NoTempoInstanceSelectedState';
+import { getProxyURLFor } from '@/features/tracing/hooks/api';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import '@/features/tracing/components/PersesWrapper.css';
 
 class DatasourceApiImpl implements DatasourceApi {
   constructor(public proxyDatasource: GlobalDatasourceResource) {}
@@ -74,7 +75,8 @@ const defaultPaletteColors = [patternflyBlue400, patternflyBlue500, patternflyBl
 const chartColorScale = getThemeColors(ChartThemeColor.multiUnordered).chart?.colorScale;
 const patternflyChartsMultiUnorderedPalette = Array.isArray(chartColorScale)
   ? chartColorScale.flatMap((cssColor: string) => {
-      // colors are stored as 'var(--pf-chart-theme--multi-color-unordered--ColorScale--3400, #73c5c5)'
+      // colors are stored as
+      // 'var(--pf-chart-theme--multi-color-unordered--ColorScale--3400, #73c5c5)'
       // need to extract the hex value, because fillStyle() of <canvas> does not support CSS vars
       const match = cssColor.match(/#[a-fA-F0-9]+/);
       return match ? [match[0]] : [];
@@ -218,7 +220,8 @@ interface PersesPanelPluginWrapperProps<T> {
 }
 
 /**
- * PersesPanelWrapper renders a Perses panel plugin and shows PatternFly empty, loading states and error states.
+ * PersesPanelWrapper renders a Perses panel plugin and shows PatternFly empty, loading states and
+ * error states.
  */
 export function PersesPanelPluginWrapper<
   T extends PanelPlugin<Spec, PanelProps<Spec, TraceData>>,

@@ -1,4 +1,4 @@
-import { DurationField, Filter } from './filter';
+import { DurationField, Filter } from '@/features/tracing/pages/TracesPage/Toolbar/Filter/filter';
 
 export function filterToTraceQL(filter: Filter) {
   const matchers: string[] = [

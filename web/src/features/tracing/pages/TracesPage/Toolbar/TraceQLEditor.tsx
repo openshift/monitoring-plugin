@@ -1,14 +1,15 @@
+import { insertNewlineAndIndent } from '@codemirror/commands';
+import { Prec } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
+import { useTimeRange } from '@perses-dev/plugin-system';
+import { TempoDatasource, TraceQLExtension } from '@perses-dev/tempo-plugin';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import CodeMirror, { EditorView } from '@uiw/react-codemirror';
-import { keymap } from '@codemirror/view';
-import { TraceQLExtension, TempoDatasource } from '@perses-dev/tempo-plugin';
-import { TempoInstance } from '../../../hooks/useTempoInstance';
-import { getProxyURLFor } from '../../../hooks/api';
-import { usePatternFlyTheme } from '../../../components/console/utils/usePatternFlyTheme';
-import { Prec } from '@codemirror/state';
-import { insertNewlineAndIndent } from '@codemirror/commands';
-import { useTimeRange } from '@perses-dev/plugin-system';
+
+import { usePatternFlyTheme } from '@/features/tracing/components/console/utils/usePatternFlyTheme';
+import { getProxyURLFor } from '@/features/tracing/hooks/api';
+import { TempoInstance } from '@/features/tracing/hooks/useTempoInstance';
 
 interface TraceQLEditorProps {
   id?: string;

@@ -1,5 +1,3 @@
-import { PersesPanelPluginWrapper } from '../../components/PersesWrapper';
-import { TraceTable as PersesTraceTable } from '@perses-dev/trace-table-plugin';
 import {
   Button,
   EmptyState,
@@ -8,9 +6,12 @@ import {
   EmptyStateFooter,
 } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
+import { TraceTable as PersesTraceTable } from '@perses-dev/trace-table-plugin';
 import { useTranslation } from 'react-i18next';
-import { linkToTrace } from '../../links';
-import './TraceTable.css';
+
+import { PersesPanelPluginWrapper } from '@/features/tracing/components/PersesWrapper';
+import { linkToTrace } from '@/features/tracing/utils/links';
+import '@/features/tracing/pages/TracesPage/TraceTable.css';
 
 interface TraceTableProps {
   setQuery: (query: string) => void;
