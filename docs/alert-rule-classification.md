@@ -50,7 +50,7 @@ Location: `pkg/alertcomponent/matcher.go`
    - Workload/namespace-level alerts (layer set to `namespace`)
 
 2) Fallback:
-   - Unmatched components are reported as `Others`.
+   - Unmatched components are reported as `others`.
    - If no valid override or matcher supplies a layer, it is derived from source:
        - `openshift_io_alert_source=platform` → `cluster`
        - `openshift_io_prometheus_rule_namespace=openshift-monitoring` → `cluster`

@@ -223,7 +223,7 @@ func classifyFromRule(rule *monitoringv1.Rule) (string, string) {
 	}
 
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if layer == "" || layer == "Others" {
+	if layer == "" || layer == alertcomponent.Unmatched {
 		layer = deriveLayerFromSource(rule.Labels)
 	}
 
@@ -236,7 +236,7 @@ func classifyFromAlertLabels(alertLabels map[string]string) (string, string) {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if layer == "" || layer == "Others" {
+	if layer == "" || layer == alertcomponent.Unmatched {
 		layer = deriveLayerFromSource(alertLabels)
 	}
 	return component, layer

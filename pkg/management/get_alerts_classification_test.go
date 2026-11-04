@@ -73,7 +73,7 @@ func TestPartialClassificationOverridesPreserveSourceFallback(t *testing.T) {
 				k8s.AlertRuleClassificationLayerKey: "namespace",
 				k8s.AlertSourceLabel:                k8s.AlertSourcePlatform,
 			},
-			wantComponent: "Others",
+			wantComponent: "others",
 			wantLayer:     "namespace",
 		},
 	}

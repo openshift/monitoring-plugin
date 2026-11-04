@@ -274,8 +274,8 @@ func TestDetermineComponent_ExplicitClassification(t *testing.T) {
 		{name: "empty overrides", componentOverride: " ", layerOverride: " ", wantComponent: operatorComponent, wantLayer: "cluster"},
 		{name: "trim overrides", componentOverride: " " + vmComponent + " ", layerOverride: " namespace ", wantComponent: vmComponent, wantLayer: "namespace"},
 		{name: "without legacy labels", componentOverride: vmComponent, layerOverride: "namespace", withoutLegacy: true, wantComponent: vmComponent, wantLayer: "namespace"},
-		{name: "unmatched layer", componentOverride: vmComponent, withoutLegacy: true, wantComponent: vmComponent, wantLayer: "Others"},
-		{name: "unmatched component", layerOverride: "namespace", withoutLegacy: true, wantComponent: "Others", wantLayer: "namespace"},
+		{name: "unmatched layer", componentOverride: vmComponent, withoutLegacy: true, wantComponent: vmComponent, wantLayer: "others"},
+		{name: "unmatched component", layerOverride: "namespace", withoutLegacy: true, wantComponent: "others", wantLayer: "namespace"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -343,11 +343,11 @@ func TestDetermineComponent_Fallback(t *testing.T) {
 		"namespace": "my-app",
 	}
 	layer, component := DetermineComponent(labels)
-	if layer != "Others" {
-		t.Errorf("layer = %q, want %q", layer, "Others")
+	if layer != "others" {
+		t.Errorf("layer = %q, want %q", layer, "others")
 	}
-	if component != "Others" {
-		t.Errorf("component = %q, want %q", component, "Others")
+	if component != "others" {
+		t.Errorf("component = %q, want %q", component, "others")
 	}
 }
 
