@@ -153,6 +153,8 @@ func TestMetricsCertificateAuthorization(t *testing.T) {
 		for _, name := range []string{"go_goroutines", "process_start_time_seconds"} {
 			require.Contains(t, recorder.Body.String(), name)
 		}
+		require.NotContains(t, recorder.Body.String(), "alerts_effective_active_at_timestamp_seconds")
+		require.NotContains(t, recorder.Body.String(), "alerts_dropped_active_at_timestamp_seconds")
 	})
 	t.Run("CA rotation and cached authentication", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
