@@ -40,3 +40,54 @@ func TestDeprecatedMachineTypeClassificationMatchesKubevirtVM(t *testing.T) {
 		t.Fatalf("alert classification = (%q, %q), want (%q, %q)", component, layer, wantComponent, wantLayer)
 	}
 }
+
+func TestPartialClassificationOverridesPreserveSourceFallback(t *testing.T) {
+	const vmComponent = "openshift-virtualization-virtual-machine"
+	tests := []struct {
+		name          string
+		labels        map[string]string
+		wantComponent string
+		wantLayer     string
+	}{
+		{
+			name: "component override with platform source",
+			labels: map[string]string{
+				k8s.AlertRuleClassificationComponentKey: vmComponent,
+				k8s.AlertSourceLabel:                    k8s.AlertSourcePlatform,
+			},
+			wantComponent: vmComponent,
+			wantLayer:     "cluster",
+		},
+		{
+			name: "component override with user source",
+			labels: map[string]string{
+				k8s.AlertRuleClassificationComponentKey: vmComponent,
+				k8s.AlertSourceLabel:                    k8s.AlertSourceUser,
+			},
+			wantComponent: vmComponent,
+			wantLayer:     "namespace",
+		},
+		{
+			name: "layer override takes precedence over platform source",
+			labels: map[string]string{
+				k8s.AlertRuleClassificationLayerKey: "namespace",
+				k8s.AlertSourceLabel:                k8s.AlertSourcePlatform,
+			},
+			wantComponent: "Others",
+			wantLayer:     "namespace",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rule := monitoringv1.Rule{Alert: "CustomAlert", Labels: tt.labels}
+			component, layer := classifyFromRule(&rule)
+			if component != tt.wantComponent || layer != tt.wantLayer {
+				t.Errorf("rule classification = (%q, %q), want (%q, %q)", component, layer, tt.wantComponent, tt.wantLayer)
+			}
+			component, layer = classifyFromAlertLabels(tt.labels)
+			if component != tt.wantComponent || layer != tt.wantLayer {
+				t.Errorf("alert classification = (%q, %q), want (%q, %q)", component, layer, tt.wantComponent, tt.wantLayer)
+			}
+		})
+	}
+}
