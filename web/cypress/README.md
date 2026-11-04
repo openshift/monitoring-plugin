@@ -88,6 +88,7 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | **COO (Perses, Dashboards, Incidents)** | Requires COO installation.                                                           | `npm run test-cypress-coo`            |
 | **Incidents**                           | COO subset. Set `CYPRESS_TIMEZONE` to match cluster timezone.                        | `npm run test-cypress-incidents`      |
 | **Virtualization**                      | Requires OpenShift Virtualization (KubeVirt) installation.                           | `npm run test-cypress-virtualization` |
+| **Distributed tracing (legacy plugin)** | Legacy COO DistributedTracing UIPlugin; needs chainsaw. See section below.           | `npm run test-cypress-tracing-legacy` |
 
 ---
 
@@ -280,6 +281,58 @@ npx cypress run --env grepTags="@alerting+@cluster-health-analyzer"
 ```bash
 npx cypress run --env grepTags="@cluster-health-analyzer --@slow --@flaky"
 ```
+
+---
+
+## Distributed tracing (legacy plugin) e2e
+
+`cypress/e2e/tracing/coo_tracing.cy.ts` is the e2e suite ported from
+[distributed-tracing-console-plugin](https://github.com/openshift/distributed-tracing-console-plugin)
+`tests/` (15 tests: traces, span links, RBAC, limits, TraceQL, time range, scatter plot, filters,
+Gantt chart, table columns, Lightspeed summary, TLS cert rotation, TLS profiles, "Install Tempo
+operator"). It still targets the **legacy** COO-deployed `DistributedTracing` UIPlugin
+(`distributed-tracing` deployment), not the `tracing` feature of monitoring-console-plugin.
+It installs COO, OpenTelemetry, Tempo and Lightspeed (with `CYPRESS_SKIP_COO_INSTALL` it expects
+them installed and only reinstalls Tempo if missing), creates the `distributed-tracing` UIPlugin
+and Tempo instances (chainsaw), and cleans up in `after()`. The tests share state, so the
+suite turns off test isolation for itself.
+
+**Prerequisites:** `oc`, [chainsaw](https://kyverno.github.io/chainsaw/latest/quick-start/install/)
+v0.2.12 or later and, for bundle installs, `operator-sdk` on `PATH`; a cluster whose console can
+load the legacy plugin image (current images need OCP 4.22+); for the Lightspeed test, an LLM
+provider.
+
+**Environment:** the [standard variables](#required-variables), one installation method
+(`CYPRESS_SKIP_COO_INSTALL`, `CYPRESS_COO_UI_INSTALL`, `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` or
+`CYPRESS_CUSTOM_COO_BUNDLE_IMAGE`), optionally `CYPRESS_COO_NAMESPACE`, and:
+
+| Variable                            | Description                                                                |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| `CYPRESS_DT_CONSOLE_IMAGE`          | Distributed Tracing console plugin image, patched into the COO CSV         |
+| `CYPRESS_LIGHTSPEED_CONSOLE_IMAGE`  | Lightspeed console plugin image, patched into the Lightspeed CSV           |
+| `CYPRESS_LIGHTSPEED_PROVIDER_URL`   | LLM provider URL for the OLSConfig created by the Lightspeed chainsaw test |
+| `CYPRESS_LIGHTSPEED_PROVIDER_TOKEN` | LLM provider token for that OLSConfig                                      |
+
+**Run:**
+
+```bash
+npm run test-cypress-tracing-legacy
+# Without the Lightspeed test (also skips the Lightspeed operator install and setup)
+npm run test-cypress-tracing-legacy -- --env grep=-Lightspeed
+```
+
+The suite is tagged `@tracing @tracing-legacy @coo` (the Lightspeed test also `@ols`).
+`test-cypress-tracing` (the merged-feature smoke), `test-cypress-coo*` and
+`test-cypress-perses-ols` exclude it. Fixtures, chainsaw suites and CSV patch scripts live in
+`cypress/fixtures/coo/traces/`.
+
+Unused source helpers and fixtures are preserved too, including all 56 original custom
+commands (ported or reused), both resource/search view modules, and the disabled debug
+spec (`coo_tracing_debug.cy.ts.skip`). See the
+[preservation inventory and original helper documentation](docs/tracing-original/README.md)
+for source mappings and the `dtLogin` / `dtSwitchPerspective` aliases. The debug spec
+remains outside the runnable spec pattern; restoring it does not enable its RBAC-changing
+setup or add it to the default test runs.
 
 ---
 
