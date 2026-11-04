@@ -41,6 +41,29 @@ func TestDeprecatedMachineTypeClassificationMatchesKubevirtVM(t *testing.T) {
 	}
 }
 
+func TestKubevirtVMClassificationWithoutOverrides(t *testing.T) {
+	labels := map[string]string{
+		"alertname":                     "VMDown",
+		"kubernetes_operator_part_of":   "kubevirt",
+		"kubernetes_operator_component": "kubevirt",
+		"operator_health_impact":        "none",
+		"name":                          "example-vm",
+		"namespace":                     "example-workload",
+		k8s.AlertSourceLabel:            k8s.AlertSourcePlatform,
+	}
+	wantComponent := "openshift-virtualization-virtual-machine"
+	wantLayer := "namespace"
+	rule := monitoringv1.Rule{Alert: "VMDown", Labels: labels}
+	component, layer := classifyFromRule(&rule)
+	if component != wantComponent || layer != wantLayer {
+		t.Errorf("rule classification = (%q, %q), want (%q, %q)", component, layer, wantComponent, wantLayer)
+	}
+	component, layer = classifyFromAlertLabels(labels)
+	if component != wantComponent || layer != wantLayer {
+		t.Errorf("alert classification = (%q, %q), want (%q, %q)", component, layer, wantComponent, wantLayer)
+	}
+}
+
 func TestPartialClassificationOverridesPreserveSourceFallback(t *testing.T) {
 	const vmComponent = "openshift-virtualization-virtual-machine"
 	tests := []struct {
