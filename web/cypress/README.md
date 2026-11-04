@@ -236,6 +236,9 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 - `@targets` - Targets tests
 - `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
+- `@logging` - Logging view (monitoring-console-plugin `logging` feature) tests
+- `@tracing` - Distributed tracing tests: the merged `tracing` feature smoke and the legacy suite
+- `@tracing-legacy` - Legacy distributed tracing e2e suite (COO-deployed `distributed-tracing` UIPlugin)
 
 #### Running Tests by Tags
 
