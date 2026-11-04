@@ -1,0 +1,99 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: cert-rotation
+spec:
+  steps:
+  - name: Detect COO namespace and install tls-scanner
+    try:
+    - command:
+        entrypoint: kubectl
+        args:
+        - get
+        - deployment
+        - -A
+        - -l app.kubernetes.io/name=observability-operator
+        - -o
+        - jsonpath={.items[0].metadata.namespace}
+        outputs:
+        - name: COO_NAMESPACE
+          value: ($stdout)
+    - script:
+        content: |
+          if [ -z "$COO_NAMESPACE" ]; then
+            echo "ERROR: COO_NAMESPACE is empty — observability-operator deployment not found" >&2
+            exit 1
+          fi
+          echo "Detected COO namespace: $COO_NAMESPACE"
+          # Clean up any leftover tls-scanner resources from a previous run
+          kubectl delete pod tls-scanner -n "$COO_NAMESPACE" --force --grace-period=0 2>/dev/null || true
+          kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+          kubectl delete sa tls-scanner -n "$COO_NAMESPACE" 2>/dev/null || true
+          sleep 3
+        env:
+        - name: COO_NAMESPACE
+          value: ($COO_NAMESPACE)
+    - apply:
+        file: 00-install-tls-scanner.yaml
+    - assert:
+        file: 00-assert.yaml
+
+  - name: Scale down observability-operator
+    try:
+    - script:
+        timeout: 2m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}')
+          kubectl scale deployment observability-operator -n "$NAMESPACE" --replicas=0
+          kubectl rollout status deployment/observability-operator -n "$NAMESPACE" --timeout=60s
+          echo "PASS: observability-operator scaled to 0"
+
+  - name: Verify cert rotation and dynamic reload
+    try:
+    - script:
+        timeout: 10m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}')
+          export NAMESPACE
+          ./01-cert-rotation.sh
+
+  - name: Scale operator back up and cleanup tls-scanner
+    try:
+    - script:
+        timeout: 3m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}')
+          kubectl scale deployment observability-operator -n "$NAMESPACE" --replicas=1
+          kubectl rollout status deployment/observability-operator -n "$NAMESPACE" --timeout=120s
+          echo "PASS: observability-operator scaled back to 1"
+    - script:
+        timeout: 2m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}')
+          kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+          kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+          kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true
+          echo "PASS: tls-scanner resources cleaned up"
+
+  catch:
+  - script:
+      timeout: 3m
+      content: |
+        NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+          -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null)
+        NAMESPACE="${NAMESPACE:-openshift-cluster-observability-operator}"
+        kubectl scale deployment observability-operator -n "$NAMESPACE" --replicas=1 2>/dev/null || true
+        kubectl rollout status deployment/observability-operator -n "$NAMESPACE" --timeout=120s || true
+        kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+        kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+        kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true

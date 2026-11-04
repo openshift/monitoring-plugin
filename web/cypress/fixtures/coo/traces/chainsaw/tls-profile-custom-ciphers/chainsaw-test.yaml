@@ -1,0 +1,49 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-custom-ciphers
+spec:
+  steps:
+  - name: Patch deployment with custom cipher suites
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          patch_tls_args "VersionTLS12" "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+          echo "PASS: Deployment patched with custom cipher suites"
+  - name: Verify custom cipher suites
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          detect_fips
+
+          PLUGIN_IP=$(get_plugin_pod_ip)
+          NMAP_RESULT=$(kubectl exec tls-scanner -n "$NAMESPACE" -- \
+            nmap -Pn --script ssl-enum-ciphers -p "$PLUGIN_PORT" "$PLUGIN_IP")
+          echo "$NMAP_RESULT"
+
+          PORT_SECTION=$(echo "$NMAP_RESULT" | grep -A 100 "${PLUGIN_PORT}/tcp" || true)
+          [ -z "$PORT_SECTION" ] && fail "Port $PLUGIN_PORT not found in nmap output"
+
+          TLS12_SECTION=$(echo "$PORT_SECTION" | sed -n '/TLSv1.2/,/TLSv1.3\|least strength/p' || true)
+          if [ -n "$TLS12_SECTION" ]; then
+            echo "$TLS12_SECTION" | grep -i "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256" \
+              || fail "Expected cipher TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 not found"
+            echo "$TLS12_SECTION" | grep -i "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" \
+              || fail "Expected cipher TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 not found"
+
+            FOUND_CIPHERS=$(echo "$TLS12_SECTION" | grep -oE 'TLS_[A-Z0-9_]+' | grep -v '^TLSv' | sort -u || true)
+            echo "Found TLS 1.2 ciphers: $FOUND_CIPHERS"
+            echo "$FOUND_CIPHERS" | while IFS= read -r cipher; do
+              [ -z "$cipher" ] && continue
+              echo "$cipher" | grep -qE "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256|TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384" \
+                || fail "Unexpected TLS 1.2 cipher suite: $cipher"
+            done
+          fi
+
+          echo "$PORT_SECTION" | grep "TLSv1.3" || fail "TLS 1.3 should still be available"
+          verify_all_endpoints "Custom cipher suites"
+          echo "PASS: Custom cipher suite configuration verified"
