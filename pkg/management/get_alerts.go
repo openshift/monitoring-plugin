@@ -67,7 +67,7 @@ func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]
 			if src := c.deriveAlertSource(bestRule.Labels); src != "" {
 				alert.Labels[k8s.AlertSourceLabel] = src
 			}
-			component, layer = classifyFromRule(bestRule)
+			component, layer = classifyFromRule(bestRule, alert.Labels, alert.Labels[k8s.AlertSourceLabel])
 		} else {
 			component, layer = classifyFromAlertLabels(alert.Labels)
 		}
@@ -208,13 +208,24 @@ func (c *client) deriveAlertSource(ruleLabels map[string]string) string {
 	return k8s.AlertSourceUser
 }
 
-func classifyFromRule(rule *monitoringv1.Rule) (string, string) {
+// classifyFromRule derives the component and layer for a matched rule.
+// alertLabels are the firing alert's labels: when the rule does not pin an
+// explicit namespace label, the alert's namespace (the namespace of the
+// affected entity) takes precedence over the PrometheusRule's own namespace,
+// so general platform rules classify by what they fired for instead of where
+// the rule is stored. alertSource is the alert source resolved for this rule
+// (platform or user); it is checked before the rule's own labels so a
+// platform rule outside openshift-monitoring still classifies as cluster,
+// consistent with the alert-label path in classifyFromAlertLabels.
+func classifyFromRule(rule *monitoringv1.Rule, alertLabels map[string]string, alertSource string) (string, string) {
 	lbls := model.LabelSet{}
 	for k, v := range rule.Labels {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	if _, ok := lbls["namespace"]; !ok {
-		if ns := rule.Labels[k8s.PrometheusRuleLabelNamespace]; ns != "" {
+		if ns := alertLabels["namespace"]; ns != "" {
+			lbls["namespace"] = model.LabelValue(ns)
+		} else if ns := rule.Labels[k8s.PrometheusRuleLabelNamespace]; ns != "" {
 			lbls["namespace"] = model.LabelValue(ns)
 		}
 	}
@@ -223,12 +234,16 @@ func classifyFromRule(rule *monitoringv1.Rule) (string, string) {
 	}
 
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if component == "" || component == "Others" {
-		component = "Others"
-		layer = deriveLayerFromSource(rule.Labels)
+	if layer == "" || layer == alertcomponent.Unmatched {
+		if isAffectedNamespace(alertLabels["namespace"]) {
+			layer = "namespace"
+		} else if alertSource == k8s.AlertSourcePlatform {
+			layer = "cluster"
+		} else {
+			layer = deriveLayerFromSource(rule.Labels)
+		}
 	}
 
-	component, layer = applyRuleScopedDefaults(rule.Labels, component, layer)
 	return component, layer
 }
 
@@ -238,12 +253,24 @@ func classifyFromAlertLabels(alertLabels map[string]string) (string, string) {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if component == "" || component == "Others" {
-		component = "Others"
-		layer = deriveLayerFromSource(alertLabels)
+	if layer == "" || layer == alertcomponent.Unmatched {
+		if isAffectedNamespace(alertLabels["namespace"]) {
+			layer = "namespace"
+		} else {
+			layer = deriveLayerFromSource(alertLabels)
+		}
 	}
-	component, layer = applyRuleScopedDefaults(alertLabels, component, layer)
 	return component, layer
+}
+
+// isAffectedNamespace reports whether ns names a namespace that is not part
+// of the platform itself. Alerts about entities in such namespaces belong to
+// the namespace layer even when a platform stack evaluated the rule, so a
+// general platform rule (for example TargetDown) firing for a user or
+// managed-cluster namespace is not surfaced as a cluster-layer alert.
+// kube-system hosts platform control-plane components and stays cluster-layered.
+func isAffectedNamespace(ns string) bool {
+	return ns != "" && ns != "kube-system" && !strings.HasPrefix(ns, "openshift-")
 }
 
 func deriveLayerFromSource(labels map[string]string) string {
@@ -258,24 +285,6 @@ func deriveLayerFromSource(labels map[string]string) string {
 		return "cluster"
 	}
 	return "namespace"
-}
-
-// applyRuleScopedDefaults applies static classification labels from the rule.
-func applyRuleScopedDefaults(ruleLabels map[string]string, component, layer string) (string, string) {
-	if ruleLabels == nil {
-		return component, layer
-	}
-	if v := strings.TrimSpace(ruleLabels[k8s.AlertRuleClassificationComponentKey]); v != "" {
-		if classification.ValidateComponent(v) {
-			component = v
-		}
-	}
-	if v := strings.TrimSpace(ruleLabels[k8s.AlertRuleClassificationLayerKey]); v != "" {
-		if classification.ValidateLayer(v) {
-			layer = strings.ToLower(strings.TrimSpace(v))
-		}
-	}
-	return component, layer
 }
 
 // applyDynamicClassification handles _from labels: the rule label points to an

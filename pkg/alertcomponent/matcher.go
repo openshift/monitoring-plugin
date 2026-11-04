@@ -3,15 +3,20 @@ package alertcomponent
 import (
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/prometheus/common/model"
 
+	"github.com/openshift/monitoring-plugin/pkg/classification"
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
 const (
 	labelNamespace = "namespace"
 	labelSeverity  = "severity"
+
+	// Unmatched marks a component or layer for which no matcher applies.
+	Unmatched = "others"
 
 	// ClusterMonitoringNamespace is the namespace for the platform monitoring stack.
 	ClusterMonitoringNamespace = "openshift-monitoring"
@@ -191,7 +196,7 @@ func evalMatcherFns(matchers []componentMatcherFn, labels model.LabelSet) (
 			return string(matchedLayer), string(matchedComponent), getLabelsSubset(labels, keys...)
 		}
 	}
-	return "Others", "Others", getLabelsSubset(labels)
+	return Unmatched, Unmatched, getLabelsSubset(labels)
 }
 
 // getLabelsSubset returns namespace, alertname, severity, and any extra keys
@@ -286,6 +291,7 @@ var (
 		componentRule("openshift-controller-manager", namespaceMatcher("openshift-controller-manager", "openshift-controller-manager-operator")),
 		componentRule("openshift-samples", namespaceMatcher("openshift-cluster-samples-operator", "openshift-samples-operator")),
 		componentRule("operator-lifecycle-manager", namespaceMatcher("openshift-operator-lifecycle-manager")),
+		componentRule("openshift-virtualization-operator", namespaceMatcher("openshift-cnv", "kubevirt-hyperconverged")),
 		componentRule("service-ca", namespaceMatcher("openshift-service-ca", "openshift-service-ca-operator")),
 		componentRule("storage", namespaceMatcher("openshift-storage", "openshift-cluster-csi-drivers", "openshift-cluster-storage-operator", "openshift-storage-operator")),
 		componentRule("vertical-pod-autoscaler", namespaceMatcher("openshift-vertical-pod-autoscaler", "openshift-vertical-pod-autoscaler-operator")),
@@ -326,13 +332,13 @@ func kubevirtOperatorMatcher(labels model.LabelSet) (layer, component model.Labe
 		return "", "", nil
 	}
 	if labels["operator_health_impact"] == "none" && labels["kubernetes_operator_component"] == "kubevirt" {
-		return "namespace", "OpenShift Virtualization Virtual Machine", []model.LabelName{
+		return "namespace", "openshift-virtualization-virtual-machine", []model.LabelName{
 			"kubernetes_operator_part_of",
 			"kubernetes_operator_component",
 			"operator_health_impact",
 		}
 	}
-	return "cluster", "OpenShift Virtualization Operator", []model.LabelName{
+	return "cluster", "openshift-virtualization-operator", []model.LabelName{
 		"kubernetes_operator_part_of",
 		"kubernetes_operator_component",
 		"operator_health_impact",
@@ -362,7 +368,23 @@ func workloadMatcher(labels model.LabelSet) (layer, component model.LabelValue, 
 	return "namespace", model.LabelValue(matched), matchedKeys
 }
 
+// operatorNamespaceMatcher is the last matcher in the chain: an alert fired
+// in an openshift-* namespace that no other matcher claims is attributed to
+// that namespace as its component instead of "others", so platform alerts
+// about operators installed in unmapped namespaces (for example OLM's
+// CsvAbnormalOver30Min for an add-on operator) still get a meaningful
+// component. The layer is returned unmatched so the classification paths
+// derive it from the alert source, consistent with other unmatched alerts.
+func operatorNamespaceMatcher(labels model.LabelSet) (layer, component model.LabelValue, keys []model.LabelName) {
+	ns := labels["namespace"]
+	if !strings.HasPrefix(string(ns), "openshift-") {
+		return "", "", nil
+	}
+	return Unmatched, ns, []model.LabelName{"namespace"}
+}
+
 // DetermineComponent determines the component for a given set of labels.
+// Valid explicit classification labels take precedence over matcher-derived values.
 // It returns the layer and component strings.
 func DetermineComponent(labels model.LabelSet) (layer, component string) {
 	layer, component, _ = evalMatcherFns([]componentMatcherFn{
@@ -371,6 +393,13 @@ func DetermineComponent(labels model.LabelSet) (layer, component string) {
 		computeMatcher,
 		coreMatcher,
 		workloadMatcher,
+		operatorNamespaceMatcher,
 	}, labels)
+	if value := strings.TrimSpace(string(labels[managementlabels.AlertRuleClassificationComponentKey])); classification.ValidateComponent(value) {
+		component = value
+	}
+	if value := strings.TrimSpace(string(labels[managementlabels.AlertRuleClassificationLayerKey])); classification.ValidateLayer(value) {
+		layer = value
+	}
 	return layer, component
 }

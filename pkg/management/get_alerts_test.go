@@ -373,8 +373,8 @@ func TestGetAlerts_FallsBackToDefaultWhenNoMatchingRule(t *testing.T) {
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
-	if alerts[0].AlertComponent != "Others" {
-		t.Errorf("expected component=Others, got %q", alerts[0].AlertComponent)
+	if alerts[0].AlertComponent != "others" {
+		t.Errorf("expected component=others, got %q", alerts[0].AlertComponent)
 	}
 	if alerts[0].AlertLayer != "namespace" {
 		t.Errorf("expected layer=namespace, got %q", alerts[0].AlertLayer)
@@ -429,11 +429,13 @@ func TestGetAlerts_FallsBackToDefaultWithMatchingRuleNoLabels(t *testing.T) {
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
-	if alerts[0].AlertComponent != "Others" {
-		t.Errorf("expected component=Others, got %q", alerts[0].AlertComponent)
+	if alerts[0].AlertComponent != "others" {
+		t.Errorf("expected component=others, got %q", alerts[0].AlertComponent)
 	}
-	if alerts[0].AlertLayer != "cluster" {
-		t.Errorf("expected layer=cluster, got %q", alerts[0].AlertLayer)
+	// The alert is about an entity in the default namespace, which is not a
+	// platform namespace, so it belongs to the namespace layer.
+	if alerts[0].AlertLayer != "namespace" {
+		t.Errorf("expected layer=namespace, got %q", alerts[0].AlertLayer)
 	}
 }
 
@@ -461,5 +463,172 @@ func TestGetAlerts_ReturnsEmptyList(t *testing.T) {
 	}
 	if len(alerts) != 0 {
 		t.Errorf("expected empty list, got %d", len(alerts))
+	}
+}
+
+// A platform-managed rule in a cluster-monitoring namespace other than
+// openshift-monitoring must classify as cluster via the resolved alert
+// source, matching the alert-label classification path.
+func TestGetAlerts_PlatformRuleOutsideOpenshiftMonitoringGetsClusterLayer(t *testing.T) {
+	ctx := context.Background()
+	alert := k8s.PrometheusAlert{
+		Labels: map[string]string{managementlabels.AlertNameLabel: "CustomPlatformAlert", "severity": "warning"},
+		State:  "firing",
+	}
+
+	rule := monitoringv1.Rule{
+		Alert: "CustomPlatformAlert",
+		Labels: map[string]string{
+			"severity":                       "warning",
+			k8s.PrometheusRuleLabelNamespace: "custom-platform-rules",
+			k8s.PrometheusRuleLabelName:      "my-platform-rule",
+		},
+	}
+	rule.Labels[k8s.AlertRuleLabelId] = alertrule.GetAlertingRuleId(&rule)
+
+	mockK8s := &testutils.MockClient{
+		PrometheusAlertsFunc: func() k8s.PrometheusAlertsInterface {
+			return &testutils.MockPrometheusAlertsInterface{
+				FetchAlertsFunc: func(_ context.Context, _ k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+					return []k8s.PrometheusAlert{alert}, nil, nil
+				},
+			}
+		},
+		RelabeledRulesFunc: func() k8s.RelabeledRulesInterface {
+			return &testutils.MockRelabeledRulesInterface{
+				ListFunc: func(_ context.Context) []monitoringv1.Rule { return []monitoringv1.Rule{rule} },
+				GetFunc: func(_ context.Context, id string) (monitoringv1.Rule, bool) {
+					if id == rule.Labels[k8s.AlertRuleLabelId] {
+						return rule, true
+					}
+					return monitoringv1.Rule{}, false
+				},
+				ConfigFunc: func() []*relabel.Config { return []*relabel.Config{} },
+			}
+		},
+		NamespaceFunc: func() k8s.NamespaceInterface {
+			ns := &testutils.MockNamespaceInterface{}
+			ns.SetMonitoringNamespaces(map[string]bool{
+				"openshift-monitoring":  true,
+				"custom-platform-rules": true,
+			})
+			return ns
+		},
+	}
+	client := management.New(ctx, mockK8s)
+
+	alerts, _, err := client.EnrichAlerts(ctx, k8s.GetAlertsRequest{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(alerts) != 1 {
+		t.Fatalf("expected 1 alert, got %d", len(alerts))
+	}
+	if got := alerts[0].Labels[k8s.AlertSourceLabel]; got != k8s.AlertSourcePlatform {
+		t.Errorf("expected alert source %q, got %q", k8s.AlertSourcePlatform, got)
+	}
+	if alerts[0].AlertLayer != "cluster" {
+		t.Errorf("expected layer=cluster, got %q", alerts[0].AlertLayer)
+	}
+	if alerts[0].AlertComponent != "others" {
+		t.Errorf("expected component=others, got %q", alerts[0].AlertComponent)
+	}
+}
+
+// When an alert is correlated with its rule, classification runs on the
+// rule's labels: a rule without a static namespace label is classified by
+// the namespace the alert fired in (the affected entity's namespace), and
+// only falls back to the PrometheusRule's own namespace when the alert
+// carries no namespace either.
+func TestGetAlerts_LinkedRuleClassificationUsesAlertNamespace(t *testing.T) {
+	ctx := context.Background()
+	newAlert := func() k8s.PrometheusAlert {
+		return k8s.PrometheusAlert{
+			Labels: map[string]string{
+				managementlabels.AlertNameLabel: "KubePodCrashLooping",
+				"severity":                      "warning",
+				"namespace":                     "openshift-cnv",
+			},
+			State: "firing",
+		}
+	}
+
+	rule := monitoringv1.Rule{
+		Alert: "KubePodCrashLooping",
+		Labels: map[string]string{
+			"severity":                       "warning",
+			k8s.PrometheusRuleLabelNamespace: k8s.ClusterMonitoringNamespace,
+			k8s.PrometheusRuleLabelName:      "kubernetes.rules",
+		},
+	}
+	rule.Labels[k8s.AlertRuleLabelId] = alertrule.GetAlertingRuleId(&rule)
+
+	// Linked to its rule: the alert's firing namespace (openshift-cnv)
+	// classifies it, not the rule's namespace (openshift-monitoring).
+	linked := &testutils.MockClient{
+		PrometheusAlertsFunc: func() k8s.PrometheusAlertsInterface {
+			return &testutils.MockPrometheusAlertsInterface{
+				FetchAlertsFunc: func(_ context.Context, _ k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+					return []k8s.PrometheusAlert{newAlert()}, nil, nil
+				},
+			}
+		},
+		RelabeledRulesFunc: func() k8s.RelabeledRulesInterface {
+			return &testutils.MockRelabeledRulesInterface{
+				ListFunc: func(_ context.Context) []monitoringv1.Rule { return []monitoringv1.Rule{rule} },
+				GetFunc: func(_ context.Context, id string) (monitoringv1.Rule, bool) {
+					if id == rule.Labels[k8s.AlertRuleLabelId] {
+						return rule, true
+					}
+					return monitoringv1.Rule{}, false
+				},
+				ConfigFunc: func() []*relabel.Config { return []*relabel.Config{} },
+			}
+		},
+		NamespaceFunc: func() k8s.NamespaceInterface {
+			ns := &testutils.MockNamespaceInterface{}
+			ns.SetMonitoringNamespaces(map[string]bool{k8s.ClusterMonitoringNamespace: true})
+			return ns
+		},
+	}
+
+	alerts, _, err := management.New(ctx, linked).EnrichAlerts(ctx, k8s.GetAlertsRequest{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(alerts) != 1 {
+		t.Fatalf("expected 1 alert, got %d", len(alerts))
+	}
+	if alerts[0].AlertComponent != "openshift-virtualization-operator" || alerts[0].AlertLayer != "cluster" {
+		t.Errorf("linked classification = (%q, %q), want (openshift-virtualization-operator, cluster)", alerts[0].AlertComponent, alerts[0].AlertLayer)
+	}
+
+	// Not linked: the alert's firing namespace classifies it.
+	unlinked := &testutils.MockClient{
+		PrometheusAlertsFunc: func() k8s.PrometheusAlertsInterface {
+			return &testutils.MockPrometheusAlertsInterface{
+				FetchAlertsFunc: func(_ context.Context, _ k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+					return []k8s.PrometheusAlert{newAlert()}, nil, nil
+				},
+			}
+		},
+		RelabeledRulesFunc: func() k8s.RelabeledRulesInterface {
+			return &testutils.MockRelabeledRulesInterface{
+				ListFunc:   func(_ context.Context) []monitoringv1.Rule { return nil },
+				GetFunc:    func(_ context.Context, _ string) (monitoringv1.Rule, bool) { return monitoringv1.Rule{}, false },
+				ConfigFunc: func() []*relabel.Config { return []*relabel.Config{} },
+			}
+		},
+	}
+
+	alerts, _, err = management.New(ctx, unlinked).EnrichAlerts(ctx, k8s.GetAlertsRequest{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(alerts) != 1 {
+		t.Fatalf("expected 1 alert, got %d", len(alerts))
+	}
+	if alerts[0].AlertComponent != "openshift-virtualization-operator" || alerts[0].AlertLayer != "cluster" {
+		t.Errorf("unlinked classification = (%q, %q), want (openshift-virtualization-operator, cluster)", alerts[0].AlertComponent, alerts[0].AlertLayer)
 	}
 }
