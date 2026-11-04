@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/management"
 )
 
 type httpClientConfig struct {
@@ -757,5 +759,22 @@ func TestNoCORSHeaders(t *testing.T) {
 				require.NotContains(t, header, "Access-Control-", "unexpected %s on %s", header, path)
 			}
 		})
+	}
+}
+
+func TestMetricsRegistrationFailureKeepsRoutesAvailable(t *testing.T) {
+	ctx := context.Background()
+	managementClient := management.New(ctx, nil)
+	router, _, err := setupRoutes(ctx, &Config{}, managementClient, nil)
+	require.NoError(t, err)
+	for path, status := range map[string]int{
+		"/health":                 http.StatusOK,
+		"/features":               http.StatusOK,
+		"/api/v1/alerting/alerts": http.StatusUnauthorized,
+		"/metrics":                http.StatusUnauthorized,
+	} {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		require.Equal(t, status, recorder.Code, path)
 	}
 }

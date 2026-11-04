@@ -3,13 +3,19 @@ package k8s
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 	"time"
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
+	coordinationv1 "k8s.io/api/coordination/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
@@ -326,5 +332,116 @@ func TestGCOrphanedARCs_RequeuesGracePeriod(t *testing.T) {
 		if len(mock.deleted) != 0 {
 			t.Fatal("deleted a newly orphaned configuration")
 		}
+	}
+}
+
+func metricsLease(holder string) *coordinationv1.Lease {
+	return &coordinationv1.Lease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      MetricsLeaderLeaseName,
+			Namespace: ClusterMonitoringNamespace,
+		},
+		Spec: coordinationv1.LeaseSpec{
+			HolderIdentity: &holder,
+		},
+	}
+}
+
+func TestGCOrphanedARCs_SkippedWhenNotLeader(t *testing.T) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		t.Fatalf("get hostname: %v", err)
+	}
+
+	gcMetrics := newAlertRelabelConfigGCMetrics()
+	mock := &mockARCInterface{
+		arcs: map[string]*osmv1.AlertRelabelConfig{
+			"openshift-monitoring/arc-orphan": newARC("openshift-monitoring", "arc-orphan", "rule-gone", expiredOrphanMarker(), nil),
+		},
+	}
+	rrm := &relabeledRulesManager{
+		alertRelabelConfigs: mock,
+		gcMetrics:           gcMetrics,
+		clientset:           fake.NewSimpleClientset(metricsLease("other-replica-" + hostname)),
+	}
+
+	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+
+	if got := testutil.ToFloat64(gcMetrics.lists); got != 0 {
+		t.Fatalf("list attempts = %v, want 0 on a follower replica", got)
+	}
+	if len(mock.deleted) != 0 {
+		t.Fatalf("follower replica deleted configurations: %v", mock.deleted)
+	}
+}
+
+func TestGCOrphanedARCs_RunsWhenLeader(t *testing.T) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		t.Fatalf("get hostname: %v", err)
+	}
+
+	gcMetrics := newAlertRelabelConfigGCMetrics()
+	mock := &mockARCInterface{
+		arcs: map[string]*osmv1.AlertRelabelConfig{
+			"openshift-monitoring/arc-orphan": newARC("openshift-monitoring", "arc-orphan", "rule-gone", expiredOrphanMarker(), nil),
+		},
+	}
+	rrm := &relabeledRulesManager{
+		alertRelabelConfigs: mock,
+		gcMetrics:           gcMetrics,
+		clientset:           fake.NewSimpleClientset(metricsLease(hostname)),
+	}
+
+	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+
+	if got := testutil.ToFloat64(gcMetrics.lists); got != 1 {
+		t.Fatalf("list attempts = %v, want 1 on the leader replica", got)
+	}
+	if len(mock.deleted) != 1 || mock.deleted[0] != "openshift-monitoring/arc-orphan" {
+		t.Fatalf("leader did not delete the orphan: %v", mock.deleted)
+	}
+}
+
+func TestGCOrphanedARCs_RunsWithoutMetricsLease(t *testing.T) {
+	gcMetrics := newAlertRelabelConfigGCMetrics()
+	mock := &mockARCInterface{
+		arcs: map[string]*osmv1.AlertRelabelConfig{
+			"openshift-monitoring/arc-orphan": newARC("openshift-monitoring", "arc-orphan", "rule-gone", expiredOrphanMarker(), nil),
+		},
+	}
+	rrm := &relabeledRulesManager{
+		alertRelabelConfigs: mock,
+		gcMetrics:           gcMetrics,
+		clientset:           fake.NewSimpleClientset(),
+	}
+
+	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+
+	if got := testutil.ToFloat64(gcMetrics.lists); got != 1 {
+		t.Fatalf("list attempts = %v, want 1 without a metrics Lease", got)
+	}
+	if len(mock.deleted) != 1 {
+		t.Fatalf("expected the orphan to be deleted without a metrics Lease: %v", mock.deleted)
+	}
+}
+
+func TestGCOrphanedARCs_DeleteNotFoundNotAnError(t *testing.T) {
+	gcMetrics := newAlertRelabelConfigGCMetrics()
+	mock := &mockARCInterface{
+		arcs: map[string]*osmv1.AlertRelabelConfig{
+			"openshift-monitoring/arc-orphan": newARC("openshift-monitoring", "arc-orphan", "rule-gone", expiredOrphanMarker(), nil),
+		},
+		deleteErr: apierrors.NewNotFound(schema.GroupResource{Group: "monitoring.openshift.io", Resource: "alertrelabelconfigs"}, "arc-orphan"),
+	}
+	rrm := &relabeledRulesManager{alertRelabelConfigs: mock, gcMetrics: gcMetrics}
+
+	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+
+	if got := testutil.ToFloat64(gcMetrics.deletes); got != 1 {
+		t.Fatalf("delete attempts = %v, want 1", got)
+	}
+	if got := testutil.ToFloat64(gcMetrics.deleteErrors); got != 0 {
+		t.Fatalf("delete errors = %v, want 0 for an already-deleted configuration", got)
 	}
 }

@@ -21,5 +21,6 @@ func TestMain(m *testing.M) {
 		fmt.Fprintf(os.Stderr, "restore user workload monitoring: %v\n", err)
 		code = 1
 	}
+	cleanupMetricsRoute()
 	os.Exit(code)
 }

@@ -7,8 +7,6 @@ import (
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/relabel"
 	"k8s.io/apimachinery/pkg/types"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
@@ -24,12 +22,15 @@ var cvoAlertNames = map[string]struct{}{
 }
 
 func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+	configs := c.k8sClient.RelabeledRules().Config()
+	if req.IncludeDropped {
+		req.DroppedAlertRelabelConfigs = configs
+	}
 	alerts, warnings, err := c.k8sClient.PrometheusAlerts().FetchAlerts(ctx, req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get prometheus alerts: %w", err)
 	}
 
-	configs := c.k8sClient.RelabeledRules().Config()
 	rules := c.k8sClient.RelabeledRules().List(ctx)
 
 	result := make([]k8s.PrometheusAlert, 0, len(alerts))
@@ -37,12 +38,13 @@ func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]
 		// Only apply relabel configs for platform alerts. User workload alerts
 		// already come from their own stack and should not be relabeled here.
 		if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
-			lb := labels.NewBuilder(labels.FromMap(alert.Labels))
-			keep := relabel.ProcessBuilder(lb, configs...)
+			keep := alert.ApplyRelabelConfigs(configs...)
 			if !keep {
-				continue
+				if !req.IncludeDropped {
+					continue
+				}
+				alert.Dropped = true
 			}
-			alert.Labels = lb.Labels().Map()
 		}
 
 		// Add calculated rule ID and source when not present (labels enrichment)

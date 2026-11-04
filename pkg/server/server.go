@@ -30,6 +30,7 @@ import (
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/pkg/monitoring"
 )
 
@@ -313,6 +314,9 @@ func setupRoutes(ctx context.Context, cfg *Config, managementClient management.C
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+		if err := metrics.Register(ctx, registry, managementClient, k8sconfig); err != nil {
+			log.WithError(err).Error("alert management metrics are unavailable")
+		}
 	}
 	metricsHandler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	var err error
