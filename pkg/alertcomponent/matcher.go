@@ -15,6 +15,9 @@ const (
 	labelNamespace = "namespace"
 	labelSeverity  = "severity"
 
+	// Unmatched marks a component or layer for which no matcher applies.
+	Unmatched = "others"
+
 	// ClusterMonitoringNamespace is the namespace for the platform monitoring stack.
 	ClusterMonitoringNamespace = "openshift-monitoring"
 	// UserWorkloadMonitoringNamespace is the namespace for user workload monitoring.
@@ -193,7 +196,7 @@ func evalMatcherFns(matchers []componentMatcherFn, labels model.LabelSet) (
 			return string(matchedLayer), string(matchedComponent), getLabelsSubset(labels, keys...)
 		}
 	}
-	return "Others", "Others", getLabelsSubset(labels)
+	return Unmatched, Unmatched, getLabelsSubset(labels)
 }
 
 // getLabelsSubset returns namespace, alertname, severity, and any extra keys
