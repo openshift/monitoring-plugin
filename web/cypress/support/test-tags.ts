@@ -12,6 +12,7 @@ export const FEATURE_TAGS = [
   '@perses-dashboards',
   '@cluster-health-analyzer',
   '@troubleshooting',
+  '@tracing',
 ] as const;
 
 export type ModifierTag = (typeof MODIFIER_TAGS)[number];
