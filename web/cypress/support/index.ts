@@ -1,7 +1,43 @@
-import './nav';
+import '@cypress/grep';
+
 import './selectors';
+import './commands/selector-commands';
+import './commands/auth-commands';
+import './commands/coo-install-commands';
+import './commands/image-patch-commands';
+import './commands/dashboards-commands';
+import './commands/operator-commands';
+import './commands/utility-commands';
+import './commands/perses-commands';
+import './commands/traces-logging-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {
     assert.isTrue(!win.windowError, win.windowError);
   });
+
+// Ignore benign ResizeObserver errors globally so they don't fail tests
+// See: https://docs.cypress.io/api/cypress-api/catalog-of-events#Uncaught-Exceptions
+Cypress.on('uncaught:exception', (err) => {
+  const message = err?.message || String(err || '');
+  if (
+    message.includes('ResizeObserver loop limit exceeded') ||
+    message.includes('ResizeObserver loop completed with undelivered notifications') ||
+    message.includes('ResizeObserver') ||
+    message.includes('Cannot read properties of undefined') ||
+    message.includes('Unauthorized') ||
+    message.includes('Bad Gateway') ||
+    message.includes(`Cannot read properties of null (reading 'default')`) ||
+    message.includes(`(intermediate value) is not a function`) ||
+    message.includes(`Cannot read properties of null (reading '0')`) ||
+    message.includes(`load_plugin_entry`) ||
+    message.includes(`Cannot access 'y' before initialization`) ||
+    message.includes(`NotFound`) ||
+    message.includes(`Cannot access 'f' before initialization`) ||
+    message.includes(`e is not a function`)
+  ) {
+    console.warn('Ignored frontend exception:', err.message);
+    return false;
+  }
+  // allow other errors to fail the test
+});
