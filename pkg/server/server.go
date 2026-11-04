@@ -26,6 +26,8 @@ import (
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
 	"github.com/openshift/monitoring-plugin/pkg/monitoring"
+	"github.com/openshift/monitoring-plugin/pkg/tracing/api"
+	"github.com/openshift/monitoring-plugin/pkg/tracing/proxy"
 )
 
 var log = logrus.WithField("module", "server")
@@ -74,6 +76,7 @@ const (
 	ClusterHealthAnalyzer Feature = "cluster-health-analyzer"
 	AlertManagementAPI    Feature = "alert-management-api"
 	Troubleshooting       Feature = "troubleshooting"
+	Tracing               Feature = "tracing"
 )
 
 func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
@@ -129,6 +132,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	acmMode := cfg.Features[AcmAlerting]
 	alertManagementAPIMode := cfg.Features[AlertManagementAPI]
+	tracingMode := cfg.Features[Tracing]
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
@@ -145,7 +149,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	var k8sconfig *rest.Config
 	var err error
 	var k8sclient *dynamic.DynamicClient
-	if acmMode || alertManagementAPIMode {
+	if acmMode || alertManagementAPIMode || tracingMode {
 		k8sconfig, err = loadKubeConfig()
 		if err != nil {
 			return nil, fmt.Errorf("cannot load kubernetes config: %w", err)
@@ -157,6 +161,12 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		}
 	} else {
 		k8sclient = nil
+	}
+
+	// The Tempo proxy forwards user tokens, so its routes exist only with the tracing feature.
+	var tracingClient *dynamic.DynamicClient
+	if tracingMode {
+		tracingClient = k8sclient
 	}
 
 	// Initialize management client if management API feature is enabled.
@@ -186,7 +196,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	router, pluginConfig := setupRoutes(cfg, managementClient, tracingClient)
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -277,7 +287,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, managementClient management.Client, tracingClient *dynamic.DynamicClient) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -292,6 +302,11 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+	}
+
+	if tracingClient != nil {
+		router.Path("/api/v1/list-tempo-resources").HandlerFunc(api.ListTempoResourcesHandler(tracingClient))
+		router.PathPrefix("/proxy/{namespace}/{name}/{tenant}").Handler(proxy.NewProxyHandler(tracingClient, cfg.CertFile, cfg.TLSMinVersion, cfg.TLSCipherSuites))
 	}
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
