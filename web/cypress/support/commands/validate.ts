@@ -42,6 +42,24 @@ interface ValidationCheck {
   validate?: (stdout: string, check: ValidationCheck) => ValidationFailure[];
 }
 
+/**
+ * images get tagged into into both the `pipeline` and `stable`
+ * imagestreams of the test namespace, so the cluster may report the same
+ * digest under a different reference than the configured image. So default
+ * to checking the hash rather than the full image string
+ */
+function imagesMatch(actualImage: string | undefined, expectedImage: string | undefined): boolean {
+  if (!actualImage || !expectedImage) {
+    return actualImage === expectedImage;
+  }
+  const actualDigest = actualImage.split('@')[1];
+  const expectedDigest = expectedImage.split('@')[1];
+  if (actualDigest && expectedDigest) {
+    return actualDigest === expectedDigest;
+  }
+  return actualImage === expectedImage;
+}
+
 function isMissingMonitoringRoles(): Cypress.Chainable<ValidationFailure[]> {
   if (Cypress.env('LOGIN_USERNAME') === 'kubeadmin') {
     return cy.wrap([]);
@@ -111,7 +129,7 @@ export function validateMonitoringPlugin(): Cypress.Chainable<ValidationFailure[
       });
     }
     const image = deployment.spec?.template?.spec?.containers?.[0]?.image;
-    if (Cypress.env('MP_IMAGE') && image !== Cypress.env('MP_IMAGE')) {
+    if (Cypress.env('MP_IMAGE') && !imagesMatch(image, Cypress.env('MP_IMAGE'))) {
       reasons.push({
         type: ValidationType.MonitoringPlugin,
         error: `monitoring-plugin image ${image || '(missing)'} does not match MP_IMAGE`,
@@ -154,7 +172,7 @@ function validatePods(
   const reasons = podReadinessReasons(pods, command, type);
   if (expectedImage) {
     pods.forEach((pod) => {
-      if (pod.spec?.containers?.[0]?.image !== expectedImage) {
+      if (!imagesMatch(pod.spec?.containers?.[0]?.image, expectedImage)) {
         reasons.push({
           type,
           error: `${command}: pod ${pod.metadata.name} image does not match configured image`,
