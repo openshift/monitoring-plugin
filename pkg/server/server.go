@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,11 +13,15 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -185,7 +190,18 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	// Metrics authentication is also needed when alert management is off.
+	if k8sconfig == nil && cfg.IsTLSEnabled() {
+		k8sconfig, err = loadKubeConfig()
+		if err != nil && !errors.Is(err, rest.ErrNotInCluster) {
+			return nil, fmt.Errorf("load metrics authentication configuration: %w", err)
+		}
+	}
+
+	router, pluginConfig, err := setupRoutes(ctx, cfg, managementClient, k8sconfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
@@ -229,8 +245,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 			log.Infof(format, args...)
 		})
 
+		// The controller clones its base configuration during reloads. Keep it
+		// independent of the configuration net/http updates when starting TLS.
 		ctrl := dynamiccertificates.NewDynamicServingCertificateController(
-			tlsConfig,
+			tlsConfig.Clone(),
 			nil,
 			certKeyPair,
 			nil,
@@ -248,6 +266,8 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		go ctrl.Run(1, ctx.Done())
 		go certKeyPair.Run(ctx, 1)
 	}
+
+	requestMetricsClientCertificate(tlsConfig)
 
 	timeout := 30 * time.Second
 	if pluginConfig != nil {
@@ -276,7 +296,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, k8sconfig *rest.Config) (*mux.Router, *PluginConfig, error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -288,13 +308,30 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	router.Path("/features").HandlerFunc(featuresHandler(cfg))
 	router.Path("/config").HandlerFunc(configHandlerFunc)
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
 	}
+	metricsHandler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+	var err error
+	var authenticationClient kubernetes.Interface
+	if k8sconfig != nil {
+		authenticationClient, err = kubernetes.NewForConfig(k8sconfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("create metrics authentication client: %w", err)
+		}
+	}
+	clientCA, err := metricsClientCA(ctx, authenticationClient)
+	if err != nil {
+		return nil, nil, err
+	}
+	router.Path("/metrics").Handler(authorizeMetrics(clientCA, metricsHandler))
+
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind monitoring.KindType) *mux.Router {
