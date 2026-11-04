@@ -326,13 +326,13 @@ func kubevirtOperatorMatcher(labels model.LabelSet) (layer, component model.Labe
 		return "", "", nil
 	}
 	if labels["operator_health_impact"] == "none" && labels["kubernetes_operator_component"] == "kubevirt" {
-		return "namespace", "OpenShift Virtualization Virtual Machine", []model.LabelName{
+		return "namespace", "openshift-virtualization-virtual-machine", []model.LabelName{
 			"kubernetes_operator_part_of",
 			"kubernetes_operator_component",
 			"operator_health_impact",
 		}
 	}
-	return "cluster", "OpenShift Virtualization Operator", []model.LabelName{
+	return "cluster", "openshift-virtualization-operator", []model.LabelName{
 		"kubernetes_operator_part_of",
 		"kubernetes_operator_component",
 		"operator_health_impact",
