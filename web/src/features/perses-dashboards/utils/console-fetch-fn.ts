@@ -16,7 +16,7 @@ export const consoleFetchFn: FetchFn = async (input, init) => {
   const request = new Request(input, init);
   const options: RequestInit = {
     method: request.method,
-    headers: request.headers,
+    headers: Object.fromEntries(request.headers),
     signal: request.signal,
     credentials: request.credentials,
     mode: request.mode,

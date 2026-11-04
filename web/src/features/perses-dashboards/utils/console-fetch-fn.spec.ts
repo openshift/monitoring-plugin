@@ -50,7 +50,7 @@ describe('consoleFetchFn', () => {
     const [url, options] = mockConsoleFetch.mock.calls[0];
     expect(url).toBe('https://example.com/api/v1/query');
     expect(options.method).toBe('POST');
-    expect((options.headers as Headers).get('X-Custom')).toBe('value');
+    expect(options.headers).toMatchObject({ 'x-custom': 'value' });
 
     expect(options.signal).toBeInstanceOf(AbortSignal);
     controller.abort();
@@ -96,5 +96,27 @@ describe('consoleFetchFn', () => {
     const result = await consoleFetchFn('https://example.com/api/v1/query');
 
     expect(result).toBe(expected);
+  });
+
+  it('passes the effective Request headers as a plain object, with init headers overriding', async () => {
+    await consoleFetchFn(
+      new Request('https://example.com/api/v1/query', {
+        method: 'POST',
+        headers: { 'X-Custom': 'request' },
+        body: 'query=up',
+      }),
+    );
+    expect(mockConsoleFetch.mock.calls[0][1].headers).toMatchObject({ 'x-custom': 'request' });
+
+    mockConsoleFetch.mockClear();
+    await consoleFetchFn(
+      new Request('https://example.com/api/v1/query', {
+        method: 'POST',
+        headers: { 'X-Custom': 'request' },
+        body: 'query=up',
+      }),
+      { headers: { 'X-Custom': 'init' } },
+    );
+    expect(mockConsoleFetch.mock.calls[0][1].headers).toMatchObject({ 'x-custom': 'init' });
   });
 });
