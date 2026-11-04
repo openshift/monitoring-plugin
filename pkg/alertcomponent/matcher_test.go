@@ -213,7 +213,7 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 				model.LabelName(managementlabels.AlertNameLabel): "VMDown",
 			},
 			wantLayer:     "namespace",
-			wantComponent: "OpenShift Virtualization Virtual Machine",
+			wantComponent: "openshift-virtualization-virtual-machine",
 		},
 		{
 			name: "kubevirt operator alert",
@@ -224,7 +224,7 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 				model.LabelName(managementlabels.AlertNameLabel): "VirtOperatorDown",
 			},
 			wantLayer:     "cluster",
-			wantComponent: "OpenShift Virtualization Operator",
+			wantComponent: "openshift-virtualization-operator",
 		},
 		{
 			name: "cnv-observability skipped",

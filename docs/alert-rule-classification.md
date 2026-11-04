@@ -73,6 +73,12 @@ Both are validated the same way as API overrides:
 
 When these labels are present and valid, they override matcher-derived values.
 
+Virtualization components use `openshift-virtualization-virtual-machine` for VM
+alerts and `openshift-virtualization-operator` for operator alerts. Rule overrides
+must use the same identifiers to group with matcher-classified alerts. Queries and
+dashboards filtering on the previous names (`OpenShift Virtualization Virtual Machine`
+and `OpenShift Virtualization Operator`) must update their component filters.
+
 ## Classification Override Storage
 
 Location: `pkg/management/update_classification.go`, `pkg/management/get_alerts.go`
