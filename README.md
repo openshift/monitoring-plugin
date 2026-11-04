@@ -260,6 +260,40 @@ make start-mcp-frontend
 # ,agent-navigation for the agent menu. Start it after the frontend's first
 # compile: it reads web/dist/plugin-manifest.json once at startup.
 KUBECONFIG=$HOME/.kube/config make start-coo-backend 'ALL_FEATURES=$(MONITORING_FEATURES),troubleshooting'
+#### Local Development with Distributed Tracing (Tempo)
+
+Distributed tracing runs under the `monitoring-console-plugin` identity and is
+off by default (`tracing` feature). Unlike the logging view, the bridge does
+not call Tempo itself: the plugin backend proxies trace queries to
+`https://tempo-<name>-gateway.<namespace>.svc:8080`, which a backend on your
+machine cannot resolve. `make start-tracing-backend` therefore replaces
+`make start-coo-backend` and runs the backend in a container that maps each
+gateway's service name to a local port-forward.
+
+Prerequisites:
+
+- A cluster with the Tempo operator and a multi-tenant TempoStack or
+  TempoMonolithic receiving traces. Single-tenant instances are hidden by the
+  plugin (OU-467) and not supported.
+- `oc login` as a user who can list `tempostacks` and `tempomonolithics`
+  cluster-wide (cluster-admin on a dev cluster): the local backend lists them
+  with your kubeconfig identity instead of the plugin service account.
+- podman or Docker. The local bridge loads only `monitoring-console-plugin`,
+  not the legacy `distributed-tracing-console-plugin`, so the two do not
+  conflict.
+
+```
+# Frontend under the console-plugin identity (manifest name + i18n namespace)
+make start-mcp-frontend
+
+# Backend in a container, one <namespace>/<name> per multi-tenant Tempo
+# instance. Start it after the frontend's first compile: it reads
+# web/dist/plugin-manifest.json once at startup. It prints the port-forwards.
+TEMPO_INSTANCES=tracing-system/simplest,tempo-mono/sample make start-tracing-backend
+
+# In separate terminals: the printed port-forwards, e.g.
+oc -n tracing-system port-forward --address 127.0.0.2 svc/tempo-simplest-gateway 8080:8080
+oc -n tempo-mono port-forward --address 127.0.0.3 svc/tempo-sample-gateway 8080:8080
 
 # Console bridge
 make start-coo-console
@@ -289,3 +323,33 @@ Cypress smoke: `CYPRESS_TROUBLESHOOTING_ENABLED=true npm run test-cypress-troubl
 from `web/`. To check the disabled state, restart the backend without
 `troubleshooting` (`'ALL_FEATURES=$(MONITORING_FEATURES)'`) and leave
 `CYPRESS_TROUBLESHOOTING_ENABLED` unset.
+The script runs `go run ./cmd/plugin-backend.go` on `PLUGIN_PORT` (9443) in
+`registry.access.redhat.com/ubi9/go-toolset:1.26`, with your kubeconfig
+mounted read-only and the cluster's service CA trusted for the gateways' TLS
+certificates. With podman on Linux it uses host networking and gives each
+instance its own loopback address (127.0.0.2, 127.0.0.3, ...), so the
+port-forwards do not collide with each other or with the Loki and Perses ones
+on 127.0.0.1. Other runtimes map the names to the host gateway, need the
+port-forward on `--address 0.0.0.0` and support one instance at a time. Go
+modules and builds are cached in the `monitoring-plugin-go-mod-cache` and
+`monitoring-plugin-go-build-cache` volumes. `start-console.sh` registers
+`/api/proxy/plugin/monitoring-console-plugin/backend/` so your token reaches
+the backend's Tempo proxy.
+
+`TRACING_DEV_FEATURES` sets the backend features (default `tracing`); combine
+them as a comma-separated list, e.g. `TRACING_DEV_FEATURES=alerting,tracing`.
+`PLUGIN_PORT`, `KUBECONFIG` (default `$HOME/.kube/config`) and
+`TRACING_BACKEND_IMAGE` override the defaults, and `DRY_RUN=1` prints the
+container command instead of running it.
+
+Cypress, from `web/`:
+
+```
+# Merged feature smoke, disabled run (backend without tracing in TRACING_DEV_FEATURES)
+npm run test-cypress-tracing
+# Enabled run; the instance and tenant are optional and add a Tempo search
+npm run test-cypress-tracing -- --env TRACING_ENABLED=true,TRACING_TEMPO_INSTANCE=<namespace>/<name>,TRACING_TEMPO_TENANT=<tenant>
+# Legacy e2e suite: installs operators and targets the COO-deployed legacy
+# plugin on the cluster Console, not this local setup (see web/cypress/README.md)
+npm run test-cypress-tracing-legacy
+```

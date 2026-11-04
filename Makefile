@@ -74,6 +74,10 @@ start-backend:
 start-coo-backend:
 	go run ./cmd/plugin-backend.go -port='9443' -config-path='./config' -plugin-config-path='./hack/default-config.yaml' -static-path='./web/dist' -features='${ALL_FEATURES}'
 
+.PHONY: start-tracing-backend
+start-tracing-backend:
+	./scripts/start-tracing-backend.sh
+
 .PHONY: test-backend
 test-backend:
 	go test ./pkg/... ./internal/... -v
