@@ -135,6 +135,7 @@ func TestMetricsCertificateAuthorization(t *testing.T) {
 		for _, name := range []string{"go_goroutines", "process_start_time_seconds"} {
 			require.Contains(t, recorder.Body.String(), name)
 		}
+		require.NotContains(t, recorder.Body.String(), "alerts_effective_active_at_timestamp_seconds")
 		// The production router must reject scrapes without a client certificate.
 		unauthenticated := httptest.NewRequest(http.MethodGet, "https://plugin/metrics", nil)
 		recorder = httptest.NewRecorder()

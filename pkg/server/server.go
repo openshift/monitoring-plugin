@@ -28,6 +28,7 @@ import (
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/pkg/monitoring"
 	"github.com/openshift/monitoring-plugin/pkg/tracing/api"
 	"github.com/openshift/monitoring-plugin/pkg/tracing/proxy"
@@ -225,7 +226,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 			metricsAuthorizer = denyAllMetrics
 		}
 	}
-	router, pluginConfig := setupRoutes(cfg, managementClient, tracingClient, metricsAuthorizer)
+	router, pluginConfig, err := setupRoutes(ctx, cfg, managementClient, tracingClient, k8sconfig, metricsAuthorizer)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 
 	tlsConfig := &tls.Config{}
 
@@ -305,7 +309,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client, tracingClient *dynamic.DynamicClient, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, tracingClient *dynamic.DynamicClient, k8sconfig *rest.Config, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig, error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -322,6 +326,9 @@ func setupRoutes(cfg *Config, managementClient management.Client, tracingClient 
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+		if err := metrics.Register(ctx, registry, managementClient, k8sconfig); err != nil {
+			return nil, nil, fmt.Errorf("failed to register alert management metrics: %w", err)
+		}
 	}
 	if tracingClient != nil {
 		router.Path("/api/v1/list-tempo-resources").HandlerFunc(api.ListTempoResourcesHandler(tracingClient))
@@ -333,7 +340,7 @@ func setupRoutes(cfg *Config, managementClient management.Client, tracingClient 
 
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind monitoring.KindType) *mux.Router {
