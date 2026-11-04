@@ -252,6 +252,53 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 	}
 }
 
+func TestDetermineComponent_ExplicitClassification(t *testing.T) {
+	const vmComponent = "openshift-virtualization-virtual-machine"
+	const operatorComponent = "openshift-virtualization-operator"
+	tests := []struct {
+		name              string
+		componentOverride string
+		layerOverride     string
+		healthImpact      string
+		withoutLegacy     bool
+		wantComponent     string
+		wantLayer         string
+	}{
+		{name: "no overrides", wantComponent: operatorComponent, wantLayer: "cluster"},
+		{name: "both overrides", componentOverride: vmComponent, layerOverride: "namespace", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "critical health impact", componentOverride: vmComponent, layerOverride: "namespace", healthImpact: "critical", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "component only", componentOverride: vmComponent, wantComponent: vmComponent, wantLayer: "cluster"},
+		{name: "layer only", layerOverride: "namespace", wantComponent: operatorComponent, wantLayer: "namespace"},
+		{name: "invalid component", componentOverride: "invalid component", layerOverride: "namespace", wantComponent: operatorComponent, wantLayer: "namespace"},
+		{name: "invalid layer", componentOverride: vmComponent, layerOverride: "invalid", wantComponent: vmComponent, wantLayer: "cluster"},
+		{name: "empty overrides", componentOverride: " ", layerOverride: " ", wantComponent: operatorComponent, wantLayer: "cluster"},
+		{name: "trim overrides", componentOverride: " " + vmComponent + " ", layerOverride: " namespace ", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "without legacy labels", componentOverride: vmComponent, layerOverride: "namespace", withoutLegacy: true, wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "unmatched layer", componentOverride: vmComponent, withoutLegacy: true, wantComponent: vmComponent, wantLayer: "Others"},
+		{name: "unmatched component", layerOverride: "namespace", withoutLegacy: true, wantComponent: "Others", wantLayer: "namespace"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			labels := model.LabelSet{
+				managementlabels.AlertRuleClassificationComponentKey: model.LabelValue(tt.componentOverride),
+				managementlabels.AlertRuleClassificationLayerKey:     model.LabelValue(tt.layerOverride),
+			}
+			if !tt.withoutLegacy {
+				labels["kubernetes_operator_part_of"] = "kubevirt"
+				labels["kubernetes_operator_component"] = "hyperconverged-cluster-operator"
+				labels["operator_health_impact"] = "none"
+				if tt.healthImpact != "" {
+					labels["operator_health_impact"] = model.LabelValue(tt.healthImpact)
+				}
+			}
+			layer, component := DetermineComponent(labels)
+			if layer != tt.wantLayer || component != tt.wantComponent {
+				t.Errorf("classification = (%q, %q), want (%q, %q)", layer, component, tt.wantLayer, tt.wantComponent)
+			}
+		})
+	}
+}
+
 func TestDetermineComponent_Compute(t *testing.T) {
 	tests := []struct {
 		name          string

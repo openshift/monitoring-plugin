@@ -3,9 +3,11 @@ package alertcomponent
 import (
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/prometheus/common/model"
 
+	"github.com/openshift/monitoring-plugin/pkg/classification"
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
@@ -363,6 +365,7 @@ func workloadMatcher(labels model.LabelSet) (layer, component model.LabelValue, 
 }
 
 // DetermineComponent determines the component for a given set of labels.
+// Valid explicit classification labels take precedence over matcher-derived values.
 // It returns the layer and component strings.
 func DetermineComponent(labels model.LabelSet) (layer, component string) {
 	layer, component, _ = evalMatcherFns([]componentMatcherFn{
@@ -372,5 +375,11 @@ func DetermineComponent(labels model.LabelSet) (layer, component string) {
 		coreMatcher,
 		workloadMatcher,
 	}, labels)
+	if value := strings.TrimSpace(string(labels[managementlabels.AlertRuleClassificationComponentKey])); classification.ValidateComponent(value) {
+		component = value
+	}
+	if value := strings.TrimSpace(string(labels[managementlabels.AlertRuleClassificationLayerKey])); classification.ValidateLayer(value) {
+		layer = value
+	}
 	return layer, component
 }
