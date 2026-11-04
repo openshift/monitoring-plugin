@@ -247,7 +247,9 @@
       "TroubleshootingPanelActionsProvider": "./features/troubleshooting/hooks/useTroubleshootingPanel",
       "TPReducer": "./features/troubleshooting/store/reducers",
       "NullContextProvider": "./features/troubleshooting/components/NullContextProvider",
-      "usePopover": "./features/troubleshooting/hooks/usePopover"
+      "usePopover": "./features/troubleshooting/hooks/usePopover",
+      "TracesPage": "./features/tracing/pages/TracesPage/TracesPage",
+      "TraceDetailPage": "./features/tracing/pages/TraceDetailPage/TraceDetailPage"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
