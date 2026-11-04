@@ -85,12 +85,6 @@ This precedence holds within the matcher step. In the alerts API enrichment
 - Dynamic `_from` labels (see below) are resolved last and take precedence over
   both the static labels and the CVO classification.
 
-Virtualization components use `openshift-virtualization-virtual-machine` for VM
-alerts and `openshift-virtualization-operator` for operator alerts. Rule overrides
-must use the same identifiers to group with matcher-classified alerts. Queries and
-dashboards filtering on the previous names (`OpenShift Virtualization Virtual Machine`
-and `OpenShift Virtualization Operator`) must update their component filters.
-
 ## Classification Override Storage
 
 Location: `pkg/management/update_classification.go`, `pkg/management/get_alerts.go`
