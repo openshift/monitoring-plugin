@@ -14,6 +14,7 @@ export enum QueryParams {
   OpenshiftProject = 'project-dropdown-value',
   Refresh = 'refresh',
   Start = 'start',
+  End = 'end',
   Edit = 'edit',
   Query = 'query',
 }
