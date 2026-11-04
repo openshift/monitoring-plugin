@@ -156,6 +156,15 @@ func TestServerRunning(t *testing.T) {
 		t.Fatalf("Failed: could not fetch features endpoint: %v", err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL+"/metrics", nil)
+	require.NoError(t, err)
+	resp, err := httpClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
+
 	// sanity check - make sure we cannot get to a bogus context path
 	if _, err = getRequestResults(t, httpClient, serverURL+"/badroot"); err == nil {
 		t.Fatalf("Failed: Should have failed going to /badroot")
@@ -209,7 +218,7 @@ func TestSecureServerRunning(t *testing.T) {
 	tmpDirAssets := prepareServerAssets(t)
 	defer os.RemoveAll(tmpDirAssets)
 
-	_, cleanup := startTestServer(t, conf)
+	server, cleanup := startTestServer(t, conf)
 	defer cleanup()
 	t.Logf("Started test https server: %v", serverURL)
 
@@ -225,7 +234,9 @@ func TestSecureServerRunning(t *testing.T) {
 		t.Fatalf("Failed to create http client")
 	}
 
-	// Wait for our test http server to come up
+	// Wait for our test http server to come up. This also proves that a
+	// missing client-ca-file option doesn't prevent the rest of the server
+	// from starting.
 	checkHTTPReady(httpClient, serverURL+"/status")
 
 	if _, err = getRequestResults(t, httpClient, serverURL); err != nil {
@@ -235,6 +246,19 @@ func TestSecureServerRunning(t *testing.T) {
 	if _, err = getRequestResults(t, httpClient, serverURL+"/health"); err != nil {
 		t.Fatalf("Failed: could not fetch API endpoint: %v", err)
 	}
+
+	// The dynamically selected serving configuration must request client certificates.
+	require.Eventually(t, func() bool {
+		current, err := server.TLSConfig.GetConfigForClient(&tls.ClientHelloInfo{ServerName: "localhost"})
+		return err == nil && current != nil && current.ClientAuth == tls.RequestClientCert
+	}, 5*time.Second, time.Millisecond)
+
+	// Without a client CA file, the /metrics endpoint fails closed and rejects
+	// every scrape.
+	response, err := httpClient.Get(serverURL + "/metrics")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusServiceUnavailable, response.StatusCode)
+	require.NoError(t, response.Body.Close())
 
 	// Make sure the server rejects anything trying to use TLS 1.1 or under
 	httpConfigTLS11 := httpClientConfig{
