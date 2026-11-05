@@ -37,7 +37,6 @@ import { SeverityCounts } from '@/features/alerts/components/AlertUtils';
 import {
   ExpireSilenceModal,
   SilenceMatchersList,
-  SilenceState,
 } from '@/features/alerts/components/SilencesUtils';
 import {
   filterSilences,
@@ -45,6 +44,7 @@ import {
   SilenceFilters,
 } from '@/features/alerts/pages/silences-page/filter-silences';
 import { StateTimestamp } from '@/shared/components/AlertState';
+import { SilenceState } from '@/shared/components/SilenceState';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
