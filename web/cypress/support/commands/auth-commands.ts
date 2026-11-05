@@ -101,7 +101,7 @@ export const operatorAuthUtils = {
   loginAndAuth(): void {
     cy.log('Before block');
     operatorAuthUtils.performLoginAndAuth();
-    cy.visit('/');
+    visitConsole();
   },
 
   generateCOOSessionKey(): string[] {
@@ -166,6 +166,16 @@ export const operatorAuthUtils = {
   },
 };
 
+function visitConsole(): void {
+  cy.visit('/');
+
+  // Wait for the first page of the console to become ready
+  cy.location('pathname', { timeout: 120_000 }).should('not.eq', '/');
+  cy.byTestID('username', { timeout: 120_000 }).should('be.visible');
+  cy.get('#page-sidebar', { timeout: 120_000 }).should('be.visible');
+  cy.get('h1', { timeout: 120_000 }).should('be.visible');
+}
+
 // Core login function (used by both session and non-session versions)
 function performLogin(
   provider: string,
@@ -214,17 +224,13 @@ function performLogin(
 
 Cypress.Commands.add('validateLogin', () => {
   cy.log('validateLogin');
-  cy.visit('/');
-  cy.wait(2000);
-  cy.byTestID('username', { timeout: 120000 }).should('be.visible');
-  cy.wait(10000);
+  visitConsole();
   guidedTour.close();
 });
 
 Cypress.Commands.add('restoreLogin', (provider?: string, username?: string, password?: string) => {
   if (!provider && !username && !password) {
     operatorAuthUtils.loginAndAuth();
-    cy.visit('/');
     return;
   }
 
@@ -241,7 +247,7 @@ Cypress.Commands.add('restoreLogin', (provider?: string, username?: string, pass
         origin,
         nodeResult.stdout.includes('Ready'),
       );
-      cy.visit('/');
+      visitConsole();
     });
   });
 });
