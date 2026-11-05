@@ -30,14 +30,12 @@ import {
   EmptyState,
   EmptyStateBody,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
   InputGroup,
   InputGroupItem,
-  Level,
-  LevelItem,
   MenuToggle,
   MenuToggleElement,
-  Split,
-  SplitItem,
   TextInput,
   Title,
   Tooltip,
@@ -153,8 +151,8 @@ const SpanControls = memo(
     ));
 
     return (
-      <Level hasGutter>
-        <LevelItem>
+      <>
+        <FlexItem flex={{ default: 'flexNone' }}>
           <InputGroup>
             <InputGroupItem isFill>
               <TextInput
@@ -185,8 +183,8 @@ const SpanControls = memo(
               </Dropdown>
             </InputGroupItem>
           </InputGroup>
-        </LevelItem>
-        <LevelItem>
+        </FlexItem>
+        <FlexItem grow={{ default: 'grow' }}>
           <Button
             onClick={() => setSpan(defaultSpanText)}
             type="button"
@@ -195,9 +193,9 @@ const SpanControls = memo(
           >
             {t('Reset zoom')}
           </Button>
-        </LevelItem>
-        <LevelItem>
-          {hasReducedResolution && (
+        </FlexItem>
+        {hasReducedResolution && (
+          <FlexItem>
             <Alert
               isInline
               isPlain
@@ -205,9 +203,9 @@ const SpanControls = memo(
               variant="info"
               truncateTitle={1}
             />
-          )}
-        </LevelItem>
-      </Level>
+          </FlexItem>
+        )}
+      </>
     );
   },
 );
@@ -947,68 +945,69 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
           <>{updating && !onLoadingChange && <LoadingInline />}</>
         ) : (
           <CardHeader>
-            <Split>
-              <SplitItem>
-                <SpanControls
-                  defaultSpanText={defaultSpanText}
-                  onChange={onSpanChange}
-                  span={span}
-                  hasReducedResolution={hasReducedResolution}
-                />
-                {updating && <LoadingInline />}
-              </SplitItem>
-              <SplitItem isFilled />
-              <SplitItem>
-                <Split hasGutter>
-                  {GraphLink && (
-                    <SplitItem>
-                      <GraphLink />
-                    </SplitItem>
-                  )}
-                  {canStack && showStackedControl && (
-                    <SplitItem>
-                      <Checkbox
-                        id="stacked"
-                        isChecked={isStacked}
-                        data-checked-state={isStacked}
-                        label={t('Stacked')}
-                        onChange={(_e, v) =>
-                          typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
-                        }
-                        data-test={DataTestIDs.MetricStackedCheckbox}
-                      />
-                    </SplitItem>
-                  )}
-                  {showDisconnectedControl && (
-                    <SplitItem>
-                      <Tooltip
-                        content={
-                          <div>
-                            {isDisconnectedEnabled
-                              ? t('Check to show gaps for missing data')
-                              : t('No gaps found in the data')}
-                          </div>
-                        }
-                      >
-                        <Checkbox
-                          id="disconnected"
-                          isChecked={isDisconnectedEnabled && showDisconnectedValues}
-                          data-checked-state={isDisconnectedEnabled && showDisconnectedValues}
-                          label={t('Disconnected')}
-                          onChange={(_e, v) =>
-                            typeof _e === 'boolean'
-                              ? setIsShowDisconnectedValues(_e)
-                              : setIsShowDisconnectedValues(v)
-                          }
-                          isDisabled={!isDisconnectedEnabled}
-                          data-test={DataTestIDs.MetricDisconnectedCheckbox}
-                        />
-                      </Tooltip>
-                    </SplitItem>
-                  )}
-                </Split>
-              </SplitItem>
-            </Split>
+            <Flex
+              alignItems={{ default: 'alignItemsCenter' }}
+              flexWrap={{ default: 'wrap' }}
+              gap={{ default: 'gapMd' }}
+            >
+              <SpanControls
+                defaultSpanText={defaultSpanText}
+                onChange={onSpanChange}
+                span={span}
+                hasReducedResolution={hasReducedResolution}
+              />
+              {updating && (
+                <FlexItem>
+                  <LoadingInline />
+                </FlexItem>
+              )}
+              {GraphLink && (
+                <FlexItem flex={{ default: 'flexNone' }}>
+                  <GraphLink />
+                </FlexItem>
+              )}
+              {canStack && showStackedControl && (
+                <FlexItem flex={{ default: 'flexNone' }}>
+                  <Checkbox
+                    id="stacked"
+                    isChecked={isStacked}
+                    data-checked-state={isStacked}
+                    label={t('Stacked')}
+                    onChange={(_e, v) =>
+                      typeof _e === 'boolean' ? setIsStacked(_e) : setIsStacked(v)
+                    }
+                    data-test={DataTestIDs.MetricStackedCheckbox}
+                  />
+                </FlexItem>
+              )}
+              {showDisconnectedControl && (
+                <FlexItem flex={{ default: 'flexNone' }}>
+                  <Tooltip
+                    content={
+                      <div>
+                        {isDisconnectedEnabled
+                          ? t('Check to show gaps for missing data')
+                          : t('No gaps found in the data')}
+                      </div>
+                    }
+                  >
+                    <Checkbox
+                      id="disconnected"
+                      isChecked={isDisconnectedEnabled && showDisconnectedValues}
+                      data-checked-state={isDisconnectedEnabled && showDisconnectedValues}
+                      label={t('Disconnected')}
+                      onChange={(_e, v) =>
+                        typeof _e === 'boolean'
+                          ? setIsShowDisconnectedValues(_e)
+                          : setIsShowDisconnectedValues(v)
+                      }
+                      isDisabled={!isDisconnectedEnabled}
+                      data-test={DataTestIDs.MetricDisconnectedCheckbox}
+                    />
+                  </Tooltip>
+                </FlexItem>
+              )}
+            </Flex>
           </CardHeader>
         )}
         <CardBody
