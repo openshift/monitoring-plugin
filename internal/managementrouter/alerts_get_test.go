@@ -67,10 +67,24 @@ func decodeAlertsResp(t *testing.T, w *httptest.ResponseRecorder) managementrout
 }
 
 func TestGetAlerts_RepeatedStateRejected(t *testing.T) {
-	f := newAGFixture(t)
-	w := f.get(t, "/api/v1/alerting/alerts?state=&state=firing")
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+	for _, query := range []string{"state=&state=firing", "state=pending&state=firing"} {
+		t.Run(query, func(t *testing.T) {
+			f := newAGFixture(t)
+			w := f.get(t, "/api/v1/alerting/alerts?"+query)
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+			}
+			if got := w.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("expected application/json, got %q", got)
+			}
+			var resp managementrouter.ErrorResponse
+			if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+				t.Fatalf("decode error response: %v", err)
+			}
+			if !strings.Contains(resp.Error, "state") {
+				t.Errorf("expected error message about state, got %q", resp.Error)
+			}
+		})
 	}
 }
 

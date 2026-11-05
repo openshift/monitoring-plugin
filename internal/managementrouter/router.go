@@ -42,6 +42,9 @@ func New(managementClient management.Client) *mux.Router {
 	HandlerWithOptions(hr, GorillaServerOptions{
 		BaseURL:    "/api/v1/alerting",
 		BaseRouter: r,
+		ErrorHandlerFunc: func(w http.ResponseWriter, _ *http.Request, err error) {
+			writeError(w, http.StatusBadRequest, err.Error())
+		},
 	})
 
 	return r
