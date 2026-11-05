@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -33,6 +36,11 @@ var tracingExtensions = []string{
 
 func TestTracingManifestGate(t *testing.T) {
 	configPath := tracingConfigPath(t)
+	// Keep expectations independent of the patch: migration must preserve the source extensions.
+	expectedExtensions := make([]any, len(tracingExtensions))
+	for i, source := range tracingExtensions {
+		require.NoError(t, json.Unmarshal([]byte(source), &expectedExtensions[i]))
+	}
 	for _, tc := range []struct {
 		name     string
 		features map[Feature]bool
@@ -47,33 +55,65 @@ func TestTracingManifestGate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := patchManifest([]byte(`{"extensions":[]}`), &Config{Features: tc.features, ConfigPath: configPath})
 			var manifest struct {
-				Extensions []json.RawMessage `json:"extensions"`
+				Extensions []any `json:"extensions"`
 			}
 			require.NoError(t, json.Unmarshal(result, &manifest))
 			// Every source extension must be registered exactly once, or absent when disabled.
-			for _, source := range tracingExtensions {
-				var expected any
-				require.NoError(t, json.Unmarshal([]byte(source), &expected))
-				b, err := json.Marshal(expected)
-				require.NoError(t, err)
+			for i, expected := range expectedExtensions {
 				matches := 0
 				for _, extension := range manifest.Extensions {
-					var actual any
-					require.NoError(t, json.Unmarshal(extension, &actual))
-					a, err := json.Marshal(actual)
-					require.NoError(t, err)
-					if string(a) == string(b) {
+					if reflect.DeepEqual(expected, extension) {
 						matches++
 					}
 				}
 				if tc.tracing {
-					require.Equal(t, 1, matches, source)
+					require.Equal(t, 1, matches, tracingExtensions[i])
 				} else {
-					require.Zero(t, matches, source)
+					require.Zero(t, matches, tracingExtensions[i])
 				}
 			}
 		})
 	}
+}
+
+// TestTracingCodeRefs checks that the tracing patch references exposed frontend modules.
+func TestTracingCodeRefs(t *testing.T) {
+	configPath := tracingConfigPath(t)
+	data, err := os.ReadFile(filepath.Join(configPath, "..", "web", "package.json"))
+	require.NoError(t, err)
+	var pkg struct {
+		ConsolePlugin struct {
+			ExposedModules map[string]string `json:"exposedModules"`
+		} `json:"consolePlugin"`
+	}
+	require.NoError(t, json.Unmarshal(data, &pkg))
+
+	data, err = os.ReadFile(filepath.Join(configPath, "tracing.patch.json"))
+	require.NoError(t, err)
+	var operations []struct {
+		Value struct {
+			Properties struct {
+				Component *struct {
+					Name string `json:"$codeRef"`
+				} `json:"component"`
+			} `json:"properties"`
+		} `json:"value"`
+	}
+	require.NoError(t, json.Unmarshal(data, &operations))
+	refs := 0
+	for _, operation := range operations {
+		ref := operation.Value.Properties.Component
+		if ref == nil {
+			continue
+		}
+		refs++
+		require.NotEmpty(t, ref.Name)
+		// $codeRef is either "Module" (default export) or "Module.Export".
+		module, _, _ := strings.Cut(ref.Name, ".")
+		require.Contains(t, pkg.ConsolePlugin.ExposedModules, module)
+		require.NotEmpty(t, pkg.ConsolePlugin.ExposedModules[module])
+	}
+	require.Equal(t, 2, refs, "both tracing routes must reference exposed modules")
 }
 
 // newTempoAPIKubeconfig starts a stub API server that answers the Tempo CR list requests
