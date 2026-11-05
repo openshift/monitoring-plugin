@@ -96,7 +96,10 @@ for i in "${!tempo_instances[@]}"; do
         address="0.0.0.0"
         add_host_args+=(--add-host "${service}.${namespace}.svc:host-gateway")
     fi
-    port_forward_cmds+=("oc -n ${namespace} port-forward --address ${address} svc/${service} 8080:8080")
+    # Each forward runs in another terminal, which may use a different kubeconfig.
+    printf -v port_forward_cmd 'oc --kubeconfig %q -n %q port-forward --address %q svc/%q 8080:8080' \
+        "${KUBECONFIG}" "${namespace}" "${address}" "${service}"
+    port_forward_cmds+=("${port_forward_cmd}")
 done
 
 # The Tempo gateways serve HTTPS with a service-CA certificate. Go's

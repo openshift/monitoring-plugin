@@ -3,10 +3,10 @@ import { listPage } from '../../views/list-page';
 // Real Console/Tempo smoke; never installs operators or grants permissions.
 // Preconditions: the Console under test loads monitoring-console-plugin but not the legacy
 // distributed-tracing-console-plugin (e.g. the local bridge from `make start-coo-console`), and
-// for the enabled run the Tempo operator CRDs are installed.
+// for the enabled run the selected multi-tenant Tempo instance must contain recent traces.
 // Disabled (default): `npm run test-cypress-tracing`.
-// Enabled: `npm run test-cypress-tracing -- --env TRACING_ENABLED=true`; optionally add
-// TRACING_TEMPO_INSTANCE=<namespace>/<name> and TRACING_TEMPO_TENANT=<tenant> to also run a search.
+// Enabled: `npm run test-cypress-tracing -- --env TRACING_ENABLED=true,` followed by
+// TRACING_TEMPO_INSTANCE=<namespace>/<name>,TRACING_TEMPO_TENANT=<tenant> (both required).
 describe('Merged MCP tracing', { tags: ['@tracing', '@coo'] }, () => {
   // Off unless explicitly enabled, matching the product default.
   const enabled = Cypress.env('TRACING_ENABLED') === true;
@@ -48,14 +48,21 @@ describe('Merged MCP tracing', { tags: ['@tracing', '@coo'] }, () => {
       return;
     }
     const [namespace, name] = (Cypress.env('TRACING_TEMPO_INSTANCE') || '').split('/');
-    const tenant = Cypress.env('TRACING_TEMPO_TENANT');
-    const search = Boolean(namespace && name && tenant);
-    const params = new URLSearchParams(search ? { namespace, name, tenant } : {});
-    if (search) {
-      cy.intercept({ pathname: `${backend}/proxy/${namespace}/${name}/${tenant}/api/search` }).as(
-        'search',
-      );
-    }
+    const tenant = Cypress.env('TRACING_TEMPO_TENANT') || '';
+    expect(namespace, 'TRACING_TEMPO_INSTANCE namespace is required')
+      .to.be.a('string')
+      .and.have.length.greaterThan(0);
+    expect(name, 'TRACING_TEMPO_INSTANCE name is required')
+      .to.be.a('string')
+      .and.have.length.greaterThan(0);
+    expect(tenant, 'TRACING_TEMPO_TENANT is required')
+      .to.be.a('string')
+      .and.have.length.greaterThan(0);
+    const params = new URLSearchParams({ namespace, name, tenant });
+    const tempoProxy =
+      `${backend}/proxy/${encodeURIComponent(namespace)}/` +
+      `${encodeURIComponent(name)}/${encodeURIComponent(tenant)}`;
+    cy.intercept({ method: 'GET', pathname: `${tempoProxy}/api/search` }).as('search');
 
     cy.visit(`/observe/traces?${params}`);
     cy.wait('@tempoResources').then(({ response }) => {
@@ -64,11 +71,26 @@ describe('Merged MCP tracing', { tags: ['@tracing', '@coo'] }, () => {
     });
     cy.contains('h1', 'Traces').should('be.visible');
     cy.get('a[href="/observe/traces"]').should('exist');
-    if (search) {
-      cy.wait('@search').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
+    cy.wait('@search').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(response?.body.traces, 'selected tenant must contain recent traces')
+        .to.be.an('array')
+        .and.have.length.greaterThan(0);
+      const traceId = response.body.traces[0].traceID;
+      expect(traceId, 'search result trace ID').to.match(/^[a-f0-9]+$/i);
+      cy.intercept({ method: 'GET', pathname: `${tempoProxy}/api/v2/traces/${traceId}` }).as(
+        'traceDetail',
+      );
+      cy.get(`a[href^="/observe/traces/${traceId}"]`).first().should('be.visible').click();
+      cy.location('pathname').should('eq', `/observe/traces/${traceId}`);
+      cy.wait('@traceDetail').then(({ response: detail }) => {
+        expect(detail?.statusCode).to.eq(200);
+        expect(detail?.body.trace.resourceSpans, 'trace detail contains spans')
+          .to.be.an('array')
+          .and.have.length.greaterThan(0);
       });
-    }
+      cy.get('[data-testid="span-duration-bar"]').first().should('be.visible');
+    });
     cy.get('@legacyBackend.all').should('have.length', 0);
   });
 });

@@ -323,6 +323,9 @@ Cypress smoke: `CYPRESS_TROUBLESHOOTING_ENABLED=true npm run test-cypress-troubl
 from `web/`. To check the disabled state, restart the backend without
 `troubleshooting` (`'ALL_FEATURES=$(MONITORING_FEATURES)'`) and leave
 `CYPRESS_TROUBLESHOOTING_ENABLED` unset.
+The printed port-forward commands include the selected `--kubeconfig`, so they
+use the backend's cluster even when copied into a terminal with a different default.
+
 The script runs `go run ./cmd/plugin-backend.go` on `PLUGIN_PORT` (9443) in
 `registry.access.redhat.com/ubi9/go-toolset:1.26`, with your kubeconfig
 mounted read-only and the cluster's service CA trusted for the gateways' TLS
@@ -347,7 +350,8 @@ Cypress, from `web/`:
 ```
 # Merged feature smoke, disabled run (backend without tracing in TRACING_DEV_FEATURES)
 npm run test-cypress-tracing
-# Enabled run; the instance and tenant are optional and add a Tempo search
+# Enabled run: instance and tenant are required and must contain recent traces.
+# The smoke searches, opens a trace, and checks its MCP detail request and rendered spans.
 npm run test-cypress-tracing -- --env TRACING_ENABLED=true,TRACING_TEMPO_INSTANCE=<namespace>/<name>,TRACING_TEMPO_TENANT=<tenant>
 # Legacy e2e suite: installs operators and targets the COO-deployed legacy
 # plugin on the cluster Console, not this local setup (see web/cypress/README.md)
