@@ -14,7 +14,7 @@ import {
   t_global_background_color_100,
   t_global_background_color_400,
 } from '@patternfly/react-tokens';
-import { DashboardResource, Kind } from '@perses-dev/client';
+import { DashboardResource, FetchProvider, Kind } from '@perses-dev/client';
 import {
   ChartsProvider,
   generateChartsTheme,
@@ -52,6 +52,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { StringParam, useQueryParam } from 'use-query-params';
 
+import { consoleFetchFn } from '@/features/perses-dashboards/utils/console-fetch-fn';
 import { OcpDatasourceApi } from '@/features/perses-dashboards/utils/datasource-api';
 import { CachedDatasourceAPI } from '@/features/perses-dashboards/utils/perses/datasource-cache-api';
 import {
@@ -434,22 +435,24 @@ export function PersesWrapper({ children, project }: PersesWrapperProps) {
 
   const content = (
     <ThemeProvider theme={muiTheme}>
-      <RouterProvider RouterComponent={Link} navigate={navigate}>
-        <ChartsProvider chartsTheme={chartsTheme}>
-          <SnackbarProvider
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            variant="default"
-          >
-            <PluginRegistry pluginLoader={pluginLoader}>
-              {!project ? (
-                <>{children}</>
-              ) : (
-                <InnerWrapper project={project}>{children}</InnerWrapper>
-              )}
-            </PluginRegistry>
-          </SnackbarProvider>
-        </ChartsProvider>
-      </RouterProvider>
+      <FetchProvider fetchFn={consoleFetchFn}>
+        <RouterProvider RouterComponent={Link} navigate={navigate}>
+          <ChartsProvider chartsTheme={chartsTheme}>
+            <SnackbarProvider
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              variant="default"
+            >
+              <PluginRegistry pluginLoader={pluginLoader}>
+                {!project ? (
+                  <>{children}</>
+                ) : (
+                  <InnerWrapper project={project}>{children}</InnerWrapper>
+                )}
+              </PluginRegistry>
+            </SnackbarProvider>
+          </ChartsProvider>
+        </RouterProvider>
+      </FetchProvider>
     </ThemeProvider>
   );
 
