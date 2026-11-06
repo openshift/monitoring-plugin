@@ -18,7 +18,7 @@ spec:
             proxy:
               kind: HTTPProxy
               spec:
-                url: http://localhost:9090
+                url: http://prometheus-k8s.openshift-monitoring.svc:9091
     variables:
       - kind: ListVariable
         spec:
