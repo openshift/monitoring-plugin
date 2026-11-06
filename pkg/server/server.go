@@ -12,6 +12,9 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -34,6 +37,7 @@ type Config struct {
 	Port             int
 	CertFile         string
 	PrivateKeyFile   string
+	ClientCAFile     string
 	Features         map[Feature]bool
 	StaticPath       string
 	ConfigPath       string
@@ -185,10 +189,21 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	metricsAuthorizer := mux.MiddlewareFunc(func(next http.Handler) http.Handler { return next })
+	if cfg.IsTLSEnabled() {
+		clientCA, err := metricsClientCA(ctx, cfg.ClientCAFile)
+		if err != nil {
+			return nil, err
+		}
+		metricsAuthorizer = func(next http.Handler) http.Handler {
+			return authorizeMetrics(clientCA, next)
+		}
+	}
+
+	router, pluginConfig := setupRoutes(cfg, managementClient, metricsAuthorizer)
 	router.Use(corsHeaderMiddleware())
 
-	tlsConfig := &tls.Config{}
+	tlsConfig := &tls.Config{ClientAuth: tls.RequestClientCert}
 
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
@@ -229,8 +244,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 			log.Infof(format, args...)
 		})
 
+		// The controller clones its base configuration during reloads. Keep it
+		// independent of the configuration net/http updates when starting TLS.
 		ctrl := dynamiccertificates.NewDynamicServingCertificateController(
-			tlsConfig,
+			tlsConfig.Clone(),
 			nil,
 			certKeyPair,
 			nil,
@@ -276,7 +293,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, managementClient management.Client, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -288,10 +305,15 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	router.Path("/features").HandlerFunc(featuresHandler(cfg))
 	router.Path("/config").HandlerFunc(configHandlerFunc)
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
 	}
+	metricsHandler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+	router.Path("/metrics").Handler(metricsAuthorizer(metricsHandler))
+
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig
