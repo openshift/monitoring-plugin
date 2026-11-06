@@ -50,6 +50,7 @@ Before you start contributing, ensure you have the following tools installed:
    ```
 
 3. **Verify setup**:
+
    ```bash
    make lint-frontend
    make lint-backend
@@ -498,13 +499,13 @@ return <Title>Alerting rules</Title>;
 
 ### Common Issues
 
-#### Lint failures after commit
+#### Lint failures on push
 
-Run the linter and formatter before committing:
+The frontend linter runs automatically from a `pre-push` hook (`web/.husky/pre-push`).
+To check manually before pushing, run:
 
 ```bash
 make lint-frontend
-cd web && npm run prettier -- --write .
 ```
 
 #### Tests failing locally but passing in CI
