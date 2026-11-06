@@ -9,16 +9,31 @@ import (
 )
 
 func notAllowedGitOpsEdit() error {
-	return &NotAllowedError{Message: "This alert is managed by GitOps; edit it in Git."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by GitOps; edit it in Git.",
+		ManagedBy: ManagedByGitOps,
+	}
 }
+
 func notAllowedGitOpsRemove() error {
-	return &NotAllowedError{Message: "This alert is managed by GitOps; remove it in Git."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by GitOps; remove it in Git.",
+		ManagedBy: ManagedByGitOps,
+	}
 }
+
 func notAllowedOperatorUpdate() error {
-	return &NotAllowedError{Message: "This alert is managed by an operator; it can't be updated and can only be silenced."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by an operator; it can't be updated and can only be silenced.",
+		ManagedBy: ManagedByOperator,
+	}
 }
+
 func notAllowedOperatorDelete() error {
-	return &NotAllowedError{Message: "This alert is managed by an operator; it can't be deleted and can only be silenced."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by an operator; it can't be deleted and can only be silenced.",
+		ManagedBy: ManagedByOperator,
+	}
 }
 
 func isRuleManagedByGitOpsLabel(relabeled monitoringv1.Rule) bool {

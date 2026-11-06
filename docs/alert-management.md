@@ -45,8 +45,19 @@ The plugin intentionally reads from only the in-cluster Alertmanager endpoints. 
 | Operation | Single | Bulk |
 |---|---|---|
 | Create | `POST /api/v1/alerting/rules` | n/a |
+| Preview | `POST /api/v1/alerting/rules/preview` | n/a |
 | Update (labels, drop/restore, classification) | `PATCH /api/v1/alerting/rules/{ruleId}` | `PATCH /api/v1/alerting/rules` |
 | Delete | `DELETE /api/v1/alerting/rules/{ruleId}` | `DELETE /api/v1/alerting/rules` |
+
+**Preview** (`POST /rules/preview`):
+- Dry-run create or update without persisting cluster changes.
+- Create preview: `alertingRule` plus optional `prometheusRule`.
+- Update preview: `ruleId` plus at least one of `labels`,
+  `alertingRuleEnabled`, or `classification`.
+- Response includes `writable`, optional `managedBy`, `resources[]`
+  (per-resource `changes[]` and `desiredObject`), and `desiredRule`.
+- Externally managed rules return `writable: false` with `managedBy` set
+  so UIs can show the plan without implying the API will apply it.
 
 **Single update** (`PATCH /rules/{ruleId}`):
 - Request body uses `UpdateAlertRuleRequest` (labels and/or classification, or

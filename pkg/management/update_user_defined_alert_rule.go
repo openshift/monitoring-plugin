@@ -84,29 +84,11 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 		}
 	}
 
-	computedId := alertrule.GetAlertingRuleId(&alertRule)
-
-	// Treat "true clones" (spec-identical rules that compute to the same id) as unsupported.
-	// If the updated rule would collide with some other existing rule, reject the update.
-	if computedId != "" && computedId != alertRuleId {
-		// Check within the same PrometheusRule first (authoritative).
-		for groupIdx := range pr.Spec.Groups {
-			for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
-				if groupIdx == foundGroupIdx && ruleIdx == foundRuleIdx {
-					continue
-				}
-				existing := pr.Spec.Groups[groupIdx].Rules[ruleIdx]
-				// Treat "true clones" as unsupported: identical definitions compute to the same id.
-				if existing.Alert != "" && alertrule.GetAlertingRuleId(&existing) == computedId {
-					return "", &ConflictError{Message: "alert rule with exact config already exists"}
-				}
-			}
-		}
-
-		_, found := c.k8sClient.RelabeledRules().Get(ctx, computedId)
-		if found {
-			return "", &ConflictError{Message: "alert rule with exact config already exists"}
-		}
+	computedId, err := c.validateUpdatedUserDefinedRuleID(
+		ctx, alertRuleId, alertRule, pr, foundGroupIdx, foundRuleIdx,
+	)
+	if err != nil {
+		return "", err
 	}
 
 	if alertRule.Labels == nil {
@@ -127,6 +109,38 @@ func (c *client) UpdateUserDefinedAlertRule(ctx context.Context, alertRuleId str
 	}
 
 	return computedId, nil
+}
+
+// validateUpdatedUserDefinedRuleID computes the ID produced by an update and
+// rejects collisions with every rule except the rule being updated.
+func (c *client) validateUpdatedUserDefinedRuleID(
+	ctx context.Context,
+	currentRuleID string,
+	updatedRule monitoringv1.Rule,
+	pr *monitoringv1.PrometheusRule,
+	updatedGroupIdx, updatedRuleIdx int,
+) (string, error) {
+	computedID := alertrule.GetAlertingRuleId(&updatedRule)
+	if computedID == "" || computedID == currentRuleID {
+		return computedID, nil
+	}
+
+	for groupIdx := range pr.Spec.Groups {
+		for ruleIdx := range pr.Spec.Groups[groupIdx].Rules {
+			if groupIdx == updatedGroupIdx && ruleIdx == updatedRuleIdx {
+				continue
+			}
+			existing := pr.Spec.Groups[groupIdx].Rules[ruleIdx]
+			if existing.Alert != "" && alertrule.GetAlertingRuleId(&existing) == computedID {
+				return "", &ConflictError{Message: "alert rule with exact config already exists"}
+			}
+		}
+	}
+
+	if _, found := c.k8sClient.RelabeledRules().Get(ctx, computedID); found {
+		return "", &ConflictError{Message: "alert rule with exact config already exists"}
+	}
+	return computedID, nil
 }
 
 // migrateClassificationOverrideIfRuleIDChanged is a no-op for user-defined
