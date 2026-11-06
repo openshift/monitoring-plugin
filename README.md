@@ -241,3 +241,51 @@ the gateway's TLS certificate and registers
 `/api/proxy/plugin/monitoring-console-plugin/loki/` for it. Override
 `LOKI_HOST`, `LOKI_NAME` or `LOKI_NAMESPACE` for non-default LokiStacks, e.g.
 `LOKI_HOST=http://localhost:3100` for a plain-HTTP local Loki.
+
+#### Local Development with the Troubleshooting Panel (Korrel8r)
+
+The troubleshooting panel runs under the `monitoring-console-plugin` identity
+and is off by default. To test it locally you need a cluster with COO and a
+`TroubleshootingPanel` UIPlugin, which deploys Korrel8r:
+
+```
+# In a separate terminal: forward Korrel8r; start-console.sh proxies
+# https://korrel8r.openshift-cluster-observability-operator.svc:9446 to it
+oc -n openshift-cluster-observability-operator port-forward svc/korrel8r 9446:9443
+
+# Frontend under the console-plugin identity (manifest name + i18n namespace)
+make start-mcp-frontend
+
+# Backend with the monitoring features + troubleshooting; append
+# ,agent-navigation for the agent menu. Start it after the frontend's first
+# compile: it reads web/dist/plugin-manifest.json once at startup.
+KUBECONFIG=$HOME/.kube/config make start-coo-backend 'ALL_FEATURES=$(MONITORING_FEATURES),troubleshooting'
+
+# Console bridge
+make start-coo-console
+```
+
+`KUBECONFIG` is required because `alert-management-api` (part of
+`MONITORING_FEATURES`) needs cluster access. If the backend starts before the
+frontend has written `web/dist`, it serves a stale manifest and Console reports
+"Plugin monitoring-plugin is not allowed to be loaded"; restart the backend.
+
+`start-console.sh` registers
+`/api/proxy/plugin/monitoring-console-plugin/korrel8r/` for it and trusts the
+cluster's service CA. Override `KORREL8R_HOST` or `KORREL8R_NAMESPACE` for a
+non-default Korrel8r. Open an alert's details page in the admin perspective and
+use the "Troubleshooting Panel" action.
+
+Known local limits: the masthead "Signal correlation" launcher is missing
+because Console only shows it for the legacy
+`troubleshooting-panel-console-plugin`, and log and netflow graph nodes are
+disabled because the `logging-view-plugin` and `netobserv-plugin` are not loaded.
+
+The Korrel8r client in `web/src/features/troubleshooting/korrel8r/client/` is
+generated: after updating `korrel8r-openapi.yaml` next to it, run
+`npm run generate-korrel8r-client` from `web/` instead of editing it by hand.
+
+Cypress smoke: `CYPRESS_TROUBLESHOOTING_ENABLED=true npm run test-cypress-troubleshooting`
+from `web/`. To check the disabled state, restart the backend without
+`troubleshooting` (`'ALL_FEATURES=$(MONITORING_FEATURES)'`) and leave
+`CYPRESS_TROUBLESHOOTING_ENABLED` unset.

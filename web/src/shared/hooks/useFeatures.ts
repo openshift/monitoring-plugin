@@ -12,6 +12,8 @@ type Features = {
   metrics: boolean;
   targets: boolean;
   'cluster-health-analyzer': boolean;
+  troubleshooting: boolean;
+  'agent-navigation': boolean;
 };
 
 type FeaturesResponse = Partial<Features>;
@@ -27,6 +29,8 @@ const defaultMonitoringConsolePluginFeatures: Features = {
   metrics: false,
   targets: false,
   'cluster-health-analyzer': false,
+  troubleshooting: false,
+  'agent-navigation': false,
 };
 
 const defaultMonitoringPluginFeatures: Features = {
@@ -40,6 +44,8 @@ const defaultMonitoringPluginFeatures: Features = {
   metrics: true,
   targets: true,
   'cluster-health-analyzer': false,
+  troubleshooting: false,
+  'agent-navigation': false,
 };
 
 const MP_PROXY_PATH = '/api/plugins/monitoring-plugin';
