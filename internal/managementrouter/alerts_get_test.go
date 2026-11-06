@@ -67,10 +67,24 @@ func decodeAlertsResp(t *testing.T, w *httptest.ResponseRecorder) managementrout
 }
 
 func TestGetAlerts_RepeatedStateRejected(t *testing.T) {
-	f := newAGFixture(t)
-	w := f.get(t, "/api/v1/alerting/alerts?state=&state=firing")
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+	for _, query := range []string{"state=&state=firing", "state=pending&state=firing"} {
+		t.Run(query, func(t *testing.T) {
+			f := newAGFixture(t)
+			w := f.get(t, "/api/v1/alerting/alerts?"+query)
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body)
+			}
+			if got := w.Header().Get("Content-Type"); got != "application/json" {
+				t.Errorf("expected application/json, got %q", got)
+			}
+			var resp managementrouter.ErrorResponse
+			if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+				t.Fatalf("decode error response: %v", err)
+			}
+			if !strings.Contains(resp.Error, "state") {
+				t.Errorf("expected error message about state, got %q", resp.Error)
+			}
+		})
 	}
 }
 
@@ -98,6 +112,28 @@ func TestGetAlerts_ParsesFlatQueryParams(t *testing.T) {
 	}
 	if captured.Labels["team"] != "sre" {
 		t.Errorf("expected team=sre, got %q", captured.Labels["team"])
+	}
+}
+
+// Validate that oapi-codegen-overlay.yaml works to prevent the "labels" parameter
+// from being unmarshalled as a json struct
+func TestGetAlerts_LabelNamedLabelsIsAccepted(t *testing.T) {
+	f := newAGFixture(t)
+	var captured k8s.GetAlertsRequest
+	f.mockPrometheusAlerts.FetchAlertsFunc = func(_ context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+		captured = req
+		return []k8s.PrometheusAlert{}, nil, nil
+	}
+
+	w := f.get(t, "/api/v1/alerting/alerts?state=%20FIRING%20&team=SRE+%26+monitoring%2Bops&labels=custom&empty=")
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body)
+	}
+	if captured.State != "firing" {
+		t.Errorf("expected normalized state=firing, got %q", captured.State)
+	}
+	if len(captured.Labels) != 2 || captured.Labels["team"] != "SRE & monitoring+ops" || captured.Labels["labels"] != "custom" {
+		t.Errorf("unexpected labels: %v", captured.Labels)
 	}
 }
 

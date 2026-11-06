@@ -20,6 +20,17 @@ paths:
         parameter accepts pending, firing, or silenced. Other query parameters
         are treated as exact alert-label filters (for example,
         ?severity=critical&namespace=openshift-monitoring).
+      parameters:
+        - name: state
+          in: query
+          description: >
+            Alert state. Omit or pass an empty string for all states.
+            Values are trimmed and matched case-insensitively. Repeated values
+            are rejected.
+          schema:
+            type: string
+            enum: ["", pending, firing, silenced]
+        - $ref: "#/components/parameters/LabelFilters"
       responses:
         "200":
           description: Alerts and any non-fatal fetch warnings
@@ -62,6 +73,31 @@ paths:
         supports inactive, pending, or firing. Other query parameters are
         treated as exact rule-label filters; match[] accepts Prometheus-style
         label matchers.
+      parameters:
+        - name: state
+          in: query
+          description: >
+            State of alert instances within alerting rules. Omit or pass an empty
+            string for all states. Values are trimmed and matched
+            case-insensitively. Repeated values are rejected.
+          schema:
+            type: string
+            enum: ["", inactive, pending, firing]
+        - $ref: "#/components/parameters/LabelFilters"
+        - name: match[]
+          in: query
+          description: >
+            Prometheus-style selectors or individual label matchers. Repeat the
+            parameter for multiple selectors (for example,
+            match[]=severity="critical"&match[]=alertname=~"Kube.*").
+            Empty or whitespace-only entries are ignored. Invalid matchers are
+            rejected. Values must be URL-encoded.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         "200":
           description: Rule groups and any non-fatal fetch warnings
@@ -406,6 +442,22 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
 components:
+  parameters:
+    LabelFilters:
+      name: labels
+      in: query
+      description: >
+        Exact label equality filters, serialized as top-level query parameters
+        (for example, severity=critical&namespace=openshift-monitoring). Empty keys
+        and empty or whitespace-only values are ignored. Repeated values for a label
+        key are rejected. The reserved keys state and match[] must not be included in
+        this map.
+      style: form
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
   schemas:
     PrometheusAlert:
       type: object

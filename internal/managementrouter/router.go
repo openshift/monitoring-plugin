@@ -1,7 +1,7 @@
 // Package managementrouter implements the management API HTTP handlers.
 // The OpenAPI spec lives in api/openapi.yaml. Regenerate bindings with:
 //
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config ../../api/oapi-codegen.yaml ../../api/openapi.yaml
+//go:generate go -C ../.. run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.6.0 --config api/oapi-codegen.yaml api/openapi.yaml
 package managementrouter
 
 import (
@@ -42,6 +42,9 @@ func New(managementClient management.Client) *mux.Router {
 	HandlerWithOptions(hr, GorillaServerOptions{
 		BaseURL:    "/api/v1/alerting",
 		BaseRouter: r,
+		ErrorHandlerFunc: func(w http.ResponseWriter, _ *http.Request, err error) {
+			writeError(w, http.StatusBadRequest, err.Error())
+		},
 	})
 
 	return r

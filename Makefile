@@ -57,9 +57,9 @@ lint-frontend:
 install-backend:
 	go mod download
 
-.PHONY: generate-backend
-generate-backend:
-	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
+.PHONY: generate-openapi
+generate-openapi:
+	go generate ./internal/managementrouter
 
 .PHONY: build-backend
 build-backend:

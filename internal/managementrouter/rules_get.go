@@ -8,7 +8,7 @@ import (
 )
 
 // GetRules serves GET /api/v1/alerting/rules.
-func (hr *httpRouter) GetRules(w http.ResponseWriter, req *http.Request) {
+func (hr *httpRouter) GetRules(w http.ResponseWriter, req *http.Request, _ GetRulesParams) {
 	state, labels, matchers, err := parseStateLabelsAndMatchers(req.URL.Query(), validRuleAlertStates)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
