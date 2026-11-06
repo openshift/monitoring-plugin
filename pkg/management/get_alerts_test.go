@@ -373,8 +373,8 @@ func TestGetAlerts_FallsBackToDefaultWhenNoMatchingRule(t *testing.T) {
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
-	if alerts[0].AlertComponent != "Others" {
-		t.Errorf("expected component=Others, got %q", alerts[0].AlertComponent)
+	if alerts[0].AlertComponent != "others" {
+		t.Errorf("expected component=others, got %q", alerts[0].AlertComponent)
 	}
 	if alerts[0].AlertLayer != "namespace" {
 		t.Errorf("expected layer=namespace, got %q", alerts[0].AlertLayer)
@@ -429,8 +429,8 @@ func TestGetAlerts_FallsBackToDefaultWithMatchingRuleNoLabels(t *testing.T) {
 	if len(alerts) != 1 {
 		t.Fatalf("expected 1 alert, got %d", len(alerts))
 	}
-	if alerts[0].AlertComponent != "Others" {
-		t.Errorf("expected component=Others, got %q", alerts[0].AlertComponent)
+	if alerts[0].AlertComponent != "others" {
+		t.Errorf("expected component=others, got %q", alerts[0].AlertComponent)
 	}
 	if alerts[0].AlertLayer != "cluster" {
 		t.Errorf("expected layer=cluster, got %q", alerts[0].AlertLayer)

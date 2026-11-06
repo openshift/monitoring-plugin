@@ -50,9 +50,8 @@ Location: `pkg/alertcomponent/matcher.go`
    - Workload/namespace-level alerts (layer set to `namespace`)
 
 2) Fallback:
-   - If the computed component is empty or "Others", we set:
-     - `component = "Others"`
-     - `layer` derived from source:
+   - Unmatched components are reported as `others`.
+   - If no valid override or matcher supplies a layer, it is derived from source:
        - `openshift_io_alert_source=platform` → `cluster`
        - `openshift_io_prometheus_rule_namespace=openshift-monitoring` → `cluster`
        - `prometheus` label starting with `openshift-monitoring/` → `cluster`
@@ -72,6 +71,11 @@ Both are validated the same way as API overrides:
 - `layer`: `cluster` or `namespace`
 
 When these labels are present and valid, they override matcher-derived values.
+`DetermineComponent` applies these overrides independently: a component override
+does not require a layer override, and vice versa. They take precedence over
+`kubernetes_operator_component` and `operator_health_impact`. Missing or invalid
+values fall back to the matchers; an unmatched layer falls back to the alert source
+in the management API.
 
 ## Classification Override Storage
 
