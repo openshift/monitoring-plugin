@@ -18,6 +18,7 @@
     "lint:tsc": "tsc --noEmit",
     "lint:tsc:cypress": "tsc --noEmit --project cypress/tsconfig.json",
     "type-check": "tsc --noEmit",
+    "pre-push": "npm run lint && npm run lint:tsc:cypress",
     "lint-fix": "eslint ./src --fix",
     "prepare": "cd .. && husky install web/.husky",
     "start": "npm run ts-node node_modules/.bin/webpack serve",

@@ -50,6 +50,7 @@ Before you start contributing, ensure you have the following tools installed:
    ```
 
 3. **Verify setup**:
+
    ```bash
    make lint-frontend
    make lint-backend
@@ -505,7 +506,6 @@ To check manually before pushing, run:
 
 ```bash
 make lint-frontend
-cd web && npm run prettier -- --write .
 ```
 
 #### Tests failing locally but passing in CI
