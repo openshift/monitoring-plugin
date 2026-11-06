@@ -32,3 +32,18 @@ export const UrlRootName = {
   [PerspectiveName.Virtualization]: 'virt-monitoring',
   [PerspectiveName.ACM]: 'multicloud/monitoring',
 } as const satisfies Record<Perspective, UrlRoot>;
+
+// inverse UrlRootName so that the key becomes the value and vice versa
+const PerspectiveByUrlRoot = Object.fromEntries(
+  Object.values(PerspectiveName).map((perspective) => [UrlRootName[perspective], perspective]),
+) as {
+  readonly [P in Perspective as (typeof UrlRootName)[P]]: P;
+};
+
+export const getPerspectiveForPath = (pathname: string): Perspective => {
+  let root = pathname.split('/')[1];
+  if (root === 'multicloud') {
+    root += '/monitoring';
+  }
+  return PerspectiveByUrlRoot[root as UrlRoot] ?? PerspectiveName.Admin;
+};

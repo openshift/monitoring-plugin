@@ -5,7 +5,6 @@ export const ResourceLink = ({ name, namespace }: { name: string; namespace?: st
 export { WSFactory } from '@openshift-console/dynamic-plugin-sdk/lib/utils/k8s/ws-factory';
 
 export const useK8sWatchResource = () => [null, true, ''];
-export const useActivePerspective = () => ['admin'];
 export const useAccessReview = () => [true, false];
 
 const fetchJSON = async (url: string, method = 'GET', options?: RequestInit, timeout?: number) => {
