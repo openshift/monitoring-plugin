@@ -50,6 +50,7 @@ type Client interface {
 	BulkUpdateAlertRuleClassification(ctx context.Context, items []UpdateRuleClassificationRequest) []error
 
 	// EnrichAlerts retrieves and enriches Prometheus alerts with classification.
+	// IncludeDropped retains relabel-rejected alerts with Dropped set for metrics.
 	// Non-fatal endpoint failures are returned as warnings.
 	EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error)
 

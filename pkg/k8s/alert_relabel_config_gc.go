@@ -29,12 +29,16 @@ const (
 // IDs are recorded in collectAlerts before the drop continue, so a Drop
 // AlertRelabelConfig for a disabled rule is not treated as an orphan.
 func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleIDs map[string]struct{}) {
+	metrics := rrm.gcMetrics
+	metrics.observeList()
 	arcs, err := rrm.alertRelabelConfigs.List(ctx, "")
 	if err != nil {
+		metrics.observeListError()
 		log.Errorf("orphan AlertRelabelConfig cleanup: failed to list AlertRelabelConfigs: %v", err)
 		return
 	}
 
+	gitOpsOrphans := 0
 	for i := range arcs {
 		arc := &arcs[i]
 
@@ -55,6 +59,7 @@ func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleID
 		}
 
 		if IsManagedByGitOps(arc.Annotations, arc.Labels) {
+			gitOpsOrphans++
 			log.Warnf("orphan AlertRelabelConfig cleanup: AlertRelabelConfig %s/%s (ruleId=%s) is orphaned but GitOps-managed - skipping deletion, manual cleanup required", arc.Namespace, arc.Name, ruleID)
 			continue
 		}
@@ -74,11 +79,14 @@ func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleID
 			continue
 		}
 
+		metrics.observeDelete()
 		if err := rrm.alertRelabelConfigs.Delete(ctx, arc.Namespace, arc.Name); err != nil {
+			metrics.observeDeleteError()
 			log.Errorf("orphan AlertRelabelConfig cleanup: failed to delete AlertRelabelConfig %s/%s: %v", arc.Namespace, arc.Name, err)
 			continue
 		}
 
 		log.Infof("orphan AlertRelabelConfig cleanup: deleted orphaned AlertRelabelConfig %s/%s (ruleId=%s)", arc.Namespace, arc.Name, ruleID)
 	}
+	metrics.setGitOpsOrphans(float64(gitOpsOrphans))
 }

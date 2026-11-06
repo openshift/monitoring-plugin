@@ -3,11 +3,15 @@ package management_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/stretchr/testify/require"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
@@ -461,5 +465,74 @@ func TestGetAlerts_ReturnsEmptyList(t *testing.T) {
 	}
 	if len(alerts) != 0 {
 		t.Errorf("expected empty list, got %d", len(alerts))
+	}
+}
+
+func TestEnrichAlerts_DroppedInstancesAreOptIn(t *testing.T) {
+	activeAt := time.Now().Add(-time.Hour)
+	stamp := relabel.DefaultRelabelConfig
+	stamp.NameValidationScheme = model.UTF8Validation
+	stamp.SourceLabels = model.LabelNames{"alertname"}
+	stamp.Regex = relabel.MustNewRegexp("Dropped.*")
+	stamp.TargetLabel = k8s.AlertRuleLabelId
+	stamp.Replacement = "dropped-rule-id"
+	classify := relabel.DefaultRelabelConfig
+	classify.NameValidationScheme = model.UTF8Validation
+	classify.SourceLabels = model.LabelNames{"alertname"}
+	classify.Regex = stamp.Regex
+	classify.TargetLabel = k8s.AlertRuleClassificationComponentKey
+	classify.Replacement = "networking"
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{k8s.AlertRuleLabelId}
+	drop.Regex = relabel.MustNewRegexp("dropped-rule-id")
+	configs := []*relabel.Config{&stamp, &classify, &drop}
+	for _, includeDropped := range []bool{false, true} {
+		t.Run(fmt.Sprintf("includeDropped=%t", includeDropped), func(t *testing.T) {
+			mockK8s := &testutils.MockClient{
+				PrometheusAlertsFunc: func() k8s.PrometheusAlertsInterface {
+					return &testutils.MockPrometheusAlertsInterface{FetchAlertsFunc: func(_ context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+						require.Equal(t, includeDropped, req.IncludeDropped)
+						if includeDropped {
+							require.Equal(t, configs, req.DroppedAlertRelabelConfigs)
+						} else {
+							require.Empty(t, req.DroppedAlertRelabelConfigs)
+						}
+						return []k8s.PrometheusAlert{
+							{Labels: map[string]string{"alertname": "DroppedFiring", k8s.AlertSourceLabel: k8s.AlertSourcePlatform}, State: "firing", ActiveAt: activeAt},
+							{Labels: map[string]string{"alertname": "DroppedPending", k8s.AlertSourceLabel: k8s.AlertSourcePlatform}, State: "pending", ActiveAt: activeAt},
+							{Labels: map[string]string{"alertname": "Visible", k8s.AlertSourceLabel: k8s.AlertSourcePlatform}, State: "firing", ActiveAt: activeAt},
+							{Labels: map[string]string{"alertname": "DroppedUser", k8s.AlertSourceLabel: k8s.AlertSourceUser}, State: "firing", ActiveAt: activeAt},
+						}, nil, nil
+					}}
+				},
+				RelabeledRulesFunc: func() k8s.RelabeledRulesInterface {
+					return &testutils.MockRelabeledRulesInterface{ConfigFunc: func() []*relabel.Config { return configs }}
+				},
+			}
+			alerts, _, err := management.New(context.Background(), mockK8s).EnrichAlerts(context.Background(), k8s.GetAlertsRequest{IncludeDropped: includeDropped})
+			require.NoError(t, err)
+			wantCount := 2
+			if includeDropped {
+				wantCount = 4
+			}
+			require.Len(t, alerts, wantCount)
+			for _, alert := range alerts {
+				require.Equal(t, activeAt, alert.ActiveAt)
+				if alert.Labels["alertname"] == "DroppedFiring" || alert.Labels["alertname"] == "DroppedPending" {
+					require.True(t, alert.Dropped)
+					state := "firing"
+					if alert.Labels["alertname"] == "DroppedPending" {
+						state = "pending"
+					}
+					require.Equal(t, state, alert.State)
+					require.Equal(t, "dropped-rule-id", alert.Labels[k8s.AlertRuleLabelId])
+					require.Equal(t, "networking", alert.AlertComponent)
+				} else {
+					require.False(t, alert.Dropped)
+					require.Equal(t, "firing", alert.State)
+				}
+			}
+		})
 	}
 }

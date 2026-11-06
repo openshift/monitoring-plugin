@@ -144,7 +144,7 @@ func TestOutOfClusterTenancyDialsPortForward(t *testing.T) {
 	t.Setenv("KUBECONFIG", "kubeconfig")
 	t.Setenv(serviceCAFileEnv, "")
 
-	caPEM, serverCert := mustThanosServerCert(t)
+	caPEM, serverCert := mustServiceServerCert(t, "thanos-querier.openshift-monitoring.svc")
 	listener, err := tls.Listen("tcp", "127.0.0.1:0", &tls.Config{
 		Certificates: []tls.Certificate{serverCert},
 		MinVersion:   tls.VersionTLS12,
@@ -231,7 +231,7 @@ func TestInClusterTenancyDoesNotUsePortForward(t *testing.T) {
 }
 
 func TestOutOfClusterTenancyTrustsExplicitServiceCAFile(t *testing.T) {
-	caPEM, serverCert := mustThanosServerCert(t)
+	caPEM, serverCert := mustServiceServerCert(t, "thanos-querier.openshift-monitoring.svc")
 	caPath := filepath.Join(t.TempDir(), "service-ca.crt")
 	if err := os.WriteFile(caPath, caPEM, 0o600); err != nil {
 		t.Fatalf("write service CA: %v", err)
@@ -265,7 +265,7 @@ func TestOutOfClusterTenancyTrustsExplicitServiceCAFile(t *testing.T) {
 	}
 }
 
-func mustThanosServerCert(t *testing.T) ([]byte, tls.Certificate) {
+func mustServiceServerCert(t *testing.T, serviceName string) ([]byte, tls.Certificate) {
 	t.Helper()
 
 	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -293,7 +293,7 @@ func mustThanosServerCert(t *testing.T) ([]byte, tls.Certificate) {
 	leafTemplate := &x509.Certificate{
 		SerialNumber: big.NewInt(2),
 		Subject:      pkix.Name{CommonName: "thanos-querier"},
-		DNSNames:     []string{"thanos-querier.openshift-monitoring.svc"},
+		DNSNames:     []string{serviceName},
 		NotBefore:    time.Now().Add(-time.Hour),
 		NotAfter:     time.Now().Add(time.Hour),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
