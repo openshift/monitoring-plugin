@@ -5,6 +5,7 @@
 // test verifying panel/backdrop alignment and scrolling at desktop and narrow viewport widths.
 
 import { Drawer, DrawerContent, DrawerPanelContent } from '@patternfly/react-core';
+import { c_drawer__panel_md_FlexBasis } from '@patternfly/react-tokens';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -86,6 +87,46 @@ it('declares a non-scrolling frame and stationary backdrop inside nested drawers
     expect(backdropStyle.inset).toBe('0px');
   } finally {
     stylesheet.remove();
+  }
+});
+
+it('provides an accessible resize handle supporting keyboard and pointer resizing', () => {
+  const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    width: 400,
+    height: 500,
+    top: 0,
+    right: 400,
+    bottom: 500,
+    left: 0,
+    toJSON: () => ({}),
+  });
+  try {
+    const onClose = vi.fn();
+    render(page(true, onClose));
+    const handle = screen.getByRole('separator', { name: 'Resize details panel' });
+    const panel = screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel);
+    expect(handle.getAttribute('aria-orientation'), 'The resize handle should be vertical').toBe(
+      'vertical',
+    );
+    expect(handle.tabIndex, 'The resize handle should be keyboard focusable').toBe(0);
+    fireEvent.keyDown(handle, { key: 'ArrowLeft' });
+    expect(
+      panel.style.getPropertyValue(c_drawer__panel_md_FlexBasis.name),
+      'ArrowLeft should increase the panel width',
+    ).toBe('405px');
+    fireEvent.keyDown(handle, { key: 'Enter' });
+    fireEvent.mouseDown(handle, { clientX: 500 });
+    fireEvent.mouseMove(document, { clientX: 400 });
+    fireEvent.mouseUp(document);
+    expect(
+      panel.style.getPropertyValue(c_drawer__panel_md_FlexBasis.name),
+      'Dragging the handle left should increase the panel width',
+    ).toBe('500px');
+    expect(onClose, 'Resizing should not close the panel').not.toHaveBeenCalled();
+  } finally {
+    rect.mockRestore();
   }
 });
 

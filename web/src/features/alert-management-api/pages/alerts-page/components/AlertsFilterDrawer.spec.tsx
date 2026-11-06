@@ -130,15 +130,7 @@ it('preserves multiple namespace selections', async () => {
 
 it('uses dropdowns for alert filters other than severity and scope', async () => {
   const onChange = vi.fn();
-  const managedAlerts = [
-    {
-      ...testAlerts[4],
-      labels: {
-        ...testAlerts[4].labels,
-        team: 'payments',
-      },
-    },
-  ];
+  const managedAlerts = [testAlerts[4]];
   const { rerender } = render(
     <AlertsFilterDrawer
       alerts={managedAlerts}

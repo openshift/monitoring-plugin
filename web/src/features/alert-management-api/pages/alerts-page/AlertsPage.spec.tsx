@@ -12,6 +12,17 @@ import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alert
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
+vi.mock('@/shared/hooks/agentic-runs/useAgenticRunCheck', () => ({
+  useAgenticRunCheck: () => ({
+    agenticRuns: [],
+    hasAgenticRun: false,
+    prefetch: vi.fn(),
+    isFetching: false,
+  }),
+}));
+
+vi.mock('@/shared/components/query-browser/QueryBrowser', () => ({ QueryBrowser: () => null }));
+
 const addToast = vi.hoisted(() => vi.fn());
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
@@ -27,6 +38,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
     </header>
   ),
   ResourceIcon: ({ kind }: { kind: string }) => <span>{kind}</span>,
+  ResourceLink: ({ name }: { name: string }) => <span>{name}</span>,
 }));
 
 vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
@@ -97,7 +109,7 @@ const HistoryControls = () => {
 
 it('opens an individual alert while preserving the list and its query parameters', () => {
   const search =
-    '?aggregate=0&severity=critical&severity=warning&page=2&perPage=2&refreshInterval=30s';
+    '?aggregate=0&severity=critical&severity=warning&page=2&perPage=2&refreshInterval=30s&tab=0';
   render(
     <MemoryRouter initialEntries={['/monitoring/v2/alerts' + search]}>
       <AlertsPage />
@@ -112,7 +124,9 @@ it('opens an individual alert while preserving the list and its query parameters
 
   const panel = screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel);
   expect(within(panel).getByRole('heading', { name: 'Alert3' })).toBeDefined();
-  expect(within(panel).getByText('TODO')).toBeDefined();
+  expect(within(panel).getByRole('tab', { name: 'Details' })).toBeDefined();
+  expect(within(panel).getByRole('tab', { name: 'Alert timeline' })).toBeDefined();
+  expect(within(panel).getByText('Affected component')).toBeDefined();
   expect(screen.getByRole('grid')).toBe(table);
   const params = queryParams();
   expect(params.get('alertRuleID')).toBe(testAlerts[3].rule.id);
@@ -122,11 +136,12 @@ it('opens an individual alert while preserving the list and its query parameters
   }
 
   fireEvent.click(within(panel).getByRole('button', { name: 'Close panel' }));
-  expect(screen.queryByText('TODO')).toBeNull();
+  expect(screen.queryByRole('tab', { name: 'Details' })).toBeNull();
   expect(screen.getByRole('grid')).toBe(table);
   expect((checkbox as HTMLInputElement).checked).toBe(true);
   expect(queryParams().has('alertRuleID')).toBe(false);
   expect(queryParams().has('alertID')).toBe(false);
+  expect(queryParams().has('tab')).toBe(false);
 });
 
 it('resolves direct links independently of list filters and supports history navigation', () => {
@@ -142,7 +157,7 @@ it('resolves direct links independently of list filters and supports history nav
   expect(within(panel).getByRole('heading', { name: 'Alert1' })).toBeDefined();
   expect(screen.getByRole('link', { name: 'Alert5' })).toBeDefined();
   fireEvent.click(within(panel).getByRole('button', { name: 'Close panel' }));
-  expect(screen.queryByText('TODO')).toBeNull();
+  expect(screen.queryByRole('tab', { name: 'Details' })).toBeNull();
   expect(queryParams().get('name')).toBe('Alert5');
 
   act(() => navigateHistory(-1));
@@ -152,7 +167,7 @@ it('resolves direct links independently of list filters and supports history nav
     }),
   ).toBeDefined();
   act(() => navigateHistory(1));
-  expect(screen.queryByText('TODO')).toBeNull();
+  expect(screen.queryByRole('tab', { name: 'Details' })).toBeNull();
 });
 
 it('preserves aggregate expansion when opening and closing a child alert', () => {
@@ -175,12 +190,14 @@ it.each(['alertRuleID=missing', 'alertID=missing', 'alertRuleID=missing&alertID=
   (selection) => {
     addToast.mockClear();
     render(
-      <MemoryRouter initialEntries={['/monitoring/v2/alerts?refreshInterval=30s&' + selection]}>
+      <MemoryRouter
+        initialEntries={['/monitoring/v2/alerts?refreshInterval=30s&tab=1&' + selection]}
+      >
         <AlertsPage />
         <Query />
       </MemoryRouter>,
     );
-    expect(screen.queryByText('TODO')).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'Details' })).toBeNull();
     expect(addToast).toHaveBeenCalledExactlyOnceWith({
       title: 'Alert Not Found',
       variant: AlertVariant.warning,
@@ -189,6 +206,7 @@ it.each(['alertRuleID=missing', 'alertID=missing', 'alertRuleID=missing&alertID=
     });
     expect(queryParams().has('alertRuleID')).toBe(false);
     expect(queryParams().has('alertID')).toBe(false);
+    expect(queryParams().has('tab')).toBe(false);
     expect(queryParams().get('refreshInterval')).toBe('30s');
   },
 );

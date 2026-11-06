@@ -46,13 +46,13 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import {
-  Graph,
   isActionWithCallback,
   isActionWithHref,
   SeverityHelp,
   SourceHelp,
 } from '@/features/alerts/components/AlertUtils';
 import { SilencedByList } from '@/features/alerts/components/SilencedByTable';
+import { AlertGraph } from '@/shared/components/AlertGraph';
 import { AlertState, AlertStateDescription, AlertStateIcon } from '@/shared/components/AlertState';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
@@ -241,7 +241,11 @@ const AlertsDetailsPage_: FC = () => {
             <Grid sm={12} md={6} hasGutter>
               <GridItem span={12}>
                 {!sourceId || sourceId === 'prometheus' ? (
-                  <Graph filterLabels={labels} query={rule?.query} ruleDuration={rule?.duration} />
+                  <AlertGraph
+                    filterLabels={labels}
+                    query={rule?.query}
+                    ruleDuration={rule?.duration}
+                  />
                 ) : AlertsChart && !hideGraphs ? (
                   <AlertsChart rule={rule} />
                 ) : null}

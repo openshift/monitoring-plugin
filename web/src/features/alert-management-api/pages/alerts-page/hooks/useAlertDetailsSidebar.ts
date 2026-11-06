@@ -4,20 +4,17 @@ import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 
-import {
-  alertIDParam,
-  alertRuleIDParam,
-} from '@/features/alert-management-api/pages/alerts-page/utils/alert-details';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
+import { QueryParams } from '@/shared/constants/query-params';
 import { computeAlertFingerprint } from '@/shared/utils/alerts/alert-fingerprint';
 
 export function useAlertDetailsSidebar(alerts: ManagedAlert[] | undefined) {
   const [params, setParams] = useSearchParams();
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { addToast } = useToast();
-  const ruleID = params.get(alertRuleIDParam);
-  const alertID = params.get(alertIDParam);
-  const hasSelection = params.has(alertRuleIDParam) || params.has(alertIDParam);
+  const ruleID = params.get(QueryParams.AlertRuleID);
+  const alertID = params.get(QueryParams.AlertID);
+  const hasSelection = params.has(QueryParams.AlertRuleID) || params.has(QueryParams.AlertID);
   const matches = useMemo(() => {
     if (!ruleID || !alertID) {
       return undefined;
@@ -42,8 +39,9 @@ export function useAlertDetailsSidebar(alerts: ManagedAlert[] | undefined) {
       setParams(
         (previous) => {
           const next = new URLSearchParams(previous);
-          next.delete(alertRuleIDParam);
-          next.delete(alertIDParam);
+          next.delete(QueryParams.AlertRuleID);
+          next.delete(QueryParams.AlertID);
+          next.delete(QueryParams.Tab);
           return next;
         },
         { replace: true },
@@ -54,8 +52,9 @@ export function useAlertDetailsSidebar(alerts: ManagedAlert[] | undefined) {
   const closeAlertDetails = () => {
     setParams((previous) => {
       const next = new URLSearchParams(previous);
-      next.delete(alertRuleIDParam);
-      next.delete(alertIDParam);
+      next.delete(QueryParams.AlertRuleID);
+      next.delete(QueryParams.AlertID);
+      next.delete(QueryParams.Tab);
       return next;
     });
   };

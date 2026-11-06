@@ -350,3 +350,6 @@ export const getCreateAlertRuleUrl = (perspective: Perspective, query: string) =
       return '';
   }
 };
+
+export const getAgenticRunUrl = (namespace: string, name: string): string =>
+  `/lightspeed/runs/${namespace}/${name}`;

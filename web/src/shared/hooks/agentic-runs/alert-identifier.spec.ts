@@ -3,7 +3,7 @@ import { Alert, AlertStates, K8sResourceCommon } from '@openshift-console/dynami
 import {
   getAlertFingerprintPrefix,
   matchesAgenticRun,
-} from '@/features/alerts/pages/alerts-page/agentic-runs/alert-identifier';
+} from '@/shared/hooks/agentic-runs/alert-identifier';
 import { computeAlertFingerprint } from '@/shared/utils/alerts/alert-fingerprint';
 
 const makeAlert = (labels: Record<string, string>): Alert =>

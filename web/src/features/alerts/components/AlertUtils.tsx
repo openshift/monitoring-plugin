@@ -2,7 +2,6 @@ import {
   Action,
   Alert,
   AlertSeverity,
-  PrometheusLabels,
   RowFilter,
   Rule,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -19,13 +18,9 @@ import {
 import * as _ from 'lodash-es';
 import type { FC, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
 
-import { FormatSeriesTitle, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { NamespaceModel } from '@/shared/console/models';
-import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
-import { getQueryBrowserUrl, usePerspective } from '@/shared/hooks/usePerspective';
 
 export const alertCluster = (alert: Alert): string => alert.labels?.cluster ?? '';
 
@@ -61,46 +56,6 @@ export const PopoverField: FC<{ bodyContent: ReactNode; label: string }> = ({
     <Button icon={label} variant="plain" />
   </Popover>
 );
-
-export const Graph: FC<GraphProps> = ({
-  filterLabels = undefined,
-  formatSeriesTitle,
-  query,
-  ruleDuration,
-}) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { perspective } = usePerspective();
-  const { namespace } = useMonitoringNamespace();
-
-  // 3 times the rule's duration, but not less than 30 minutes
-  const timespan = Math.max(3 * ruleDuration, 30 * 60) * 1000;
-
-  const GraphLink = () =>
-    query && perspective !== 'acm' ? (
-      <Link aria-label={t('Inspect')} to={getQueryBrowserUrl({ perspective, query, namespace })}>
-        {t('Inspect')}
-      </Link>
-    ) : null;
-
-  return (
-    <QueryBrowser
-      defaultTimespan={timespan}
-      filterLabels={filterLabels}
-      formatSeriesTitle={formatSeriesTitle}
-      GraphLink={GraphLink}
-      pollInterval={Math.round(timespan / 120)}
-      queries={[query]}
-    />
-  );
-};
-
-type GraphProps = {
-  filterLabels?: PrometheusLabels;
-  formatSeriesTitle?: FormatSeriesTitle;
-  query: string;
-  ruleDuration: number;
-  showLegend?: boolean;
-};
 
 export const SeverityHelp: FC = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);

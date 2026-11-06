@@ -394,8 +394,7 @@ it('shows alert state descriptions on individual rows', () => {
 });
 
 it('keeps the optional description column on a single line', () => {
-  const description = 'This is a long alert description that should wrap within its column.';
-  const alert = { ...testAlerts[0], annotations: { description } };
+  const alert = testAlerts[0];
   render(
     table({
       aggregatedAlerts: aggregateAlerts([alert]),
@@ -405,7 +404,7 @@ it('keeps the optional description column on a single line', () => {
     }),
   );
 
-  const cell = screen.getByRole('cell', { name: description });
+  const cell = screen.getByRole('cell', { name: alert.annotations.description });
   expect(
     cell.classList.contains('pf-m-wrap'),
     'The optional description cell should not wrap onto multiple lines',
