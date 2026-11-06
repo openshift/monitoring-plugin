@@ -9,15 +9,15 @@ import {
   PanelMain,
   PanelMainBody,
   Switch,
-  Tooltip,
 } from '@patternfly/react-core';
-import { BellSlashIcon, ColumnsIcon } from '@patternfly/react-icons';
+import { BellSlashIcon } from '@patternfly/react-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { useQueryParam } from 'use-query-params';
 
-import { ManageColumnsModal } from '@/features/alert-management-api/components/ManageColumnsModal';
+import { ManageColumnsButton } from '@/features/alert-management-api/components/ManageColumnsButton';
+import { TableColumnsModal } from '@/features/alert-management-api/components/TableColumnsModal';
 import { useAlertManagementSort } from '@/features/alert-management-api/hooks/useAlertManagementSort';
 import { AlertsTable } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
 import type { AlertsTableRef } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
@@ -25,7 +25,8 @@ import { ExportAlertsButton } from '@/features/alert-management-api/pages/alerts
 import { GroupByDropdown } from '@/features/alert-management-api/pages/alerts-page/components/GroupByDropdown';
 import {
   AlertColumn,
-  parseAlertColumns,
+  alertColumns,
+  defaultAlertColumns,
 } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import { AlertGroupByParam } from '@/features/alert-management-api/pages/alerts-page/utils/alert-group-by-param';
 import {
@@ -35,6 +36,7 @@ import {
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { AlertFilters, ManagedAlert } from '@/features/alert-management-api/types/types';
 import { filterAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
+import { parseTableColumns } from '@/features/alert-management-api/utils/table-columns';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { TablePagination } from '@/shared/components/table/TablePagination';
 import { DataTestIDs } from '@/shared/constants/data-test';
@@ -57,7 +59,10 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   const isAggregated = searchParams.get(QueryParams.Aggregate) !== '0';
 
   const columnsParam = searchParams.get('columns');
-  const visibleColumns = useMemo(() => parseAlertColumns(columnsParam), [columnsParam]);
+  const visibleColumns = useMemo(
+    () => parseTableColumns(columnsParam, alertColumns, defaultAlertColumns, ['name', 'severity']),
+    [columnsParam],
+  );
   const [isManageColumnsOpen, setManageColumnsOpen] = useState(false);
 
   const [selectedAlertKeys, setSelectedAlertKeys] = useState<Set<string>>(() => new Set());
@@ -106,6 +111,15 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
       return next;
     });
   };
+
+  const modalDefinitions = useMemo(
+    () => alertColumns.filter(({ key }) => isAggregated || key !== 'total'),
+    [isAggregated],
+  );
+  const modalColumns = useMemo(
+    () => visibleColumns.filter((key) => isAggregated || key !== 'total'),
+    [isAggregated, visibleColumns],
+  );
 
   return (
     <PanelMain>
@@ -170,14 +184,7 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
               <FlexItem>
                 <ActionList isIconList>
                   <ActionListItem>
-                    <Tooltip content={t('Manage columns')}>
-                      <Button
-                        variant="control"
-                        icon={<ColumnsIcon />}
-                        aria-label={t('Manage columns')}
-                        onClick={() => setManageColumnsOpen(true)}
-                      />
-                    </Tooltip>
+                    <ManageColumnsButton onClick={() => setManageColumnsOpen(true)} />
                   </ActionListItem>
                   <ActionListItem>
                     <ExportAlertsButton alerts={aggregatedAlerts} />
@@ -211,15 +218,24 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
           />
         )}
         {isManageColumnsOpen && (
-          <ManageColumnsModal
+          <TableColumnsModal
             isOpen={isManageColumnsOpen}
-            isAggregated={isAggregated}
-            columns={visibleColumns}
-            onSave={(columns) => {
-              saveColumns(columns);
+            definitions={modalDefinitions}
+            columns={modalColumns}
+            defaults={defaultAlertColumns}
+            required={['name', 'severity']}
+            onClose={() => setManageColumnsOpen(false)}
+            onSave={(updated) => {
+              if (!isAggregated && visibleColumns.includes('total')) {
+                updated.splice(
+                  Math.min(visibleColumns.indexOf('total'), updated.length),
+                  0,
+                  'total',
+                );
+              }
+              saveColumns(updated);
               setManageColumnsOpen(false);
             }}
-            onClose={() => setManageColumnsOpen(false)}
           />
         )}
       </PanelMainBody>

@@ -34,21 +34,3 @@ export const defaultAlertColumns: AlertColumn[] = [
   'severity',
   ...defaultVisibleAlertColumns,
 ];
-
-export function parseAlertColumns(value: string | null): AlertColumn[] {
-  try {
-    const parsed: unknown = JSON.parse(value ?? 'null');
-    if (
-      !Array.isArray(parsed) ||
-      !parsed.includes('name') ||
-      !parsed.includes('severity') ||
-      // types key as AlertColumn
-      !parsed.every((key): key is AlertColumn => alertColumns.some((column) => column.key === key))
-    ) {
-      return defaultAlertColumns;
-    }
-    return [...new Set(parsed)];
-  } catch {
-    return defaultAlertColumns;
-  }
-}

@@ -1,9 +1,4 @@
-import {
-  consoleFetchJSON,
-  GreenCheckCircleIcon,
-  Silence,
-  SilenceStates,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON, Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Button,
   Dropdown,
@@ -23,12 +18,7 @@ import {
   PanelMainBody,
   Alert as PFAlert,
 } from '@patternfly/react-core';
-import {
-  BanIcon,
-  CheckCircleIcon,
-  EllipsisVIcon,
-  HourglassHalfIcon,
-} from '@patternfly/react-icons';
+import { CheckCircleIcon, EllipsisVIcon } from '@patternfly/react-icons';
 import * as _ from 'lodash-es';
 import type { FC, Ref } from 'react';
 import { useState } from 'react';
@@ -61,34 +51,6 @@ type ExpireSilenceModalProps = {
   isOpen: boolean;
   setClosed: () => void;
   silenceID: string;
-};
-
-export const SilenceState = ({ silence }: { silence: Silence }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  const state = silenceState(silence);
-  const icon = {
-    [SilenceStates.Active]: <GreenCheckCircleIcon />,
-    [SilenceStates.Pending]: <HourglassHalfIcon />,
-    [SilenceStates.Expired]: <BanIcon data-test-id="ban-icon" />,
-  }[state];
-
-  const getStateKey = (stateData) => {
-    switch (stateData) {
-      case SilenceStates.Active:
-        return t('Active');
-      case SilenceStates.Pending:
-        return t('Pending');
-      default:
-        return t('Expired');
-    }
-  };
-
-  return icon ? (
-    <>
-      {icon} {getStateKey(state)}
-    </>
-  ) : null;
 };
 
 export const SilenceDropdown: FC<SilenceDropdownProps> = ({ silence, toggleText }) => {

@@ -26,17 +26,21 @@ import { useTranslation } from 'react-i18next';
 import { AlertSeverityButton } from '@/features/alert-management-api/components/AlertSeverityButton';
 import { PageWithFilters } from '@/features/alert-management-api/components/PageWithFilters';
 import { PageWithSidepanel } from '@/features/alert-management-api/components/PageWithSidepanel';
+import { SelectedFilters } from '@/features/alert-management-api/components/SelectedFilters';
 import { useAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
 // The alerts page hosts the alert-details panel rather than navigating to a separate page.
 // eslint-disable-next-line import/no-restricted-paths
 import { AlertDetailsPanel } from '@/features/alert-management-api/pages/alert-details/AlertDetailsPanel';
 import { AlertsResults } from '@/features/alert-management-api/pages/alerts-page/AlertsResults';
 import { AlertsFilterDrawer } from '@/features/alert-management-api/pages/alerts-page/components/AlertsFilterDrawer';
-import { SelectedFilters } from '@/features/alert-management-api/pages/alerts-page/components/SelectedFilters';
 import { useAlertDetailsSidebar } from '@/features/alert-management-api/pages/alerts-page/hooks/useAlertDetailsSidebar';
 import { useAlertManagementFilters } from '@/features/alert-management-api/pages/alerts-page/hooks/useAlertFilters';
-import { selectedAlertFilterLabels } from '@/features/alert-management-api/pages/alerts-page/utils/filter-labels';
+import {
+  SelectedAlertFilterKey,
+  selectedAlertFilterLabels,
+} from '@/features/alert-management-api/pages/alerts-page/utils/filter-labels';
 import type { AlertFilters } from '@/features/alert-management-api/types/types';
+import { defaultAlertFilters } from '@/features/alert-management-api/utils/alerts';
 import { compareSeverities } from '@/features/alert-management-api/utils/sort-alerts';
 import { TimeRangeSelect } from '@/shared/components/TimeRangeSelect';
 import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
@@ -153,8 +157,9 @@ export function AlertManagementAlertsPage() {
                     />
                   </FlexItem>
                 </Flex>
-                <SelectedFilters
+                <SelectedFilters<AlertFilters, SelectedAlertFilterKey>
                   filters={filters}
+                  defaults={defaultAlertFilters}
                   labels={selectedAlertFilterLabels}
                   getLabelStatus={(key, value) =>
                     key === 'severity' ? getSeverityColors(value).labelStatus : undefined

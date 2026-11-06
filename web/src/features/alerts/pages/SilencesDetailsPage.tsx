@@ -31,13 +31,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import { SeverityCounts } from '@/features/alerts/components/AlertUtils';
-import {
-  SilenceDropdown,
-  SilenceMatchersList,
-  SilenceState,
-} from '@/features/alerts/components/SilencesUtils';
+import { SilenceDropdown, SilenceMatchersList } from '@/features/alerts/components/SilencesUtils';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
+import { SilenceState } from '@/shared/components/SilenceState';
 import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { LoadingInline } from '@/shared/console/console-shared/src/components/loading/LoadingInline';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
