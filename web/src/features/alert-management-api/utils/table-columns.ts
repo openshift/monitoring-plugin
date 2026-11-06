@@ -14,7 +14,7 @@ export function parseTableColumns<K extends string>(
       return [...new Set(parsed)];
     }
   } catch {
-    return defaults;
+    return [...defaults];
   }
-  return defaults;
+  return [...defaults];
 }

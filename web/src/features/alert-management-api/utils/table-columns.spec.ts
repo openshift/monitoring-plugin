@@ -2,8 +2,6 @@ import { parseTableColumns } from '@/features/alert-management-api/utils/table-c
 
 const definitions = [{ key: 'name' }, { key: 'state' }, { key: 'creator' }] as const;
 const defaults = ['name', 'state'] as const;
-const parse = (value: string | null) =>
-  parseTableColumns(value, definitions, [...defaults], ['name']);
 
 it.each([
   null,
@@ -18,14 +16,15 @@ it.each([
   '["name",1]',
   '["name",null]',
 ])('uses defaults for invalid columns %s', (value) => {
-  expect(parse(value), `Invalid column configuration ${String(value)} should use defaults`).toEqual(
-    defaults,
-  );
+  expect(
+    parseTableColumns(value, definitions, [...defaults], ['name']),
+    `Invalid column configuration ${String(value)} should use defaults`,
+  ).toEqual(defaults);
 });
 
 it('preserves user order while deduplicating known columns', () => {
   expect(
-    parse('["creator","name","creator"]'),
+    parseTableColumns('["creator","name","creator"]', definitions, [...defaults], ['name']),
     'Duplicate columns should be removed without changing their order',
   ).toEqual(['creator', 'name']);
 });

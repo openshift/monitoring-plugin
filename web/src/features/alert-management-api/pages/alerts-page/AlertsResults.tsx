@@ -112,6 +112,15 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
     });
   };
 
+  const modalDefinitions = useMemo(
+    () => alertColumns.filter(({ key }) => isAggregated || key !== 'total'),
+    [isAggregated],
+  );
+  const modalColumns = useMemo(
+    () => visibleColumns.filter((key) => isAggregated || key !== 'total'),
+    [isAggregated, visibleColumns],
+  );
+
   return (
     <PanelMain>
       <PanelMainBody style={{ paddingBlock: 'var(--pf-t--global--spacer--sm)' }}>
@@ -211,8 +220,8 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
         {isManageColumnsOpen && (
           <TableColumnsModal
             isOpen={isManageColumnsOpen}
-            definitions={alertColumns.filter(({ key }) => isAggregated || key !== 'total')}
-            columns={visibleColumns.filter((key) => isAggregated || key !== 'total')}
+            definitions={modalDefinitions}
+            columns={modalColumns}
             defaults={defaultAlertColumns}
             required={['name', 'severity']}
             onClose={() => setManageColumnsOpen(false)}

@@ -24,7 +24,7 @@ export function TableColumnsModal<K extends string>({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const appliedColumns = useMemo(() => {
     const ordered = [
-      ...columns,
+      ...new Set(columns),
       ...definitions.map(({ key }) => key).filter((key) => !columns.includes(key)),
     ];
     return ordered.flatMap((key) => {
