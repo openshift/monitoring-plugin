@@ -498,9 +498,10 @@ return <Title>Alerting rules</Title>;
 
 ### Common Issues
 
-#### Lint failures after commit
+#### Lint failures on push
 
-Run the linter and formatter before committing:
+The frontend linter runs automatically from a `pre-push` hook (`web/.husky/pre-push`).
+To check manually before pushing, run:
 
 ```bash
 make lint-frontend
