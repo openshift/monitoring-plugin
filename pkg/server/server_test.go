@@ -255,7 +255,11 @@ func TestSecureServerRunning(t *testing.T) {
 
 	// Without a client CA file, the /metrics endpoint fails closed and rejects
 	// every scrape.
-	response, err := httpClient.Get(serverURL + "/metrics")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL+"/metrics", nil)
+	require.NoError(t, err)
+	response, err := httpClient.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusServiceUnavailable, response.StatusCode)
 	require.NoError(t, response.Body.Close())
