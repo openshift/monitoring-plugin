@@ -566,7 +566,7 @@ func (c *client) planDropRestoreChange(ctx context.Context, alertRuleID string, 
 }
 
 func (c *client) planDroppedRuleRestore(ctx context.Context, alertRuleID string) (*RuleChangePlan, error) {
-	arcNamespace, existingARC, arcName, err := c.findARCByAlertRuleID(ctx, alertRuleID)
+	existingARC, arcName, err := c.findARCByAlertRuleID(ctx, alertRuleID)
 	if err != nil {
 		return nil, err
 	}
@@ -599,7 +599,7 @@ func (c *client) planDroppedRuleRestore(ctx context.Context, alertRuleID string)
 	}
 
 	return buildDropRestorePreviewPlan(
-		writable, managedBy, arcNamespace, arcName, prName, alertRuleID,
+		writable, managedBy, k8s.ClusterMonitoringNamespace, arcName, prName, alertRuleID,
 		*originalRule, existingARC, true, true,
 	)
 }

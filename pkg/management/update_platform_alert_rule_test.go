@@ -854,6 +854,90 @@ func TestRestoreAlertRule_KeepsOtherConfigsRemovesDropOnly(t *testing.T) {
 	}
 }
 
+func TestRestoreAlertRule_GitOpsSourceBlocks(t *testing.T) {
+	client, mockK8s := newDropRestoreClient(t)
+	mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+		return &testutils.MockRelabeledRulesInterface{}
+	}
+	sourceNamespace := "openshift-kube-apiserver"
+	mockK8s.NamespaceFunc = func() k8s.NamespaceInterface {
+		return &testutils.MockNamespaceInterface{
+			IsClusterMonitoringNamespaceFunc: func(namespace string) bool {
+				return namespace == sourceNamespace || namespace == k8s.ClusterMonitoringNamespace
+			},
+		}
+	}
+	// The source PrometheusRule became GitOps-managed after the rule was
+	// dropped: the restore must be blocked even though the rule is absent
+	// from the relabeled rules cache.
+	sourcePR := monitoringv1.PrometheusRule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "platform-rule-drop",
+			Namespace:   sourceNamespace,
+			Annotations: map[string]string{"argocd.argoproj.io/tracking-id": "gitops"},
+		},
+		Spec: monitoringv1.PrometheusRuleSpec{
+			Groups: []monitoringv1.RuleGroup{{Name: "test-group", Rules: []monitoringv1.Rule{drOriginalPlatformRule}}},
+		},
+	}
+	mockK8s.PrometheusRulesFunc = func() k8s.PrometheusRuleInterface {
+		return &testutils.MockPrometheusRuleInterface{
+			ListFunc: func() ([]monitoringv1.PrometheusRule, error) {
+				return []monitoringv1.PrometheusRule{sourcePR}, nil
+			},
+			GetFunc: func(_ context.Context, namespace, name string) (*monitoringv1.PrometheusRule, bool, error) {
+				if namespace != sourceNamespace || name != sourcePR.Name {
+					t.Fatalf(
+						"expected PrometheusRule lookup %s/%s, got %s/%s",
+						sourceNamespace, sourcePR.Name, namespace, name,
+					)
+				}
+				return sourcePR.DeepCopy(), true, nil
+			},
+		}
+	}
+	droppedARC := osmv1.AlertRelabelConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "arc-platform-rule-drop",
+			Namespace: k8s.ClusterMonitoringNamespace,
+			Labels: map[string]string{
+				managementlabels.ARCLabelPrometheusRuleNameKey: "platform-rule-drop",
+			},
+			Annotations: map[string]string{
+				managementlabels.ARCAnnotationAlertRuleIDKey: drPlatformRuleId,
+			},
+		},
+		Spec: osmv1.AlertRelabelConfigSpec{Configs: []osmv1.RelabelConfig{
+			{SourceLabels: []osmv1.LabelName{k8s.AlertRuleLabelId}, Regex: drPlatformRuleId, Action: "Drop"},
+		}},
+	}
+	mockK8s.AlertRelabelConfigsFunc = func() k8s.AlertRelabelConfigInterface {
+		return &testutils.MockAlertRelabelConfigInterface{
+			ListFunc: func(_ context.Context, namespace string) ([]osmv1.AlertRelabelConfig, error) {
+				return []osmv1.AlertRelabelConfig{droppedARC}, nil
+			},
+			GetFunc: func(_ context.Context, namespace, name string) (*osmv1.AlertRelabelConfig, bool, error) {
+				if namespace != k8s.ClusterMonitoringNamespace || name != droppedARC.Name {
+					return nil, false, nil
+				}
+				return droppedARC.DeepCopy(), true, nil
+			},
+		}
+	}
+
+	err := client.RestoreAlertRule(context.Background(), drPlatformRuleId)
+	if err == nil {
+		t.Fatal("expected restore of a GitOps-managed source PrometheusRule to be blocked")
+	}
+	var na *management.NotAllowedError
+	if !errors.As(err, &na) {
+		t.Fatalf("expected NotAllowedError, got %T: %v", err, err)
+	}
+	if !strings.Contains(err.Error(), "GitOps") {
+		t.Fatalf("expected error mentioning GitOps, got %v", err)
+	}
+}
+
 func TestRestoreAlertRule_DeletesARCWhenOnlyStampAndDropRemain(t *testing.T) {
 	client, mockK8s := newDropRestoreClient(t)
 	deleted := false

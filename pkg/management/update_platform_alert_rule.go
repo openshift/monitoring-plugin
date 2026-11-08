@@ -407,14 +407,30 @@ func (c *client) RestoreAlertRule(ctx context.Context, alertRuleId string) error
 		// the Drop action suppresses them from Prometheus results. Fall back
 		// to scanning ARCs by annotation to locate the one to restore.
 		var findErr error
-		arcNamespace, existingArc, arcName, findErr = c.findARCByAlertRuleID(ctx, alertRuleId)
+		existingArc, arcName, findErr = c.findARCByAlertRuleID(ctx, alertRuleId)
 		if findErr != nil {
 			return findErr
 		}
 		if existingArc == nil {
 			return nil
 		}
-		if err := validateDropRestorePreconditions(monitoringv1.Rule{}, nil, nil, existingArc); err != nil {
+		arcNamespace = k8s.ClusterMonitoringNamespace
+		// The dropped rule is absent from the relabeled cache, so resolve
+		// the source PrometheusRule from the ARC to apply the same
+		// ownership check as the cache-present path.
+		prName := existingArc.Labels[managementlabels.ARCLabelPrometheusRuleNameKey]
+		if prName == "" {
+			return &NotFoundError{
+				Resource:       "PrometheusRule",
+				Id:             alertRuleId,
+				AdditionalInfo: "AlertRelabelConfig does not identify its PrometheusRule",
+			}
+		}
+		sourcePR, srcErr := c.resolveDroppedRuleSourcePR(ctx, prName, alertRuleId)
+		if srcErr != nil {
+			return srcErr
+		}
+		if err := validateDropRestorePreconditions(monitoringv1.Rule{}, sourcePR, nil, existingArc); err != nil {
 			return err
 		}
 	}
@@ -447,20 +463,29 @@ func (c *client) RestoreAlertRule(ctx context.Context, alertRuleId string) error
 
 // findARCByAlertRuleID searches for an ARC by its alert-rule-id annotation in
 // the platform monitoring namespace.
-func (c *client) findARCByAlertRuleID(ctx context.Context, alertRuleId string) (string, *osmv1.AlertRelabelConfig, string, error) {
-	namespaces := []string{k8s.ClusterMonitoringNamespace}
-	for _, ns := range namespaces {
-		arcs, err := c.k8sClient.AlertRelabelConfigs().List(ctx, ns)
-		if err != nil {
-			return "", nil, "", fmt.Errorf("failed to list AlertRelabelConfigs in %s: %w", ns, err)
-		}
-		for i := range arcs {
-			arc := arcs[i]
-			if arc.Annotations != nil && arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] == alertRuleId {
-				arcCopy := arc
-				return ns, &arcCopy, arc.Name, nil
-			}
-		}
+func (c *client) findARCByAlertRuleID(ctx context.Context, alertRuleId string) (*osmv1.AlertRelabelConfig, string, error) {
+	arcs, err := c.k8sClient.AlertRelabelConfigs().List(ctx, k8s.ClusterMonitoringNamespace)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to list AlertRelabelConfigs in %s: %w", k8s.ClusterMonitoringNamespace, err)
 	}
-	return "", nil, "", nil
+	for i := range arcs {
+		arc := arcs[i]
+		if arc.Annotations == nil || arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] != alertRuleId {
+			continue
+		}
+		// The informer list runs with the service account. Re-read the ARC
+		// through the manager GET so the caller's read permissions are
+		// enforced before its contents are used for the preview.
+		authorized, found, err := c.k8sClient.AlertRelabelConfigs().Get(ctx, arc.Namespace, arc.Name)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get AlertRelabelConfig %s/%s: %w", arc.Namespace, arc.Name, err)
+		}
+		if !found {
+			// The ARC was removed between the list and the read; treat it as
+			// absent rather than failing the request.
+			return nil, "", nil
+		}
+		return authorized, arc.Name, nil
+	}
+	return nil, "", nil
 }
