@@ -65,7 +65,15 @@ func (arcm *alertRelabelConfigManager) List(ctx context.Context, namespace strin
 }
 
 func (arcm *alertRelabelConfigManager) Get(ctx context.Context, namespace string, name string) (*osmv1.AlertRelabelConfig, bool, error) {
-	arc, err := arcm.clientset.MonitoringV1().AlertRelabelConfigs(namespace).Get(ctx, name, metav1.GetOptions{})
+	// Reads run with the caller's authorization so AlertRelabelConfig
+	// contents are not disclosed to callers without read permissions for
+	// them.
+	cs, err := arcm.clientsetForCtx(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	arc, err := cs.MonitoringV1().AlertRelabelConfigs(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, false, nil

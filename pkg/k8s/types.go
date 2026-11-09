@@ -67,8 +67,10 @@ type PrometheusRuleInterface interface {
 	// Delete deletes a PrometheusRule by namespace and name
 	Delete(ctx context.Context, namespace string, name string) error
 
-	// AddRule adds a new rule to the specified PrometheusRule
-	AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule) error
+	// AddRule adds a new rule to the specified PrometheusRule. ownershipGuard,
+	// when non-nil, is re-evaluated against the current PrometheusRule state on
+	// every retry attempt so externally managed objects are never written.
+	AddRule(ctx context.Context, namespacedName types.NamespacedName, groupName string, rule monitoringv1.Rule, ownershipGuard func(*monitoringv1.PrometheusRule) error) error
 }
 
 // AlertRelabelConfigInterface defines operations for managing AlertRelabelConfigs
