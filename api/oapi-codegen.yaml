@@ -1,5 +1,5 @@
 # oapi-codegen configuration for the monitoring-plugin management API.
-# Run: oapi-codegen --config api/oapi-codegen.yaml api/openapi.yaml
+# Run from the repository root: make generate-openapi
 
 package: managementrouter
 output: internal/managementrouter/api_generated.go
@@ -13,6 +13,8 @@ generate:
   embedded-spec: false
 
 output-options:
+  overlay:
+    path: api/oapi-codegen-overlay.yaml
   # Silence the "do not edit" header so editors don't flag the file in git diff
   skip-fmt: false
   # Keep generated file name stable for git

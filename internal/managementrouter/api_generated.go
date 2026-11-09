@@ -12,6 +12,54 @@ import (
 	k8s "github.com/openshift/monitoring-plugin/pkg/k8s"
 )
 
+// Defines values for GetAlertsParamsState.
+const (
+	GetAlertsParamsStateEmpty    GetAlertsParamsState = ""
+	GetAlertsParamsStateFiring   GetAlertsParamsState = "firing"
+	GetAlertsParamsStatePending  GetAlertsParamsState = "pending"
+	GetAlertsParamsStateSilenced GetAlertsParamsState = "silenced"
+)
+
+// Valid indicates whether the value is a known member of the GetAlertsParamsState enum.
+func (e GetAlertsParamsState) Valid() bool {
+	switch e {
+	case GetAlertsParamsStateEmpty:
+		return true
+	case GetAlertsParamsStateFiring:
+		return true
+	case GetAlertsParamsStatePending:
+		return true
+	case GetAlertsParamsStateSilenced:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetRulesParamsState.
+const (
+	GetRulesParamsStateEmpty    GetRulesParamsState = ""
+	GetRulesParamsStateFiring   GetRulesParamsState = "firing"
+	GetRulesParamsStateInactive GetRulesParamsState = "inactive"
+	GetRulesParamsStatePending  GetRulesParamsState = "pending"
+)
+
+// Valid indicates whether the value is a known member of the GetRulesParamsState enum.
+func (e GetRulesParamsState) Valid() bool {
+	switch e {
+	case GetRulesParamsStateEmpty:
+		return true
+	case GetRulesParamsStateFiring:
+		return true
+	case GetRulesParamsStateInactive:
+		return true
+	case GetRulesParamsStatePending:
+		return true
+	default:
+		return false
+	}
+}
+
 // AlertRuleClassificationUpdate Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
 type AlertRuleClassificationUpdate = AlertRuleClassificationPatch
 
@@ -196,6 +244,27 @@ type UpdateAlertRuleResult struct {
 	StatusCode int32 `json:"statusCode"`
 }
 
+// GetAlertsParams defines parameters for GetAlerts.
+type GetAlertsParams struct {
+	// State Alert state. Omit or pass an empty string for all states. Values are trimmed and matched case-insensitively. Repeated values are rejected.
+	State *GetAlertsParamsState `form:"state,omitempty" json:"state,omitempty"`
+}
+
+// GetAlertsParamsState defines parameters for GetAlerts.
+type GetAlertsParamsState string
+
+// GetRulesParams defines parameters for GetRules.
+type GetRulesParams struct {
+	// State State of alert instances within alerting rules. Omit or pass an empty string for all states. Values are trimmed and matched case-insensitively. Repeated values are rejected.
+	State *GetRulesParamsState `form:"state,omitempty" json:"state,omitempty"`
+
+	// Match Prometheus-style selectors or individual label matchers. Repeat the parameter for multiple selectors (for example, match[]=severity="critical"&match[]=alertname=~"Kube.*"). Empty or whitespace-only entries are ignored. Invalid matchers are rejected. Values must be URL-encoded.
+	Match *[]string `form:"match[],omitempty" json:"match[],omitempty"`
+}
+
+// GetRulesParamsState defines parameters for GetRules.
+type GetRulesParamsState string
+
 // BulkDeleteUserDefinedAlertRulesJSONRequestBody defines body for BulkDeleteUserDefinedAlertRules for application/json ContentType.
 type BulkDeleteUserDefinedAlertRulesJSONRequestBody = BulkDeleteAlertRulesRequest
 
@@ -212,7 +281,7 @@ type UpdateAlertRuleJSONRequestBody = UpdateAlertRuleRequest
 type ServerInterface interface {
 	// Get alerts
 	// (GET /alerts)
-	GetAlerts(w http.ResponseWriter, r *http.Request)
+	GetAlerts(w http.ResponseWriter, r *http.Request, params GetAlertsParams)
 	// Get alerting health
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
@@ -221,7 +290,7 @@ type ServerInterface interface {
 	BulkDeleteUserDefinedAlertRules(w http.ResponseWriter, r *http.Request)
 	// Get alerting and recording rules
 	// (GET /rules)
-	GetRules(w http.ResponseWriter, r *http.Request)
+	GetRules(w http.ResponseWriter, r *http.Request, params GetRulesParams)
 	// Bulk update alert rules
 	// (PATCH /rules)
 	BulkUpdateAlertRules(w http.ResponseWriter, r *http.Request)
@@ -248,8 +317,21 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // GetAlerts operation middleware
 func (siw *ServerInterfaceWrapper) GetAlerts(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAlertsParams
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "state", r.URL.Query(), &params.State, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetAlerts(w, r)
+		siw.Handler.GetAlerts(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -290,8 +372,29 @@ func (siw *ServerInterfaceWrapper) BulkDeleteUserDefinedAlertRules(w http.Respon
 // GetRules operation middleware
 func (siw *ServerInterfaceWrapper) GetRules(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetRulesParams
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "state", r.URL.Query(), &params.State, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "match[]" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "match[]", r.URL.Query(), &params.Match, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "match[]", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetRules(w, r)
+		siw.Handler.GetRules(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
