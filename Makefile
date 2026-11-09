@@ -60,6 +60,7 @@ install-backend:
 .PHONY: generate-openapi
 generate-openapi:
 	go generate ./internal/managementrouter
+	cd web && npm run generate:alert-management-api
 
 .PHONY: build-backend
 build-backend:
@@ -150,3 +151,7 @@ podman-cross-build-push: podman-cross-build
 .PHONY: test-translations
 test-translations:
 	./scripts/test-translations.sh
+
+.PHONY: test-openapi-definition
+test-openapi-definition:
+	./scripts/test-openapi-definition.sh

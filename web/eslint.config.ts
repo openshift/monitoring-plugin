@@ -111,6 +111,21 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/shared/clients/alert-management-api/generated/**'],
+    rules: {
+      // comments are taken directly from the openapi spec, so ignore line length constraints
+      'max-len': [
+        'error',
+        {
+          code: 100,
+          ignoreStrings: true,
+          ignoreUrls: true,
+          ignoreComments: true,
+        },
+      ],
+    },
+  },
+  {
     files: ['cypress/**/*'],
     rules: {
       'no-console': 'off',
