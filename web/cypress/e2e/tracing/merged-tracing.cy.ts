@@ -1,5 +1,9 @@
 import { listPage } from '../../views/list-page';
 
+type SearchInterception = {
+  response?: { statusCode: number; body: { traces?: { traceID: string }[] } };
+};
+
 // Real Console/Tempo smoke; never installs operators or grants permissions.
 // Preconditions: the Console under test loads monitoring-console-plugin but not the legacy
 // distributed-tracing-console-plugin (e.g. the local bridge from `make start-coo-console`), and
@@ -76,21 +80,40 @@ describe('Merged MCP tracing', { tags: ['@tracing', '@coo'] }, () => {
       expect(response?.body.traces, 'selected tenant must contain recent traces')
         .to.be.an('array')
         .and.have.length.greaterThan(0);
-      const traceId = response.body.traces[0].traceID;
-      expect(traceId, 'search result trace ID').to.match(/^[a-f0-9]+$/i);
-      cy.intercept({ method: 'GET', pathname: `${tempoProxy}/api/v2/traces/${traceId}` }).as(
-        'traceDetail',
-      );
-      cy.get(`a[href^="/observe/traces/${traceId}"]`).first().should('be.visible').click();
-      cy.location('pathname').should('eq', `/observe/traces/${traceId}`);
-      cy.wait('@traceDetail').then(({ response: detail }) => {
-        expect(detail?.statusCode).to.eq(200);
-        expect(detail?.body.trace.resourceSpans, 'trace detail contains spans')
-          .to.be.an('array')
-          .and.have.length.greaterThan(0);
-      });
-      cy.get('[data-testid="span-duration-bar"]').first().should('be.visible');
     });
+    // The chart and table can issue separate searches with different result sets.
+    // Open a rendered table result, not an arbitrary trace from the first response.
+    cy.get('.dt-plugin-trace-table a[href^="/observe/traces/"]')
+      .first()
+      .should('be.visible')
+      .invoke('attr', 'href')
+      .then((href) => {
+        const pathname = new URL(href, Cypress.config('baseUrl')).pathname;
+        const traceId = pathname.split('/').pop();
+        expect(traceId, 'rendered trace ID').to.match(/^[a-f0-9]+$/i);
+        cy.get<SearchInterception[]>('@search.all').should((searches) => {
+          expect(
+            searches.some(
+              ({ response }) =>
+                response?.statusCode === 200 &&
+                response.body.traces?.some((trace) => trace.traceID === traceId),
+            ),
+            'rendered trace belongs to a successful MCP search response',
+          ).to.eq(true);
+        });
+        cy.intercept({ method: 'GET', pathname: `${tempoProxy}/api/v2/traces/${traceId}` }).as(
+          'traceDetail',
+        );
+        cy.get(`.dt-plugin-trace-table a[href="${href}"]`).first().click();
+        cy.location('pathname').should('eq', pathname);
+        cy.wait('@traceDetail').then(({ response: detail }) => {
+          expect(detail?.statusCode).to.eq(200);
+          expect(detail?.body.trace.resourceSpans, 'trace detail contains spans')
+            .to.be.an('array')
+            .and.have.length.greaterThan(0);
+        });
+        cy.get('[data-testid="span-duration-bar"]').first().should('be.visible');
+      });
     cy.get('@legacyBackend.all').should('have.length', 0);
   });
 });

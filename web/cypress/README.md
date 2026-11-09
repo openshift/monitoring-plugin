@@ -329,6 +329,15 @@ The suite is tagged `@tracing @tracing-legacy @coo` (the Lightspeed test also `@
 `test-cypress-perses-ols` exclude it. Fixtures, chainsaw suites and CSV patch scripts live in
 `cypress/fixtures/coo/traces/`.
 
+The merged-feature smoke (`cypress/e2e/tracing/merged-tracing.cy.ts`) is included in
+`test-cypress-coo` and `test-cypress-coo-bvt`. By default it checks that tracing is disabled;
+this needs monitoring-console-plugin loaded and no legacy distributed tracing plugin in
+that Console. It does not install Tempo or enable tracing. For enabled coverage, use a
+backend with tracing enabled and set `CYPRESS_TRACING_ENABLED=true`,
+`CYPRESS_TRACING_TEMPO_INSTANCE=<namespace>/<name>`, and `CYPRESS_TRACING_TEMPO_TENANT=<tenant>`
+with recent traces. Enabled and disabled coverage require separate runs with the backend
+configured accordingly; the smoke does not toggle features itself.
+
 Unused source helpers and fixtures are preserved too, including all 56 original custom
 commands (ported or reused), both resource/search view modules, and the disabled debug
 spec (`coo_tracing_debug.cy.ts.skip`). See the
