@@ -1,0 +1,10 @@
+# Create the openshift-logging namespace with monitoring label.
+# All other resources (minio, chat, lokistack, CLF, netobserv) are
+# managed by kustomize via make-resources.sh.
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-logging
+  
