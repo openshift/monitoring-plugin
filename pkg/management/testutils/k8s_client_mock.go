@@ -445,12 +445,25 @@ func (m *MockAlertingRuleInterface) Delete(ctx context.Context, name string) err
 
 // MockRelabeledRulesInterface is a mock implementation of k8s.RelabeledRulesInterface
 type MockRelabeledRulesInterface struct {
-	ListFunc   func(ctx context.Context) []monitoringv1.Rule
-	GetFunc    func(ctx context.Context, id string) (monitoringv1.Rule, bool)
-	ConfigFunc func() []*relabel.Config
+	ListFunc                 func(ctx context.Context) []monitoringv1.Rule
+	ListIncludingDroppedFunc func(ctx context.Context) []monitoringv1.Rule
+	GetFunc                  func(ctx context.Context, id string) (monitoringv1.Rule, bool)
+	ConfigFunc               func() []*relabel.Config
 }
 
 func (m *MockRelabeledRulesInterface) List(ctx context.Context) []monitoringv1.Rule {
+	if m.ListFunc != nil {
+		return m.ListFunc(ctx)
+	}
+	return []monitoringv1.Rule{}
+}
+
+func (m *MockRelabeledRulesInterface) ListIncludingDropped(ctx context.Context) []monitoringv1.Rule {
+	if m.ListIncludingDroppedFunc != nil {
+		return m.ListIncludingDroppedFunc(ctx)
+	}
+	// Fall back to ListFunc so mocks that model a cache without dropped
+	// rules keep working; the retained list is then the complete set.
 	if m.ListFunc != nil {
 		return m.ListFunc(ctx)
 	}

@@ -396,9 +396,10 @@ func (c *client) RestoreAlertRule(ctx context.Context, alertRuleId string) error
 			return err
 		}
 	} else {
-		// Dropped rules may not appear in the relabeled rules cache because
-		// the Drop action suppresses them from Prometheus results. Fall back
-		// to scanning ARCs by annotation to locate the one to restore.
+		// Dropped rules are retained in the relabeled rules cache, but the
+		// cache syncs periodically, so a recently dropped rule may not be in
+		// it yet. Fall back to scanning ARCs by annotation to locate the one
+		// to restore.
 		var findErr error
 		arcNamespace, existingArc, arcName, findErr = c.findARCByAlertRuleID(ctx, alertRuleId)
 		if findErr != nil {
