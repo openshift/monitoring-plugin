@@ -187,7 +187,6 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	}
 
 	router, pluginConfig := setupRoutes(cfg, managementClient)
-	router.Use(corsHeaderMiddleware())
 
 	tlsConfig := &tls.Config{}
 
@@ -354,16 +353,6 @@ func healthHandler() http.HandlerFunc {
 	})
 }
 
-func corsHeaderMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			headers := w.Header()
-			headers.Set("Access-Control-Allow-Origin", "*")
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
 func featuresHandler(cfg *Config) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonFeatures, err := json.Marshal(cfg.Features)
@@ -435,7 +424,6 @@ func loadKubeConfig() (*rest.Config, error) {
 
 func startProxy(cfg *Config, k8sclient *dynamic.DynamicClient, tlsConfig *tls.Config, timeout time.Duration, kind monitoring.KindType, port monitoring.ProxyPort) {
 	proxyRouter := setupProxyRoutes(cfg, k8sclient, kind)
-	proxyRouter.Use(corsHeaderMiddleware())
 	proxyServer := &http.Server{
 		Handler:      proxyRouter,
 		Addr:         fmt.Sprintf(":%d", port),

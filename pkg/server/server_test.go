@@ -693,3 +693,65 @@ func TestFilesHandler(t *testing.T) {
 		t.Errorf("Expected Expires header %q, but got %q", "0", res.Header.Get("Expires"))
 	}
 }
+
+// TestNoCORSHeaders verifies that no listener advertises cross-origin access.
+// The only consumer of the plugin backend and of the ACM proxy listeners is the
+// OpenShift console bridge, which performs server-side fetches and therefore
+// does not rely on CORS.
+func TestNoCORSHeaders(t *testing.T) {
+	testPort, err := getFreePort(testHostname)
+	require.NoError(t, err)
+
+	staticDir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(staticDir, "plugin-manifest.json"),
+		[]byte(`{"name":"monitoring-plugin","extensions":[]}`),
+		0600,
+	))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(staticDir, "plugin-entry.js"),
+		[]byte("export default {};"),
+		0600,
+	))
+
+	_, cleanup := startTestServer(t, &Config{
+		Port:             testPort,
+		Features:         defaultFeatures,
+		StaticPath:       staticDir,
+		ConfigPath:       t.TempDir(),
+		PluginConfigPath: filepath.Join(t.TempDir(), "plugin-config.yaml"),
+	})
+	defer cleanup()
+
+	serverURL := fmt.Sprintf("http://%s:%d", testHostname, testPort)
+	httpClient, err := (&httpClientConfig{}).buildHTTPClient()
+	require.NoError(t, err)
+	checkHTTPReady(httpClient, serverURL+"/health")
+
+	for _, path := range []string{
+		"/health",
+		"/features",
+		"/config",
+		"/plugin-manifest.json",
+		"/plugin-entry.js",
+	} {
+		t.Run(path, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, serverURL+path, nil)
+			require.NoError(t, err)
+			// Mimic a cross-origin browser request.
+			req.Header.Set("Origin", "https://evil.example")
+
+			res, err := httpClient.Do(req)
+			require.NoError(t, err)
+			defer res.Body.Close()
+
+			require.Equal(t, http.StatusOK, res.StatusCode)
+			for _, header := range []string{
+				"Access-Control-Allow-Origin",
+				"Access-Control-Allow-Credentials",
+			} {
+				require.Empty(t, res.Header.Get(header), "unexpected %s header on %s", header, path)
+			}
+		})
+	}
+}
