@@ -35,19 +35,20 @@ type PrometheusRuleGroup struct {
 type Rule any
 
 type AlertingRule struct {
-	State          string                `json:"state"`
-	Name           string                `json:"name"`
-	Query          string                `json:"query"`
-	Duration       float64               `json:"duration"`
-	KeepFiringFor  float64               `json:"keepFiringFor"`
-	Labels         map[string]string     `json:"labels"`
-	Annotations    map[string]string     `json:"annotations"`
-	Alerts         []PrometheusRuleAlert `json:"alerts"`
-	Health         string                `json:"health"`
-	LastError      string                `json:"lastError,omitempty"`
-	EvaluationTime float64               `json:"evaluationTime"`
-	LastEvaluation time.Time             `json:"lastEvaluation"`
-	Type           string                `json:"type"`
+	AlertingRuleEnabled bool                  `json:"alertingRuleEnabled"`
+	State               string                `json:"state"`
+	Name                string                `json:"name"`
+	Query               string                `json:"query"`
+	Duration            float64               `json:"duration"`
+	KeepFiringFor       float64               `json:"keepFiringFor"`
+	Labels              map[string]string     `json:"labels"`
+	Annotations         map[string]string     `json:"annotations"`
+	Alerts              []PrometheusRuleAlert `json:"alerts"`
+	Health              string                `json:"health"`
+	LastError           string                `json:"lastError,omitempty"`
+	EvaluationTime      float64               `json:"evaluationTime"`
+	LastEvaluation      time.Time             `json:"lastEvaluation"`
+	Type                string                `json:"type"`
 }
 
 type RecordingRule struct {
