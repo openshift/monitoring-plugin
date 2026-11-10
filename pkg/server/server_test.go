@@ -694,10 +694,8 @@ func TestFilesHandler(t *testing.T) {
 	}
 }
 
-// TestNoCORSHeaders verifies that no listener advertises cross-origin access.
-// The only consumer of the plugin backend and of the ACM proxy listeners is the
-// OpenShift console bridge, which performs server-side fetches and therefore
-// does not rely on CORS.
+// TestNoCORSHeaders verifies the backend does not advertise cross-origin access;
+// its only consumer, the console bridge, fetches it server-side.
 func TestNoCORSHeaders(t *testing.T) {
 	testPort, err := getFreePort(testHostname)
 	require.NoError(t, err)
@@ -735,7 +733,7 @@ func TestNoCORSHeaders(t *testing.T) {
 		"/plugin-manifest.json",
 		"/plugin-entry.js",
 	} {
-		t.Run(path, func(t *testing.T) {
+		t.Run(strings.TrimPrefix(path, "/"), func(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, serverURL+path, nil)
 			require.NoError(t, err)
 			// Mimic a cross-origin browser request.
@@ -746,11 +744,8 @@ func TestNoCORSHeaders(t *testing.T) {
 			defer res.Body.Close()
 
 			require.Equal(t, http.StatusOK, res.StatusCode)
-			for _, header := range []string{
-				"Access-Control-Allow-Origin",
-				"Access-Control-Allow-Credentials",
-			} {
-				require.Empty(t, res.Header.Get(header), "unexpected %s header on %s", header, path)
+			for header := range res.Header {
+				require.NotContains(t, header, "Access-Control-", "unexpected %s on %s", header, path)
 			}
 		})
 	}

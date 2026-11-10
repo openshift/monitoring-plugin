@@ -11,11 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestFilterHeadersStripsCORS verifies that CORS headers coming from the
-// upstream Alertmanager/Thanos Querier are never forwarded to the client. The
-// monitoring plugin does not support cross-origin browser access: the only
-// consumer of the proxy listeners is the OpenShift console bridge, which
-// performs a server-side fetch.
+// TestFilterHeadersStripsCORS verifies the proxy never forwards CORS headers
+// served by Alertmanager or Thanos Querier.
 func TestFilterHeadersStripsCORS(t *testing.T) {
 	resp := &http.Response{Header: http.Header{
 		"Access-Control-Allow-Origin":      {"https://example.com"},
@@ -42,10 +39,8 @@ func TestFilterHeadersStripsCORS(t *testing.T) {
 	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 }
 
-// TestProxyHandlerDoesNotServeCORS exercises the full proxy handler against an
-// upstream that sets a restrictive Access-Control-Allow-Origin. The response
-// returned to the client must carry no CORS headers while the body and status
-// code are passed through untouched.
+// TestProxyHandlerDoesNotServeCORS exercises the full proxy path: CORS headers
+// set by the upstream must not reach the client.
 func TestProxyHandlerDoesNotServeCORS(t *testing.T) {
 	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "https://upstream.example")
@@ -56,8 +51,7 @@ func TestProxyHandlerDoesNotServeCORS(t *testing.T) {
 	}))
 	defer upstream.Close()
 
-	// The proxy handler uses its service CA file as the trust bundle for
-	// upstream connections, so trust the throwaway test server certificate.
+	// The service CA file doubles as the proxy's upstream trust bundle.
 	caFile := filepath.Join(t.TempDir(), "ca.crt")
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: upstream.Certificate().Raw})
 	require.NoError(t, os.WriteFile(caFile, certPEM, 0600))
@@ -75,8 +69,9 @@ func TestProxyHandlerDoesNotServeCORS(t *testing.T) {
 
 			require.Equal(t, http.StatusOK, rec.Code)
 			require.JSONEq(t, `{"status":"success"}`, rec.Body.String())
-			require.Empty(t, rec.Header().Get("Access-Control-Allow-Origin"))
-			require.Empty(t, rec.Header().Get("Access-Control-Allow-Credentials"))
+			for header := range rec.Header() {
+				require.NotContains(t, header, "Access-Control-")
+			}
 		})
 	}
 }
