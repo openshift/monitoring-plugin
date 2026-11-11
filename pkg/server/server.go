@@ -12,6 +12,9 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
@@ -34,6 +37,7 @@ type Config struct {
 	Port             int
 	CertFile         string
 	PrivateKeyFile   string
+	ClientCAFile     string
 	Features         map[Feature]bool
 	StaticPath       string
 	ConfigPath       string
@@ -142,6 +146,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
 	}
 
+	if cfg.ClientCAFile != "" && !cfg.IsTLSEnabled() {
+		return nil, fmt.Errorf("client CA file requires TLS to be enabled")
+	}
+
 	var k8sconfig *rest.Config
 	var err error
 	var k8sclient *dynamic.DynamicClient
@@ -186,10 +194,34 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		log.Info("alert management API enabled")
 	}
 
-	router, pluginConfig := setupRoutes(cfg, managementClient)
+	// Without TLS (local development only), the /metrics endpoint has no
+	// authn/authz. This will never be the case when the plugin is deployed for
+	// OCP monitoring: the deploying operator always enables TLS.
+	metricsAuthorizer := mux.MiddlewareFunc(func(next http.Handler) http.Handler { return next })
+	if cfg.IsTLSEnabled() {
+		if cfg.ClientCAFile != "" {
+			clientCA, err := metricsClientCA(ctx, cfg.ClientCAFile)
+			if err != nil {
+				return nil, err
+			}
+			metricsAuthorizer = func(next http.Handler) http.Handler {
+				return authorizeMetrics(clientCA, next)
+			}
+		} else {
+			// Fail closed: without a client CA bundle, scrapes cannot be
+			// authenticated.
+			log.Warning("TLS is enabled but no client CA file is configured: /metrics will reject all scrapes")
+			metricsAuthorizer = denyAllMetrics
+		}
+	}
+
+	router, pluginConfig := setupRoutes(cfg, managementClient, metricsAuthorizer)
 	router.Use(corsHeaderMiddleware())
 
-	tlsConfig := &tls.Config{}
+	// Request (but do not require) client certificates on every connection:
+	// /metrics verifies them for authorization while every other route accepts
+	// connections without one.
+	tlsConfig := &tls.Config{ClientAuth: tls.RequestClientCert}
 
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
@@ -277,7 +309,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	return httpServer, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, *PluginConfig) {
+func setupRoutes(cfg *Config, managementClient management.Client, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -289,10 +321,15 @@ func setupRoutes(cfg *Config, managementClient management.Client) (*mux.Router, 
 	router.Path("/features").HandlerFunc(featuresHandler(cfg))
 	router.Path("/config").HandlerFunc(configHandlerFunc)
 
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
 	}
+	metricsHandler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+	router.Path("/metrics").Handler(metricsAuthorizer(metricsHandler))
+
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
 	return router, pluginConfig

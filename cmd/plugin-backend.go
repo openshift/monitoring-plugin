@@ -16,6 +16,7 @@ import (
 var (
 	portArg             = flag.Int("port", 9443, "server port to listen on\nports 9444 and 9445 reserved for other use")
 	certArg             = flag.String("cert", "", "cert file path to enable TLS (disabled by default)")
+	clientCAFileArg     = flag.String("client-ca-file", "", "client CA bundle file for metrics certificate authentication (it requires TLS to be enabled)")
 	keyArg              = flag.String("key", "", "private key file path to enable TLS (disabled by default)")
 	featuresArg         = flag.String("features", "", "enabled features, comma separated.\noptions: ['logging', 'acm-alerting', 'alerting', 'alert-management-api', 'legacy-dashboards', 'metrics', 'targets', 'overview', 'perses-dashboards', 'cluster-health-analyzer', 'troubleshooting', 'agent-navigation']")
 	staticPathArg       = flag.String("static-path", "/opt/app-root/web/dist", "static files path to serve frontend")
@@ -36,6 +37,7 @@ func main() {
 	port := mergeEnvValueInt("PORT", *portArg)
 	cert := mergeEnvValue("CERT_FILE_PATH", *certArg)
 	key := mergeEnvValue("PRIVATE_KEY_FILE_PATH", *keyArg)
+	clientCAFile := mergeEnvValue("CLIENT_CA_FILE_PATH", *clientCAFileArg)
 	features := mergeEnvValue("MONITORING_PLUGIN_FEATURES", *featuresArg)
 	staticPath := mergeEnvValue("MONITORING_PLUGIN_STATIC_PATH", *staticPathArg)
 	configPath := mergeEnvValue("MONITORING_PLUGIN_MANIFEST_CONFIG_PATH", *configPathArg)
@@ -79,6 +81,7 @@ func main() {
 		Port:             port,
 		CertFile:         cert,
 		PrivateKeyFile:   key,
+		ClientCAFile:     clientCAFile,
 		Features:         featuresSet,
 		StaticPath:       staticPath,
 		ConfigPath:       configPath,
