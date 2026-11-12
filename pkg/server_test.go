@@ -675,3 +675,68 @@ func TestFilesHandler(t *testing.T) {
 		t.Errorf("Expected Expires header %q, but got %q", "0", res.Header.Get("Expires"))
 	}
 }
+
+// TestNoCORSHeaders verifies the backend does not advertise cross-origin access;
+// its only consumer, the console bridge, fetches it server-side.
+func TestNoCORSHeaders(t *testing.T) {
+	testPort, err := getFreePort(testHostname)
+	require.NoError(t, err)
+
+	_, cleanup := startTestServer(t, &Config{
+		Port:             testPort,
+		Features:         map[Feature]bool{},
+		StaticPath:       corsStaticDir(t),
+		ConfigPath:       t.TempDir(),
+		PluginConfigPath: filepath.Join(t.TempDir(), "plugin-config.yaml"),
+	})
+	defer cleanup()
+
+	assertNoCORSHeaders(t, testPort)
+}
+
+// corsStaticDir returns an absolute static directory so the test does not depend
+// on the working directory (other tests chdir into temp dirs).
+func corsStaticDir(t *testing.T) string {
+	t.Helper()
+
+	staticDir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(staticDir, "plugin-entry.js"),
+		[]byte("export default {};"),
+		0600,
+	))
+	return staticDir
+}
+
+// assertNoCORSHeaders requests each endpoint with an Origin header, mimicking a
+// cross-origin browser request, and asserts nothing comes back.
+func assertNoCORSHeaders(t *testing.T, testPort int) {
+	t.Helper()
+
+	serverURL := fmt.Sprintf("http://%s:%d", testHostname, testPort)
+	httpClient, err := (&httpClientConfig{}).buildHTTPClient()
+	require.NoError(t, err)
+	checkHTTPReady(httpClient, serverURL+"/health")
+
+	for _, path := range []string{
+		"/health",
+		"/features",
+		"/config",
+		"/plugin-entry.js",
+	} {
+		t.Run(strings.TrimPrefix(path, "/"), func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, serverURL+path, nil)
+			require.NoError(t, err)
+			req.Header.Set("Origin", "https://evil.example")
+
+			res, err := httpClient.Do(req)
+			require.NoError(t, err)
+			defer res.Body.Close()
+
+			require.Equal(t, http.StatusOK, res.StatusCode)
+			for header := range res.Header {
+				require.NotContains(t, header, "Access-Control-", "unexpected %s on %s", header, path)
+			}
+		})
+	}
+}
