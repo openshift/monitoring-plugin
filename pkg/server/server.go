@@ -31,18 +31,19 @@ import (
 var log = logrus.WithField("module", "server")
 
 type Config struct {
-	Port             int
-	CertFile         string
-	PrivateKeyFile   string
-	Features         map[Feature]bool
-	StaticPath       string
-	ConfigPath       string
-	PluginConfigPath string
-	AlertmanagerUrl  string
-	ThanosQuerierUrl string
-	TLSMinVersion    uint16
-	TLSMaxVersion    uint16
-	TLSCipherSuites  []uint16
+	Port                int
+	CertFile            string
+	PrivateKeyFile      string
+	Features            map[Feature]bool
+	StaticPath          string
+	ConfigPath          string
+	PluginConfigPath    string
+	AlertmanagerUrl     string
+	ThanosQuerierUrl    string
+	TLSMinVersion       uint16
+	TLSMaxVersion       uint16
+	TLSCipherSuites     []uint16
+	TLSCurvePreferences []tls.CurveID
 }
 
 func (c *Config) IsTLSEnabled() bool {
@@ -192,26 +193,11 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 	tlsEnabled := cfg.IsTLSEnabled()
 	if tlsEnabled {
-		// Set MinVersion - default to TLS 1.2 if not specified
-		tlsConfig.MinVersion = tls.VersionTLS12
-		if cfg.TLSMinVersion != 0 {
-			tlsConfig.MinVersion = cfg.TLSMinVersion
+		baseTLSConfig, err := newBaseTLSConfig(cfg)
+		if err != nil {
+			return nil, err
 		}
-
-		if cfg.TLSMaxVersion != 0 {
-			tlsConfig.MaxVersion = cfg.TLSMaxVersion
-			if tlsConfig.MaxVersion < tlsConfig.MinVersion {
-				return nil, fmt.Errorf(
-					"min TLS version %q greater than max TLS version %q",
-					tls.VersionName(tlsConfig.MinVersion),
-					tls.VersionName(tlsConfig.MaxVersion),
-				)
-			}
-		}
-
-		if len(cfg.TLSCipherSuites) > 0 {
-			tlsConfig.CipherSuites = cfg.TLSCipherSuites
-		}
+		tlsConfig = baseTLSConfig
 
 		// Build and run the controller which reloads the certificate and key
 		// files whenever they change.
