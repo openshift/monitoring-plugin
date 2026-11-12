@@ -129,6 +129,7 @@ export const persesDashboardsEditVariables = {
     if (allowAllValue) {
       cy.get('input[name="' + editPersesDashboardsAddVariable.inputAllowAllValue + '"]').click();
       if (customAllValue !== undefined && customAllValue !== '') {
+        cy.get('input[type="checkbox"]').eq(2).click();
         cy.get('input[name="' + editPersesDashboardsAddVariable.inputCustomAllValue + '"]')
           .clear()
           .type(customAllValue);
