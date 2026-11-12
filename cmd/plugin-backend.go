@@ -27,6 +27,7 @@ var (
 	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
 	tlsMaxVersionArg    = flag.String("tls-max-version", "", "maximum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']\n(default is the highest supported by Go)")
 	tlsCipherSuitesArg  = flag.String("tls-cipher-suites", "", "comma-separated list of cipher suites for the server\nvalues are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants)")
+	tlsCurvesArg        = flag.String("tls-curves", "", "comma-separated list of TLS curves for the server\nvalues are tls.CurveID names (https://pkg.go.dev/crypto/tls#CurveID) or OpenShift TLS group names")
 	log                 = logrus.WithField("module", "main")
 )
 
@@ -46,6 +47,7 @@ func main() {
 	tlsMinVersion := mergeEnvValue("TLS_MIN_VERSION", *tlsMinVersionArg)
 	tlsMaxVersion := mergeEnvValue("TLS_MAX_VERSION", *tlsMaxVersionArg)
 	tlsCipherSuites := mergeEnvValue("TLS_CIPHER_SUITES", *tlsCipherSuitesArg)
+	tlsCurves := mergeEnvValue("TLS_CURVES", *tlsCurvesArg)
 
 	featuresList := strings.Fields(strings.Join(strings.Split(strings.ToLower(features), ","), " "))
 
@@ -70,24 +72,35 @@ func main() {
 	if tlsMaxVer != 0 {
 		log.Infof("Max TLS version: %q", tls.VersionName(tlsMaxVer))
 	}
-	tlsCiphers := parseCipherSuites(tlsCipherSuites)
-	if tlsCipherSuites != "" {
-		log.Infof("TLS ciphers: %q", tlsCipherSuites)
+	tlsCiphers, err := server.ParseCipherSuites(tlsCipherSuites)
+	if err != nil {
+		log.WithError(err).Fatal("Invalid TLS cipher suites configuration")
+	}
+	if len(tlsCiphers) > 0 {
+		log.Infof("TLS ciphers: %q", server.CipherSuiteNames(tlsCiphers))
+	}
+	tlsCurvePrefs, err := server.ParseCurves(tlsCurves)
+	if err != nil {
+		log.WithError(err).Fatal("Invalid TLS curves configuration")
+	}
+	if len(tlsCurvePrefs) > 0 {
+		log.Infof("TLS curves: %q", tlsCurvePrefs)
 	}
 
 	srv, err := server.CreateServer(context.Background(), &server.Config{
-		Port:             port,
-		CertFile:         cert,
-		PrivateKeyFile:   key,
-		Features:         featuresSet,
-		StaticPath:       staticPath,
-		ConfigPath:       configPath,
-		PluginConfigPath: pluginConfigPath,
-		AlertmanagerUrl:  alertmanagerUrl,
-		ThanosQuerierUrl: thanosQuerierUrl,
-		TLSMinVersion:    tlsMinVer,
-		TLSMaxVersion:    tlsMaxVer,
-		TLSCipherSuites:  tlsCiphers,
+		Port:                port,
+		CertFile:            cert,
+		PrivateKeyFile:      key,
+		Features:            featuresSet,
+		StaticPath:          staticPath,
+		ConfigPath:          configPath,
+		PluginConfigPath:    pluginConfigPath,
+		AlertmanagerUrl:     alertmanagerUrl,
+		ThanosQuerierUrl:    thanosQuerierUrl,
+		TLSMinVersion:       tlsMinVer,
+		TLSMaxVersion:       tlsMaxVer,
+		TLSCipherSuites:     tlsCiphers,
+		TLSCurvePreferences: tlsCurvePrefs,
 	})
 
 	if err != nil {
@@ -122,16 +135,6 @@ func mergeEnvValueInt(key string, arg int) int {
 	return i
 }
 
-func getCipherSuitesMap() map[string]uint16 {
-	result := make(map[string]uint16)
-
-	for _, suite := range tls.CipherSuites() {
-		result[suite.Name] = suite.ID
-	}
-
-	return result
-}
-
 func getTLSVersionsMap() map[string]uint16 {
 	versions := make(map[string]uint16)
 
@@ -153,33 +156,4 @@ func parseTLSVersion(version string) uint16 {
 
 	log.Warnf("Invalid TLS version %q, using default VersionTLS12", version)
 	return tls.VersionTLS12
-}
-
-func parseCipherSuites(ciphers string) []uint16 {
-	if ciphers == "" {
-		return nil
-	}
-
-	cipherMap := getCipherSuitesMap()
-
-	cipherNames := strings.Split(strings.ReplaceAll(ciphers, " ", ""), ",")
-	var result []uint16
-
-	for _, name := range cipherNames {
-		if name == "" {
-			continue
-		}
-		if cipher, ok := cipherMap[name]; ok {
-			result = append(result, cipher)
-		} else {
-			log.Warnf("Unknown cipher suite %q, skipping", name)
-		}
-	}
-
-	if len(result) == 0 {
-		log.Warn("No valid cipher suites provided, using Go defaults")
-		return nil
-	}
-
-	return result
 }
