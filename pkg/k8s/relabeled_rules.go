@@ -38,8 +38,8 @@ const (
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
 
-	AlertRuleClassificationComponentKey     = "openshift_io_alert_rule_component"
-	AlertRuleClassificationLayerKey         = "openshift_io_alert_rule_layer"
+	AlertRuleClassificationComponentKey     = managementlabels.AlertRuleClassificationComponentKey
+	AlertRuleClassificationLayerKey         = managementlabels.AlertRuleClassificationLayerKey
 	AlertRuleClassificationComponentFromKey = "openshift_io_alert_rule_component_from"
 	AlertRuleClassificationLayerFromKey     = "openshift_io_alert_rule_layer_from"
 

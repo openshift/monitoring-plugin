@@ -27,8 +27,13 @@ const (
 	ARCAnnotationAlertRuleIDKey = "monitoring.openshift.io/alertRuleId"
 )
 
-// Classification provenance labels
+// Classification labels and provenance
 const (
+	// AlertRuleClassificationComponentKey overrides the matched alert component.
+	AlertRuleClassificationComponentKey = "openshift_io_alert_rule_component"
+	// AlertRuleClassificationLayerKey overrides the matched alert impact layer.
+	AlertRuleClassificationLayerKey = "openshift_io_alert_rule_layer"
+
 	ClassificationManagedByKey   = "openshift_io_alert_rule_classification_managed_by"
 	ClassificationManagedByValue = "monitoring-plugin"
 )
