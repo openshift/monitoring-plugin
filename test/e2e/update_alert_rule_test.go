@@ -348,6 +348,23 @@ func patchDrop(t *testing.T, f *framework.Framework, ctx context.Context, ruleID
 		body, _ := io.ReadAll(resp.Body)
 		t.Fatalf("Drop/restore: expected 200, got %d. Body: %s", resp.StatusCode, string(body))
 	}
+
+	// The bulk endpoint reports per-rule outcomes in the response body, so a
+	// 200 alone does not prove the drop or restore was applied.
+	var patchResp managementrouter.BulkUpdateAlertRulesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&patchResp); err != nil {
+		t.Fatalf("Drop/restore: failed to decode response: %v", err)
+	}
+	if len(patchResp.Rules) != 1 {
+		t.Fatalf("Drop/restore: expected 1 per-rule result, got %d", len(patchResp.Rules))
+	}
+	if patchResp.Rules[0].StatusCode != http.StatusNoContent {
+		msg := ""
+		if patchResp.Rules[0].Message != nil {
+			msg = *patchResp.Rules[0].Message
+		}
+		t.Fatalf("Drop/restore: expected per-rule status 204, got %d: %s", patchResp.Rules[0].StatusCode, msg)
+	}
 }
 
 func hasDropActionForRule(arc osmv1.AlertRelabelConfig, ruleID string) bool {

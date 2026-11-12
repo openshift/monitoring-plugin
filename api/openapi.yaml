@@ -545,6 +545,7 @@ components:
     AlertingRule:
       type: object
       required:
+        - alertingRuleEnabled
         - state
         - name
         - query
@@ -558,6 +559,21 @@ components:
         - lastEvaluation
         - type
       properties:
+        alertingRuleEnabled:
+          type: boolean
+          description: >-
+            Whether the rule's labels, including alertname, are retained by the
+            current platform alert relabel configuration. alertingRuleEnabled:
+            false means alerts are suppressed by platform alert relabeling.
+            Prometheus continues evaluating the rule; this flag does not disable
+            rule evaluation. This status is independent of whether the rule has
+            active alerts. The status reflects the rule's own labels: each
+            alert is filtered by its own labels, including labels derived from
+            the expression such as instance or pod. An alert whose labels
+            satisfy a keep configuration can therefore still be returned for a
+            rule whose alertingRuleEnabled is false.
+            User workload rules are always enabled because platform alert
+            relabeling does not apply to them.
         state:
           type: string
         name:

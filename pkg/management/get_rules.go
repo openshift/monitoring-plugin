@@ -51,7 +51,8 @@ func (c *client) EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8
 				// make a shallow copy to avoid modifying response in place
 				copy := *typed
 				rule = &copy
-				applyRelabeledRuleLabels(rule, relabeledByAlert)
+				rule.AlertingRuleEnabled = alertingRuleEnabled(rule, configs)
+				applyRelabeledRuleLabels(rule, relabeledByAlert, configs)
 				ruleLabels = rule.Labels
 			case *k8s.RecordingRule:
 				if applyFilters {
@@ -133,6 +134,29 @@ func (c *client) EnrichRules(ctx context.Context, req k8s.GetRulesRequest) ([]k8
 	return filteredGroups, warnings, nil
 }
 
+// alertingRuleEnabled reports whether platform relabeling retains the rule.
+// A false result means alert suppression, not disabled Prometheus evaluation.
+// User-workload rules are unaffected by platform relabeling.
+func alertingRuleEnabled(rule *k8s.AlertingRule, configs []*relabel.Config) bool {
+	if rule.Labels[k8s.AlertSourceLabel] == k8s.AlertSourceUser {
+		return true
+	}
+	_, keep := relabeledRuleLabels(rule, configs)
+	return keep
+}
+
+// relabeledRuleLabels applies the relabel configs to the served rule's labels,
+// seeded the same way the relabeled-rules cache builds its entries: plugin meta
+// labels are removed and the alertname is set from the rule name. It returns
+// the processed labels and whether relabeling retains the rule.
+func relabeledRuleLabels(rule *k8s.AlertingRule, configs []*relabel.Config) (map[string]string, bool) {
+	lb := labels.NewBuilder(labels.FromMap(rule.Labels))
+	lb.Del(k8s.AlertSourceLabel)
+	lb.Set(managementlabels.AlertNameLabel, rule.Name)
+	keep := relabel.ProcessBuilder(lb, configs...)
+	return lb.Labels().Map(), keep
+}
+
 func indexRelabeledRules(rules []monitoringv1.Rule) map[string][]monitoringv1.Rule {
 	byAlert := make(map[string][]monitoringv1.Rule, len(rules))
 	for _, rule := range rules {
@@ -161,7 +185,7 @@ func relabeledAlertName(rule *monitoringv1.Rule) string {
 	return ""
 }
 
-func applyRelabeledRuleLabels(rule *k8s.AlertingRule, relabeledByAlert map[string][]monitoringv1.Rule) {
+func applyRelabeledRuleLabels(rule *k8s.AlertingRule, relabeledByAlert map[string][]monitoringv1.Rule, configs []*relabel.Config) {
 	if rule == nil || rule.Name == "" {
 		return
 	}
@@ -172,7 +196,7 @@ func applyRelabeledRuleLabels(rule *k8s.AlertingRule, relabeledByAlert map[strin
 		source = rule.Labels[k8s.AlertSourceLabel]
 	}
 
-	match := findRelabeledMatch(rule, relabeledByAlert[rule.Name])
+	match := findRelabeledMatch(rule, relabeledByAlert[rule.Name], configs)
 	if match == nil || match.Labels == nil {
 		return
 	}
@@ -189,53 +213,48 @@ func applyRelabeledRuleLabels(rule *k8s.AlertingRule, relabeledByAlert map[strin
 	rule.Labels = labelsOut
 }
 
-func findRelabeledMatch(rule *k8s.AlertingRule, candidates []monitoringv1.Rule) *monitoringv1.Rule {
-	// A unique alertname cannot be ambiguous; skip PromQL/label matching.
-	if len(candidates) == 1 {
-		return &candidates[0]
-	}
-
-	// Strict match first (preserves correctness when multiple rules share alertname).
+// findRelabeledMatch returns the cached rule that corresponds to the served
+// rule, or nil when there is no match or the match is ambiguous. A candidate
+// matches when its alertname, expression, and duration match the served rule
+// and the relabel configs transform the served rule's labels into the
+// candidate's cached labels, mirroring how the cache is built. A rule that is
+// missing from the cache (dropped, or not synced yet) therefore borrows
+// nothing, and when relabeling erases the labels that distinguish same-name
+// rules, no identity is guessed.
+func findRelabeledMatch(rule *k8s.AlertingRule, candidates []monitoringv1.Rule, configs []*relabel.Config) *monitoringv1.Rule {
+	var match *monitoringv1.Rule
 	for i := range candidates {
 		candidate := &candidates[i]
-		if promRuleMatchesRelabeled(rule, candidate) {
-			return candidate
+		if !promRuleMatchesSpec(rule, candidate) || !relabelOutcomeMatches(rule, candidate, configs) {
+			continue
 		}
+		if match != nil {
+			// Ambiguous: relabeling erased the distinguishing labels.
+			return nil
+		}
+		match = candidate
 	}
-
-	// If relabeling modified rule labels (e.g. severity), strict label matching may fail.
-	// Retry on a best-effort basis using (alertname, expr, for) only. If this is ambiguous,
-	// do not guess.
-	var relaxed *monitoringv1.Rule
-	for i := range candidates {
-		candidate := &candidates[i]
-		if rule == nil || candidate == nil {
-			continue
-		}
-		candidateName := relabeledAlertName(candidate)
-		if rule.Name == "" || candidateName == "" || rule.Name != candidateName {
-			continue
-		}
-		if canonicalizePromQL(rule.Query) != canonicalizePromQL(candidate.Expr.String()) {
-			continue
-		}
-		if !durationMatches(rule.Duration, candidate.For) {
-			continue
-		}
-		if relaxed != nil {
-			// ambiguous
-			relaxed = nil
-			break
-		}
-		relaxed = candidate
-	}
-	if relaxed != nil {
-		return relaxed
-	}
-	return nil
+	return match
 }
 
-func promRuleMatchesRelabeled(rule *k8s.AlertingRule, candidate *monitoringv1.Rule) bool {
+// relabelOutcomeMatches reports whether the relabel configs transform the
+// served rule into the cached candidate. The cache applies the same configs to
+// each rule's original labels, so a candidate with a different outcome belongs
+// to another rule: a dropped rule is absent from the cache, and rules that
+// differ in labels produce different outcomes. User workload rules are cached
+// without relabeling, so their labels must match the candidate directly.
+func relabelOutcomeMatches(rule *k8s.AlertingRule, candidate *monitoringv1.Rule, configs []*relabel.Config) bool {
+	if rule.Labels[k8s.AlertSourceLabel] == k8s.AlertSourceUser {
+		return maps.Equal(filterBusinessLabels(rule.Labels), filterBusinessLabels(candidate.Labels))
+	}
+	relabeled, keep := relabeledRuleLabels(rule, configs)
+	return keep && maps.Equal(filterBusinessLabels(relabeled), filterBusinessLabels(candidate.Labels))
+}
+
+// promRuleMatchesSpec compares (alertname, expression, duration). Relabeling
+// may modify rule labels (e.g. severity), so label identity is verified
+// separately by relabelOutcomeMatches.
+func promRuleMatchesSpec(rule *k8s.AlertingRule, candidate *monitoringv1.Rule) bool {
 	if rule == nil || candidate == nil {
 		return false
 	}
@@ -246,13 +265,7 @@ func promRuleMatchesRelabeled(rule *k8s.AlertingRule, candidate *monitoringv1.Ru
 	if canonicalizePromQL(rule.Query) != canonicalizePromQL(candidate.Expr.String()) {
 		return false
 	}
-	if !durationMatches(rule.Duration, candidate.For) {
-		return false
-	}
-	if !maps.Equal(filterBusinessLabels(rule.Labels), filterBusinessLabels(candidate.Labels)) {
-		return false
-	}
-	return true
+	return durationMatches(rule.Duration, candidate.For)
 }
 
 func canonicalizePromQL(in string) string {

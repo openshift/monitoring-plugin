@@ -42,6 +42,21 @@ The plugin intentionally reads from only the in-cluster Alertmanager endpoints. 
 
 ### Managing alert rules via the Management API
 
+`GET /api/v1/alerting/rules` includes `alertingRuleEnabled` on every alerting
+rule. It is `false` when the current platform alert relabel configuration drops
+the rule's labels (including `alertname`), and `true` otherwise.
+`alertingRuleEnabled: false` means alerts are suppressed by platform alert
+relabeling. Prometheus continues evaluating the rule; this flag does not disable
+rule evaluation. This status is independent of whether the rule has active alerts.
+The status reflects the rule's own labels: each alert is filtered by its own
+labels, including labels derived from the expression such as `instance` or
+`pod`. An alert whose labels satisfy a keep configuration can therefore still
+be returned for a rule whose `alertingRuleEnabled` is `false`.
+Dropped rules remain in unfiltered responses, so clients can identify them for
+restore. Existing alert-state and alert-label filters still apply.
+User workload rules always report `true` because platform relabeling does not
+apply to them. Recording rules do not include this field.
+
 | Operation | Single | Bulk |
 |---|---|---|
 | Create | `POST /api/v1/alerting/rules` | n/a |
