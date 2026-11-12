@@ -693,3 +693,60 @@ func TestFilesHandler(t *testing.T) {
 		t.Errorf("Expected Expires header %q, but got %q", "0", res.Header.Get("Expires"))
 	}
 }
+
+// TestNoCORSHeaders verifies the backend does not advertise cross-origin access;
+// its only consumer, the console bridge, fetches it server-side.
+func TestNoCORSHeaders(t *testing.T) {
+	testPort, err := getFreePort(testHostname)
+	require.NoError(t, err)
+
+	staticDir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(staticDir, "plugin-manifest.json"),
+		[]byte(`{"name":"monitoring-plugin","extensions":[]}`),
+		0600,
+	))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(staticDir, "plugin-entry.js"),
+		[]byte("export default {};"),
+		0600,
+	))
+
+	_, cleanup := startTestServer(t, &Config{
+		Port:             testPort,
+		Features:         defaultFeatures,
+		StaticPath:       staticDir,
+		ConfigPath:       t.TempDir(),
+		PluginConfigPath: filepath.Join(t.TempDir(), "plugin-config.yaml"),
+	})
+	defer cleanup()
+
+	serverURL := fmt.Sprintf("http://%s:%d", testHostname, testPort)
+	httpClient, err := (&httpClientConfig{}).buildHTTPClient()
+	require.NoError(t, err)
+	checkHTTPReady(httpClient, serverURL+"/health")
+
+	for _, path := range []string{
+		"/health",
+		"/features",
+		"/config",
+		"/plugin-manifest.json",
+		"/plugin-entry.js",
+	} {
+		t.Run(strings.TrimPrefix(path, "/"), func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, serverURL+path, nil)
+			require.NoError(t, err)
+			// Mimic a cross-origin browser request.
+			req.Header.Set("Origin", "https://evil.example")
+
+			res, err := httpClient.Do(req)
+			require.NoError(t, err)
+			defer res.Body.Close()
+
+			require.Equal(t, http.StatusOK, res.StatusCode)
+			for header := range res.Header {
+				require.NotContains(t, header, "Access-Control-", "unexpected %s on %s", header, path)
+			}
+		})
+	}
+}
