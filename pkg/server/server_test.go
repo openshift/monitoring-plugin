@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/management"
 )
 
 type httpClientConfig struct {
@@ -155,6 +157,15 @@ func TestServerRunning(t *testing.T) {
 	if _, err = getRequestResults(t, httpClient, serverURL+"/features"); err != nil {
 		t.Fatalf("Failed: could not fetch features endpoint: %v", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL+"/metrics", nil)
+	require.NoError(t, err)
+	resp, err := httpClient.Do(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.NoError(t, resp.Body.Close())
 
 	// sanity check - make sure we cannot get to a bogus context path
 	if _, err = getRequestResults(t, httpClient, serverURL+"/badroot"); err == nil {
@@ -748,5 +759,22 @@ func TestNoCORSHeaders(t *testing.T) {
 				require.NotContains(t, header, "Access-Control-", "unexpected %s on %s", header, path)
 			}
 		})
+	}
+}
+
+func TestMetricsRegistrationFailureKeepsRoutesAvailable(t *testing.T) {
+	ctx := context.Background()
+	managementClient := management.New(ctx, nil)
+	router, _, err := setupRoutes(ctx, &Config{}, managementClient, nil)
+	require.NoError(t, err)
+	for path, status := range map[string]int{
+		"/health":                 http.StatusOK,
+		"/features":               http.StatusOK,
+		"/api/v1/alerting/alerts": http.StatusUnauthorized,
+		"/metrics":                http.StatusUnauthorized,
+	} {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		require.Equal(t, status, recorder.Code, path)
 	}
 }
