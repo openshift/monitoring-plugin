@@ -260,6 +260,56 @@ make start-mcp-frontend
 # ,agent-navigation for the agent menu. Start it after the frontend's first
 # compile: it reads web/dist/plugin-manifest.json once at startup.
 KUBECONFIG=$HOME/.kube/config make start-coo-backend 'ALL_FEATURES=$(MONITORING_FEATURES),troubleshooting'
+#### Local Development with Distributed Tracing (Tempo)
+
+Distributed tracing runs under the `monitoring-console-plugin` identity and is
+off by default (`tracing` feature). Unlike the logging view, the bridge does
+not call Tempo itself: the plugin backend proxies trace queries to
+`https://tempo-<name>-gateway.<namespace>.svc:8080`, a cluster service name, and
+verifies the gateway's service-CA certificate. A backend on your machine
+therefore has to resolve that name and trust that CA; deployed in the cluster,
+it does so already and needs no setup.
+
+Prerequisites:
+
+- A cluster with the Tempo operator and a multi-tenant TempoStack or
+  TempoMonolithic receiving traces. Single-tenant instances are hidden by the
+  plugin (OU-467) and not supported.
+- `oc login` as a user who can list `tempostacks` and `tempomonolithics`
+  cluster-wide (cluster-admin on a dev cluster): the local backend lists them
+  with your kubeconfig identity instead of the plugin service account.
+- The local bridge loads only `monitoring-console-plugin`, not the legacy
+  `distributed-tracing-console-plugin`, so the two do not conflict.
+
+Map each gateway's service name to its own loopback address, once, and forward
+the gateway to it in a separate terminal. Every gateway listens on 8080, so the
+address, not the port, keeps instances apart. Remove the entry when you stop
+developing:
+
+```
+echo '127.0.0.2 tempo-<name>-gateway.<namespace>.svc' | sudo tee -a /etc/hosts
+oc -n <namespace> port-forward --address 127.0.0.2 svc/tempo-<name>-gateway 8080:8080
+```
+
+The backend reads the gateways' CA from its trust store, so hand it your system
+roots plus the cluster service CA (`SSL_CERT_FILE` replaces the whole store):
+
+```
+oc -n <namespace> get configmap openshift-service-ca.crt \
+  -o jsonpath='{.data.service-ca\.crt}' > /tmp/tracing-service-ca.crt
+cat /etc/ssl/certs/ca-certificates.crt /tmp/tracing-service-ca.crt > /tmp/tracing-ca-bundle.crt
+```
+
+Then start the plugin as for any other feature:
+
+```
+# Frontend under the console-plugin identity (manifest name + i18n namespace)
+make start-mcp-frontend
+
+# Backend with tracing. It reads web/dist/plugin-manifest.json once at startup,
+# so start it after the frontend's first compile.
+SSL_CERT_FILE=/tmp/tracing-ca-bundle.crt KUBECONFIG=$HOME/.kube/config \
+  make start-coo-backend 'ALL_FEATURES=$(MONITORING_FEATURES),tracing'
 
 # Console bridge
 make start-coo-console
@@ -289,3 +339,21 @@ Cypress smoke: `CYPRESS_TROUBLESHOOTING_ENABLED=true npm run test-cypress-troubl
 from `web/`. To check the disabled state, restart the backend without
 `troubleshooting` (`'ALL_FEATURES=$(MONITORING_FEATURES)'`) and leave
 `CYPRESS_TROUBLESHOOTING_ENABLED` unset.
+
+`start-console.sh` registers
+`/api/proxy/plugin/monitoring-console-plugin/backend/` so your token reaches
+the backend's Tempo proxy.
+
+Cypress, from `web/`:
+
+```
+# Merged feature smoke, disabled run (backend without the tracing feature)
+npm run test-cypress-tracing
+# Enabled run: instance and tenant are required and must contain recent traces;
+# the local backend needs the gateway reachable as described above.
+# The smoke searches, opens a trace, and checks its MCP detail request and rendered spans.
+npm run test-cypress-tracing -- --env TRACING_ENABLED=true,TRACING_TEMPO_INSTANCE=<namespace>/<name>,TRACING_TEMPO_TENANT=<tenant>
+# Legacy e2e suite: installs operators and targets the COO-deployed legacy
+# plugin on the cluster Console, not this local setup (see web/cypress/README.md)
+npm run test-cypress-tracing-legacy
+```

@@ -1,0 +1,25 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-modern
+spec:
+  steps:
+  - name: Patch deployment for Modern TLS profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          patch_tls_args "VersionTLS13" ""
+          echo "PASS: Deployment patched with TLS_MIN_VERSION=VersionTLS13"
+  - name: Verify Modern TLS profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          detect_fips
+          verify_nmap_tls_profile "modern" "Modern profile"
+          verify_tls_version_rejected "-tls1_2" "TLS 1.2 rejected under Modern profile"
+          verify_all_endpoints "Modern profile"
+          echo "PASS: Modern TLS profile verified (TLS 1.3 only, TLS 1.2 rejected)"

@@ -1,0 +1,32 @@
+.dt-plugin-trace-table {
+  /** min height, required for loading state */
+  min-height: 280px;
+
+  /* Perses panel components are usually in a panel wrapper with a border and 12px padding; remove this padding here. */
+  & > .MuiBox-root {
+    padding: 0;
+  }
+
+  .MuiDataGrid-root {
+    /* in MUI dark mode, the table header has a different color, but in PatternFly the header is always transparent */
+    --DataGrid-containerBackground: inherit;
+  }
+
+  /* style tracing service names Material UI <Chip> component like a filled PatternFly <Label> */
+  .MuiChip-colorDefault {
+    background-color: color-mix(in srgb, var(--service-color) 40%, transparent);
+    border: none;
+    font-size: var(--pf-t--global--font--size--xs);
+
+    .MuiAvatar-root {
+      background-color: transparent;
+      font-size: inherit;
+      color: inherit;
+      text-shadow: none;
+    }
+
+    .MuiAvatar-root + .MuiChip-label {
+      padding-left: 2px;
+    }
+  }
+}
