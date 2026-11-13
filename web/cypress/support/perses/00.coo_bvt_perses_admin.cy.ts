@@ -53,8 +53,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
         .ACCELERATORS_COMMON_METRICS[0] as keyof typeof persesDashboardsDashboardDropdownCOO,
     );
     cy.byDataTestID(persesMUIDataTestIDs.variableDropdown + '-cluster').should('be.visible');
-    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators', 'Open');
     persesDashboardsPage.panelHeadersAcceleratorsCommonMetricsAssertion();
+    persesDashboardsPage.panelGroupHeaderAssertion('Accelerators', 'Open');
     persesDashboardsPage.expandPanel(
       persesDashboardsAcceleratorsCommonMetricsPanels.GPU_UTILIZATION,
     );
@@ -91,6 +91,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
 
   it(`4.${perspective.name} perspective - Download and View JSON`, () => {
     cy.log(`4.1. use sidebar nav to go to Observe > Dashboards (Perses) > Download and View JSON`);
+    cy.changeNamespace('openshift-cluster-observability-operator');
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
     );
@@ -118,6 +119,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2],
       'openshift-cluster-observability-operator',
     );
+    persesDashboardsPage.backToListPersesDashboardsPage();
   });
 
   it(
@@ -168,8 +170,7 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
       listPersesDashboardsPage.renameDashboardRenameButton();
 
       cy.log(`5.5. Click on the Kebab icon - Delete`);
-      nav.sidenav.clickNavLink(['Observe', 'Alerting']);
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+      listPersesDashboardsPage.clearAllFilters();
       listPersesDashboardsPage.filter.byName(
         persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0] + ' - Renamed',
       );
@@ -287,6 +288,8 @@ export function testBVTCOOPerses1(perspective: PerspectiveConfig) {
 
       cy.log(`6.7. Back and check panel`);
       persesDashboardsPage.backToListPersesDashboardsPage();
+      cy.changeNamespace('All Projects');
+      cy.changeNamespace('perses-dev');
       listPersesDashboardsPage.filter.byName(dashboardName);
       listPersesDashboardsPage.clickDashboard(dashboardName);
       persesDashboardsPage.panelGroupHeaderAssertion('Panel Group Up', 'Open');

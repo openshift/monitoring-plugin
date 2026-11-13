@@ -27,16 +27,12 @@ export const persesDashboardsPanel = {
       .contains('Type')
       .should('be.visible');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Add')
       .should('be.visible')
       .and('have.attr', 'disabled');
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Cancel')
@@ -123,6 +119,7 @@ export const persesDashboardsPanel = {
         .type(description);
     }
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
+    cy.wait(2000);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
 
     switch (type) {
@@ -187,6 +184,7 @@ export const persesDashboardsPanel = {
     cy.get('#' + IDs.persesDashboardAddPanelForm)
       .parent('div')
       .find('h2')
+      .parent('div')
       .siblings('div')
       .find('button')
       .contains('Add')
@@ -301,8 +299,6 @@ export const persesDashboardsPanel = {
     persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
     cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .parent('div')
-      .find('h2')
       .siblings('div')
       .find('button')
       .contains('Apply')

@@ -18,28 +18,24 @@ const MP = {
 };
 
 //TODO: change tag to @dashboards when customizable-dashboards gets merged
-describe(
-  'COO - Dashboards (Perses) - Create perses dashboard',
-  { tags: ['@perses', '@dashboards'] },
-  () => {
-    before(() => {
-      cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
-      cy.cleanupPersesTestDashboardsBeforeTests();
-      cy.setupPersesRBACandExtraDashboards();
-    });
+describe('COO - Dashboards (Perses) - Create perses dashboard', { tags: ['@perses'] }, () => {
+  before(() => {
+    cy.beforeBlockCOO(MCP, MP, { dashboards: true, troubleshootingPanel: false });
+    cy.cleanupPersesTestDashboardsBeforeTests();
+    cy.setupPersesRBACandExtraDashboards();
+  });
 
-    beforeEach(() => {
-      nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
-      cy.wait(5000);
-      cy.changeNamespace('All Projects');
-    });
+  beforeEach(() => {
+    nav.sidenav.clickNavLink(['Observe', 'Dashboards (Perses)']);
+    cy.wait(5000);
+    cy.changeNamespace('All Projects');
+  });
 
-    after(() => {
-      cy.cleanupExtraDashboards();
-    });
+  after(() => {
+    cy.cleanupExtraDashboards();
+  });
 
-    runCOOCreatePersesTests({
-      name: 'Administrator',
-    });
-  },
-);
+  runCOOCreatePersesTests({
+    name: 'Administrator',
+  });
+});
