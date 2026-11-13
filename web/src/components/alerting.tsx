@@ -617,12 +617,17 @@ const Tab: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active,
 const AlertingPage: React.FC<RouteComponentProps<{ url: string }>> = ({ match }) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { perspective } = usePerspective();
-
-  const alertsPath = getAlertsUrl(perspective);
-  const rulesPath = getAlertRulesUrl(perspective);
-  const silencesPath = getSilencesUrl(perspective);
-
   const { url } = match;
+  // Keep the requested URL prefix while the active perspective controls the monitoring data.
+  const routePerspective = url.startsWith('/virt-monitoring')
+    ? 'virtualization-perspective'
+    : url.startsWith('/monitoring')
+    ? 'admin'
+    : perspective;
+
+  const alertsPath = getAlertsUrl(routePerspective);
+  const rulesPath = getAlertRulesUrl(routePerspective);
+  const silencesPath = getSilencesUrl(routePerspective);
 
   return (
     <>
@@ -716,41 +721,43 @@ const PollerPages = () => {
     );
   }
 
-  if (perspective === 'virtualization-perspective') {
-    return (
-      <Switch>
-        <Route
-          path="/virt-monitoring/(alerts|alertrules|silences)"
-          exact
-          component={AlertingPage}
-        />
-        <Route path="/virt-monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
-        <Route path="/virt-monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
-        <Route path="/virt-monitoring/query-browser" exact component={QueryBrowserPage} />
-        <Route path="/virt-monitoring/silences" exact component={SilencesPage} />
-        <Route path="/virt-monitoring/silences/:id" exact component={SilencesDetailsPage} />
-        <Route path="/virt-monitoring/silences/:id/edit" exact component={EditSilence} />
-        <Route
-          path="/virt-monitoring/dashboards/:board?"
-          exact
-          component={MonitoringDashboardsPage}
-        />
-        <Route path="/virt-monitoring/targets" component={TargetsUI} />
-      </Switch>
-    );
-  }
-
   return (
     <Switch>
       <Route
-        path="/monitoring/(alerts|alertrules|silences|incidents)"
+        path={[
+          '/monitoring/(alerts|alertrules|silences|incidents)',
+          '/virt-monitoring/(alerts|alertrules|silences)',
+        ]}
         exact
         component={AlertingPage}
       />
-      <Route path="/monitoring/alertrules/:id" exact component={AlertRulesDetailsPage} />
-      <Route path="/monitoring/alerts/:ruleID" exact component={AlertsDetailsPage} />
-      <Route path="/monitoring/silences/:id" exact component={SilencesDetailsPage} />
-      <Route path="/monitoring/silences/:id/edit" exact component={EditSilence} />
+      <Route
+        path={['/monitoring/alertrules/:id', '/virt-monitoring/alertrules/:id']}
+        exact
+        component={AlertRulesDetailsPage}
+      />
+      <Route
+        path={['/monitoring/alerts/:ruleID', '/virt-monitoring/alerts/:ruleID']}
+        exact
+        component={AlertsDetailsPage}
+      />
+      <Route path="/virt-monitoring/query-browser" exact component={QueryBrowserPage} />
+      <Route
+        path={['/monitoring/silences/:id', '/virt-monitoring/silences/:id']}
+        exact
+        component={SilencesDetailsPage}
+      />
+      <Route
+        path={['/monitoring/silences/:id/edit', '/virt-monitoring/silences/:id/edit']}
+        exact
+        component={EditSilence}
+      />
+      <Route
+        path="/virt-monitoring/dashboards/:board?"
+        exact
+        component={MonitoringDashboardsPage}
+      />
+      <Route path="/virt-monitoring/targets" component={TargetsUI} />
     </Switch>
   );
 };
