@@ -134,21 +134,22 @@ export const listPersesDashboardsPage = {
    * the prefix to build data-test id, expecting to be unique
    * If index is provided, it asserts the existence of the dashboard by the index.
    * @param name - The name of the dashboard to assert
+   * @param displayName - The display name of the dashboard to assert
    * @param index - The index of the dashboard to assert (optional)
    */
-  assertDashboardName: (name: string, index?: number) => {
+  assertDashboardName: (name: string, displayName: string, index?: number) => {
     cy.log('listPersesDashboardsPage.assertDashboardName');
     const idx = index !== undefined ? index : 0;
     if (index === undefined) {
       cy.byTestID(listPersesDashboardsDataTestIDs.DashboardLinkPrefix + name)
         .should('be.visible')
-        .contains(name);
+        .contains(displayName);
     } else {
       cy.byOUIAID(
         listPersesDashboardsOUIAIDs.persesListDataViewTableDashboardNameTD + idx.toString(),
       )
         .should('be.visible')
-        .contains(name);
+        .contains(displayName);
     }
   },
 

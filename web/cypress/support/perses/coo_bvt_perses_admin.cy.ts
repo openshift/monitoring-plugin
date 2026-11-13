@@ -38,6 +38,7 @@ export function testBVTCOOPerses1(
         `Accelerators common metrics dashboard`,
     );
     cy.changeNamespace('openshift-cluster-observability-operator');
+    cy.wait(2000);
     listPersesDashboardsPage.shouldBeLoaded(dashboardsPageName);
     listPersesDashboardsPage.clickDashboard(
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
