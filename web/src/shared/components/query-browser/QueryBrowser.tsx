@@ -596,6 +596,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   hideControls,
   isStack = false,
   onLoadingChange,
+  onSpanChange: onSpanChangeProp,
   onZoom,
   pollInterval,
   queries,
@@ -878,8 +879,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
       setSpan(newSpan);
       dispatch(queryBrowserSetTimespan(newSpan));
       setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      onSpanChangeProp?.(newSpan);
     },
-    [defaultSamples, dispatch],
+    [defaultSamples, dispatch, onSpanChangeProp],
   );
 
   const isRangeVector = _.get(error, 'json.error', '').match(
@@ -1116,6 +1118,7 @@ export type QueryBrowserProps = {
   hideControls?: boolean;
   isStack?: boolean;
   onLoadingChange?: (isLoading: boolean) => void;
+  onSpanChange?: (span: number) => void;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
   queries: string[];
