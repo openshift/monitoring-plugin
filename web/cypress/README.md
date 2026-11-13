@@ -324,10 +324,10 @@ npm run test-cypress-tracing-legacy
 npm run test-cypress-tracing-legacy -- --env grep=-Lightspeed
 ```
 
-The suite is tagged `@tracing @tracing-legacy @coo` (the Lightspeed test also `@ols`).
-`test-cypress-tracing` (the merged-feature smoke), `test-cypress-coo*` and
-`test-cypress-perses-ols` exclude it. Fixtures, chainsaw suites and CSV patch scripts live in
-`cypress/fixtures/coo/traces/`.
+The suite is tagged `@tracing @tracing-legacy @coo`. No test in it carries an infrastructure
+tag (`@ols`, `@acm`, `@virtualization`), so the Lightspeed and ACM jobs do not select it;
+`test-cypress-tracing` (the merged-feature smoke) and `test-cypress-coo*` exclude it.
+Fixtures, chainsaw suites and CSV patch scripts live in `cypress/fixtures/coo/traces/`.
 
 The merged-feature smoke (`cypress/e2e/tracing/merged-tracing.cy.ts`) is included in
 `test-cypress-coo` and `test-cypress-coo-bvt`. By default it checks that tracing is disabled;
@@ -338,13 +338,12 @@ backend with tracing enabled and set `CYPRESS_TRACING_ENABLED=true`,
 with recent traces. Enabled and disabled coverage require separate runs with the backend
 configured accordingly; the smoke does not toggle features itself.
 
-Unused source helpers and fixtures are preserved too, including all 56 original custom
-commands (ported or reused), both resource/search view modules, and the disabled debug
-spec (`coo_tracing_debug.cy.ts.skip`). See the
+Only the helpers and fixtures the suite uses are imported. Artifacts no current test calls
+(such as DT's disabled debug spec, its unused command implementations, `views/pages.ts` and
+`views/search.ts`, and two unreferenced fixtures) stay in the upstream repository instead of
+being carried here. See the
 [preservation inventory and original helper documentation](docs/tracing-original/README.md)
-for source mappings and the `dtLogin` / `dtSwitchPerspective` aliases. The debug spec
-remains outside the runnable spec pattern; restoring it does not enable its RBAC-changing
-setup or add it to the default test runs.
+for source mappings and the `dtLogin` alias.
 
 ---
 

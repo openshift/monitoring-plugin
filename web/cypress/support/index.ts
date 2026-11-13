@@ -14,7 +14,6 @@ import './commands/virtualization-commands';
 import './commands/perses-commands';
 import './commands/traces-logging-commands';
 import './commands/tracing-commands';
-import './commands/tracing-preserved-commands';
 
 export const checkErrors = () =>
   cy.window().then((win) => {

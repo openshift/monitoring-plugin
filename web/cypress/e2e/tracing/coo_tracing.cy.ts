@@ -1078,98 +1078,94 @@ describe(
       });
     });
 
-    it(
-      '[Capability:UIPlugin][Capability:AIIntegration][Capability:Lightspeed] Test AI Traces summary with OpenShift Lightspeed',
-      { tags: ['@ols'] },
-      () => {
-        cy.log('Navigate to the /observe/traces page');
-        cy.visit('/observe/traces');
-        cy.url().should('include', '/observe/traces');
-        cy.dismissWelcomeModal();
-        cy.get('body').should('be.visible');
-        // Wait for the page to fully render
-        cy.wait(3000);
+    it('[Capability:UIPlugin][Capability:AIIntegration][Capability:Lightspeed] Test AI Traces summary with OpenShift Lightspeed', () => {
+      cy.log('Navigate to the /observe/traces page');
+      cy.visit('/observe/traces');
+      cy.url().should('include', '/observe/traces');
+      cy.dismissWelcomeModal();
+      cy.get('body').should('be.visible');
+      // Wait for the page to fully render
+      cy.wait(3000);
 
-        cy.log('Select TempoStack instance: chainsaw-rbac / simplst');
-        cy.pfTypeahead('Select a Tempo instance').click();
-        cy.pfSelectMenuItem('chainsaw-rbac / simplst').click();
+      cy.log('Select TempoStack instance: chainsaw-rbac / simplst');
+      cy.pfTypeahead('Select a Tempo instance').click();
+      cy.pfSelectMenuItem('chainsaw-rbac / simplst').click();
 
-        cy.log('Select tenant: dev');
-        cy.pfTypeahead('Select a tenant').click();
-        cy.pfSelectMenuItem('dev').click();
+      cy.log('Select tenant: dev');
+      cy.pfTypeahead('Select a tenant').click();
+      cy.pfSelectMenuItem('dev').click();
 
-        cy.log('Select time range: Last 15 minutes');
-        cy.muiSelect('Select time range').click();
-        cy.muiSelectOption('Last 1 hour').click();
+      cy.log('Select time range: Last 15 minutes');
+      cy.muiSelect('Select time range').click();
+      cy.muiSelectOption('Last 1 hour').click();
 
-        cy.log('Select service name: frontend');
-        cy.pfMenuToggle('Service Name').click();
-        cy.pfMenuToggleByLabel('Multi typeahead checkbox').click();
-        cy.pfCheckMenuItem('frontend');
+      cy.log('Select service name: frontend');
+      cy.pfMenuToggle('Service Name').click();
+      cy.pfMenuToggleByLabel('Multi typeahead checkbox').click();
+      cy.pfCheckMenuItem('frontend');
 
-        cy.log('Click on the first trace');
-        cy.muiFirstTraceLink().click();
+      cy.log('Click on the first trace');
+      cy.muiFirstTraceLink().click();
 
-        cy.log('Wait for trace details to load and click Ask OpenShift Lightspeed button');
-        cy.get(
-          'button.pf-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"], button.pf-v5-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"], button.pf-v6-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"]',
-          { timeout: 10000 },
-        )
-          .filter(':visible')
-          .first()
-          .click();
+      cy.log('Wait for trace details to load and click Ask OpenShift Lightspeed button');
+      cy.get(
+        'button.pf-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"], button.pf-v5-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"], button.pf-v6-c-button.pf-m-plain[aria-label="Ask OpenShift Lightspeed"]',
+        { timeout: 10000 },
+      )
+        .filter(':visible')
+        .first()
+        .click();
 
-        cy.log('Verify Lightspeed popover panel is visible');
-        olsHelpers.verifyPopoverVisible();
+      cy.log('Verify Lightspeed popover panel is visible');
+      olsHelpers.verifyPopoverVisible();
 
-        cy.log('Verify Lightspeed panel title');
-        cy.contains('h1', 'Red Hat OpenShift Lightspeed').should('be.visible');
+      cy.log('Verify Lightspeed panel title');
+      cy.contains('h1', 'Red Hat OpenShift Lightspeed').should('be.visible');
 
-        cy.log('Verify the prompt input textarea has the expected text');
-        cy.get(OLS_SELECTORS.promptInput)
-          .should('be.visible')
-          .and(
-            'have.value',
-            'Analyze this distributed trace from my OpenShift cluster and summarize: errors, services needing investigation and performance bottlenecks.',
-          );
+      cy.log('Verify the prompt input textarea has the expected text');
+      cy.get(OLS_SELECTORS.promptInput)
+        .should('be.visible')
+        .and(
+          'have.value',
+          'Analyze this distributed trace from my OpenShift cluster and summarize: errors, services needing investigation and performance bottlenecks.',
+        );
 
-        cy.log('Verify the trace context attachment is present');
-        cy.get('.ols-plugin__context-label-text')
-          .should('be.visible')
-          .and('have.text', 'frontend: GET /dispatch');
+      cy.log('Verify the trace context attachment is present');
+      cy.get('.ols-plugin__context-label-text')
+        .should('be.visible')
+        .and('have.text', 'frontend: GET /dispatch');
 
-        olsHelpers.submitPrompt();
+      olsHelpers.submitPrompt();
 
-        cy.log('Wait for AI response and verify trace analysis content');
-        olsHelpers.waitForAIResponse();
-        olsHelpers.getAIResponse().should('contain.text', 'trace');
+      cy.log('Wait for AI response and verify trace analysis content');
+      olsHelpers.waitForAIResponse();
+      olsHelpers.getAIResponse().should('contain.text', 'trace');
 
-        cy.log('Verify AI response contains analysis of trace services');
-        olsHelpers.getAIResponse().should(($message) => {
-          const text = $message.text().toLowerCase();
-          // Verify at least 2 of the key services are mentioned
-          const serviceMatches = [
-            text.includes('driver'),
-            text.includes('customer'),
-            text.includes('route'),
-            text.includes('frontend') || text.includes('dispatch'),
-          ].filter(Boolean);
-          expect(serviceMatches.length).to.be.at.least(
-            2,
-            'Expected at least 2 services to be mentioned in the analysis',
-          );
-        });
+      cy.log('Verify AI response contains analysis of trace services');
+      olsHelpers.getAIResponse().should(($message) => {
+        const text = $message.text().toLowerCase();
+        // Verify at least 2 of the key services are mentioned
+        const serviceMatches = [
+          text.includes('driver'),
+          text.includes('customer'),
+          text.includes('route'),
+          text.includes('frontend') || text.includes('dispatch'),
+        ].filter(Boolean);
+        expect(serviceMatches.length).to.be.at.least(
+          2,
+          'Expected at least 2 services to be mentioned in the analysis',
+        );
+      });
 
-        cy.log('Verify AI response mentions Redis or database interactions');
-        olsHelpers.getAIResponse().should(($message) => {
-          const text = $message.text().toLowerCase();
-          expect(text).to.match(/redis|database|mysql/);
-        });
+      cy.log('Verify AI response mentions Redis or database interactions');
+      olsHelpers.getAIResponse().should(($message) => {
+        const text = $message.text().toLowerCase();
+        expect(text).to.match(/redis|database|mysql/);
+      });
 
-        cy.log('✓ AI Traces summary with OpenShift Lightspeed verified');
-        olsHelpers.waitForPopoverAndClose();
-      },
-    );
+      cy.log('✓ AI Traces summary with OpenShift Lightspeed verified');
+      olsHelpers.waitForPopoverAndClose();
+    });
 
     it('[Capability:UIPlugin][Capability:TraceQLQuery][Capability:EmptyState] Test TraceQL query with no results and clear filters functionality', () => {
       cy.log('Navigate to the /observe/traces page');
