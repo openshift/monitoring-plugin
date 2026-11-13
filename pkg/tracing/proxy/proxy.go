@@ -235,9 +235,6 @@ func (h *ProxyHandler) createProxy(tempo api.TempoResource, tenant string) (*htt
 		return nil, fmt.Errorf("invalid Tempo resource with kind '%s'", tempo.Kind)
 	}
 
-	// For local development, set the target URL to a local Tempo instance
-	// targetURL = "http://localhost:3200"
-
 	proxyURL, err := url.Parse(targetURL)
 	if err != nil {
 		return nil, err

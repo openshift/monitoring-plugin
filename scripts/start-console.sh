@@ -86,8 +86,8 @@ echo "Plugin Port: ${PLUGIN_PORT}"
 
 # BRIDGE_PLUGIN_PROXY also registers the plugin backend as
 # /api/proxy/plugin/monitoring-console-plugin/backend/ with authorize, so the
-# user token reaches the backend's Tempo proxy (make start-tracing-backend);
-# the /api/plugins/ asset path does not carry it.
+# user token reaches the backend's Tempo proxy. The /api/plugins/ asset path
+# does not carry it.
 # Prefer podman if installed. Otherwise, fall back to docker.
 if [ -x "$(command -v podman)" ]; then
     if [ "$(uname -s)" = "Linux" ]; then
