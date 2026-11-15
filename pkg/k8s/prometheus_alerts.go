@@ -115,6 +115,16 @@ type AlertFetchStatus struct {
 type GetAlertsRequest struct {
 	// FetchStatus, when supplied, receives source availability for this fetch.
 	FetchStatus *AlertFetchStatus `json:"-"`
+	// IncludeDropped retains relabel-rejected instances for internal metrics.
+	// It is not exposed as an alerts API parameter.
+	IncludeDropped bool `json:"-"`
+	// DroppedAlertRelabelConfigs is the enrichment configuration snapshot used
+	// to recover active instances missing from Alertmanager after a Drop.
+	DroppedAlertRelabelConfigs []*relabel.Config `json:"-"`
+	// AllowPartialResults soft-fails an unavailable platform backend so
+	// internal callers can still refresh the remaining sources. The alerts
+	// API keeps failing the whole request instead.
+	AllowPartialResults bool `json:"-"`
 	// Labels filters alerts by labels
 	Labels map[string]string
 	// State filters alerts by state: "firing", "pending", "silenced", or "" for all states
@@ -124,6 +134,12 @@ type GetAlertsRequest struct {
 type PrometheusAlert struct {
 	// Preserve upstream labels for delivery simulation before adding plugin metadata.
 	originalLabels map[string]string
+	// deliveryExternalLabels are Prometheus external labels captured at fetch
+	// time. Prometheus adds them before alert relabeling, so drop decisions
+	// and the final ARC evaluation must include them.
+	deliveryExternalLabels map[string]string
+	// Dropped records ARC rejection for internal metrics without changing State.
+	Dropped bool `json:"-"`
 
 	Labels      map[string]string `json:"labels"`
 	Annotations map[string]string `json:"annotations"`
@@ -149,10 +165,26 @@ func (alert *PrometheusAlert) upstreamLabels() map[string]string {
 	return upstream
 }
 
-// ApplyRelabelConfigs evaluates delivery rules against upstream labels, then
-// restores the plugin's source/backend metadata on the enriched result.
-func (alert *PrometheusAlert) ApplyRelabelConfigs(configs ...*relabel.Config) bool {
+// deliveryLabelBuilder builds the label set Prometheus relabeling evaluates:
+// upstream labels plus captured external labels, which Prometheus adds before
+// alert relabeling. Capturing them at fetch time keeps the drop decision in
+// mergeAlertsIncludingDropped and the final ARC evaluation in
+// ApplyRelabelConfigs on the same input.
+func (alert *PrometheusAlert) deliveryLabelBuilder() *labels.Builder {
 	builder := labels.NewBuilder(labels.FromMap(alert.upstreamLabels()))
+	for name, value := range alert.deliveryExternalLabels {
+		if builder.Get(name) == "" {
+			builder.Set(name, value)
+		}
+	}
+	return builder
+}
+
+// ApplyRelabelConfigs evaluates delivery rules against the external-label-
+// aware label set, then restores the plugin's source/backend metadata on the
+// enriched result.
+func (alert *PrometheusAlert) ApplyRelabelConfigs(configs ...*relabel.Config) bool {
+	builder := alert.deliveryLabelBuilder()
 	keep := relabel.ProcessBuilder(builder, configs...)
 	for _, name := range []string{AlertSourceLabel, AlertBackendLabel} {
 		if value, exists := alert.Labels[name]; exists {
@@ -215,14 +247,16 @@ func (pa *prometheusAlerts) FetchAlerts(ctx context.Context, req GetAlertsReques
 		*req.FetchStatus = AlertFetchStatus{}
 	}
 
-	platformAlerts, err := pa.getAlertsForSource(ctx, ClusterMonitoringNamespace, PlatformRouteName, PlatformAlertmanagerRouteName, AlertSourcePlatform)
+	platformAlerts, err := pa.getAlertsForSource(ctx, ClusterMonitoringNamespace, PlatformRouteName, PlatformAlertmanagerRouteName, AlertSourcePlatform, req.DroppedAlertRelabelConfigs...)
 	if err != nil {
 		if req.FetchStatus != nil {
 			req.FetchStatus.PlatformUnavailable = true
 		}
 		// Namespace-scoped callers (Thanos tenancy) often lack platform
-		// Prometheus access. Soft-fail so tenancy results are still returned.
-		if namespaceFromLabels(req.Labels) == "" {
+		// Prometheus access, and partial-result callers prefer the remaining
+		// sources over a hard failure. Soft-fail so their results are still
+		// returned.
+		if namespaceFromLabels(req.Labels) == "" && !req.AllowPartialResults {
 			return nil, nil, err
 		}
 		warnings = append(warnings, fmt.Sprintf("failed to get platform alerts: %v", err))
@@ -379,11 +413,13 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 // getAlertsForSource fetches alerts from both Alertmanager and Prometheus
 // and merges the results. The fallback strategy is:
 //   - Both succeed: AM (firing+silenced) + Prom pending, with AM timestamps
-//     enriched from Prometheus activeAt.
-//   - AM only: AM alerts retain their timestamps.
+//     enriched from Prometheus activeAt. When dropConfigs is supplied, use
+//     Prometheus's live instances for alerts rejected by those configs.
+//   - AM only: AM alerts retain their timestamps. When dropConfigs is supplied,
+//     rejected instances are omitted because their native state is unavailable.
 //   - Prom only: all Prom alerts returned (AM was unreachable).
 //   - Both fail: error propagated from Prometheus.
-func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string) ([]PrometheusAlert, error) {
+func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace string, promRouteName string, amRouteName string, source string, dropConfigs ...*relabel.Config) ([]PrometheusAlert, error) {
 	amAlerts, amErr := pa.getAlertmanagerAlerts(ctx, namespace, amRouteName, source)
 	promAlerts, promErr := pa.getAlertsViaProxy(ctx, namespace, promRouteName, source)
 	// A caller denied by both backends has no visible alerts from this source.
@@ -392,10 +428,18 @@ func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace st
 	}
 
 	if amErr == nil {
+		var config *alertDeliveryConfig
 		if promErr == nil {
-			pa.enrichActiveAtFromConfig(ctx, "route/"+namespace+"/"+promRouteName, amAlerts, promAlerts, func(configCtx context.Context) ([]byte, error) {
+			// Delivery settings also feed the dropped-alert evaluation below,
+			// so they are fetched even when Alertmanager returned nothing:
+			// every firing instance may have been rejected by relabeling.
+			config = pa.enrichActiveAtFromConfig(ctx, "route/"+namespace+"/"+promRouteName, amAlerts, promAlerts, len(dropConfigs) > 0, func(configCtx context.Context) ([]byte, error) {
 				return pa.getPrometheusResponse(configCtx, namespace, promRouteName, PrometheusConfigPath)
 			})
+		}
+		if len(dropConfigs) > 0 {
+			captureDeliveryExternalLabels(promAlerts, config)
+			return mergeAlertsIncludingDropped(amAlerts, promAlerts, dropConfigs), nil
 		}
 		pending := filterAlertsByState(promAlerts, "pending")
 		return append(amAlerts, pending...), nil
@@ -405,7 +449,50 @@ func (pa *prometheusAlerts) getAlertsForSource(ctx context.Context, namespace st
 		return nil, fmt.Errorf("alertmanager: %w; prometheus: %w", amErr, promErr)
 	}
 
+	if len(dropConfigs) > 0 {
+		// Alertmanager is unreachable, so live instances feed the final ARC
+		// evaluation directly; they still need the delivered label set.
+		config, err := pa.cachedAlertDeliveryConfig(ctx, "route/"+namespace+"/"+promRouteName, func(configCtx context.Context) ([]byte, error) {
+			return pa.getPrometheusResponse(configCtx, namespace, promRouteName, PrometheusConfigPath)
+		})
+		if err != nil {
+			config = nil
+		}
+		captureDeliveryExternalLabels(promAlerts, config)
+	}
 	return promAlerts, nil
+}
+
+// captureDeliveryExternalLabels records Prometheus's external labels on live
+// instances so drop decisions evaluate the delivered label set.
+func captureDeliveryExternalLabels(promAlerts []PrometheusAlert, config *alertDeliveryConfig) {
+	if config == nil {
+		return
+	}
+	for i := range promAlerts {
+		promAlerts[i].deliveryExternalLabels = config.Global.ExternalLabels
+	}
+}
+
+// mergeAlertsIncludingDropped uses Prometheus's live instances for relabel-
+// rejected alerts, including firing instances already absent from Alertmanager.
+// Other firing/silenced alerts keep Alertmanager's labels and state. Live
+// instances are evaluated against their delivered label set: Prometheus adds
+// external labels before relabeling, so a Drop matching an external-label-only
+// label must also reject the instance here.
+func mergeAlertsIncludingDropped(amAlerts, promAlerts []PrometheusAlert, configs []*relabel.Config) []PrometheusAlert {
+	result := make([]PrometheusAlert, 0, len(amAlerts)+len(promAlerts))
+	for _, alert := range amAlerts {
+		if relabel.ProcessBuilder(labels.NewBuilder(labels.FromMap(alert.upstreamLabels())), configs...) {
+			result = append(result, alert)
+		}
+	}
+	for _, alert := range promAlerts {
+		if alert.State == "pending" || !relabel.ProcessBuilder(alert.deliveryLabelBuilder(), configs...) {
+			result = append(result, alert)
+		}
+	}
+	return result
 }
 
 func (pa *prometheusAlerts) getUserWorkloadAlerts(ctx context.Context, req GetAlertsRequest) ([]PrometheusAlert, error) {
@@ -467,7 +554,7 @@ func (pa *prometheusAlerts) getUserWorkloadAlertsViaAlertmanager(ctx context.Con
 		}
 	}
 
-	pa.enrichActiveAtFromConfig(ctx, configKey, alerts, promAlerts, getConfig)
+	pa.enrichActiveAtFromConfig(ctx, configKey, alerts, promAlerts, false, getConfig)
 	return append(alerts, filterAlertsByState(promAlerts, "pending")...), nil
 }
 
@@ -1001,7 +1088,10 @@ func (pa *prometheusAlerts) cachedAlertDeliveryConfig(ctx context.Context, key s
 	if entry, ok := pa.deliveryConfigs[key]; ok && time.Now().Before(entry.expiresAt) {
 		return entry.config, entry.err
 	}
-	configCtx, cancel := context.WithTimeout(ctx, alertDeliveryConfigTimeout)
+	// Derive the fetch context from Background rather than the caller's
+	// context: a caller whose credentials lack config-endpoint RBAC would
+	// otherwise cache a 403 under the route key shared by every caller.
+	configCtx, cancel := context.WithTimeout(context.Background(), alertDeliveryConfigTimeout)
 	defer cancel()
 	raw, err := getConfig(configCtx)
 	var config *alertDeliveryConfig
@@ -1022,15 +1112,20 @@ func (pa *prometheusAlerts) cachedAlertDeliveryConfig(ctx context.Context, key s
 	return config, err
 }
 
-func (pa *prometheusAlerts) enrichActiveAtFromConfig(ctx context.Context, key string, amAlerts, promAlerts []PrometheusAlert, getConfig func(context.Context) ([]byte, error)) {
-	if len(amAlerts) == 0 || len(promAlerts) == 0 {
-		return
+// enrichActiveAtFromConfig enriches ActiveAt from Prometheus's delivery
+// settings and returns them. When droppedEvaluation is set, the settings are
+// also fetched without Alertmanager alerts: every firing instance may have
+// been rejected by relabeling, so their absence must not skip the fetch.
+func (pa *prometheusAlerts) enrichActiveAtFromConfig(ctx context.Context, key string, amAlerts, promAlerts []PrometheusAlert, droppedEvaluation bool, getConfig func(context.Context) ([]byte, error)) *alertDeliveryConfig {
+	if len(promAlerts) == 0 || (len(amAlerts) == 0 && !droppedEvaluation) {
+		return nil
 	}
 	config, err := pa.cachedAlertDeliveryConfig(ctx, key, getConfig)
 	if err != nil {
 		config = nil
 	}
 	enrichActiveAt(amAlerts, promAlerts, config)
+	return config
 }
 
 // enrichActiveAt replaces ActiveAt in Alertmanager-sourced alerts with the
@@ -1113,6 +1208,13 @@ func deliveryDiscardsLabel(name string, configs []*relabel.Config) bool {
 			}
 		case relabel.LabelMap:
 			if rule.Regex.MatchString(name) {
+				return false
+			}
+		case relabel.KeepEqual, relabel.DropEqual:
+			// keepequal and dropequal compare the source values with the
+			// target label's current value, so the label is read, not
+			// discarded.
+			if rule.TargetLabel == name {
 				return false
 			}
 		}

@@ -11,11 +11,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	routev1 "github.com/openshift/api/route/v1"
 	routefake "github.com/openshift/client-go/route/clientset/versioned/fake"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
@@ -421,4 +424,194 @@ func TestUserWorkloadAlertDeliveryConfig_ServiceFallback(t *testing.T) {
 	<-requests // Alertmanager Route.
 	require.Equal(t, fmt.Sprintf("%s:%d/api%s", serviceHost, UserWorkloadPrometheusPort, PrometheusAlertsPath), <-requests)
 	require.Equal(t, fmt.Sprintf("%s:%d%s", serviceHost, UserWorkloadPrometheusPort, PrometheusConfigPath), <-requests)
+}
+
+func TestMergeAlertsIncludingDropped(t *testing.T) {
+	activeAt := time.Now().Add(-time.Hour)
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{"alertname"}
+	drop.Regex = relabel.MustNewRegexp("Dropped.*")
+	am := []PrometheusAlert{
+		{Labels: map[string]string{"alertname": "Visible", AlertBackendLabel: AlertBackendAM}, State: "silenced", ActiveAt: time.Now()},
+		{Labels: map[string]string{"alertname": "DroppedFiring", AlertBackendLabel: AlertBackendAM}, State: "firing", ActiveAt: time.Now()},
+		{Labels: map[string]string{"alertname": "DroppedResolved", AlertBackendLabel: AlertBackendAM}, State: "firing", ActiveAt: time.Now()},
+	}
+	prom := []PrometheusAlert{
+		{Labels: map[string]string{"alertname": "Visible", AlertBackendLabel: AlertBackendProm}, State: "firing", ActiveAt: activeAt},
+		{Labels: map[string]string{"alertname": "DroppedFiring", AlertBackendLabel: AlertBackendProm}, State: "firing", ActiveAt: activeAt},
+		{Labels: map[string]string{"alertname": "DroppedPending", AlertBackendLabel: AlertBackendProm}, State: "pending", ActiveAt: activeAt},
+		{Labels: map[string]string{"alertname": "Waiting", AlertBackendLabel: AlertBackendProm}, State: "pending", ActiveAt: activeAt},
+		{Labels: map[string]string{"alertname": "DroppedAbsentFromAM", AlertBackendLabel: AlertBackendProm}, State: "firing", ActiveAt: activeAt},
+	}
+	merged := mergeAlertsIncludingDropped(am, prom, []*relabel.Config{&drop})
+	require.Len(t, merged, 5)
+	require.Equal(t, "silenced", merged[0].State)
+	require.Equal(t, AlertBackendAM, merged[0].Labels[AlertBackendLabel])
+	for _, alert := range merged[1:] {
+		require.Equal(t, AlertBackendProm, alert.Labels[AlertBackendLabel])
+		require.Equal(t, activeAt, alert.ActiveAt)
+	}
+	require.Equal(t, "DroppedFiring", merged[1].Labels["alertname"])
+	require.Equal(t, "DroppedPending", merged[2].Labels["alertname"])
+	require.Equal(t, "Waiting", merged[3].Labels["alertname"])
+	require.Equal(t, "DroppedAbsentFromAM", merged[4].Labels["alertname"])
+
+	// Removing the Drop restores the usual Alertmanager + pending merge.
+	restored := mergeAlertsIncludingDropped(am, prom, nil)
+	require.Len(t, restored, 5)
+	require.Equal(t, "firing", restored[1].State)
+	require.Equal(t, AlertBackendAM, restored[1].Labels[AlertBackendLabel])
+}
+
+func TestMergeAlertsIncludingDropped_UsesExternalLabels(t *testing.T) {
+	activeAt := time.Now().Add(-time.Hour)
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{"cluster"}
+	drop.Regex = relabel.MustNewRegexp("external-cluster")
+	prom := []PrometheusAlert{
+		{Labels: map[string]string{"alertname": "ExternalDropped", AlertBackendLabel: AlertBackendProm}, State: "firing", ActiveAt: activeAt},
+	}
+	prom[0].deliveryExternalLabels = map[string]string{"cluster": "external-cluster"}
+
+	merged := mergeAlertsIncludingDropped(nil, prom, []*relabel.Config{&drop})
+	require.Len(t, merged, 1, "an instance dropped through an external label must be recovered")
+	require.Equal(t, AlertBackendProm, merged[0].Labels[AlertBackendLabel])
+	require.False(t, merged[0].ApplyRelabelConfigs(&drop), "the final ARC evaluation must agree with the merge decision")
+
+	// Without the external label the instance counts as delivered, so an
+	// empty Alertmanager result recovers no firing instance.
+	prom[0].deliveryExternalLabels = nil
+	merged = mergeAlertsIncludingDropped(nil, prom, []*relabel.Config{&drop})
+	require.Empty(t, merged)
+}
+
+func TestFetchAlerts_EvaluatesDropsWithExternalLabels(t *testing.T) {
+	activeAt := time.Now().UTC().Add(-time.Hour).Truncate(time.Second)
+	var configRequests atomic.Int32
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case AlertmanagerAlertsPath:
+			_, _ = w.Write([]byte(`[]`))
+		case "/api" + PrometheusAlertsPath:
+			_ = json.NewEncoder(w).Encode(prometheusAlertsResponse{Status: "success", Data: prometheusAlertsData{Alerts: []PrometheusAlert{
+				{Labels: map[string]string{"alertname": "ExternalDropped"}, State: "firing", ActiveAt: activeAt},
+			}}})
+		case PrometheusConfigPath:
+			configRequests.Add(1)
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status": "success",
+				"data":   map[string]string{"yaml": "global:\n  external_labels:\n    cluster: external-cluster\n"},
+			})
+		default:
+			t.Errorf("unexpected request path %s", r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	routes := routefake.NewSimpleClientset(&routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{Name: PlatformRouteName, Namespace: ClusterMonitoringNamespace},
+		Spec:       routev1.RouteSpec{Host: strings.TrimPrefix(server.URL, "https://"), Path: "/api"},
+	}, &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{Name: PlatformAlertmanagerRouteName, Namespace: ClusterMonitoringNamespace},
+		Spec:       routev1.RouteSpec{Host: strings.TrimPrefix(server.URL, "https://")},
+	})
+	pa := &prometheusAlerts{routeClient: routes, config: &rest.Config{
+		BearerToken:     "test-token",
+		TLSClientConfig: rest.TLSClientConfig{CAData: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw})},
+	}}
+	ctx := context.Background()
+
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{"cluster"}
+	drop.Regex = relabel.MustNewRegexp("external-cluster")
+
+	// The firing instance is absent from Alertmanager because the Drop
+	// matches an external label Prometheus adds before relabeling.
+	alerts, _, err := pa.FetchAlerts(ctx, GetAlertsRequest{IncludeDropped: true, DroppedAlertRelabelConfigs: []*relabel.Config{&drop}})
+	require.NoError(t, err)
+	require.NotZero(t, configRequests.Load(), "delivery settings must be fetched even when Alertmanager returned no alerts")
+	require.Len(t, alerts, 1)
+	require.Equal(t, "ExternalDropped", alerts[0].Labels["alertname"])
+	require.Equal(t, AlertBackendProm, alerts[0].Labels[AlertBackendLabel])
+	require.Equal(t, activeAt, alerts[0].ActiveAt)
+	require.False(t, alerts[0].ApplyRelabelConfigs(&drop), "the final ARC evaluation must agree with the drop decision")
+
+	// A Drop that does not match the external label leaves the instance
+	// delivered, so an empty Alertmanager result recovers nothing.
+	otherDrop := drop
+	otherDrop.Regex = relabel.MustNewRegexp("other-cluster")
+	alerts, _, err = pa.FetchAlerts(ctx, GetAlertsRequest{IncludeDropped: true, DroppedAlertRelabelConfigs: []*relabel.Config{&otherDrop}})
+	require.NoError(t, err)
+	require.Empty(t, alerts)
+}
+
+func TestFetchAlerts_RecoversDroppedInstancesAbsentFromAlertmanager(t *testing.T) {
+	activeAt := time.Now().UTC().Add(-time.Hour).Truncate(time.Second)
+	var promUnavailable atomic.Bool
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case AlertmanagerAlertsPath:
+			if promUnavailable.Load() {
+				_ = json.NewEncoder(w).Encode([]alertmanagerAlert{{Labels: map[string]string{"alertname": "DroppedFiring"}, StartsAt: activeAt, Status: alertmanagerAlertStatus{State: "suppressed"}}})
+				return
+			}
+			_, _ = w.Write([]byte(`[]`))
+		case "/api" + PrometheusAlertsPath:
+			if promUnavailable.Load() {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+			_ = json.NewEncoder(w).Encode(prometheusAlertsResponse{Status: "success", Data: prometheusAlertsData{Alerts: []PrometheusAlert{
+				{Labels: map[string]string{"alertname": "DroppedFiring"}, State: "firing", ActiveAt: activeAt},
+			}}})
+		case PrometheusConfigPath:
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"status": "success",
+				"data":   map[string]string{"yaml": "global:\n  external_labels: {}\n"},
+			})
+		default:
+			t.Errorf("unexpected request path %s", r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	routes := routefake.NewSimpleClientset(&routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{Name: PlatformRouteName, Namespace: ClusterMonitoringNamespace},
+		Spec:       routev1.RouteSpec{Host: strings.TrimPrefix(server.URL, "https://"), Path: "/api"},
+	}, &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{Name: PlatformAlertmanagerRouteName, Namespace: ClusterMonitoringNamespace},
+		Spec:       routev1.RouteSpec{Host: strings.TrimPrefix(server.URL, "https://")},
+	})
+	pa := &prometheusAlerts{routeClient: routes, config: &rest.Config{
+		BearerToken:     "test-token",
+		TLSClientConfig: rest.TLSClientConfig{CAData: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw})},
+	}}
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{"alertname"}
+	drop.Regex = relabel.MustNewRegexp("Dropped.*")
+	ctx := context.Background()
+	status := AlertFetchStatus{PlatformUnavailable: true}
+	alerts, _, err := pa.FetchAlerts(ctx, GetAlertsRequest{FetchStatus: &status})
+	require.NoError(t, err)
+	require.False(t, status.PlatformUnavailable)
+	require.True(t, status.UserUnavailable)
+	require.Empty(t, alerts)
+	alerts, _, err = pa.FetchAlerts(ctx, GetAlertsRequest{IncludeDropped: true, DroppedAlertRelabelConfigs: []*relabel.Config{&drop}})
+	require.NoError(t, err)
+	require.Len(t, alerts, 1)
+	require.Equal(t, "DroppedFiring", alerts[0].Labels["alertname"])
+	require.Equal(t, AlertBackendProm, alerts[0].Labels[AlertBackendLabel])
+	require.Equal(t, activeAt, alerts[0].ActiveAt)
+	promUnavailable.Store(true)
+	alerts, _, err = pa.FetchAlerts(ctx, GetAlertsRequest{IncludeDropped: true, DroppedAlertRelabelConfigs: []*relabel.Config{&drop}})
+	require.NoError(t, err)
+	require.Empty(t, alerts, "Alertmanager alone cannot establish a dropped instance's native state")
+	alerts, _, err = pa.FetchAlerts(ctx, GetAlertsRequest{})
+	require.NoError(t, err)
+	require.Len(t, alerts, 1, "default fetch retains the Alertmanager fallback")
+	require.Equal(t, "silenced", alerts[0].State)
 }

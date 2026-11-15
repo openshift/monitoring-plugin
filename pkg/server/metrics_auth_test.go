@@ -136,6 +136,7 @@ func TestMetricsCertificateAuthorization(t *testing.T) {
 			require.Contains(t, recorder.Body.String(), name)
 		}
 		require.NotContains(t, recorder.Body.String(), "alerts_effective_active_at_timestamp_seconds")
+		require.NotContains(t, recorder.Body.String(), "alerts_dropped_active_at_timestamp_seconds")
 		// The production router must reject scrapes without a client certificate.
 		unauthenticated := httptest.NewRequest(http.MethodGet, "https://plugin/metrics", nil)
 		recorder = httptest.NewRecorder()

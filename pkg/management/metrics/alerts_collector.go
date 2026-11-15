@@ -21,6 +21,9 @@ const (
 	MetricName = "alerts_effective_active_at_timestamp_seconds"
 	metricHelp = "The activeAt timestamp of effective alerts that survive ARC relabeling. " +
 		"Value is the Unix timestamp when the alert became active."
+	DroppedMetricName = "alerts_dropped_active_at_timestamp_seconds"
+	droppedMetricHelp = "The activeAt timestamp of active or pending alerts rejected by ARC relabeling. " +
+		"Value is the Unix timestamp when the alert became active."
 
 	DefaultSyncInterval = 30 * time.Second
 
@@ -52,7 +55,9 @@ type alertSnapshot struct {
 // AlertsCollector implements prometheus.Collector. It periodically fetches
 // alerts via the management client's EnrichAlerts (which applies ARC relabeling
 // and computes classification) and exposes them as the
-// alerts_effective_active_at_timestamp_seconds gauge.
+// alerts_effective_active_at_timestamp_seconds gauge. ARC-rejected instances
+// use alerts_dropped_active_at_timestamp_seconds, retaining their pending or
+// firing state and original activation timestamp.
 //
 // Only the leader pod (determined via Lease-based leader election) runs the
 // sync loop and exposes metrics. Follower pods return nothing on Collect,
@@ -79,6 +84,7 @@ type AlertsCollector struct {
 // Register adds cleanup metrics and a leader-elected alert collector
 // to the server's registry when alert management is enabled.
 func Register(ctx context.Context, registry *prometheus.Registry, fetcher AlertsFetcher, kubeConfig *rest.Config) error {
+	k8s.RegisterAlertRelabelConfigGCMetrics(registry)
 	if kubeConfig == nil {
 		return fmt.Errorf("metrics leader election requires Kubernetes configuration")
 	}
@@ -91,7 +97,7 @@ func Register(ctx context.Context, registry *prometheus.Registry, fetcher Alerts
 }
 
 // NewAlertsCollector creates a collector. Leader election starts and stops its
-// sync loop; followers expose no alert samples.
+// sync loop; followers expose no alert samples from either family.
 func NewAlertsCollector(fetcher AlertsFetcher, syncInterval time.Duration) *AlertsCollector {
 	return &AlertsCollector{
 		fetcher:      fetcher,
@@ -99,6 +105,7 @@ func NewAlertsCollector(fetcher AlertsFetcher, syncInterval time.Duration) *Aler
 		now:          time.Now,
 		sentinelDescs: []*prometheus.Desc{
 			prometheus.NewDesc(MetricName, metricHelp, nil, nil),
+			prometheus.NewDesc(DroppedMetricName, droppedMetricHelp, nil, nil),
 		},
 	}
 }
@@ -145,7 +152,11 @@ func (c *AlertsCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, snapshot := range c.snapshots {
 		// Each source expires independently from the start of its fetch. A
 		// partial result cannot refresh the unavailable source's old samples.
-		if now.Sub(snapshot.fetchedAt) > c.syncInterval {
+		// The freshness limit is twice the refresh cadence: a fetch that
+		// starts on schedule but completes after the next tick still
+		// replaces the previous snapshot before it expires, so scrapes never
+		// observe a sample gap while refreshes succeed.
+		if now.Sub(snapshot.fetchedAt) > 2*c.syncInterval {
 			continue
 		}
 		for _, m := range snapshot.metrics {
@@ -160,10 +171,13 @@ func (c *AlertsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func (c *AlertsCollector) syncLoop(ctx context.Context) {
-	c.sync(ctx)
-
+	// Start the ticker before the first sync: a first fetch that outlasts
+	// one interval would otherwise delay the next fetch by a full interval,
+	// and the buffered tick keeps the refresh chain on schedule.
 	ticker := time.NewTicker(c.syncInterval)
 	defer ticker.Stop()
+
+	c.sync(ctx)
 
 	for {
 		select {
@@ -185,7 +199,10 @@ func (c *AlertsCollector) sync(ctx context.Context) {
 
 	fetchStarted := c.now()
 	var status k8s.AlertFetchStatus
-	alerts, _, err := c.fetcher.EnrichAlerts(ctx, k8s.GetAlertsRequest{FetchStatus: &status})
+	// AllowPartialResults keeps user-workload snapshots refreshing while the
+	// platform backend is unavailable; the unavailable source's snapshot is
+	// retained below instead of expiring.
+	alerts, _, err := c.fetcher.EnrichAlerts(ctx, k8s.GetAlertsRequest{IncludeDropped: true, FetchStatus: &status, AllowPartialResults: true})
 	if err != nil {
 		metricsLog.WithError(err).Warn("failed to fetch alerts for metrics")
 		return
@@ -203,7 +220,7 @@ func (c *AlertsCollector) sync(ctx context.Context) {
 			identity := labels.NewBuilder(labels.FromMap(alert.Labels))
 			identity.Del(k8s.AlertBackendLabel)
 			identity.Set(labelAlertState, alert.State)
-			key := identity.Labels().String()
+			key := fmt.Sprintf("%t:%s", alert.Dropped, identity.Labels().String())
 			if index, exists := seen[key]; exists {
 				earliest := min(m.activeAtSec, built[index].activeAtSec)
 				if m.backendPriority > built[index].backendPriority {
@@ -269,6 +286,12 @@ func buildAlertMetric(alert *k8s.PrometheusAlert) *alertMetric {
 		return nil
 	}
 	name, help := MetricName, metricHelp
+	if alert.Dropped {
+		if alert.State != "pending" && alert.State != "firing" {
+			return nil
+		}
+		name, help = DroppedMetricName, droppedMetricHelp
+	}
 
 	labelNames := make([]string, 0, len(alert.Labels)+1)
 	for k := range alert.Labels {

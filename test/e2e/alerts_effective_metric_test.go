@@ -30,8 +30,8 @@ const (
 
 // parseMetricFamilies parses a Prometheus text exposition body.
 func parseMetricFamilies(body string) (map[string]*dto.MetricFamily, error) {
-	// A shared zero-value TextParser panics on concurrent use, and
-	// prometheus/common v0.67+ requires explicit UTF-8 validation.
+	// prometheus/common panics when the parser's name validation
+	// scheme is unset, so pass the library default explicitly.
 	parser := expfmt.NewTextParser(model.UTF8Validation)
 	families, err := parser.TextToMetricFamilies(strings.NewReader(body))
 	if err != nil {
@@ -450,4 +450,58 @@ func TestMetricReflectsAlertRelabelConfig(t *testing.T) {
 		assertNoAnnotationLabels(t, sample)
 	}
 	t.Logf("Relabeling verified on metric: %s", effectiveForAlert[0].Metric.String())
+
+	arc, err = f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Get(ctx, relabelConfigName, metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("Failed to get AlertRelabelConfig: %v", err)
+	}
+	arc.Spec.Configs = append(arc.Spec.Configs, osmv1.RelabelConfig{
+		SourceLabels: []osmv1.LabelName{"alertname"},
+		Regex:        alertName,
+		Action:       "Drop",
+	})
+	if _, err := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Update(ctx, arc, metav1.UpdateOptions{}); err != nil {
+		t.Fatalf("Failed to add Drop to AlertRelabelConfig: %v", err)
+	}
+	var effectiveSamples, droppedForAlert model.Vector
+	err = framework.Poll(metricPollInterval, metricPollTimeout, func() error {
+		body, fetchErr := fetchMetrics(ctx, f)
+		if fetchErr != nil {
+			return fetchErr
+		}
+
+		allEffective, parseErr := parseMetricSamples(body)
+		if parseErr != nil {
+			return parseErr
+		}
+		allDropped, parseErr := parseMetricSamples(body, metrics.DroppedMetricName)
+		if parseErr != nil {
+			return parseErr
+		}
+
+		effectiveSamples = allEffective
+		droppedForAlert = samplesForAlert(allDropped, alertName)
+
+		if len(droppedForAlert) > 0 {
+			return nil
+		}
+		return fmt.Errorf("no %s series in %s yet", alertName, metrics.DroppedMetricName)
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for dropped metric: %v", err)
+	}
+
+	for _, sample := range samplesForAlert(effectiveSamples, alertName) {
+		t.Errorf("rejected alert remains in the effective family: %s", sample.Metric.String())
+	}
+
+	for _, sample := range droppedForAlert {
+		state := sample.Metric["alertstate"]
+		if (state != "pending" && state != "firing") || sample.Metric["team"] != "ops" {
+			t.Errorf("expected dropped series retaining native state and team=ops: %s", sample.Metric.String())
+		}
+		assertRequiredMetricLabels(t, sample)
+		assertClassificationLabels(t, sample)
+		assertNoAnnotationLabels(t, sample)
+	}
 }

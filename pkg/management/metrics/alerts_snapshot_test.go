@@ -5,10 +5,39 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
+
+func TestCleanupMetricsSurviveLeaderElectionInitializationFailure(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		config *rest.Config
+	}{
+		{name: "missing configuration"},
+		{name: "invalid configuration", config: &rest.Config{Host: "://invalid"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			registry := prometheus.NewRegistry()
+			require.Error(t, Register(context.Background(), registry, nil, tc.config))
+			families, err := registry.Gather()
+			require.NoError(t, err)
+			for _, name := range []string{
+				k8s.MetricAlertRelabelConfigGCListTotal,
+				k8s.MetricAlertRelabelConfigGCListErrorsTotal,
+				k8s.MetricAlertRelabelConfigGCDeleteTotal,
+				k8s.MetricAlertRelabelConfigGCDeleteErrorsTotal,
+				k8s.MetricAlertRelabelConfigGitOpsOrphans,
+			} {
+				require.NotNil(t, findFamily(families, name))
+			}
+			require.Nil(t, findFamily(families, MetricName))
+		})
+	}
+}
 
 func TestCollectorPreservesOnlyFreshUnavailableSources(t *testing.T) {
 	now := time.Now()
@@ -39,7 +68,7 @@ func TestCollectorPreservesOnlyFreshUnavailableSources(t *testing.T) {
 		require.NotEqual(t, "PlatformBeforeOutage", labelValue(metric, "alertname"), "healthy platform data must refresh during user-workload outages")
 	}
 	require.Equal(t, userFetchedAt, collector.snapshots[k8s.AlertSourceUser].fetchedAt)
-	now = now.Add(DefaultSyncInterval)
+	now = now.Add(2 * DefaultSyncInterval)
 	collector.sync(context.Background())
 	family = findFamily(collectMetrics(t, collector), MetricName)
 	require.NotNil(t, family)
@@ -59,7 +88,7 @@ func TestCollectorExpiresFromFetchStart(t *testing.T) {
 	now := time.Now()
 	started := now
 	mock := &mockAlertsFetcher{fetch: func(context.Context, k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
-		now = now.Add(DefaultSyncInterval + time.Second)
+		now = now.Add(2*DefaultSyncInterval + time.Second)
 		return []k8s.PrometheusAlert{{Labels: map[string]string{"alertname": "SlowFetch"}, State: "firing", ActiveAt: started.Add(-time.Hour)}}, nil, nil
 	}}
 	collector := NewAlertsCollector(mock, DefaultSyncInterval)
