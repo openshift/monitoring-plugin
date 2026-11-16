@@ -12,7 +12,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/tracing/api"
 )
 
 // startTLSServer starts a test HTTPS server with the given TLS config.
@@ -271,4 +275,37 @@ func TestAddEmptyTracesFieldOversizedResponseStillClosesOriginalBody(t *testing.
 
 	require.NoError(t, resp.Body.Close())
 	require.True(t, tracker.closed, "closing the replacement body should close the original underlying body")
+}
+
+func TestBuildTLSConfigMissingCADoesNotLeakPath(t *testing.T) {
+	dir := t.TempDir()
+	handler := NewProxyHandler(nil, dir+"/ca.crt", 0, nil)
+	_, err := handler.buildTLSConfig()
+	require.Error(t, err)
+	require.NotContains(t, err.Error(), dir)
+}
+
+// TestProxyErrorHandlerDoesNotLeakUpstream verifies that transport errors,
+// which embed the upstream URL, are neither logged nor returned to the client.
+func TestProxyErrorHandlerDoesNotLeakUpstream(t *testing.T) {
+	hook := logtest.NewGlobal()
+	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
+
+	handler := NewProxyHandler(nil, "", 0, nil)
+	proxy, err := handler.createProxy(api.TempoResource{Kind: api.KindTempoStack, Namespace: "ns", Name: "name", Tenants: []string{"dev"}}, "dev")
+	require.NoError(t, err)
+
+	const upstream = "tempo-name-gateway.ns.svc:8080"
+	transportErr := &url.Error{Op: "Get", URL: "https://" + upstream + "/api/traces/v1/dev/tempo", Err: fmt.Errorf("dial tcp 10.0.0.1:8080: connection refused")}
+	rec := httptest.NewRecorder()
+	proxy.ErrorHandler(rec, httptest.NewRequest(http.MethodGet, "/api/search", nil), transportErr)
+
+	require.Equal(t, http.StatusBadGateway, rec.Code)
+	require.NotContains(t, rec.Body.String(), upstream)
+	require.NotContains(t, rec.Body.String(), "10.0.0.1")
+	require.Len(t, hook.AllEntries(), 1)
+	line, err := hook.LastEntry().String()
+	require.NoError(t, err)
+	require.NotContains(t, line, upstream)
+	require.NotContains(t, line, "10.0.0.1")
 }

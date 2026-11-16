@@ -48,17 +48,19 @@ func ListTempoResourcesHandler(k8sclient *dynamic.DynamicClient) http.HandlerFun
 		resources, err := ListTempoResources(r.Context(), k8sclient)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
+				log.WithError(err).Error("Tempo CRDs not found")
 				writeResponse(w, http.StatusNotFound, Response{
 					Status:    StatusError,
 					ErrorType: "TempoCRDNotFound",
-					Error:     err.Error(),
+					Error:     "Tempo resource types not found, is the Tempo Operator installed?",
 				})
 				return
 			}
 
+			log.WithError(err).Error("cannot list Tempo resources")
 			writeResponse(w, http.StatusInternalServerError, Response{
 				Status: StatusError,
-				Error:  err.Error(),
+				Error:  "cannot list Tempo resources",
 			})
 			return
 		}

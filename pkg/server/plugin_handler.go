@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,9 +15,9 @@ var mlog = logrus.WithField("module", "manifest")
 func manifestHandler(cfg *Config) http.HandlerFunc {
 	baseManifestData, err := os.ReadFile(filepath.Join(cfg.StaticPath, "plugin-manifest.json"))
 	if err != nil {
-		mlog.WithError(err).Error("cannot read base manifest file")
+		mlog.WithError(errors.Unwrap(err)).Error("cannot read base manifest file")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "cannot read base manifest file", http.StatusInternalServerError)
 		})
 	}
 
@@ -66,13 +67,13 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 func performPatch(originalData []byte, patchFilePath string) []byte {
 	patchData, err := os.ReadFile(patchFilePath)
 	if err != nil {
-		mlog.WithField("reason", err).Warnf("cannot read patch file %s", patchFilePath)
+		mlog.WithError(errors.Unwrap(err)).Warnf("cannot read patch file %q", filepath.Base(patchFilePath))
 		return originalData
 	}
 
 	patch, err := jsonpatch.DecodePatch(patchData)
 	if err != nil {
-		mlog.WithField("reason", err).Warnf("cannot decode patch data %s", patchData)
+		mlog.WithError(err).Warnf("cannot decode patch file %q", filepath.Base(patchFilePath))
 		return originalData
 	}
 

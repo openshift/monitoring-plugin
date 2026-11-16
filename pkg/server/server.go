@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"strings"
@@ -231,7 +233,11 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		}
 
 		if err := certKeyPair.RunOnce(ctx); err != nil {
-			log.WithError(err).Fatal("failed to initialize cert/key content")
+			var pathErr *fs.PathError
+			if errors.As(err, &pathErr) {
+				log.WithError(pathErr.Err).Fatal("failed to read serving certificate/key file")
+			}
+			log.Fatal("failed to load serving certificate/key pair")
 		}
 
 		eventBroadcaster := record.NewBroadcaster()
@@ -373,8 +379,8 @@ func featuresHandler(cfg *Config) http.HandlerFunc {
 		jsonFeatures, err := json.Marshal(cfg.Features)
 
 		if err != nil {
-			log.WithError(err).Errorf("cannot marshall, features were: %v", string(jsonFeatures))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.WithError(err).Error("cannot marshal features")
+			http.Error(w, "cannot marshal features", http.StatusInternalServerError)
 			return
 		}
 
@@ -387,7 +393,7 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	pluginConfData, err := os.ReadFile(cfg.PluginConfigPath)
 
 	if err != nil {
-		log.WithError(err).Warnf("cannot read config file, serving plugin with default configuration, tried %s", cfg.PluginConfigPath)
+		log.WithError(errors.Unwrap(err)).Warn("cannot read plugin config file, serving plugin with default configuration")
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -408,7 +414,7 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	jsonPluginConfig, err := pluginConfig.MarshalJSON()
 
 	if err != nil {
-		log.WithError(err).Errorf("unable to marshall, config data: %v", pluginConfig)
+		log.WithError(err).Error("unable to marshal plugin config data")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "unable to marshall config data", http.StatusInternalServerError)
 		}), nil
