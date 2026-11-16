@@ -1,0 +1,4 @@
+.dt-plugin-time-range-select .MuiSelect-select {
+    /** override hardcoded padding https://github.com/perses/perses/blob/601768a329985efeaaf8c43c3ba1b8f7b26cb08c/ui/components/src/TimeRangeSelector/TimeRangeSelector.tsx#L130 */
+    padding: 2px 38px 2px 16px !important;
+}

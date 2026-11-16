@@ -1,0 +1,132 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile
+spec:
+  steps:
+  - name: Detect COO namespace
+    try:
+    - command:
+        entrypoint: oc
+        args:
+        - get
+        - deployment
+        - -A
+        - -l app.kubernetes.io/name=observability-operator
+        - -o
+        - jsonpath={.items[0].metadata.namespace}
+        outputs:
+        - name: COO_NAMESPACE
+          value: ($stdout)
+
+  - name: Install tls-scanner
+    try:
+    - apply:
+        file: 00-install-tls-scanner.yaml
+    - assert:
+        file: 00-assert.yaml
+
+  - name: Verify default Intermediate TLS profile
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./01-verify-default-intermediate.sh
+
+  # Scale down the observability-operator so it does not reconcile away
+  # manual env-var patches on the plugin deployment.
+  - name: Scale down observability-operator
+    try:
+    - script:
+        timeout: 2m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./01a-scale-down-operator.sh
+
+  - name: Patch deployment for Modern TLS profile
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./02-patch-modern.sh
+
+  - name: Verify Modern TLS profile
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./03-verify-modern.sh
+
+  - name: Patch deployment with custom cipher suites
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./04-patch-custom-ciphers.sh
+
+  - name: Verify custom cipher suites
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./05-verify-custom-ciphers.sh
+
+  - name: Patch deployment for Old TLS profile
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./06-patch-old.sh
+
+  - name: Verify Old TLS profile
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./07-verify-old.sh
+
+  - name: Revert to default and verify Intermediate profile restored
+    try:
+    - script:
+        timeout: 5m
+        env:
+        - name: NAMESPACE
+          value: ($COO_NAMESPACE)
+        content: ./08-revert-default.sh
+
+  # Cleanup: always revert deployment and remove tls-scanner resources
+  catch:
+  - script:
+      timeout: 3m
+      content: |
+        NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+          -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null || echo "openshift-cluster-observability-operator")
+        DEPLOYMENT="distributed-tracing"
+        # Revert TLS env vars
+        kubectl patch deployment "$DEPLOYMENT" -n "$NAMESPACE" --type=json \
+          -p '[{"op": "remove", "path": "/spec/template/spec/containers/0/env"}]' 2>/dev/null || true
+        kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=120s || true
+        # Scale operator back up
+        kubectl scale deployment observability-operator -n "$NAMESPACE" --replicas=1 2>/dev/null || true
+        kubectl rollout status deployment/observability-operator -n "$NAMESPACE" --timeout=120s || true
+        # Remove tls-scanner resources
+        kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+        kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+        kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true

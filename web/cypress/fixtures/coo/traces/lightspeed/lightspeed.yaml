@@ -1,0 +1,18 @@
+apiVersion: ols.openshift.io/v1alpha1
+kind: OLSConfig
+metadata:
+  name: cluster
+  namespace: openshift-lightspeed
+spec:
+  llm:
+    providers:
+      - name: tracing_ai
+        type: openai
+        url: ($LIGHTSPEED_PROVIDER_URL)
+        credentialsSecretRef:
+          name: openai-token
+        models:
+          - name: "gpt-4o"
+  ols:
+    defaultModel: gpt-4o
+    defaultProvider: tracing_ai

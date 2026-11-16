@@ -1,0 +1,80 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: monolithic-multitenancy-rbac
+spec:
+  namespace: chainsaw-mmo-rbac
+  steps:
+  - name: Enable user workload monitoring
+    try:
+    - apply:
+        file: install-user-workload-monitoring.yaml
+    - assert:
+        file: assert-user-workload-monitoring.yaml
+  - name: step-01
+    try:
+    - apply:
+        file: 01-install-tempo.yaml
+    - assert:
+        file: 01-assert.yaml
+  - name: step-02
+    try:
+    - apply:
+        file: 02-install-otelcol.yaml
+    - assert:
+        file: 02-assert.yaml
+  - name: Install hotrod
+    try:
+    - apply:
+        file: install-hotrod.yaml
+    - assert:
+        file: assert-install-hotrod.yaml
+  - name: Generate hotrod traces
+    try:
+    - apply:
+        file: generate-hotrod-traces.yaml
+    - assert:
+        file: assert-generate-hotrod-traces.yaml
+  - name: Create non-admin SAs with namespace level access
+    try:
+    - apply:
+        file: create-SAs-with-namespace-access.yaml
+    - assert:
+        file: assert-create-sas.yaml
+  - name: Generate traces from namespace chainsaw-mono-rbac-1
+    try:
+    - apply:
+        file: tempo-rbac-sa-1-traces-gen.yaml
+    - assert:
+        file: assert-tempo-rbac-sa-1-traces-gen.yaml
+  - name: Generate traces from namespace chainsaw-mono-rbac-2
+    try:
+    - apply:
+        file: tempo-rbac-sa-2-traces-gen.yaml
+    - assert:
+        file: assert-tempo-rbac-sa-2-traces-gen.yaml
+  - name: Assert tracess using RBAC
+    try:
+    - apply:
+        file: tempo-rbac-sa-1-traces-verify.yaml
+    - assert:
+        file: assert-tempo-rbac-sa-1-traces-verify.yaml
+    catch:
+    - podLogs:
+        selector: job-name=verify-traces-sa-1
+        namespace: chainsaw-mono-rbac-1
+  - name: Verify kubeadmin can view traces from all projects
+    try:
+    - apply:
+        file: kubeadmin-traces-verify.yaml
+    - assert:
+        file: assert-kubeadmin-traces-verify.yaml
+    catch:
+    - podLogs:
+        selector: job-name=verify-traces-kubeadmin
+        namespace: chainsaw-mmo-rbac
+  - name: Verify metrics
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_metrics.sh

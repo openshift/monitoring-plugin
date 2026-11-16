@@ -1,0 +1,34 @@
+.dt-plugin-perses-panel {
+  & > .MuiPaper-root {
+    /* in MUI dark mode, the Paper component has a dark blue background */
+    background-color: inherit;
+  }
+}
+
+.dt-plugin-gantt-chart {
+  height: 100%;
+
+  & > .MuiCard-root {
+    /* Remove panel border */
+    border: none;
+
+    /* Remove panel title, header padding and line between header and content */
+    & > .MuiCardHeader-root {
+      padding: 0;
+      border: none;
+
+      .MuiTypography-root {
+        display: none;
+      }
+    }
+
+    /* Perses panel components are usually in a panel wrapper with a border and 12px padding; remove this padding here. */
+    & > .MuiCardContent-root > .MuiBox-root {
+      padding: 0;
+    }
+  }
+
+  .MuiListItemText-primary {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+  }
+}

@@ -1,0 +1,25 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: lightspeed
+spec:
+  namespace: openshift-lightspeed
+  bindings:
+  - name: LIGHTSPEED_PROVIDER_URL
+    value: ($values.LIGHTSPEED_PROVIDER_URL)
+  - name: LIGHTSPEED_PROVIDER_TOKEN
+    value: ($values.LIGHTSPEED_PROVIDER_TOKEN)
+  steps:
+  - name: Create the credential secret required for Lightspeed
+    try:
+    - apply:
+        file: lightspeed-secret.yaml
+    - assert:
+        file: assert-lightspeed-secret.yaml
+  - name: Create lightspeed OLSConfig
+    try:
+    - apply:
+        file: lightspeed.yaml
+    - assert:
+        file: assert-lightspeed.yaml
+        timeout: 25m

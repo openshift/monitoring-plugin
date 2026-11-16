@@ -1,0 +1,4 @@
+/* In the PatternFly toolbar, remove whitespace created by an empty <div> which usually shows the "Clear all filters" button (but is hidden in the UI). */
+.df-filter-toolbar div:has(> .df-filter-toolbar-clearallfilters) {
+    display: none;
+}

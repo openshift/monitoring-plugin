@@ -1,0 +1,7 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-traces-sa-1
+  namespace: chainsaw-mono-rbac-1
+status:
+  succeeded: 1

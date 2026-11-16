@@ -88,6 +88,7 @@ All scenarios require the [standard variables](#required-variables) (`CYPRESS_BA
 | **COO (Perses, Dashboards, Incidents)** | Requires COO installation.                                                           | `npm run test-cypress-coo`            |
 | **Incidents**                           | COO subset. Set `CYPRESS_TIMEZONE` to match cluster timezone.                        | `npm run test-cypress-incidents`      |
 | **Virtualization**                      | Requires OpenShift Virtualization (KubeVirt) installation.                           | `npm run test-cypress-virtualization` |
+| **Distributed tracing (legacy plugin)** | Legacy COO DistributedTracing UIPlugin; needs chainsaw. See section below.           | `npm run test-cypress-tracing-legacy` |
 
 ---
 
@@ -235,6 +236,9 @@ Tests are organized using tags for selective execution using [@cypress/grep](htt
 - `@targets` - Targets tests
 - `@perses-dashboards` - Perses dashboard tests
 - `@cluster-health-analyzer` - Incidents feature tests
+- `@logging` - Logging view (monitoring-console-plugin `logging` feature) tests
+- `@tracing` - Distributed tracing tests: the merged `tracing` feature smoke and the legacy suite
+- `@tracing-legacy` - Legacy distributed tracing e2e suite (COO-deployed `distributed-tracing` UIPlugin)
 
 #### Running Tests by Tags
 
@@ -280,6 +284,66 @@ npx cypress run --env grepTags="@alerting+@cluster-health-analyzer"
 ```bash
 npx cypress run --env grepTags="@cluster-health-analyzer --@slow --@flaky"
 ```
+
+---
+
+## Distributed tracing (legacy plugin) e2e
+
+`cypress/e2e/tracing/coo_tracing.cy.ts` is the e2e suite ported from
+[distributed-tracing-console-plugin](https://github.com/openshift/distributed-tracing-console-plugin)
+`tests/` (15 tests: traces, span links, RBAC, limits, TraceQL, time range, scatter plot, filters,
+Gantt chart, table columns, Lightspeed summary, TLS cert rotation, TLS profiles, "Install Tempo
+operator"). It still targets the **legacy** COO-deployed `DistributedTracing` UIPlugin
+(`distributed-tracing` deployment), not the `tracing` feature of monitoring-console-plugin.
+It installs COO, OpenTelemetry, Tempo and Lightspeed (with `CYPRESS_SKIP_COO_INSTALL` it expects
+them installed and only reinstalls Tempo if missing), creates the `distributed-tracing` UIPlugin
+and Tempo instances (chainsaw), and cleans up in `after()`. The tests share state, so the
+suite turns off test isolation for itself.
+
+**Prerequisites:** `oc`, [chainsaw](https://kyverno.github.io/chainsaw/latest/quick-start/install/)
+v0.2.12 or later and, for bundle installs, `operator-sdk` on `PATH`; a cluster whose console can
+load the legacy plugin image (current images need OCP 4.22+); for the Lightspeed test, an LLM
+provider.
+
+**Environment:** the [standard variables](#required-variables), one installation method
+(`CYPRESS_SKIP_COO_INSTALL`, `CYPRESS_COO_UI_INSTALL`, `CYPRESS_KONFLUX_COO_BUNDLE_IMAGE` or
+`CYPRESS_CUSTOM_COO_BUNDLE_IMAGE`), optionally `CYPRESS_COO_NAMESPACE`, and:
+
+| Variable                            | Description                                                                |
+| ----------------------------------- | -------------------------------------------------------------------------- |
+| `CYPRESS_DT_CONSOLE_IMAGE`          | Distributed Tracing console plugin image, patched into the COO CSV         |
+| `CYPRESS_LIGHTSPEED_CONSOLE_IMAGE`  | Lightspeed console plugin image, patched into the Lightspeed CSV           |
+| `CYPRESS_LIGHTSPEED_PROVIDER_URL`   | LLM provider URL for the OLSConfig created by the Lightspeed chainsaw test |
+| `CYPRESS_LIGHTSPEED_PROVIDER_TOKEN` | LLM provider token for that OLSConfig                                      |
+
+**Run:**
+
+```bash
+npm run test-cypress-tracing-legacy
+# Without the Lightspeed test (also skips the Lightspeed operator install and setup)
+npm run test-cypress-tracing-legacy -- --env grep=-Lightspeed
+```
+
+The suite is tagged `@tracing @tracing-legacy @coo`. No test in it carries an infrastructure
+tag (`@ols`, `@acm`, `@virtualization`), so the Lightspeed and ACM jobs do not select it;
+`test-cypress-tracing` (the merged-feature smoke) and `test-cypress-coo*` exclude it.
+Fixtures, chainsaw suites and CSV patch scripts live in `cypress/fixtures/coo/traces/`.
+
+The merged-feature smoke (`cypress/e2e/tracing/merged-tracing.cy.ts`) is included in
+`test-cypress-coo` and `test-cypress-coo-bvt`. By default it checks that tracing is disabled;
+this needs monitoring-console-plugin loaded and no legacy distributed tracing plugin in
+that Console. It does not install Tempo or enable tracing. For enabled coverage, use a
+backend with tracing enabled and set `CYPRESS_TRACING_ENABLED=true`,
+`CYPRESS_TRACING_TEMPO_INSTANCE=<namespace>/<name>`, and `CYPRESS_TRACING_TEMPO_TENANT=<tenant>`
+with recent traces. Enabled and disabled coverage require separate runs with the backend
+configured accordingly; the smoke does not toggle features itself.
+
+Only the helpers and fixtures the suite uses are imported. Artifacts no current test calls
+(such as DT's disabled debug spec, its unused command implementations, `views/pages.ts` and
+`views/search.ts`, and two unreferenced fixtures) stay in the upstream repository instead of
+being carried here. See the
+[preservation inventory and original helper documentation](docs/tracing-original/README.md)
+for source mappings and the `dtLogin` alias.
 
 ---
 

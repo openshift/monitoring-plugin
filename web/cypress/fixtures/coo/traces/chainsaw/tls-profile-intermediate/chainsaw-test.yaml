@@ -1,0 +1,17 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-intermediate
+spec:
+  steps:
+  - name: Verify default Intermediate TLS profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          detect_fips
+          remove_tls_args
+          verify_nmap_tls_profile "intermediate" "Default Intermediate profile"
+          verify_all_endpoints "Default Intermediate profile"
+          echo "PASS: Intermediate TLS profile verified (TLS 1.2 + TLS 1.3)"

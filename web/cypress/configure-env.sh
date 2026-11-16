@@ -243,6 +243,17 @@ print_current_config() {
     print_var "CYPRESS_FBC_STAGE_CNV_IMAGE" "${CYPRESS_FBC_STAGE_CNV_IMAGE-}"
 
     echo ""
+    echo "  -- Distributed tracing (legacy plugin) suite --"
+    print_var "CYPRESS_DT_CONSOLE_IMAGE" "${CYPRESS_DT_CONSOLE_IMAGE-}"
+    print_var "CYPRESS_LIGHTSPEED_CONSOLE_IMAGE" "${CYPRESS_LIGHTSPEED_CONSOLE_IMAGE-}"
+    print_var "CYPRESS_LIGHTSPEED_PROVIDER_URL" "${CYPRESS_LIGHTSPEED_PROVIDER_URL-}"
+    v=${CYPRESS_LIGHTSPEED_PROVIDER_TOKEN-}
+    if [[ -n "${v:-}" ]]; then
+        v="********"
+    fi
+    print_var "CYPRESS_LIGHTSPEED_PROVIDER_TOKEN" "$v"
+
+    echo ""
     echo "  -- Runtime --"
     print_var "CYPRESS_TIMEZONE" "${CYPRESS_TIMEZONE-}"
     print_var "CYPRESS_MOCK_NEW_METRICS" "${CYPRESS_MOCK_NEW_METRICS-}"
@@ -299,6 +310,10 @@ main() {
     local konflux_cnv_bundle="${CYPRESS_KONFLUX_CNV_BUNDLE_IMAGE-}"
     local custom_cnv_bundle="${CYPRESS_CUSTOM_CNV_BUNDLE_IMAGE-}"
     local fbc_stage_cnv_image="${CYPRESS_FBC_STAGE_CNV_IMAGE-}"
+    local dt_console_image="${CYPRESS_DT_CONSOLE_IMAGE-}"
+    local lightspeed_console_image="${CYPRESS_LIGHTSPEED_CONSOLE_IMAGE-}"
+    local lightspeed_provider_url="${CYPRESS_LIGHTSPEED_PROVIDER_URL-}"
+    local lightspeed_provider_token="${CYPRESS_LIGHTSPEED_PROVIDER_TOKEN-}"
 
     # ── Section 1: Cluster Connection ─────────────────────────────────
     section_header "Cluster Connection"
@@ -423,6 +438,22 @@ main() {
         fi
     fi
 
+    # ── Section 3c: Distributed tracing (legacy plugin) suite ─────────
+    section_header "Distributed tracing (legacy plugin) suite"
+
+    local dt_default="n"
+    if [[ -n "$dt_console_image$lightspeed_console_image$lightspeed_provider_url$lightspeed_provider_token" ]]; then
+        dt_default="y"
+    fi
+    local dt_ans
+    dt_ans=$(ask_yes_no "Configure the distributed tracing legacy suite (npm run test-cypress-tracing-legacy)?" "$dt_default")
+    if [[ "$dt_ans" == "y" ]]; then
+        dt_console_image=$(ask "Distributed Tracing console plugin image (CYPRESS_DT_CONSOLE_IMAGE)" "$dt_console_image")
+        lightspeed_console_image=$(ask "Lightspeed console plugin image (CYPRESS_LIGHTSPEED_CONSOLE_IMAGE)" "$lightspeed_console_image")
+        lightspeed_provider_url=$(ask "Lightspeed LLM provider URL (CYPRESS_LIGHTSPEED_PROVIDER_URL)" "$lightspeed_provider_url")
+        lightspeed_provider_token=$(ask "Lightspeed LLM provider token (CYPRESS_LIGHTSPEED_PROVIDER_TOKEN)" "$lightspeed_provider_token")
+    fi
+
     # ── Section 4: Runtime Settings ───────────────────────────────────
     section_header "Runtime Settings"
 
@@ -471,6 +502,10 @@ main() {
     add_export_if_set CYPRESS_KONFLUX_CNV_BUNDLE_IMAGE "$konflux_cnv_bundle"
     add_export_if_set CYPRESS_CUSTOM_CNV_BUNDLE_IMAGE "$custom_cnv_bundle"
     add_export_if_set CYPRESS_FBC_STAGE_CNV_IMAGE "$fbc_stage_cnv_image"
+    add_export_if_set CYPRESS_DT_CONSOLE_IMAGE "$dt_console_image"
+    add_export_if_set CYPRESS_LIGHTSPEED_CONSOLE_IMAGE "$lightspeed_console_image"
+    add_export_if_set CYPRESS_LIGHTSPEED_PROVIDER_URL "$lightspeed_provider_url"
+    add_export_if_set CYPRESS_LIGHTSPEED_PROVIDER_TOKEN "$lightspeed_provider_token"
     add_export_if_set CYPRESS_TIMEZONE "$timezone"
     add_export CYPRESS_MOCK_NEW_METRICS "$mock_new_metrics"
     add_export CYPRESS_SESSION "$session"

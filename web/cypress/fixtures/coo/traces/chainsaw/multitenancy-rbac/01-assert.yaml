@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: simplst
+    app.kubernetes.io/managed-by: tempo-operator
+    app.kubernetes.io/name: tempo
+  name: tempo-simplst-gateway
+  namespace: chainsaw-rbac
+status:
+  availableReplicas: 1
+  readyReplicas: 1
+  replicas: 1
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: simplst
+    app.kubernetes.io/managed-by: tempo-operator
+    app.kubernetes.io/name: tempo
+  name: tempo-simplst-gateway
+  namespace: chainsaw-rbac
+  ownerReferences:
+    - apiVersion: tempo.grafana.com/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: TempoStack
+      name: simplst
+spec:
+  port:
+    targetPort: public
+  tls:
+    termination: reencrypt
+  to:
+    kind: Service
+    name: tempo-simplst-gateway
+    weight: 100
+  wildcardPolicy: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: tempo-simplst-gateway-tls
+  labels:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: simplst
+    app.kubernetes.io/managed-by: tempo-operator
+    app.kubernetes.io/name: tempo
+  name: tempo-simplst-gateway
+  namespace: chainsaw-rbac
+  ownerReferences:
+    - apiVersion: tempo.grafana.com/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: TempoStack
+      name: simplst
+spec:
+  ports:
+  - name: grpc-public
+    port: 8090
+    protocol: TCP
+    targetPort: grpc-public
+  - name: internal
+    port: 8081
+    protocol: TCP
+    targetPort: internal
+  - name: public
+    port: 8080
+    protocol: TCP
+    targetPort: public
+  selector:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: simplst
+    app.kubernetes.io/managed-by: tempo-operator
+    app.kubernetes.io/name: tempo
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-simplst-compactor
+  namespace: chainsaw-rbac
+status:
+  readyReplicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-simplst-distributor
+  namespace: chainsaw-rbac
+status:
+  readyReplicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-simplst-querier
+  namespace: chainsaw-rbac
+status:
+  readyReplicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-simplst-query-frontend
+  namespace: chainsaw-rbac
+status:
+  readyReplicas: 1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tempo-simplst-ingester
+  namespace: chainsaw-rbac
+status:
+  readyReplicas: 1

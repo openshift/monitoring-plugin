@@ -47,6 +47,7 @@ func patchManifest(baseManifestData []byte, cfg *Config) []byte {
 		{"overview.patch.json", features[Overview]},
 		{"logging.patch.json", features[Logging]},
 		{"troubleshooting.patch.json", features[Troubleshooting]},
+		{"tracing.patch.json", features[Tracing]},
 		{"acm-alerting.patch.json", features[AcmAlerting]},
 		{"cluster-health-analyzer.patch.json", features[ClusterHealthAnalyzer]},
 		{"perses-dashboards.patch.json", features[PersesDashboards]},

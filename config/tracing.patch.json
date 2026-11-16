@@ -1,0 +1,44 @@
+[
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.navigation/href",
+      "properties": {
+        "id": "distributed-tracing",
+        "name": "Traces",
+        "href": "/observe/traces",
+        "perspective": "admin",
+        "section": "observe"
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": true,
+        "path": "/observe/traces",
+        "component": {
+          "$codeRef": "TracesPage"
+        }
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/extensions/0",
+    "value": {
+      "type": "console.page/route",
+      "properties": {
+        "exact": true,
+        "path": "/observe/traces/:traceId",
+        "component": {
+          "$codeRef": "TraceDetailPage"
+        }
+      }
+    }
+  }
+]

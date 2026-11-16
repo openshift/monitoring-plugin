@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tls-scanner
+  namespace: ($COO_NAMESPACE)
+status:
+  phase: Running

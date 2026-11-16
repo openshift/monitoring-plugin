@@ -1,0 +1,24 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-old
+spec:
+  steps:
+  - name: Patch deployment for Old TLS profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          patch_tls_args "VersionTLS10" ""
+          echo "PASS: Deployment patched with TLS_MIN_VERSION=VersionTLS10"
+  - name: Verify Old TLS profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          detect_fips
+          verify_nmap_tls_profile "old" "Old profile"
+          verify_all_endpoints "Old profile"
+          echo "PASS: Old TLS profile verified (TLS 1.0/1.1/1.2/1.3)"

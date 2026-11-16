@@ -1,0 +1,58 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-revert
+spec:
+  steps:
+  - name: Revert to default and verify Intermediate profile
+    try:
+    - script:
+        timeout: 5m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          detect_fips
+          remove_tls_args
+          verify_nmap_tls_profile "intermediate" "Reverted Intermediate profile"
+          verify_all_endpoints "Reverted Intermediate profile"
+          echo "PASS: Reverted to default Intermediate profile"
+  - name: Scale operator back up and cleanup tls-scanner
+    try:
+    - script:
+        timeout: 3m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          scale_up_operator
+          sleep 10
+          kubectl wait --for=condition=Ready pods -l "$LABEL_SELECTOR" -n "$NAMESPACE" --timeout=120s
+          echo "PASS: Operator scaled back up and plugin is healthy"
+    - script:
+        timeout: 2m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null || echo "openshift-cluster-observability-operator")
+          kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+          kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+          kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true
+          echo "PASS: tls-scanner resources cleaned up"
+  catch:
+  - script:
+      timeout: 3m
+      content: |
+        NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+          -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null || echo "openshift-cluster-observability-operator")
+        kubectl scale deployment observability-operator -n "$NAMESPACE" --replicas=1 2>/dev/null || true
+        kubectl rollout status deployment/observability-operator -n "$NAMESPACE" --timeout=120s || true
+        CURRENT_ARGS=$(kubectl get deployment distributed-tracing -n "$NAMESPACE" \
+          -o jsonpath='{.spec.template.spec.containers[0].args}' 2>/dev/null || echo '[]')
+        CURRENT_ARGS="${CURRENT_ARGS:-[]}"
+        NEW_ARGS=$(echo "$CURRENT_ARGS" | jq \
+          '[.[] | select(startswith("-tls-min-version=") or startswith("-tls-cipher-suites=") | not)]')
+        kubectl patch deployment distributed-tracing -n "$NAMESPACE" --type=json \
+          -p "[{\"op\": \"add\", \"path\": \"/spec/template/spec/containers/0/args\", \"value\": $NEW_ARGS}]" 2>/dev/null || true
+        kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+        kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+        kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+        kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true

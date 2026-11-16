@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-traces-kubeadmin
+  namespace: chainsaw-rbac
+spec:
+  template:
+    spec:
+      serviceAccountName: tempo-rbac-cluster-admin
+      containers:
+        - name: verify-traces
+          image: ghcr.io/grafana/tempo-operator/test-utils:sha-0fc5ef0
+          command:
+            - /bin/bash
+            - -eux
+            - -c
+          args:
+            - |
+              API_BASE="https://tempo-simplst-gateway.chainsaw-rbac.svc.cluster.local:8080/api/traces/v1/dev/tempo/api"
+
+              curl_tempo() {
+                # Disable xtrace so the ServiceAccount token is not written to the pod log
+                { set +x; } 2>/dev/null
+                local rc=0
+                curl -fsS -G \
+                  --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+                  --cacert /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt \
+                  "$@" || rc=$?
+                set -x
+                return $rc
+              }
+
+              assert_attributes_present() {
+                local service=$1
+                local result=$(curl_tempo "$API_BASE/search" --data-urlencode "q={ resource.service.name=\"$service\" }")
+
+                num_traces=$(echo "$result" | jq ".traces | length")
+                if [[ "$num_traces" != "2" ]]; then
+                  echo "Expected 2 traces for $service, got $num_traces"
+                  exit 1
+                fi
+
+                traceID=$(echo "$result" | jq -r '.traces[0].traceID')
+                trace=$(curl_tempo "$API_BASE/traces/$traceID")
+
+                for pattern in \
+                  '"key":"network.peer.address"' \
+                  '"stringValue":"1.2.3.4"' \
+                  '"key":"peer.service"' \
+                  '"stringValue":"telemetrygen-client"' \
+                  '"key":"k8s.pod.ip"' \
+                  '"key":"k8s.container.name"' \
+                ; do
+                  if ! echo "$trace" | grep -q "$pattern"; then
+                    echo "$pattern missing for $service"
+                    exit 1
+                  fi
+                done
+              }
+
+              # cluster-admin should see full attributes for traces from all namespaces
+              for protocol in grpc http; do
+                assert_attributes_present "$protocol-rbac-1"
+                assert_attributes_present "$protocol-rbac-2"
+              done
+      restartPolicy: Never

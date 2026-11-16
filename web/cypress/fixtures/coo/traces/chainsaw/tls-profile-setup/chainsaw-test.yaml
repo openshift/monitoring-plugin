@@ -1,0 +1,43 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: tls-profile-setup
+spec:
+  steps:
+  - name: Detect COO namespace and install tls-scanner
+    try:
+    - command:
+        entrypoint: oc
+        args:
+        - get
+        - deployment
+        - -A
+        - -l app.kubernetes.io/name=observability-operator
+        - -o
+        - jsonpath={.items[0].metadata.namespace}
+        outputs:
+        - name: COO_NAMESPACE
+          value: ($stdout)
+    - script:
+        timeout: 1m
+        content: |
+          NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=observability-operator \
+            -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null)
+          echo "Detected COO namespace: $NAMESPACE"
+          kubectl delete pod tls-scanner -n "$NAMESPACE" --force --grace-period=0 2>/dev/null || true
+          kubectl delete clusterrolebinding tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete clusterrole tls-scanner-pods-reader-dt-plugin 2>/dev/null || true
+          kubectl delete scc tls-scanner-scc-dt-plugin 2>/dev/null || true
+          kubectl delete sa tls-scanner -n "$NAMESPACE" 2>/dev/null || true
+          sleep 5
+    - apply:
+        file: ../tls-profile/00-install-tls-scanner.yaml
+    - assert:
+        file: ../tls-profile/00-assert.yaml
+  - name: Scale down observability-operator
+    try:
+    - script:
+        timeout: 2m
+        content: |
+          . ../tls-profile/tls-helpers.sh
+          scale_down_operator

@@ -84,6 +84,10 @@ echo "Console URL: http://localhost:${CONSOLE_PORT}"
 echo "Console Platform: $CONSOLE_IMAGE_PLATFORM"
 echo "Plugin Port: ${PLUGIN_PORT}"
 
+# BRIDGE_PLUGIN_PROXY also registers the plugin backend as
+# /api/proxy/plugin/monitoring-console-plugin/backend/ with authorize, so the
+# user token reaches the backend's Tempo proxy. The /api/plugins/ asset path
+# does not carry it.
 # Prefer podman if installed. Otherwise, fall back to docker.
 if [ -x "$(command -v podman)" ]; then
     if [ "$(uname -s)" = "Linux" ]; then
@@ -97,7 +101,7 @@ if [ -x "$(command -v podman)" ]; then
         -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro,Z \
         ${SSL_CERT_ENV} \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
+        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://localhost:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/backend/\", \"endpoint\":\"http://localhost:${PLUGIN_PORT}\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
     else
         BRIDGE_PLUGINS="${npm_package_consolePlugin_name}=http://host.containers.internal:${PLUGIN_PORT}"
@@ -109,7 +113,7 @@ if [ -x "$(command -v podman)" ]; then
         -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro,Z \
         ${SSL_CERT_ENV} \
         --env-file <(set | grep BRIDGE) \
-        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.containers.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
+        --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.containers.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/backend/\", \"endpoint\":\"http://host.containers.internal:${PLUGIN_PORT}\",\"authorize\":true}]}" \
         $CONSOLE_IMAGE
     fi
 else
@@ -122,6 +126,6 @@ else
     -v "${BRIDGE_CA_BUNDLE}":"${BRIDGE_CA_CONTAINER_FILE}":ro \
     ${SSL_CERT_ENV} \
     --env-file <(set | grep BRIDGE) \
-    --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.docker.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true}]}" \
+    --env BRIDGE_PLUGIN_PROXY="{\"services\": [{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/perses/\", \"endpoint\":\"http://host.docker.internal:8080\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/loki/\", \"endpoint\":\"${LOKI_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/korrel8r/\", \"endpoint\":\"${KORREL8R_HOST}\",\"authorize\":true},{\"consoleAPIPath\": \"/api/proxy/plugin/monitoring-console-plugin/backend/\", \"endpoint\":\"http://host.docker.internal:${PLUGIN_PORT}\",\"authorize\":true}]}" \
     $CONSOLE_IMAGE
 fi
