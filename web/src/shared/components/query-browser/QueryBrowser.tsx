@@ -138,7 +138,7 @@ const SpanControls = memo(
       const newIsValid = newSpan > 0;
       setIsValid(newIsValid);
       setText(newText);
-      if (newIsValid && newSpan !== span) {
+      if (newIsValid) {
         const fn = isDebounced ? debouncedOnChange : onChange;
         fn(newSpan);
       }
@@ -874,14 +874,19 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const onSpanChange = useCallback(
     (newSpan: number) => {
-      setGraphData(null);
-      setXDomain(undefined);
-      setSpan(newSpan);
-      dispatch(queryBrowserSetTimespan(newSpan));
-      setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      const rangeChanged = newSpan !== span || xDomain !== undefined;
+
+      if (rangeChanged) {
+        setGraphData(null);
+        setXDomain(undefined);
+        setSpan(newSpan);
+        dispatch(queryBrowserSetTimespan(newSpan));
+        setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      }
+
       onSpanChangeProp?.(newSpan);
     },
-    [defaultSamples, dispatch, onSpanChangeProp],
+    [defaultSamples, dispatch, onSpanChangeProp, span, xDomain],
   );
 
   const isRangeVector = _.get(error, 'json.error', '').match(

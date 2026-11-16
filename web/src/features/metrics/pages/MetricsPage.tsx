@@ -962,6 +962,10 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
 
+  const relativeTimespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.timespan,
+  );
+
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
@@ -1040,32 +1044,43 @@ const QueryBrowserWrapper: FC<{
 
   const handleZoom = useCallback(
     (from: number, to: number) => {
-      setQueryParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set(QueryParams.Start, String(Math.floor(from)));
-        next.set(QueryParams.End, String(Math.floor(to)));
-        return next;
-      });
+      setQueryParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set(QueryParams.Start, String(from));
+          next.set(QueryParams.End, String(to));
+          return next;
+        },
+        { replace: true },
+      );
     },
     [setQueryParams],
   );
 
   const handleSpanChange = useCallback(() => {
-    setQueryParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete(QueryParams.Start);
-      next.delete(QueryParams.End);
-      return next;
-    });
+    setQueryParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(QueryParams.Start);
+        next.delete(QueryParams.End);
+        return next;
+      },
+      { replace: true },
+    );
   }, [setQueryParams]);
 
-  const urlStart = Number(queryParams.get(QueryParams.Start));
-  const urlEnd = Number(queryParams.get(QueryParams.End));
+  const startParam = queryParams.get(QueryParams.Start);
+  const endParam = queryParams.get(QueryParams.End);
+
+  const urlStart = startParam?.trim() ? Number(startParam) : NaN;
+  const urlEnd = endParam?.trim() ? Number(endParam) : NaN;
+
   const urlTimespan =
     Number.isFinite(urlStart) && Number.isFinite(urlEnd) && urlEnd > urlStart
       ? urlEnd - urlStart
       : undefined;
-  const urlEndTime = urlTimespan ? urlEnd : undefined;
+
+  const urlEndTime = urlTimespan !== undefined ? urlEnd : undefined;
 
   if (hideGraphs) {
     return null;
@@ -1133,7 +1148,7 @@ const QueryBrowserWrapper: FC<{
       onSpanChange={handleSpanChange}
       onZoom={handleZoom}
       queries={queryStrings}
-      timespan={urlTimespan}
+      timespan={urlTimespan ?? relativeTimespan}
       units={units}
       showStackedControl
       showDisconnectedControl
