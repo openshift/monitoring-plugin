@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -74,11 +75,11 @@ func FilterHeaders(r *http.Response) error {
 	return nil
 }
 
-func createProxy(proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProxy, error) {
+func createProxy(kind KindType, proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProxy, error) {
 	// TODO: allow custom CA per datasource
 	serviceCertPEM, err := os.ReadFile(serviceCAfile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read certificate file: tried '%s' and got %v", serviceCAfile, err)
+		return nil, fmt.Errorf("failed to read service CA file: %w", errors.Unwrap(err))
 	}
 	serviceProxyRootCAs := x509.NewCertPool()
 	if !serviceProxyRootCAs.AppendCertsFromPEM(serviceCertPEM) {
@@ -114,17 +115,23 @@ func createProxy(proxyUrl *url.URL, serviceCAfile string) (*httputil.ReverseProx
 	reverseProxy.FlushInterval = time.Millisecond * 100
 	reverseProxy.Transport = transport
 	reverseProxy.ModifyResponse = FilterHeaders
+	reverseProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		log.WithFields(logrus.Fields{"kind": kind, "error_kind": ErrorKind(err)}).Error("error connecting to proxy target")
+		http.Error(w, fmt.Sprintf("Error connecting to %s", kind), http.StatusBadGateway)
+	}
+	reverseProxy.ErrorLog = NewRedactedErrorLog(log.WithField("kind", kind))
 	return reverseProxy, nil
 }
 
 func getProxy(kind KindType, proxyUrlString string, serviceCAfile string) (*httputil.ReverseProxy, error) {
-	log.Info(fmt.Sprintf("Proxy of Type: %s Points to Url: %s", kind, proxyUrlString))
+	log.Infof("configuring %s proxy", kind)
 	proxyURL, err := url.Parse(proxyUrlString)
 	if err != nil {
-		return nil, err
+		// The parser error can contain the host name.
+		return nil, fmt.Errorf("invalid %s proxy URL", kind)
 	}
 
-	proxy, err := createProxy(proxyURL, serviceCAfile)
+	proxy, err := createProxy(kind, proxyURL, serviceCAfile)
 	if err != nil {
 		return nil, err
 	}
