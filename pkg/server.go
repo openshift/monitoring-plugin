@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"strings"
@@ -221,13 +223,23 @@ func healthHandler() http.HandlerFunc {
 	})
 }
 
+// certLoadLogger omits the error unless it is a PathError, whose cause is
+// logged without the path; other errors may embed the file paths.
+func certLoadLogger(err error) *logrus.Entry {
+	var pathErr *fs.PathError
+	if errors.As(err, &pathErr) {
+		return log.WithError(pathErr.Err)
+	}
+	return log
+}
+
 func featuresHandler(cfg *Config) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonFeatures, err := json.Marshal(cfg.Features)
 
 		if err != nil {
-			log.WithError(err).Errorf("cannot marshall, features were: %v", string(jsonFeatures))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.WithError(err).Error("cannot marshal features")
+			http.Error(w, "cannot marshal features", http.StatusInternalServerError)
 			return
 		}
 
@@ -240,7 +252,7 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	pluginConfData, err := os.ReadFile(cfg.PluginConfigPath)
 
 	if err != nil {
-		log.WithError(err).Warnf("cannot read config file, serving plugin with default configuration, tried %s", cfg.PluginConfigPath)
+		log.WithError(errors.Unwrap(err)).Warn("cannot read plugin config file, serving plugin with default configuration")
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -261,7 +273,7 @@ func configHandler(cfg *Config) (http.HandlerFunc, *PluginConfig) {
 	jsonPluginConfig, err := pluginConfig.MarshalJSON()
 
 	if err != nil {
-		log.WithError(err).Errorf("unable to marshall, config data: %v", pluginConfig)
+		log.WithError(err).Error("unable to marshal plugin config data")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "unable to marshall config data", http.StatusInternalServerError)
 		}), nil
