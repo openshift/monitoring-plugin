@@ -2,6 +2,8 @@ package monitoring
 
 import (
 	"bytes"
+	"context"
+	"crypto/tls"
 	"encoding/pem"
 	stdlog "log"
 	"net"
@@ -11,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	logtest "github.com/sirupsen/logrus/hooks/test"
@@ -147,20 +150,34 @@ func TestProxyBodyCopyErrorDoesNotLeakUpstream(t *testing.T) {
 	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", "1024")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":`))
+		if _, err := w.Write([]byte(`{"status":`)); err != nil {
+			t.Errorf("partial write: %v", err)
+			return
+		}
 		w.(http.Flusher).Flush()
 
 		conn, _, err := w.(http.Hijacker).Hijack()
 		if err != nil {
+			t.Errorf("hijack: %v", err)
 			return
 		}
 		// Send a TCP RST.
-		if tlsConn, ok := conn.(interface{ NetConn() net.Conn }); ok {
-			if tcpConn, ok := tlsConn.NetConn().(*net.TCPConn); ok {
-				_ = tcpConn.SetLinger(0)
-			}
+		tlsConn, ok := conn.(*tls.Conn)
+		if !ok {
+			t.Errorf("unexpected connection type %T", conn)
+			return
 		}
-		_ = conn.Close()
+		tcpConn, ok := tlsConn.NetConn().(*net.TCPConn)
+		if !ok {
+			t.Errorf("unexpected connection type %T", tlsConn.NetConn())
+			return
+		}
+		if err := tcpConn.SetLinger(0); err != nil {
+			t.Errorf("set linger: %v", err)
+		}
+		if err := tcpConn.Close(); err != nil {
+			t.Errorf("close: %v", err)
+		}
 	}))
 	defer upstream.Close()
 
@@ -176,9 +193,11 @@ func TestProxyBodyCopyErrorDoesNotLeakUpstream(t *testing.T) {
 	stdlog.SetOutput(&stdLogs)
 	t.Cleanup(func() { stdlog.SetOutput(os.Stderr) })
 
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
 	handler := NewProxyHandler(nil, caFile, ThanosQuerierKind, upstream.URL)
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/query", nil))
+	handler.ServeHTTP(rec, httptest.NewRequestWithContext(ctx, http.MethodGet, "/api/v1/query", nil))
 
 	require.Empty(t, stdLogs.String())
 	var messages []string

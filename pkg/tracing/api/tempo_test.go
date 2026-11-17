@@ -1,10 +1,12 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	logtest "github.com/sirupsen/logrus/hooks/test"
@@ -25,8 +27,10 @@ func TestListTempoResourcesHandlerDoesNotLeakAPIAddress(t *testing.T) {
 	hook := logtest.NewGlobal()
 	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
 
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
 	rec := httptest.NewRecorder()
-	ListTempoResourcesHandler(k8sclient).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/list-tempostacks", nil))
+	ListTempoResourcesHandler(k8sclient).ServeHTTP(rec, httptest.NewRequestWithContext(ctx, http.MethodGet, "/api/v1/list-tempostacks", nil))
 
 	require.Equal(t, http.StatusInternalServerError, rec.Code)
 	require.JSONEq(t, `{"status":"error","error":"cannot list Tempo resources"}`, rec.Body.String())
