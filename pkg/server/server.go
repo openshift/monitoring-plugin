@@ -229,15 +229,12 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		// files whenever they change.
 		certKeyPair, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", cfg.CertFile, cfg.PrivateKeyFile)
 		if err != nil {
-			log.WithError(err).Fatal("unable to create TLS controller")
+			// The constructor does the initial file read.
+			certLoadLogger(err).Fatal("unable to create TLS controller")
 		}
 
 		if err := certKeyPair.RunOnce(ctx); err != nil {
-			var pathErr *fs.PathError
-			if errors.As(err, &pathErr) {
-				log.WithError(pathErr.Err).Fatal("failed to read serving certificate/key file")
-			}
-			log.Fatal("failed to load serving certificate/key pair")
+			certLoadLogger(err).Fatal("failed to load serving certificate/key pair")
 		}
 
 		eventBroadcaster := record.NewBroadcaster()
@@ -372,6 +369,16 @@ func healthHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
 	})
+}
+
+// certLoadLogger omits the error unless it is a PathError, whose cause is
+// logged without the path; other errors may embed the file paths.
+func certLoadLogger(err error) *logrus.Entry {
+	var pathErr *fs.PathError
+	if errors.As(err, &pathErr) {
+		return log.WithError(pathErr.Err)
+	}
+	return log
 }
 
 func featuresHandler(cfg *Config) http.HandlerFunc {

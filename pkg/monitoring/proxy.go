@@ -116,9 +116,10 @@ func createProxy(kind KindType, proxyUrl *url.URL, serviceCAfile string) (*httpu
 	reverseProxy.Transport = transport
 	reverseProxy.ModifyResponse = FilterHeaders
 	reverseProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.WithField("kind", kind).Error("error connecting to proxy target")
+		log.WithFields(logrus.Fields{"kind": kind, "error_kind": ErrorKind(err)}).Error("error connecting to proxy target")
 		http.Error(w, fmt.Sprintf("Error connecting to %s", kind), http.StatusBadGateway)
 	}
+	reverseProxy.ErrorLog = NewRedactedErrorLog(log.WithField("kind", kind))
 	return reverseProxy, nil
 }
 
@@ -126,7 +127,8 @@ func getProxy(kind KindType, proxyUrlString string, serviceCAfile string) (*http
 	log.Infof("configuring %s proxy", kind)
 	proxyURL, err := url.Parse(proxyUrlString)
 	if err != nil {
-		return nil, fmt.Errorf("invalid %s proxy URL: %w", kind, errors.Unwrap(err))
+		// The parser error can contain the host name.
+		return nil, fmt.Errorf("invalid %s proxy URL", kind)
 	}
 
 	proxy, err := createProxy(kind, proxyURL, serviceCAfile)

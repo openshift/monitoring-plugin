@@ -32,6 +32,8 @@ var log = logrus.WithField("module", "proxy")
 
 var errTempoNotFound = errors.New("is not a valid Tempo resource")
 
+var errResponseRewrite = errors.New("cannot rewrite Tempo response")
+
 type ProxyHandler struct {
 	k8sclient       *dynamic.DynamicClient
 	serviceCAfile   string
@@ -255,14 +257,23 @@ func (h *ProxyHandler) createProxy(tempo api.TempoResource, tenant string) (*htt
 
 	reverseProxy.ModifyResponse = func(resp *http.Response) error {
 		if err := FilterHeaders(resp); err != nil {
-			return err
+			return fmt.Errorf("%w: %w", errResponseRewrite, err)
 		}
-		return addEmptyTracesField(resp)
+		if err := addEmptyTracesField(resp); err != nil {
+			return fmt.Errorf("%w: %w", errResponseRewrite, err)
+		}
+		return nil
 	}
+	tempoLog := log.WithFields(logrus.Fields{"namespace": tempo.Namespace, "tempo": tempo.Name})
 	reverseProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.WithFields(logrus.Fields{"namespace": tempo.Namespace, "tempo": tempo.Name}).Error("error connecting to Tempo instance")
+		errorKind := monitoring.ErrorKind(err)
+		if errors.Is(err, errResponseRewrite) {
+			errorKind = "response_rewrite"
+		}
+		tempoLog.WithField("error_kind", errorKind).Error("error connecting to Tempo instance")
 		http.Error(w, "Error connecting to Tempo instance", http.StatusBadGateway)
 	}
+	reverseProxy.ErrorLog = monitoring.NewRedactedErrorLog(tempoLog)
 	return reverseProxy, nil
 }
 

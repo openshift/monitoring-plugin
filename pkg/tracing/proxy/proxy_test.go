@@ -3,6 +3,7 @@ package proxy
 import (
 	"crypto/tls"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -307,5 +308,26 @@ func TestProxyErrorHandlerDoesNotLeakUpstream(t *testing.T) {
 	line, err := hook.LastEntry().String()
 	require.NoError(t, err)
 	require.NotContains(t, line, upstream)
+	require.NotContains(t, line, "10.0.0.1")
+}
+
+func TestProxyErrorHandlerClassifiesResponseRewrite(t *testing.T) {
+	hook := logtest.NewGlobal()
+	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
+
+	handler := NewProxyHandler(nil, "", 0, nil)
+	proxy, err := handler.createProxy(api.TempoResource{Kind: api.KindTempoStack, Namespace: "ns", Name: "name", Tenants: []string{"dev"}}, "dev")
+	require.NoError(t, err)
+
+	rewriteErr := fmt.Errorf("%w: %w", errResponseRewrite, errors.New("read tcp 10.0.0.1:8080: connection reset by peer"))
+	rec := httptest.NewRecorder()
+	proxy.ErrorHandler(rec, httptest.NewRequest(http.MethodGet, "/api/search", nil), rewriteErr)
+
+	require.Equal(t, http.StatusBadGateway, rec.Code)
+	require.Len(t, hook.AllEntries(), 1)
+	entry := hook.LastEntry()
+	require.Equal(t, "response_rewrite", entry.Data["error_kind"])
+	line, err := entry.String()
+	require.NoError(t, err)
 	require.NotContains(t, line, "10.0.0.1")
 }

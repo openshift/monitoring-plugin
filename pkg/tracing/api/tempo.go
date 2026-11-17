@@ -11,6 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+
+	"github.com/openshift/monitoring-plugin/pkg/monitoring"
 )
 
 var log = logrus.WithField("module", "api")
@@ -57,7 +59,11 @@ func ListTempoResourcesHandler(k8sclient *dynamic.DynamicClient) http.HandlerFun
 				return
 			}
 
-			log.WithError(err).Error("cannot list Tempo resources")
+			// Transport errors embed the API server address.
+			log.WithFields(logrus.Fields{
+				"reason":     apierrors.ReasonForError(err),
+				"error_kind": monitoring.ErrorKind(err),
+			}).Error("cannot list Tempo resources")
 			writeResponse(w, http.StatusInternalServerError, Response{
 				Status: StatusError,
 				Error:  "cannot list Tempo resources",
