@@ -222,4 +222,225 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       metricsPage.unitsAxisYAssertion(unit);
     });
   });
+
+  it(`${perspectiveName} perspective - Metrics > Restore URL time range`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    const end = Date.now() - 10 * 60 * 1000; // 10 min ago
+    const start = end - 5 * 60 * 1000; // 5 min before end
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) === end / 1000) {
+          req.alias = 'fixedTimeRange';
+        }
+      },
+    );
+
+    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.visit({
+      url: '/monitoring/query-browser',
+      qs: { query0: query, start, end },
+    });
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.FIVE_MINUTES,
+    );
+
+    cy.wait('@fixedTimeRange').then(({ request, response }) => {
+      expect(response?.statusCode).to.equal(200);
+
+      // Existing query construction adjusts the start boundary by 1ms.
+      expect(Number(request.query.start)).to.be.closeTo(start / 1000, 0.002);
+    });
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) === end / 1000) {
+          req.alias = 'reloadedTimeRange';
+        }
+      },
+    );
+
+    cy.log('Reload and verify that the fixed interval is restored');
+    cy.reload();
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.FIVE_MINUTES,
+    );
+
+    cy.wait('@reloadedTimeRange').then(({ request, response }) => {
+      expect(response?.statusCode).to.equal(200);
+      expect(Number(request.query.start)).to.equal((start + 1) / 1000);
+    });
+  });
+
+  it(`${perspectiveName} perspective - Metrics > Reset URL time range`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    const end = Date.now() - 10 * 60 * 1000;
+    const start = end - 5 * 60 * 1000;
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) === end / 1000) {
+          req.alias = 'fixedTimeRange';
+        }
+      },
+    );
+
+    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.visit({
+      url: '/monitoring/query-browser',
+      qs: { query0: query, start, end },
+    });
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.FIVE_MINUTES,
+    );
+
+    cy.wait('@fixedTimeRange').then(({ request, response }) => {
+      expect(response?.statusCode).to.equal(200);
+      expect(Number(request.query.start)).to.be.closeTo(start / 1000, 0.002);
+    });
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) !== end / 1000) {
+          req.alias = 'relativeTimeRange';
+        }
+      },
+    );
+
+    let resetStartedAt: number;
+
+    cy.then(() => {
+      resetStartedAt = Date.now();
+    });
+
+    cy.log('Reset zoom and verify URL and requested interval');
+    metricsPage.clickResetZoomButton();
+
+    cy.location('search').should((search) => {
+      const params = new URLSearchParams(search);
+
+      expect(params.has('start')).to.equal(false);
+      expect(params.has('end')).to.equal(false);
+      expect(params.get('query0')).to.equal(query);
+    });
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.THIRTY_MINUTES,
+    );
+
+    cy.wait('@relativeTimeRange').then(({ request, response }) => {
+      const requestStart = Number(request.query.start);
+      const requestEnd = Number(request.query.end);
+
+      expect(response?.statusCode).to.equal(200);
+
+      expect(requestEnd - requestStart).to.be.closeTo(30 * 60, 0.002);
+      expect(requestEnd).to.be.within(resetStartedAt / 1000, Date.now() / 1000);
+    });
+  });
+
+  it(`${perspectiveName} perspective - Metrics > Select same-duration preset`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    const end = Date.now() - 10 * 60 * 1000;
+    const start = end - 5 * 60 * 1000;
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) === end / 1000) {
+          req.alias = 'fixedTimeRange';
+        }
+      },
+    );
+
+    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.visit({
+      url: '/monitoring/query-browser',
+      qs: { query0: query, start, end },
+    });
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.FIVE_MINUTES,
+    );
+
+    cy.wait('@fixedTimeRange').then(({ request, response }) => {
+      expect(response?.statusCode).to.equal(200);
+      expect(Number(request.query.start)).to.equal((start + 1) / 1000);
+    });
+
+    cy.intercept(
+      {
+        method: 'GET',
+        pathname: '**/api/v1/query_range',
+      },
+      (req) => {
+        if (req.query.query === query && Number(req.query.end) !== end / 1000) {
+          req.alias = 'relativeTimeRange';
+        }
+      },
+    );
+
+    let selectionStartedAt: number;
+
+    cy.then(() => {
+      selectionStartedAt = Date.now();
+    });
+
+    cy.log('Select five minutes again to return to a relative interval');
+    cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown)
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
+    cy.get(Classes.MenuItem).contains(/^5m$/).should('be.visible').click();
+
+    cy.location('search').should((search) => {
+      const params = new URLSearchParams(search);
+
+      expect(params.has('start')).to.equal(false);
+      expect(params.has('end')).to.equal(false);
+      expect(params.get('query0')).to.equal(query);
+    });
+
+    cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
+      'have.value',
+      GraphTimespan.FIVE_MINUTES,
+    );
+
+    cy.wait('@relativeTimeRange').then(({ request, response }) => {
+      const requestStart = Number(request.query.start);
+      const requestEnd = Number(request.query.end);
+
+      expect(response?.statusCode).to.equal(200);
+
+      expect(requestEnd - requestStart).to.be.closeTo(5 * 60, 0.002);
+      expect(requestEnd).to.be.within(selectionStartedAt / 1000, Date.now() / 1000);
+    });
+  });
 }
