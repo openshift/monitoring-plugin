@@ -651,6 +651,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const endTime = xDomain?.[1];
 
   const safeFetch = useSafeFetch();
+  const requests = useRef({ nextId: 0, oldestAllowedId: 0 });
 
   const [isStacked, setIsStacked] = useState(isStack);
   const [showDisconnectedValues, setIsShowDisconnectedValues] = useState(false);
@@ -690,6 +691,16 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     if (hideGraphs || accessCheckLoading) {
       return undefined;
     }
+
+    const requestId = requests.current.nextId++;
+    const acceptResponse = () => {
+      if (requestId < requests.current.oldestAllowedId) {
+        return false;
+      }
+      // A slower poll for this range must not overwrite a newer result.
+      requests.current.oldestAllowedId = requestId;
+      return true;
+    };
 
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
@@ -754,6 +765,9 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
     return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
+        if (!acceptResponse()) {
+          return;
+        }
         const newResults = _.map(responses, 'data.result');
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));
 
@@ -830,7 +844,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
         setError(undefined);
       })
       .catch((err) => {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && acceptResponse()) {
           // eslint-disable-next-line no-console
           console.log(err);
           setError(err);
@@ -870,7 +884,14 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     useMetricsTenancy,
   );
 
-  useLayoutEffect(() => setUpdating(true), [endTime, namespace, queriesKey, samples, span]);
+  useLayoutEffect(() => {
+    const pending = requests.current;
+    setUpdating(true);
+    return () => {
+      // Discard outstanding requests when the displayed query or range changes.
+      pending.oldestAllowedId = pending.nextId;
+    };
+  }, [endTime, namespace, queriesKey, samples, span]);
 
   const onSpanChange = useCallback(
     (newSpan: number) => {

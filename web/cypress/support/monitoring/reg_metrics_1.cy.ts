@@ -337,6 +337,53 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       });
   });
 
+  it(`${perspectiveName} perspective - Metrics > Keep reset data after late zoom`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    const end = Date.now() - 10 * 60 * 1000;
+    const start = end - 5 * 60 * 1000;
+    let releaseZoom: () => void;
+    let zoomRequested = false;
+    const zoomGate = new Promise<void>((resolve) => {
+      releaseZoom = resolve;
+    });
+
+    cy.intercept({ method: 'GET', pathname: '**/api/v1/query_range', query: { query } }, (req) => {
+      const requestEnd = Number(req.query.end) * 1000;
+      if (requestEnd > start && requestEnd < end) {
+        zoomRequested = true;
+        req.alias = 'lateZoom';
+        // Only the obsolete window has no data. Applying it would erase the reset graph.
+        return zoomGate.then(() =>
+          req.reply({ body: { status: 'success', data: { resultType: 'matrix', result: [] } } }),
+        );
+      }
+      if (requestEnd > end && Number(req.query.end) - Number(req.query.start) > 1799) {
+        req.alias = 'resetRange';
+      }
+    });
+    cy.log('8.1 Zoom and hold the response');
+    cy.visit({ url: metricsUrl, qs: { query0: query, start, end } });
+    metricsPage.dragToZoom();
+    cy.wrap(null).should(() => expect(zoomRequested).to.equal(true));
+    cy.log('8.2 Reset while the zoom request is pending');
+    metricsPage.clickResetZoomButton();
+    cy.wait('@resetRange').its('response.statusCode').should('equal', 200);
+    const renderedAxis = () =>
+      cy.byTestID(DataTestIDs.MetricGraph).find(`[id^="${IDs.ChartAxis0ChartLabel}"]`).first();
+    renderedAxis().should('be.visible');
+    cy.log('8.3 Release the older response and check the reset graph');
+    cy.then(() => releaseZoom());
+    cy.wait('@lateZoom');
+    // Let the browser paint after receiving the held response before inspecting the graph.
+    cy.window().then(
+      (win) =>
+        new Promise<void>((done) =>
+          win.requestAnimationFrame(() => win.requestAnimationFrame(() => done())),
+        ),
+    );
+    renderedAxis().should('be.visible');
+  });
+
   it(`${perspectiveName} perspective - Metrics > Reset URL time range`, () => {
     const query = MetricsPageQueryInput.VECTOR_QUERY;
     const end = Date.now() - 10 * 60 * 1000;
@@ -354,7 +401,7 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       },
     );
 
-    cy.log('8.1 Open Metrics with a fixed five-minute interval');
+    cy.log('9.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
       url: metricsUrl,
       qs: { query0: query, start, end },
@@ -388,7 +435,7 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       resetStartedAt = Date.now();
     });
 
-    cy.log('8.2 Reset zoom and verify URL and requested interval');
+    cy.log('9.2 Reset zoom and verify URL and requested interval');
     metricsPage.clickResetZoomButton();
 
     cy.location('search').should((search) => {
@@ -432,7 +479,7 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       },
     );
 
-    cy.log('9.1 Open Metrics with a fixed five-minute interval');
+    cy.log('10.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
       url: metricsUrl,
       qs: { query0: query, start, end },
@@ -466,7 +513,7 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       selectionStartedAt = Date.now();
     });
 
-    cy.log('9.2 Select five minutes again to return to a relative interval');
+    cy.log('10.2 Select five minutes again to return to a relative interval');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown)
       .scrollIntoView()
       .should('be.visible')
