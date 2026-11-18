@@ -381,14 +381,13 @@ func startTLSTestServer(t *testing.T, conf *Config) tlsTestServer {
 	conf.PrivateKeyFile = filepath.Join(tmpDir, "server.key")
 	require.NoError(t, generateCertificate(t, conf.CertFile, conf.PrivateKeyFile, hostPort))
 
-	tmpDirAssets := prepareServerAssets(t)
-	t.Cleanup(func() { os.RemoveAll(tmpDirAssets) })
-
 	server, cleanup := startTestServer(t, conf)
 	t.Cleanup(cleanup)
 
 	srv := tlsTestServer{url: fmt.Sprintf("https://%s", hostPort), server: server}
 	readyClient := srv.client(t, &tls.Config{})
+	// Bound each attempt so a stalled request cannot outlive the polling.
+	readyClient.Timeout = time.Second
 	require.Eventually(t, func() bool {
 		_, err := getRequestResults(t, readyClient, srv.url+"/health")
 		return err == nil
@@ -434,12 +433,20 @@ func TestTLSConfigWithCustomSettings(t *testing.T) {
 	_, err = getRequestResults(t, httpClientTLS12, healthURL)
 	require.NoError(t, err, "could not connect with TLS 1.2")
 
+	httpClientTLS12Unlisted := srv.client(t, &tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		MaxVersion:   tls.VersionTLS12,
+		CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256},
+	})
+	_, err = getRequestResults(t, httpClientTLS12Unlisted, healthURL)
+	require.ErrorContains(t, err, "tls: handshake failure", "should not have been able to connect with a cipher suite not configured")
+
 	httpClientTLS11 := srv.client(t, &tls.Config{
 		MinVersion: tls.VersionTLS10,
 		MaxVersion: tls.VersionTLS11,
 	})
 	_, err = getRequestResults(t, httpClientTLS11, healthURL)
-	require.Error(t, err, "should not have been able to connect with TLS 1.1")
+	require.ErrorContains(t, err, "tls: protocol version not supported", "should not have been able to connect with TLS 1.1")
 }
 
 func TestTLSConfigWithCurvePreferences(t *testing.T) {
@@ -480,6 +487,7 @@ func TestTLSConfigWithDefaults(t *testing.T) {
 
 	httpClientTLS12 := srv.client(t, &tls.Config{
 		MinVersion: tls.VersionTLS12,
+		MaxVersion: tls.VersionTLS12,
 	})
 	_, err := getRequestResults(t, httpClientTLS12, healthURL)
 	require.NoError(t, err, "could not connect with TLS 1.2")
@@ -490,11 +498,13 @@ func TestTLSConfigWithDefaults(t *testing.T) {
 	_, err = getRequestResults(t, httpClientTLS13, healthURL)
 	require.NoError(t, err, "could not connect with TLS 1.3")
 
+	// The client must allow TLS 1.1 so the rejection comes from the server.
 	httpClientTLS11 := srv.client(t, &tls.Config{
+		MinVersion: tls.VersionTLS11,
 		MaxVersion: tls.VersionTLS11,
 	})
 	_, err = getRequestResults(t, httpClientTLS11, healthURL)
-	require.Error(t, err, "should not have been able to connect with TLS 1.1")
+	require.ErrorContains(t, err, "tls: protocol version not supported", "should not have been able to connect with TLS 1.1")
 }
 
 func TestTLSConfigMinVersionOnly(t *testing.T) {

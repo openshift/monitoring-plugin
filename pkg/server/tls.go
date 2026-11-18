@@ -61,14 +61,15 @@ func parseTLSList[T comparable](list string, known map[string]T, kind string) ([
 	}
 
 	var values []T
-	var unknown int
-	for _, name := range strings.Split(strings.ReplaceAll(list, " ", ""), ",") {
+	var unknown []string
+	for _, name := range strings.Split(list, ",") {
+		name = strings.TrimSpace(name)
 		if name == "" {
 			continue
 		}
 		v, ok := known[strings.ToLower(name)]
 		if !ok {
-			unknown++
+			unknown = append(unknown, name)
 			continue
 		}
 		if !slices.Contains(values, v) {
@@ -76,8 +77,8 @@ func parseTLSList[T comparable](list string, known map[string]T, kind string) ([
 		}
 	}
 
-	if unknown > 0 {
-		return nil, fmt.Errorf("%d unknown TLS %s configured", unknown, kind)
+	if len(unknown) > 0 {
+		return nil, fmt.Errorf("unknown TLS %s configured: %q", kind, unknown)
 	}
 
 	if len(values) == 0 {
@@ -109,8 +110,12 @@ func newBaseTLSConfig(cfg *Config) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		MinVersion:       tls.VersionTLS12,
 		MaxVersion:       cfg.TLSMaxVersion,
-		CipherSuites:     cfg.TLSCipherSuites,
 		CurvePreferences: cfg.TLSCurvePreferences,
+	}
+	// crypto/tls only applies its default cipher suites when CipherSuites is
+	// nil: an empty slice would leave TLS 1.2 without any cipher to negotiate.
+	if len(cfg.TLSCipherSuites) > 0 {
+		tlsConfig.CipherSuites = cfg.TLSCipherSuites
 	}
 	if cfg.TLSMinVersion != 0 {
 		tlsConfig.MinVersion = cfg.TLSMinVersion

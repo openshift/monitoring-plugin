@@ -49,8 +49,8 @@ func TestParseCurves(t *testing.T) {
 			expected: []tls.CurveID{tls.X25519, tls.CurveP384, tls.CurveP256, tls.X25519MLKEM768},
 		},
 		{
-			name:     "spaces around names are ignored",
-			input:    " X25519 , CurveP256 ",
+			name:     "whitespace around names is ignored",
+			input:    " X25519 ,\tCurveP256\n",
 			expected: []tls.CurveID{tls.X25519, tls.CurveP256},
 		},
 		{
@@ -79,9 +79,10 @@ func TestParseCurvesFails(t *testing.T) {
 		input     string
 		expectErr string
 	}{
-		{input: "X25519,NotACurve,CurveP256", expectErr: "1 unknown TLS curves configured"},
-		{input: "NotACurve,AlsoNotACurve", expectErr: "2 unknown TLS curves configured"},
-		{input: "p384", expectErr: "1 unknown TLS curves configured"},
+		{input: "X25519,NotACurve,CurveP256", expectErr: `unknown TLS curves configured: ["NotACurve"]`},
+		{input: "NotACurve, AlsoNotACurve", expectErr: `unknown TLS curves configured: ["NotACurve" "AlsoNotACurve"]`},
+		{input: "p384", expectErr: `unknown TLS curves configured: ["p384"]`},
+		{input: "X25 519", expectErr: `unknown TLS curves configured: ["X25 519"]`},
 		{input: ",,", expectErr: "no valid TLS curves configured"},
 	}
 
@@ -143,9 +144,9 @@ func TestParseCipherSuitesFails(t *testing.T) {
 		input     string
 		expectErr string
 	}{
-		{input: "TLS_AES_128_GCM_SHA256,ECDHE-RSA-AES128-GCM-SHA256", expectErr: "1 unknown TLS cipher suites configured"},
-		{input: "NotACipher", expectErr: "1 unknown TLS cipher suites configured"},
-		{input: "NotACipher,TLS_AES_128_GCM_SHA256,AlsoNotACipher", expectErr: "2 unknown TLS cipher suites configured"},
+		{input: "TLS_AES_128_GCM_SHA256,ECDHE-RSA-AES128-GCM-SHA256", expectErr: `unknown TLS cipher suites configured: ["ECDHE-RSA-AES128-GCM-SHA256"]`},
+		{input: "NotACipher", expectErr: `unknown TLS cipher suites configured: ["NotACipher"]`},
+		{input: "NotACipher,TLS_AES_128_GCM_SHA256,AlsoNotACipher", expectErr: `unknown TLS cipher suites configured: ["NotACipher" "AlsoNotACipher"]`},
 		{input: ",,", expectErr: "no valid TLS cipher suites configured"},
 	}
 
@@ -181,6 +182,11 @@ func TestNewBaseTLSConfig(t *testing.T) {
 			name:     "defaults to TLS 1.2 minimum and Go default ciphers and curves",
 			cfg:      Config{},
 			expected: &tls.Config{MinVersion: tls.VersionTLS12},
+		},
+		{
+			name:     "treats an empty cipher suite list as Go defaults",
+			cfg:      Config{TLSMaxVersion: tls.VersionTLS12, TLSCipherSuites: []uint16{}},
+			expected: &tls.Config{MinVersion: tls.VersionTLS12, MaxVersion: tls.VersionTLS12},
 		},
 		{
 			name: "applies custom versions, ciphers and curves",
@@ -282,10 +288,15 @@ func TestNewBaseTLSConfig(t *testing.T) {
 		},
 	}
 
+	// Capture warnings with a single hook, restoring the logger's hooks afterwards.
+	logger := logrus.StandardLogger()
+	originalHooks := logger.ReplaceHooks(make(logrus.LevelHooks))
+	t.Cleanup(func() { logger.ReplaceHooks(originalHooks) })
+	hook := test.NewLocal(logger)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hook := test.NewGlobal()
-			defer hook.Reset()
+			hook.Reset()
 
 			tlsConfig, err := newBaseTLSConfig(&tt.cfg)
 			if tt.expectErr != "" {
