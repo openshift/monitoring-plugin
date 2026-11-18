@@ -1,6 +1,7 @@
 import { evaluateVariableTemplate } from '@/features/legacy-dashboards/utils/variable-utils';
 import { MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY } from '@/shared/constants/legacy-dashboards';
 import type { Variable } from '@/shared/types/types';
+import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const timespan = 30 * 60 * 1000; // 30 minutes
 const makeVariables = (
@@ -102,13 +103,6 @@ describe('evaluateVariableTemplate', () => {
     expect(evaluateVariableTemplate('metric{job="$job"}', vars, timespan, '')).toBeUndefined();
   });
 
-  it('overrides namespace variable with the provided namespace', () => {
-    const vars = makeVariables({ namespace: { value: 'stored-ns' } });
-    expect(
-      evaluateVariableTemplate('metric{namespace="$namespace"}', vars, timespan, 'actual-ns'),
-    ).toBe('metric{namespace="actual-ns"}');
-  });
-
   it('uses ALL option .+ correctly alongside escaped variable', () => {
     const vars = makeVariables({
       job: { value: MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY },
@@ -169,5 +163,116 @@ describe('evaluateVariableTemplate', () => {
   it('__range substitutes seconds with s suffix', () => {
     const vars = makeVariables({});
     expect(evaluateVariableTemplate('foo[$__range]', vars, timespan, '')).toBe('foo[1800s]');
+  });
+
+  describe('namespace variable resolution', () => {
+    const ALL = MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
+    const eqTemplate = 'metric{namespace="$namespace"}';
+    const reTemplate = 'metric{namespace=~"$namespace"}';
+
+    describe('preserves existing behavior', () => {
+      it('overrides the namespace variable with a concrete project namespace', () => {
+        const vars = makeVariables({ namespace: { value: 'stored-ns' } });
+        expect(evaluateVariableTemplate(eqTemplate, vars, timespan, 'actual-ns')).toBe(
+          'metric{namespace="actual-ns"}',
+        );
+      });
+
+      it('overrides an ALL namespace variable with a concrete project namespace', () => {
+        const vars = makeVariables({ namespace: { value: ALL } });
+        expect(evaluateVariableTemplate(reTemplate, vars, timespan, 'actual-ns')).toBe(
+          'metric{namespace=~"actual-ns"}',
+        );
+      });
+
+      it('uses the variable value when the project is all namespaces', () => {
+        const vars = makeVariables({ namespace: { value: 'openshift-monitoring' } });
+        expect(evaluateVariableTemplate(eqTemplate, vars, timespan, ALL_NAMESPACES_KEY)).toBe(
+          'metric{namespace="openshift-monitoring"}',
+        );
+      });
+
+      it('resolves an ALL namespace variable to .+ when the project is all namespaces', () => {
+        const vars = makeVariables({ namespace: { value: ALL } });
+        expect(evaluateVariableTemplate(reTemplate, vars, timespan, ALL_NAMESPACES_KEY)).toBe(
+          'metric{namespace=~".+"}',
+        );
+      });
+
+      it('escapes a concrete project namespace override in =~ context', () => {
+        const vars = makeVariables({ namespace: { value: 'stored-ns' } });
+        expect(evaluateVariableTemplate(reTemplate, vars, timespan, 'my.ns')).toBe(
+          'metric{namespace=~"my\\\\.ns"}',
+        );
+      });
+
+      it('does not touch other variables when overriding the namespace', () => {
+        const vars = makeVariables({
+          namespace: { value: 'stored-ns' },
+          job: { value: ALL },
+        });
+        expect(
+          evaluateVariableTemplate(
+            'metric{namespace="$namespace",job=~"$job"}',
+            vars,
+            timespan,
+            'actual-ns',
+          ),
+        ).toBe('metric{namespace="actual-ns",job=~".+"}');
+      });
+
+      it('does not match variables that only share the namespace prefix', () => {
+        const vars = makeVariables({
+          namespace: { value: 'stored-ns' },
+          namespace_label: { value: 'label' },
+        });
+        expect(
+          evaluateVariableTemplate(
+            'metric{namespace="$namespace",l="$namespace_label"}',
+            vars,
+            timespan,
+            'actual-ns',
+          ),
+        ).toBe('metric{namespace="actual-ns",l="label"}');
+      });
+    });
+
+    describe('treats every ALL key as .+', () => {
+      it('resolves to .+ when the namespace argument is the ALL option key', () => {
+        const vars = makeVariables({ namespace: { value: ALL } });
+        expect(evaluateVariableTemplate(reTemplate, vars, timespan, ALL)).toBe(
+          'metric{namespace=~".+"}',
+        );
+      });
+
+      it('resolves to .+ alongside other ALL variables', () => {
+        const vars = makeVariables({
+          namespace: { value: ALL },
+          receiver: { value: ALL },
+        });
+        expect(
+          evaluateVariableTemplate(
+            'metric{namespace=~"$namespace",receiver=~"$receiver"}',
+            vars,
+            timespan,
+            ALL,
+          ),
+        ).toBe('metric{namespace=~".+",receiver=~".+"}');
+      });
+
+      it('resolves to .+ when the namespace variable holds the all-namespaces key', () => {
+        const vars = makeVariables({ namespace: { value: ALL_NAMESPACES_KEY } });
+        expect(evaluateVariableTemplate(reTemplate, vars, timespan, ALL_NAMESPACES_KEY)).toBe(
+          'metric{namespace=~".+"}',
+        );
+      });
+
+      it('uses the variable value when no namespace argument is provided', () => {
+        const vars = makeVariables({ namespace: { value: 'openshift-monitoring' } });
+        expect(evaluateVariableTemplate(eqTemplate, vars, timespan, '')).toBe(
+          'metric{namespace="openshift-monitoring"}',
+        );
+      });
+    });
   });
 });
