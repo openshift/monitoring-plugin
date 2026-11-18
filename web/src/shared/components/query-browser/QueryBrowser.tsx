@@ -48,7 +48,7 @@ import {
 } from '@patternfly/react-tokens';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentType, FC, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -117,7 +117,7 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
-const SpanControls = memo(
+export const SpanControls = memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }: SpanControlsProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -130,8 +130,8 @@ const SpanControls = memo(
       setText(formatPrometheusDuration(span));
     }, [span]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnChange = useCallback(_.debounce(onChange, 400), [onChange]);
+    const debouncedOnChange = useMemo(() => _.debounce(onChange, 400), [onChange]);
+    useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange]);
 
     const setSpan = (newText: string, isDebounced = false) => {
       const newSpan = parsePrometheusDuration(newText);
@@ -186,7 +186,10 @@ const SpanControls = memo(
         </FlexItem>
         <FlexItem grow={{ default: 'grow' }}>
           <Button
-            onClick={() => setSpan(defaultSpanText)}
+            onClick={() => {
+              debouncedOnChange.cancel();
+              setSpan(defaultSpanText);
+            }}
             type="button"
             variant="tertiary"
             data-test={DataTestIDs.MetricResetZoomButton}
