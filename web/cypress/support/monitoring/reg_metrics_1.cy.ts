@@ -1,14 +1,25 @@
 import { metricsPage } from '../../views/metrics';
-import { Classes, DataTestIDs } from '@/shared/constants/data-test';
+import { Classes, DataTestIDs, IDs } from '@/shared/constants/data-test';
 import {
   GraphTimespan,
   MetricsPagePredefinedQueries,
   MetricsPageQueryInput,
   MetricsPageUnits,
 } from '../../fixtures/monitoring/constants';
-import type { CustomerPerspective } from '@/shared/constants/perspective';
+import {
+  CustomerPerspectiveName,
+  PerspectiveName,
+  UrlRootName,
+} from '@/shared/constants/perspective';
 
-export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
+const metricsRoot = {
+  [CustomerPerspectiveName.CorePlatform]: UrlRootName[PerspectiveName.Admin],
+  [CustomerPerspectiveName.Virtualization]: UrlRootName[PerspectiveName.Virtualization],
+};
+
+export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot) {
+  const metricsUrl = `/${metricsRoot[perspectiveName]}/query-browser`;
+
   it(`${perspectiveName} perspective - Metrics`, () => {
     cy.log('1.1 Metrics page loaded');
     metricsPage.shouldBeLoaded();
@@ -240,9 +251,9 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       },
     );
 
-    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.log('6.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
-      url: '/monitoring/query-browser',
+      url: metricsUrl,
       qs: { query0: query, start, end },
     });
 
@@ -270,7 +281,7 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       },
     );
 
-    cy.log('Reload and verify that the fixed interval is restored');
+    cy.log('6.2 Reload and verify that the fixed interval is restored');
     cy.reload();
 
     cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should(
@@ -282,6 +293,48 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       expect(response?.statusCode).to.equal(200);
       expect(Number(request.query.start)).to.equal((start + 1) / 1000);
     });
+  });
+
+  it(`${perspectiveName} perspective - Metrics > Restore drag zoom on reload`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    const end = Date.now() - 10 * 60 * 1000;
+    const start = end - 5 * 60 * 1000;
+    cy.log('7.1 Drag to select part of the fixed interval');
+    cy.visit({ url: metricsUrl, qs: { query0: query, start, end } });
+    metricsPage.dragToZoom();
+
+    cy.log('7.2 Check the zoomed range in the URL');
+    cy.location('search')
+      .should((search) => {
+        const params = new URLSearchParams(search);
+        const from = Number(params.get('start'));
+        const to = Number(params.get('end'));
+        expect(start).to.be.lessThan(from);
+        expect(from).to.be.lessThan(to);
+        expect(to).to.be.lessThan(end);
+        expect(params.get('query0')).to.equal(query);
+      })
+      .then((search) => {
+        const params = new URLSearchParams(search);
+        const from = Number(params.get('start')) / 1000;
+        const to = Number(params.get('end')) / 1000;
+        // Finish rendering the drag before observing requests from the reload.
+        cy.byTestID(DataTestIDs.MetricGraph)
+          .find(`[id^="${IDs.ChartAxis0ChartLabel}"]`)
+          .first()
+          .should('be.visible');
+        cy.intercept({ method: 'GET', pathname: '**/api/v1/query_range', query: { query } }).as(
+          'restoredZoom',
+        );
+        cy.log('7.3 Reload and check the Prometheus request');
+        cy.reload();
+        cy.byTestID(DataTestIDs.MetricGraphTimespanInput).should('be.visible');
+        cy.wait('@restoredZoom').then(({ request, response }) => {
+          expect(response?.statusCode).to.equal(200);
+          expect(Number(request.query.start)).to.be.closeTo(from + 0.001, 0.000001);
+          expect(Number(request.query.end)).to.equal(to);
+        });
+      });
   });
 
   it(`${perspectiveName} perspective - Metrics > Reset URL time range`, () => {
@@ -301,9 +354,9 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       },
     );
 
-    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.log('8.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
-      url: '/monitoring/query-browser',
+      url: metricsUrl,
       qs: { query0: query, start, end },
     });
 
@@ -335,7 +388,7 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       resetStartedAt = Date.now();
     });
 
-    cy.log('Reset zoom and verify URL and requested interval');
+    cy.log('8.2 Reset zoom and verify URL and requested interval');
     metricsPage.clickResetZoomButton();
 
     cy.location('search').should((search) => {
@@ -379,9 +432,9 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       },
     );
 
-    cy.log('Open Metrics with a fixed five-minute interval');
+    cy.log('9.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
-      url: '/monitoring/query-browser',
+      url: metricsUrl,
       qs: { query0: query, start, end },
     });
 
@@ -413,7 +466,7 @@ export function testMetricsRegression1(perspectiveName: CustomerPerspective) {
       selectionStartedAt = Date.now();
     });
 
-    cy.log('Select five minutes again to return to a relative interval');
+    cy.log('9.2 Select five minutes again to return to a relative interval');
     cy.byTestID(DataTestIDs.MetricGraphTimespanDropdown)
       .scrollIntoView()
       .should('be.visible')
