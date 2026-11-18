@@ -1075,10 +1075,9 @@ const QueryBrowserWrapper: FC<{
   const urlStart = startParam?.trim() ? Number(startParam) : NaN;
   const urlEnd = endParam?.trim() ? Number(endParam) : NaN;
 
-  const urlTimespan =
-    Number.isFinite(urlStart) && Number.isFinite(urlEnd) && urlEnd > urlStart
-      ? urlEnd - urlStart
-      : undefined;
+  // Match the one-second minimum supported by the timespan input.
+  const durationMs = urlEnd - urlStart;
+  const urlTimespan = Number.isFinite(durationMs) && durationMs >= 1000 ? durationMs : undefined;
 
   const urlEndTime = urlTimespan !== undefined ? urlEnd : undefined;
 
