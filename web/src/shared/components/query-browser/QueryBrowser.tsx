@@ -674,13 +674,13 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   useEffect(() => {
     setGraphData(null);
-    if (fixedEndTime) {
+    if (fixedEndTime !== undefined) {
       setXDomain(getXDomain(fixedEndTime, span));
     }
   }, [fixedEndTime, span]);
 
   useEffect(() => {
-    if (!fixedEndTime) {
+    if (fixedEndTime === undefined) {
       setXDomain(undefined);
     }
   }, [fixedEndTime]);
@@ -859,7 +859,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   // Don't poll if an end time was set (because the latest data is not displayed) or if the graph is
   // hidden. Otherwise use a polling interval relative to the graph's timespan.
   let delay: number;
-  if (endTime || hideGraphs || tickInterval === null) {
+  if (endTime !== undefined || hideGraphs || tickInterval === null) {
     delay = null;
   } else if (tickInterval === 0) {
     delay = 0;
