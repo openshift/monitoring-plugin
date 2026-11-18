@@ -29,7 +29,8 @@ type httpClientConfig struct {
 }
 
 const (
-	testHostname = "127.0.0.1"
+	testHostname      = "127.0.0.1"
+	testPluginContent = "test plugin"
 )
 
 var defaultFeatures = map[Feature]bool{
@@ -121,13 +122,10 @@ func TestServerRunning(t *testing.T) {
 
 	serverURL := fmt.Sprintf("http://%s", testServerHostPort)
 
-	// Prepare directory to serve web files
-	tmpDir := prepareServerAssets(t)
-	defer os.RemoveAll(tmpDir)
-
 	_, cleanup := startTestServer(t, &Config{
-		Port:     testPort,
-		Features: defaultFeatures,
+		Port:       testPort,
+		Features:   defaultFeatures,
+		StaticPath: prepareServerAssets(t),
 	})
 	defer cleanup()
 
@@ -142,9 +140,9 @@ func TestServerRunning(t *testing.T) {
 	// wait for our test http server to come up
 	checkHTTPReady(httpClient, serverURL)
 
-	if _, err = getRequestResults(t, httpClient, serverURL); err != nil {
-		t.Fatalf("Failed: could not fetch static files on / (root): %v", err)
-	}
+	body, err := getRequestResults(t, httpClient, serverURL)
+	require.NoError(t, err, "could not fetch static files on / (root)")
+	require.Equal(t, testPluginContent, body)
 
 	if _, err = getRequestResults(t, httpClient, serverURL+"/health"); err != nil {
 		t.Fatalf("Failed: could not fetch health check: %v", err)
@@ -170,11 +168,15 @@ func TestServerRunning(t *testing.T) {
 }
 
 func TestSecureServerRunning(t *testing.T) {
-	srv := startTLSTestServer(t, &Config{Features: defaultFeatures})
+	srv := startTLSTestServer(t, &Config{
+		Features:   defaultFeatures,
+		StaticPath: prepareServerAssets(t),
+	})
 	httpClient := srv.client(t, &tls.Config{})
 
-	_, err := getRequestResults(t, httpClient, srv.url)
+	body, err := getRequestResults(t, httpClient, srv.url)
 	require.NoError(t, err, "could not fetch static files on / (root)")
+	require.Equal(t, testPluginContent, body)
 
 	_, err = getRequestResults(t, httpClient, srv.url+"/health")
 	require.NoError(t, err, "could not fetch API endpoint")
@@ -220,17 +222,11 @@ func getFreePort(host string) (int, error) {
 }
 
 func prepareServerAssets(t *testing.T) string {
-	tmpDir, err := os.MkdirTemp("", "server-test")
-	require.NoError(t, err)
-	distpath := filepath.Join(tmpDir, "web/dist")
-	err = os.MkdirAll(distpath, os.ModePerm)
-	require.NoError(t, err)
-	dummyfile := filepath.Join(distpath, "dummy")
-	_, err = os.Create(dummyfile)
-	require.NoError(t, err)
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err)
-	return tmpDir
+	t.Helper()
+
+	tempDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(tempDir, "index.html"), []byte(testPluginContent), 0600))
+	return tempDir
 }
 
 func getRequestResults(t *testing.T, httpClient *http.Client, url string) (string, error) {
