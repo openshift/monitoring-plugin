@@ -7,6 +7,9 @@ import { ALL_NAMESPACES_KEY } from '@/shared/utils/utils';
 
 const intervalVariableRegExps = ['__interval', '__rate_interval', '__auto_interval_[a-z]+'];
 
+const isAllValue = (value?: string): boolean =>
+  value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY || value === ALL_NAMESPACES_KEY;
+
 export const isIntervalVariable = (itemKey: string): boolean =>
   _.some(intervalVariableRegExps, (re) =>
     itemKey?.match(new RegExp(`\\$${re}(?![a-zA-Z0-9_])`, 'g')),
@@ -62,11 +65,12 @@ export const evaluateVariableTemplate = (
         result = undefined;
         return false;
       }
-      const isAllOption = v.value === MONITORING_DASHBOARDS_VARIABLE_ALL_OPTION_KEY;
-      let replacement = isAllOption ? '.+' : v.value || '';
-      if (k === 'namespace' && namespace !== ALL_NAMESPACES_KEY) {
-        replacement = namespace;
-      }
+      // Only a concrete project namespace overrides the namespace variable; "all" values
+      // (from the project selector or the variable's own "All" option) fall back to the
+      // variable value. The ALL check must run after the override so it sees the final value.
+      const value = k === 'namespace' && namespace && !isAllValue(namespace) ? namespace : v.value;
+      const isAllOption = isAllValue(value);
+      const replacement = isAllOption ? '.+' : value || '';
 
       if (isAllOption) {
         result = result.replace(re, replacement);
