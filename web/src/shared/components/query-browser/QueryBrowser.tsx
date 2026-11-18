@@ -648,7 +648,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const [containerRef, width] = useRefWidth();
 
-  const endTime = xDomain?.[1];
+  const endTime = fixedEndTime ?? xDomain?.[1];
 
   const safeFetch = useSafeFetch();
   const requests = useRef({ nextId: 0, oldestAllowedId: 0 });
@@ -704,7 +704,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
-    const timeRanges = getTimeRanges(span, endTime || now);
+    const timeRanges = getTimeRanges(span, endTime ?? now);
 
     const queryPromises = _.map(queries, (query) => {
       if (_.isEmpty(query)) {

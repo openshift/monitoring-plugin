@@ -239,17 +239,8 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
     const end = Date.now() - 10 * 60 * 1000; // 10 min ago
     const start = end - 5 * 60 * 1000; // 5 min before end
 
-    cy.intercept(
-      {
-        method: 'GET',
-        pathname: '**/api/v1/query_range',
-      },
-      (req) => {
-        if (req.query.query === query && Number(req.query.end) === end / 1000) {
-          req.alias = 'fixedTimeRange';
-        }
-      },
-    );
+    const rangeRequest = { method: 'GET', pathname: '**/api/v1/query_range', query: { query } };
+    cy.intercept(rangeRequest).as('fixedTimeRange');
 
     cy.log('6.1 Open Metrics with a fixed five-minute interval');
     cy.visit({
@@ -264,22 +255,13 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
 
     cy.wait('@fixedTimeRange').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200);
+      expect(Number(request.query.end)).to.equal(end / 1000);
 
       // Existing query construction adjusts the start boundary by 1ms.
       expect(Number(request.query.start)).to.be.closeTo(start / 1000, 0.002);
     });
 
-    cy.intercept(
-      {
-        method: 'GET',
-        pathname: '**/api/v1/query_range',
-      },
-      (req) => {
-        if (req.query.query === query && Number(req.query.end) === end / 1000) {
-          req.alias = 'reloadedTimeRange';
-        }
-      },
-    );
+    cy.intercept(rangeRequest).as('reloadedTimeRange');
 
     cy.log('6.2 Reload and verify that the fixed interval is restored');
     cy.reload();
@@ -291,6 +273,7 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
 
     cy.wait('@reloadedTimeRange').then(({ request, response }) => {
       expect(response?.statusCode).to.equal(200);
+      expect(Number(request.query.end)).to.equal(end / 1000);
       expect(Number(request.query.start)).to.equal((start + 1) / 1000);
     });
   });
