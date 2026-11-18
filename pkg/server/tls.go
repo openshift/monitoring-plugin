@@ -19,9 +19,29 @@ var supportedCurves = []supportedCurve{
 	{id: tls.CurveP256, tls12: true},
 	{id: tls.CurveP384, tls12: true},
 	{id: tls.CurveP521, tls12: true},
-	{id: tls.X25519MLKEM768},
-	{id: tls.SecP256r1MLKEM768},
-	{id: tls.SecP384r1MLKEM1024},
+	{id: tls.X25519MLKEM768, tls12: false},
+	{id: tls.SecP256r1MLKEM768, tls12: false},
+	{id: tls.SecP384r1MLKEM1024, tls12: false},
+}
+
+var tlsVersions = map[string]uint16{
+	"VersionTLS12": tls.VersionTLS12,
+	"VersionTLS13": tls.VersionTLS13,
+}
+
+// ParseTLSVersion returns 0 for an empty version (use the default) and falls
+// back to TLS 1.2 with a warning for unknown or unsupported versions.
+func ParseTLSVersion(version string) uint16 {
+	if version == "" {
+		return 0
+	}
+
+	if v, ok := tlsVersions[version]; ok {
+		return v
+	}
+
+	log.Warnf("Invalid TLS version %q, using default VersionTLS12", version)
+	return tls.VersionTLS12
 }
 
 // OpenShift API TLSGroup names that differ from the Go ones.

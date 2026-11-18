@@ -68,9 +68,9 @@ func main() {
 	log.Infof("enabled features: %+q\n", featuresList)
 
 	// Parse the TLS configuration.
-	tlsMinVer := parseTLSVersion(tlsMinVersion)
+	tlsMinVer := server.ParseTLSVersion(tlsMinVersion)
 	log.Infof("Min TLS version: %q", tls.VersionName(tlsMinVer))
-	tlsMaxVer := parseTLSVersion(tlsMaxVersion)
+	tlsMaxVer := server.ParseTLSVersion(tlsMaxVersion)
 	if tlsMaxVer != 0 {
 		log.Infof("Max TLS version: %q", tls.VersionName(tlsMaxVer))
 	}
@@ -136,27 +136,4 @@ func mergeEnvValueInt(key string, arg int) int {
 	}
 
 	return i
-}
-
-func getTLSVersionsMap() map[string]uint16 {
-	versions := make(map[string]uint16)
-
-	versions["VersionTLS12"] = tls.VersionTLS12
-	versions["VersionTLS13"] = tls.VersionTLS13
-
-	return versions
-}
-
-func parseTLSVersion(version string) uint16 {
-	if version == "" {
-		return 0
-	}
-
-	tlsVersions := getTLSVersionsMap()
-	if v, ok := tlsVersions[version]; ok {
-		return v
-	}
-
-	log.Warnf("Invalid TLS version %q, using default VersionTLS12", version)
-	return tls.VersionTLS12
 }

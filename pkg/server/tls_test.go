@@ -167,6 +167,25 @@ func TestCipherSuiteNames(t *testing.T) {
 	)
 }
 
+func TestParseTLSVersion(t *testing.T) {
+	for _, tt := range []struct {
+		input    string
+		expected uint16
+	}{
+		{input: "", expected: 0},
+		{input: "VersionTLS12", expected: tls.VersionTLS12},
+		{input: "VersionTLS13", expected: tls.VersionTLS13},
+		// Unsupported or unknown versions fall back to TLS 1.2.
+		{input: "VersionTLS10", expected: tls.VersionTLS12},
+		{input: "VersionTLS11", expected: tls.VersionTLS12},
+		{input: "invalid", expected: tls.VersionTLS12},
+	} {
+		t.Run(tt.input, func(t *testing.T) {
+			require.Equal(t, tt.expected, ParseTLSVersion(tt.input))
+		})
+	}
+}
+
 func TestNewBaseTLSConfig(t *testing.T) {
 	pqOnly := []tls.CurveID{tls.X25519MLKEM768, tls.SecP256r1MLKEM768, tls.SecP384r1MLKEM1024}
 	tls13Only := []uint16{tls.TLS_AES_128_GCM_SHA256, tls.TLS_AES_256_GCM_SHA384}
