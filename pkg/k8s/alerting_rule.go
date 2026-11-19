@@ -62,7 +62,14 @@ func (arm *alertingRuleManager) List(ctx context.Context) ([]osmv1.AlertingRule,
 }
 
 func (arm *alertingRuleManager) Get(ctx context.Context, name string) (*osmv1.AlertingRule, bool, error) {
-	ar, err := arm.clientset.MonitoringV1().AlertingRules(ClusterMonitoringNamespace).Get(ctx, name, metav1.GetOptions{})
+	// Reads run with the caller's authorization so AlertingRule contents are
+	// not disclosed to callers without read permissions for them.
+	cs, err := arm.clientsetForCtx(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	ar, err := cs.MonitoringV1().AlertingRules(ClusterMonitoringNamespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, false, nil

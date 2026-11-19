@@ -9,16 +9,31 @@ import (
 )
 
 func notAllowedGitOpsEdit() error {
-	return &NotAllowedError{Message: "This alert is managed by GitOps; edit it in Git."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by GitOps; edit it in Git.",
+		ManagedBy: ManagedByGitOps,
+	}
 }
+
 func notAllowedGitOpsRemove() error {
-	return &NotAllowedError{Message: "This alert is managed by GitOps; remove it in Git."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by GitOps; remove it in Git.",
+		ManagedBy: ManagedByGitOps,
+	}
 }
+
 func notAllowedOperatorUpdate() error {
-	return &NotAllowedError{Message: "This alert is managed by an operator; it can't be updated and can only be silenced."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by an operator; it can't be updated and can only be silenced.",
+		ManagedBy: ManagedByOperator,
+	}
 }
+
 func notAllowedOperatorDelete() error {
-	return &NotAllowedError{Message: "This alert is managed by an operator; it can't be deleted and can only be silenced."}
+	return &NotAllowedError{
+		Message:   "This alert is managed by an operator; it can't be deleted and can only be silenced.",
+		ManagedBy: ManagedByOperator,
+	}
 }
 
 func isRuleManagedByGitOpsLabel(relabeled monitoringv1.Rule) bool {
@@ -42,19 +57,24 @@ func validateUserDeletePreconditions(relabeled monitoringv1.Rule) error {
 	return nil
 }
 
+// validateUserUpdatePreconditions reports whether a user-defined rule update
+// is allowed. The live PrometheusRule is authoritative when available: the
+// relabeled rule's managed-by label is a relabel-time snapshot and can be
+// stale, so it is only consulted when the PrometheusRule is not.
 func validateUserUpdatePreconditions(relabeled monitoringv1.Rule, pr *monitoringv1.PrometheusRule) error {
-	if isRuleManagedByGitOpsLabel(relabeled) {
-		return notAllowedGitOpsEdit()
-	}
-	if isRuleManagedByOperator(relabeled) {
-		return notAllowedOperatorUpdate()
-	}
 	if pr != nil {
 		if gitOpsManaged, operatorManaged := k8s.IsExternallyManagedObject(pr); gitOpsManaged {
 			return notAllowedGitOpsEdit()
 		} else if operatorManaged {
 			return notAllowedOperatorUpdate()
 		}
+		return nil
+	}
+	if isRuleManagedByGitOpsLabel(relabeled) {
+		return notAllowedGitOpsEdit()
+	}
+	if isRuleManagedByOperator(relabeled) {
+		return notAllowedOperatorUpdate()
 	}
 	return nil
 }
