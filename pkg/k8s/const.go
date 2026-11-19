@@ -10,6 +10,7 @@ const (
 	UserWorkloadAlertmanagerRouteName = "alertmanager-user-workload"
 	PrometheusAlertsPath              = "/v1/alerts"
 	PrometheusRulesPath               = "/v1/rules"
+	PrometheusConfigPath              = "/api/v1/status/config"
 	AlertmanagerAlertsPath            = "/api/v2/alerts"
 	UserWorkloadAlertmanagerPort      = 9095
 	UserWorkloadPrometheusServiceName = "prometheus-user-workload-web"
