@@ -593,7 +593,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   disabledSeries,
   disableZoom,
   filterLabels,
-  fixedEndTime,
+  fixedEndTime: requestedEndTime,
   formatSeriesTitle,
   GraphLink,
   hideControls,
@@ -651,6 +651,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const [containerRef, width] = useRefWidth();
 
+  const fixedEndTime = Number.isFinite(requestedEndTime) ? requestedEndTime : undefined;
   const endTime = fixedEndTime ?? xDomain?.[1];
 
   const safeFetch = useSafeFetch();

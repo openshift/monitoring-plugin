@@ -4,6 +4,7 @@ import { act, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { legacy_createStore } from 'redux';
+import { NumberParam } from 'use-query-params';
 
 import { QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
 import { defaultObserveState } from '@/shared/store/store';
@@ -29,36 +30,48 @@ vi.mock('@patternfly/react-charts/victory', async (importOriginal) => ({
 
 afterEach(() => {
   vi.useRealTimers();
+  fetchJSON.mockReset();
 });
 
-it('keeps the request and graph fixed at the Unix epoch even when polling is enabled', async () => {
-  vi.useFakeTimers();
-  fetchJSON.mockResolvedValue({
-    data: { result: [{ metric: {}, values: [[0, '1']] }] },
-  });
-  const store = legacy_createStore(() => ({ plugins: { mp: defaultObserveState } }));
+it.each([
+  { search: '?endTime=0', expectedEnd: 0, requestCount: 1 },
+  { search: '?endTime=', expectedEnd: 1700000000000, requestCount: 2 },
+  { search: '?endTime=abc', expectedEnd: 1700000000000, requestCount: 2 },
+  { search: '?endTime=Infinity', expectedEnd: 1700000000000, requestCount: 2 },
+])(
+  'uses the expected range and polling for $search',
+  async ({ search, expectedEnd, requestCount }) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1700000000000);
+    const fixedEndTime = NumberParam.decode(new URLSearchParams(search).get('endTime'));
+    fetchJSON.mockResolvedValue({
+      data: { result: [{ metric: {}, values: [[0, '1']] }] },
+    });
+    const store = legacy_createStore(() => ({ plugins: { mp: defaultObserveState } }));
 
-  await act(async () => {
-    render(
-      <Provider store={store}>
-        <MemoryRouter>
-          <QueryBrowser
-            queries={['vector(1)']}
-            timespan={300000}
-            fixedEndTime={0}
-            pollInterval={15000}
-            hideControls
-            disableZoom
-          />
-        </MemoryRouter>
-      </Provider>,
-    );
-  });
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <MemoryRouter>
+            <QueryBrowser
+              queries={['vector(1)']}
+              timespan={300000}
+              fixedEndTime={fixedEndTime}
+              pollInterval={15000}
+              hideControls
+              disableZoom
+            />
+          </MemoryRouter>
+        </Provider>,
+      );
+    });
 
-  const params = new URL(fetchJSON.mock.calls[0][0], 'http://localhost').searchParams;
-  expect(params.get('end')).toBe('0');
-  expect(params.get('start')).toBe('-299.999');
-  expect(screen.getByRole('status').textContent).toBe('-300000,0');
-  await act(() => vi.advanceTimersByTimeAsync(15000));
-  expect(fetchJSON).toHaveBeenCalledTimes(1);
-});
+    const params = new URL(fetchJSON.mock.calls[0][0], 'http://localhost').searchParams;
+    const expectedStart = expectedEnd - 300000;
+    expect(params.get('end')).toBe(String(expectedEnd / 1000));
+    expect(params.get('start')).toBe(String((expectedStart + 1) / 1000));
+    expect(screen.getByRole('status').textContent).toBe(`${expectedStart},${expectedEnd}`);
+    await act(() => vi.advanceTimersByTimeAsync(15000));
+    expect(fetchJSON).toHaveBeenCalledTimes(requestCount);
+  },
+);
