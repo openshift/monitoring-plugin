@@ -11,12 +11,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 	v1 "github.com/prometheus/prometheus/web/api/v1"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
+	"github.com/openshift/monitoring-plugin/pkg/management/testutils"
 )
 
 func decodeRulesResp(t *testing.T, w *httptest.ResponseRecorder) managementrouter.GetRulesResponse {
@@ -189,9 +192,65 @@ func TestGetRules_ReturnsGroups(t *testing.T) {
 			w := f.get(t, "/api/v1/alerting/rules")
 			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 			require.Equal(t, "application/json", w.Header().Get("Content-Type"))
-			require.JSONEq(t, string(expected), w.Body.String())
+			var response map[string]any
+			require.NoError(t, json.Unmarshal(w.Body.Bytes(), &response))
+			data := response["data"].(map[string]any)
+			for _, entry := range data["groups"].([]any) {
+				group := entry.(map[string]any)
+				for _, entry := range group["rules"].([]any) {
+					rule := entry.(map[string]any)
+					if rule["type"] == k8s.RuleTypeAlerting {
+						require.Equal(t, true, rule["alertingRuleEnabled"])
+						delete(rule, "alertingRuleEnabled")
+					} else {
+						require.NotContains(t, rule, "alertingRuleEnabled")
+					}
+				}
+			}
+			actual, err := json.Marshal(response)
+			require.NoError(t, err)
+			require.JSONEq(t, string(expected), string(actual))
 		})
 	}
+}
+
+func TestGetRules_ReturnsDisabledRuleWithoutActiveAlerts(t *testing.T) {
+	f := newAGFixture(t)
+	drop := relabel.DefaultRelabelConfig
+	drop.Action = relabel.Drop
+	drop.SourceLabels = model.LabelNames{"alertname"}
+	drop.Regex = relabel.MustNewRegexp("DroppedAlert")
+	f.mockK8s.RelabeledRulesFunc = func() k8s.RelabeledRulesInterface {
+		return &testutils.MockRelabeledRulesInterface{
+			ConfigFunc: func() []*relabel.Config { return []*relabel.Config{&drop} },
+		}
+	}
+	f.mockPrometheusAlerts.SetRuleGroups([]k8s.PrometheusRuleGroup{{
+		Name: "group-a",
+		Rules: []k8s.Rule{&k8s.AlertingRule{
+			Name: "DroppedAlert", State: "inactive", Type: k8s.RuleTypeAlerting,
+		}},
+	}})
+
+	w := f.get(t, "/api/v1/alerting/rules")
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var response struct {
+		Data struct {
+			Groups []struct {
+				Rules []struct {
+					Name                string `json:"name"`
+					AlertingRuleEnabled *bool  `json:"alertingRuleEnabled"`
+				} `json:"rules"`
+			} `json:"groups"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &response))
+	require.Len(t, response.Data.Groups, 1)
+	require.Len(t, response.Data.Groups[0].Rules, 1)
+	rule := response.Data.Groups[0].Rules[0]
+	require.Equal(t, "DroppedAlert", rule.Name)
+	require.NotNil(t, rule.AlertingRuleEnabled, "false must be present in the JSON response")
+	require.False(t, *rule.AlertingRuleEnabled)
 }
 
 func TestGetRules_WarningsSurfacedFromFetchRules(t *testing.T) {

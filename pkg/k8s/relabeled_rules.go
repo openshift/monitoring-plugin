@@ -38,6 +38,12 @@ const (
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
 
+	// AlertRuleDroppedLabel marks cache entries of rules dropped by the alert
+	// relabel configs. Dropped entries keep their original (pre-relabel)
+	// labels so rule APIs can still resolve the rule's identity.
+	AlertRuleDroppedLabel = "openshift_io_alert_rule_dropped"
+	AlertRuleDroppedValue = "true"
+
 	AlertRuleClassificationComponentKey     = "openshift_io_alert_rule_component"
 	AlertRuleClassificationLayerKey         = "openshift_io_alert_rule_layer"
 	AlertRuleClassificationComponentFromKey = "openshift_io_alert_rule_component_from"
@@ -312,17 +318,24 @@ func (rrm *relabeledRulesManager) collectAlerts(ctx context.Context, relabelConf
 				}
 				rule.Labels = clonedLabels
 
+				// Do not trust any user-provided dropped marker, for the same
+				// reason as the alert rule id above.
+				delete(rule.Labels, AlertRuleDroppedLabel)
+
 				rule.Labels[managementlabels.AlertNameLabel] = rule.Alert
 
 				if rrm.namespaceManager.IsClusterMonitoringNamespace(promRule.Namespace) {
 					lb := labels.NewBuilder(labels.FromMap(rule.Labels))
 					keep := relabel.ProcessBuilder(lb, relabelConfigs...)
 					if !keep {
-						log.Infof("Skipping dropped alert %s from %s/%s", rule.Alert, promRule.Namespace, promRule.Name)
-						continue
+						// Retain dropped rules with their original labels plus a
+						// marker so rule APIs can still resolve their identity.
+						// Alert-facing consumers exclude them via List.
+						rule.Labels[AlertRuleDroppedLabel] = AlertRuleDroppedValue
+						log.Infof("Caching dropped alert %s from %s/%s", rule.Alert, promRule.Namespace, promRule.Name)
+					} else {
+						rule.Labels = lb.Labels().Map()
 					}
-
-					rule.Labels = lb.Labels().Map()
 				}
 
 				rule.Labels[AlertRuleLabelId] = alertRuleId
@@ -476,7 +489,36 @@ func DetermineManagedBy(ctx context.Context, alertRelabelConfigs AlertRelabelCon
 	return rrm.determineManagedBy(promRule, alertRuleId, arcByName)
 }
 
+// IsDroppedRule reports whether the cached rule was dropped by the alert
+// relabel configs. Dropped entries are retained in the cache with their
+// original labels and the dropped marker.
+func IsDroppedRule(ruleLabels map[string]string) bool {
+	return ruleLabels[AlertRuleDroppedLabel] == AlertRuleDroppedValue
+}
+
+// List retrieves the relabeled rules retained by the alert relabel configs.
+// Dropped rules are excluded; use ListIncludingDropped for rule APIs that
+// need to resolve dropped rules too.
 func (rrm *relabeledRulesManager) List(ctx context.Context) []monitoringv1.Rule {
+	rrm.mu.RLock()
+	defer rrm.mu.RUnlock()
+
+	result := make([]monitoringv1.Rule, 0, len(rrm.relabeledRules))
+	for _, rule := range rrm.relabeledRules {
+		if IsDroppedRule(rule.Labels) {
+			continue
+		}
+		result = append(result, deepCopyRule(rule))
+	}
+
+	return result
+}
+
+// ListIncludingDropped retrieves all relabeled rules, including rules
+// dropped by the alert relabel configs. Dropped entries keep their original
+// labels plus the dropped marker. Alert-facing consumers must use List so
+// that dropped rules stay hidden.
+func (rrm *relabeledRulesManager) ListIncludingDropped(ctx context.Context) []monitoringv1.Rule {
 	rrm.mu.RLock()
 	defer rrm.mu.RUnlock()
 

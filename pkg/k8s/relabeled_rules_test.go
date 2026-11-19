@@ -6,8 +6,15 @@ import (
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/relabel"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/tools/cache"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
 )
 
@@ -153,5 +160,97 @@ func TestDetermineManagedBy_NonPlatformRuleSkipsARCLookup(t *testing.T) {
 
 	if relabelConfigManagedBy != "" {
 		t.Errorf("expected empty relabelConfigManagedBy for non-platform rule, got %q", relabelConfigManagedBy)
+	}
+}
+
+// TestCollectAlerts_DroppedPlatformRuleRetainedWithID verifies that a
+// platform rule dropped by the relabel configs is retained in the cache
+// with its computed rule ID and a dropped marker, and that List() keeps
+// hiding it from alert-facing consumers while ListIncludingDropped()
+// exposes it to the rules API.
+func TestCollectAlerts_DroppedPlatformRuleRetainedWithID(t *testing.T) {
+	promRule := &monitoringv1.PrometheusRule{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "openshift-monitoring",
+			Name:      "platform-rules",
+		},
+		Spec: monitoringv1.PrometheusRuleSpec{
+			Groups: []monitoringv1.RuleGroup{{
+				Name: "group-a",
+				Rules: []monitoringv1.Rule{{
+					Alert: "DroppedAlert",
+					Expr:  intstr.FromString("up == 0"),
+					Labels: map[string]string{
+						"severity": "warning",
+					},
+				}},
+			}},
+		},
+	}
+
+	// Seed the informer store directly; the list/watch funcs must never run.
+	panicListWatch := &cache.ListWatch{
+		ListFunc: func(_ metav1.ListOptions) (runtime.Object, error) {
+			panic("list must not be called; the store is seeded directly")
+		},
+		WatchFunc: func(_ metav1.ListOptions) (watch.Interface, error) {
+			panic("watch must not be called; the store is seeded directly")
+		},
+	}
+	prometheusRulesInformer := cache.NewSharedIndexInformer(
+		panicListWatch, &monitoringv1.PrometheusRule{}, resyncPeriod, cache.Indexers{},
+	)
+	if err := prometheusRulesInformer.GetStore().Add(promRule); err != nil {
+		t.Fatalf("failed to seed informer store: %v", err)
+	}
+
+	dropByAlertName := []*relabel.Config{{
+		SourceLabels:         model.LabelNames{managementlabels.AlertNameLabel},
+		Regex:                relabel.MustNewRegexp("DroppedAlert"),
+		Action:               relabel.Drop,
+		NameValidationScheme: model.UTF8Validation,
+	}}
+
+	rrm := &relabeledRulesManager{
+		namespaceManager: &stubNamespaceManager{
+			platformNamespaces: map[string]bool{"openshift-monitoring": true},
+		},
+		alertRelabelConfigs:     &arcGetPanicInterface{},
+		prometheusRulesInformer: prometheusRulesInformer,
+		relabeledRules:          map[string]monitoringv1.Rule{},
+	}
+
+	alerts, _ := rrm.collectAlerts(context.Background(), dropByAlertName)
+
+	expectedID := alertrule.GetAlertingRuleId(&promRule.Spec.Groups[0].Rules[0])
+	cached, ok := alerts[expectedID]
+	if !ok {
+		t.Fatalf("expected dropped rule %q to be retained in the cache", expectedID)
+	}
+
+	if !IsDroppedRule(cached.Labels) {
+		t.Errorf("expected retained rule to carry the dropped marker, labels: %v", cached.Labels)
+	}
+	if got := cached.Labels[AlertRuleLabelId]; got != expectedID {
+		t.Errorf("label[%s]: want %q, got %q", AlertRuleLabelId, expectedID, got)
+	}
+	if got := cached.Labels[PrometheusRuleLabelNamespace]; got != "openshift-monitoring" {
+		t.Errorf("label[%s]: want %q, got %q", PrometheusRuleLabelNamespace, "openshift-monitoring", got)
+	}
+	if got := cached.Labels[PrometheusRuleLabelName]; got != "platform-rules" {
+		t.Errorf("label[%s]: want %q, got %q", PrometheusRuleLabelName, "platform-rules", got)
+	}
+	if got := cached.Labels["severity"]; got != "warning" {
+		t.Errorf("label[severity]: want %q, got %q", "warning", got)
+	}
+
+	// Alert-facing consumers (get_alerts.go) must not see the dropped rule.
+	rrm.relabeledRules = alerts
+	if got := rrm.List(context.Background()); len(got) != 0 {
+		t.Errorf("expected List() to exclude the dropped rule, got %d entries", len(got))
+	}
+	// The rules API must still resolve the dropped rule's identity.
+	if got := rrm.ListIncludingDropped(context.Background()); len(got) != 1 {
+		t.Errorf("expected ListIncludingDropped() to return the dropped rule, got %d entries", len(got))
 	}
 }
