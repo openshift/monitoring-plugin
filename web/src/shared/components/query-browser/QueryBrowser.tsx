@@ -899,19 +899,24 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const onSpanChange = useCallback(
     (newSpan: number) => {
-      const rangeChanged = newSpan !== span || xDomain !== undefined;
+      const rangeChanged =
+        newSpan !== span || (fixedEndTime === undefined && xDomain !== undefined);
 
       if (rangeChanged) {
         setGraphData(null);
         setXDomain(undefined);
         setSpan(newSpan);
-        dispatch(queryBrowserSetTimespan(newSpan));
         setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      }
+
+      // The parent can clear the fixed range and use this preset as the relative span.
+      if (rangeChanged || (fixedEndTime !== undefined && onSpanChangeProp)) {
+        dispatch(queryBrowserSetTimespan(newSpan));
       }
 
       onSpanChangeProp?.(newSpan);
     },
-    [defaultSamples, dispatch, onSpanChangeProp, span, xDomain],
+    [defaultSamples, dispatch, fixedEndTime, onSpanChangeProp, span, xDomain],
   );
 
   const isRangeVector = _.get(error, 'json.error', '').match(

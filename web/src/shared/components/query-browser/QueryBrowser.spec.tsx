@@ -1,12 +1,13 @@
 /** @vitest-environment jsdom */
 
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { legacy_createStore } from 'redux';
 import { NumberParam } from 'use-query-params';
 
 import { QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
+import { queryBrowserSetTimespan } from '@/shared/store/actions';
 import { defaultObserveState } from '@/shared/store/store';
 
 const fetchJSON = vi.hoisted(() => vi.fn<(url: string) => Promise<unknown>>());
@@ -73,5 +74,50 @@ it.each([
     expect(screen.getByRole('status').textContent).toBe(`${expectedStart},${expectedEnd}`);
     await act(() => vi.advanceTimersByTimeAsync(15000));
     expect(fetchJSON).toHaveBeenCalledTimes(requestCount);
+  },
+);
+
+it.each([
+  { caller: 'without a callback', notifyParent: false },
+  { caller: 'with a callback', notifyParent: true },
+])(
+  'preserves a fixed graph after reselecting the same duration $caller',
+  async ({ notifyParent }) => {
+    vi.useFakeTimers();
+    const span = 300000;
+    fetchJSON.mockResolvedValue({
+      data: { result: [{ metric: {}, values: [[0, '1']] }] },
+    });
+    const store = legacy_createStore(() => ({ plugins: { mp: defaultObserveState } }));
+    const dispatch = vi.spyOn(store, 'dispatch');
+    const onSpanChange = notifyParent ? vi.fn() : undefined;
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <MemoryRouter>
+            <QueryBrowser
+              queries={['vector(1)']}
+              timespan={span}
+              fixedEndTime={0}
+              onSpanChange={onSpanChange}
+              disableZoom
+            />
+          </MemoryRouter>
+        </Provider>,
+      );
+    });
+
+    expect(screen.getByRole('status').textContent).toBe('-300000,0');
+    fireEvent.click(screen.getByRole('button', { name: 'graph timespan' }));
+    fireEvent.click(screen.getByText('5m'));
+    await act(() => vi.advanceTimersByTimeAsync(400));
+
+    expect(screen.getByRole('status').textContent).toBe('-300000,0');
+    expect(fetchJSON).toHaveBeenCalledTimes(1);
+    if (onSpanChange) {
+      expect(onSpanChange).toHaveBeenCalledWith(span);
+      expect(dispatch).toHaveBeenCalledWith(queryBrowserSetTimespan(span));
+    }
   },
 );
