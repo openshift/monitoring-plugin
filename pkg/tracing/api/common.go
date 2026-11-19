@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -21,14 +20,10 @@ const (
 )
 
 func writeResponse(w http.ResponseWriter, code int, r Response) {
-	if r.Status != StatusSuccess {
-		log.Error(fmt.Sprintf("type=%s, error=%s", r.ErrorType, r.Error))
-	}
-
 	bytes, err := json.Marshal(r)
 	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.WithError(err).Error("cannot marshal response")
+		http.Error(w, "cannot marshal response", http.StatusInternalServerError)
 		return
 	}
 

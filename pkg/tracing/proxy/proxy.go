@@ -30,6 +30,10 @@ import (
 
 var log = logrus.WithField("module", "proxy")
 
+var errTempoNotFound = errors.New("is not a valid Tempo resource")
+
+var errResponseRewrite = errors.New("cannot rewrite Tempo response")
+
 type ProxyHandler struct {
 	k8sclient       *dynamic.DynamicClient
 	serviceCAfile   string
@@ -162,7 +166,7 @@ func (h *ProxyHandler) buildTLSConfig() (*tls.Config, error) {
 	if h.serviceCAfile != "" {
 		serviceCertPEM, err := os.ReadFile(h.serviceCAfile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read certificate file: tried '%s' and got %v", h.serviceCAfile, err)
+			return nil, fmt.Errorf("failed to read service CA file: %w", errors.Unwrap(err))
 		}
 
 		serviceProxyRootCAs := x509.NewCertPool()
@@ -253,21 +257,29 @@ func (h *ProxyHandler) createProxy(tempo api.TempoResource, tenant string) (*htt
 
 	reverseProxy.ModifyResponse = func(resp *http.Response) error {
 		if err := FilterHeaders(resp); err != nil {
-			return err
+			return fmt.Errorf("%w: %w", errResponseRewrite, err)
 		}
-		return addEmptyTracesField(resp)
+		if err := addEmptyTracesField(resp); err != nil {
+			return fmt.Errorf("%w: %w", errResponseRewrite, err)
+		}
+		return nil
 	}
+	tempoLog := log.WithFields(logrus.Fields{"namespace": tempo.Namespace, "tempo": tempo.Name})
 	reverseProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf("http: proxy error: %v", err)
-		w.WriteHeader(http.StatusBadGateway)
-		_, _ = fmt.Fprintf(w, "Error connecting to Tempo instance: %s", err)
+		errorKind := monitoring.ErrorKind(err)
+		if errors.Is(err, errResponseRewrite) {
+			errorKind = "response_rewrite"
+		}
+		tempoLog.WithField("error_kind", errorKind).Error("error connecting to Tempo instance")
+		http.Error(w, "Error connecting to Tempo instance", http.StatusBadGateway)
 	}
+	reverseProxy.ErrorLog = monitoring.NewRedactedErrorLog(tempoLog)
 	return reverseProxy, nil
 }
 
-func handleError(w http.ResponseWriter, code int, err error) {
-	log.Error(err)
-	http.Error(w, err.Error(), code)
+func handleError(w http.ResponseWriter, code int, clientMsg string, err error) {
+	log.WithField("error_kind", monitoring.ErrorKind(err)).Error(clientMsg)
+	http.Error(w, clientMsg, code)
 }
 
 func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -278,12 +290,14 @@ func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	tenant := vars["tenant"]
 
 	if len(namespace) == 0 {
-		handleError(w, http.StatusBadRequest, errors.New("cannot proxy request, namespace was not provided"))
+		const msg = "cannot proxy request, namespace was not provided"
+		handleError(w, http.StatusBadRequest, msg, errors.New(msg))
 		return
 	}
 
 	if len(name) == 0 {
-		handleError(w, http.StatusBadRequest, errors.New("cannot proxy request, tempo name was not provided"))
+		const msg = "cannot proxy request, tempo name was not provided"
+		handleError(w, http.StatusBadRequest, msg, errors.New(msg))
 		return
 	}
 
@@ -298,13 +312,17 @@ func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// proxy not found in cache, validate if a Tempo resource exists with this namespace/name
 		tempo, err := h.lookupTempoResource(r.Context(), namespace, name)
 		if err != nil {
-			handleError(w, http.StatusInternalServerError, fmt.Errorf("cannot proxy request: %w", err))
+			clientMsg := "cannot proxy request: unable to look up Tempo resource"
+			if errors.Is(err, errTempoNotFound) {
+				clientMsg = fmt.Sprintf("cannot proxy request: %s", err)
+			}
+			handleError(w, http.StatusInternalServerError, clientMsg, fmt.Errorf("cannot proxy request: %w", err))
 			return
 		}
 
 		proxy, err = h.createProxy(tempo, tenant)
 		if err != nil {
-			handleError(w, http.StatusInternalServerError, fmt.Errorf("cannot proxy request: %w", err))
+			handleError(w, http.StatusInternalServerError, "cannot proxy request: unable to configure connection to Tempo instance", fmt.Errorf("cannot proxy request: %w", err))
 			return
 		}
 		h.proxyCache.Add(cacheKey, proxy)
@@ -330,7 +348,7 @@ func (h *ProxyHandler) lookupTempoResource(ctx context.Context, namespace string
 	}
 
 	if !found {
-		return api.TempoResource{}, fmt.Errorf("%s/%s is not a valid Tempo resource", namespace, name)
+		return api.TempoResource{}, fmt.Errorf("%s/%s %w", namespace, name, errTempoNotFound)
 	}
 	return tempo, nil
 }

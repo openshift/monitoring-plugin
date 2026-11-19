@@ -1,8 +1,10 @@
 package proxy
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,8 +13,16 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
+
+	"github.com/openshift/monitoring-plugin/pkg/tracing/api"
 )
 
 // startTLSServer starts a test HTTPS server with the given TLS config.
@@ -271,4 +281,92 @@ func TestAddEmptyTracesFieldOversizedResponseStillClosesOriginalBody(t *testing.
 
 	require.NoError(t, resp.Body.Close())
 	require.True(t, tracker.closed, "closing the replacement body should close the original underlying body")
+}
+
+func TestBuildTLSConfigMissingCADoesNotLeakPath(t *testing.T) {
+	dir := t.TempDir()
+	handler := NewProxyHandler(nil, dir+"/ca.crt", 0, nil)
+	_, err := handler.buildTLSConfig()
+	require.Error(t, err)
+	require.NotContains(t, err.Error(), dir)
+}
+
+// TestProxyErrorHandlerDoesNotLeakUpstream verifies that transport errors,
+// which embed the upstream URL, are neither logged nor returned to the client.
+func TestProxyErrorHandlerDoesNotLeakUpstream(t *testing.T) {
+	hook := logtest.NewGlobal()
+	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
+
+	handler := NewProxyHandler(nil, "", 0, nil)
+	proxy, err := handler.createProxy(api.TempoResource{Kind: api.KindTempoStack, Namespace: "ns", Name: "name", Tenants: []string{"dev"}}, "dev")
+	require.NoError(t, err)
+
+	const upstream = "tempo-name-gateway.ns.svc:8080"
+	transportErr := &url.Error{Op: "Get", URL: "https://" + upstream + "/api/traces/v1/dev/tempo", Err: fmt.Errorf("dial tcp 10.0.0.1:8080: connection refused")}
+	rec := httptest.NewRecorder()
+	proxy.ErrorHandler(rec, httptest.NewRequest(http.MethodGet, "/api/search", nil), transportErr)
+
+	require.Equal(t, http.StatusBadGateway, rec.Code)
+	require.NotContains(t, rec.Body.String(), upstream)
+	require.NotContains(t, rec.Body.String(), "10.0.0.1")
+	require.Len(t, hook.AllEntries(), 1)
+	line, err := hook.LastEntry().String()
+	require.NoError(t, err)
+	require.NotContains(t, line, upstream)
+	require.NotContains(t, line, "10.0.0.1")
+}
+
+// TestProxyLookupErrorDoesNotLeakAPIAddress verifies that a failed Tempo
+// resource lookup, whose transport error embeds the API server address, is
+// neither logged nor returned to the client.
+func TestProxyLookupErrorDoesNotLeakAPIAddress(t *testing.T) {
+	apiServer := httptest.NewServer(http.NotFoundHandler())
+	apiURL, err := url.Parse(apiServer.URL)
+	require.NoError(t, err)
+	apiServer.Close()
+
+	k8sclient, err := dynamic.NewForConfig(&rest.Config{Host: apiServer.URL})
+	require.NoError(t, err)
+
+	hook := logtest.NewGlobal()
+	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
+
+	// Route through mux so the path parameters are populated, as in server.go.
+	router := mux.NewRouter()
+	router.PathPrefix("/proxy/{namespace}/{name}/{tenant}").Handler(NewProxyHandler(k8sclient, "", 0, nil))
+
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequestWithContext(ctx, http.MethodGet, "/proxy/ns/name/tenant/api/search", nil))
+
+	require.Equal(t, http.StatusInternalServerError, rec.Code)
+	require.NotContains(t, rec.Body.String(), apiURL.Host)
+	require.Len(t, hook.AllEntries(), 1)
+	entry := hook.LastEntry()
+	require.Equal(t, "connection_refused", entry.Data["error_kind"])
+	line, err := entry.String()
+	require.NoError(t, err)
+	require.NotContains(t, line, apiURL.Host)
+}
+
+func TestProxyErrorHandlerClassifiesResponseRewrite(t *testing.T) {
+	hook := logtest.NewGlobal()
+	t.Cleanup(func() { logrus.StandardLogger().ReplaceHooks(make(logrus.LevelHooks)) })
+
+	handler := NewProxyHandler(nil, "", 0, nil)
+	proxy, err := handler.createProxy(api.TempoResource{Kind: api.KindTempoStack, Namespace: "ns", Name: "name", Tenants: []string{"dev"}}, "dev")
+	require.NoError(t, err)
+
+	rewriteErr := fmt.Errorf("%w: %w", errResponseRewrite, errors.New("read tcp 10.0.0.1:8080: connection reset by peer"))
+	rec := httptest.NewRecorder()
+	proxy.ErrorHandler(rec, httptest.NewRequest(http.MethodGet, "/api/search", nil), rewriteErr)
+
+	require.Equal(t, http.StatusBadGateway, rec.Code)
+	require.Len(t, hook.AllEntries(), 1)
+	entry := hook.LastEntry()
+	require.Equal(t, "response_rewrite", entry.Data["error_kind"])
+	line, err := entry.String()
+	require.NoError(t, err)
+	require.NotContains(t, line, "10.0.0.1")
 }
