@@ -11,10 +11,6 @@ export const persesDashboardsPanel = {
     cy.log('persesDashboardsPanel.addPanelShouldBeLoaded');
     commonPages.titleModalShouldHaveText(persesDashboardsModalTitles.ADD_PANEL);
     cy.get('input[name="' + editPersesDashboardsAddPanel.inputName + '"]').should('be.visible');
-    cy.get('#' + IDs.persesDashboardAddPanelForm)
-      .find('label')
-      .contains('Group')
-      .should('be.visible');
     cy.get('input[name="' + editPersesDashboardsAddPanel.inputDescription + '"]').should(
       'be.visible',
     );
@@ -122,7 +118,6 @@ export const persesDashboardsPanel = {
         .clear()
         .type(description);
     }
-    persesDashboardsPanel.clickDropdownAndSelectOption('Group', group);
     persesDashboardsPanel.clickDropdownAndSelectOption('Type', type);
 
     switch (type) {

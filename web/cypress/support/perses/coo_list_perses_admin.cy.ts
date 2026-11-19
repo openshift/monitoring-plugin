@@ -44,55 +44,67 @@ export function testCOOListPerses(
     listPersesDashboardsPage.clearAllFilters();
 
     cy.log(`1.8. Sort by Dashboard - Ascending`);
-    listPersesDashboardsPage.sortBy('Dashboard');
+    listPersesDashboardsPage.sortBy('Display Name');
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2],
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
       0,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[2],
       persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[0],
       1,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2],
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
       2,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2],
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
       3,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.PROMETHEUS_OVERVIEW[2],
       persesDashboardsDashboardDropdownPersesDev.PROMETHEUS_OVERVIEW[0],
       4,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[2],
       persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[0],
       5,
     );
 
     cy.log(`1.9. Sort by Dashboard - Descending`);
-    listPersesDashboardsPage.sortBy('Dashboard');
+    listPersesDashboardsPage.sortBy('Display Name');
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[2],
       persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[0],
       0,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.PROMETHEUS_OVERVIEW[2],
       persesDashboardsDashboardDropdownPersesDev.PROMETHEUS_OVERVIEW[0],
       1,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[2],
       persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
       2,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[2],
       persesDashboardsDashboardDropdownCOO.K8S_COMPUTE_RESOURCES_CLUSTER[0],
       3,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[2],
       persesDashboardsDashboardDropdownCOO.APM_DASHBOARD[0],
       4,
     );
     listPersesDashboardsPage.assertDashboardName(
+      persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[2],
       persesDashboardsDashboardDropdownCOO.ACCELERATORS_COMMON_METRICS[0],
       5,
     );
@@ -173,6 +185,7 @@ export function testCOOListPerses(
       listPersesDashboardsPage.renameDashboardEnterName(dashboardName);
       listPersesDashboardsPage.renameDashboardCancelButton();
       listPersesDashboardsPage.assertDashboardName(
+        persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[2],
         persesDashboardsDashboardDropdownPersesDev.THANOS_COMPACT_OVERVIEW[0],
         0,
       );

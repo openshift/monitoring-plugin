@@ -144,7 +144,8 @@ export const persesDashboardsEditVariables = {
       .find('input[role="combobox"][placeholder="Values"]')
       .click()
       .type(value, { delay: 100 })
-      .type('{enter}');
+      .type('{enter}')
+      .blur(); // Blur to commit the value as a chip in MUI Autocomplete
     cy.wait(2000);
     cy.byDataTestID(persesMUIDataTestIDs.editDashboardAddVariableRunQueryButton).click();
     cy.wait(2000);
