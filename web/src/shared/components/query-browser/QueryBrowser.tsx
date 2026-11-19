@@ -75,6 +75,7 @@ import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { DataTestIDs } from '@/shared/constants/data-test';
+import { MAX_TIMESPAN_MS } from '@/shared/constants/timespan';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { getObserveState } from '@/shared/hooks/usePerspective';
@@ -135,12 +136,14 @@ export const SpanControls = memo(
 
     const setSpan = (newText: string, isDebounced = false) => {
       const newSpan = parsePrometheusDuration(newText);
-      const newIsValid = newSpan > 0;
+      const newIsValid = newSpan > 0 && newSpan <= MAX_TIMESPAN_MS;
       setIsValid(newIsValid);
       setText(newText);
       if (newIsValid) {
         const fn = isDebounced ? debouncedOnChange : onChange;
         fn(newSpan);
+      } else {
+        debouncedOnChange.cancel();
       }
     };
 

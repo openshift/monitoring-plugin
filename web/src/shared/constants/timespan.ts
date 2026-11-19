@@ -1,6 +1,7 @@
 import { NumberParam, withDefault } from 'use-query-params';
 
 export const DEFAULT_TIMESPAN = 30 * 60 * 1000;
+export const MAX_TIMESPAN_MS = 365 * 24 * 60 * 60 * 1000;
 
 const DEFAULT_REFRESH_INTERVAL = 30 * 1000;
 

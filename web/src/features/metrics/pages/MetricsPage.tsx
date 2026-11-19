@@ -93,6 +93,7 @@ import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { QueryParams } from '@/shared/constants/query-params';
+import { MAX_TIMESPAN_MS } from '@/shared/constants/timespan';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useFeatures } from '@/shared/hooks/useFeatures';
@@ -1075,9 +1076,11 @@ const QueryBrowserWrapper: FC<{
   const urlStart = startParam?.trim() ? Number(startParam) : NaN;
   const urlEnd = endParam?.trim() ? Number(endParam) : NaN;
 
-  // Match the one-second minimum supported by the timespan input.
+  const hasValidDates =
+    Number.isFinite(new Date(urlStart).getTime()) && Number.isFinite(new Date(urlEnd).getTime());
   const durationMs = urlEnd - urlStart;
-  const urlTimespan = Number.isFinite(durationMs) && durationMs >= 1000 ? durationMs : undefined;
+  const urlTimespan =
+    hasValidDates && durationMs >= 1000 && durationMs <= MAX_TIMESPAN_MS ? durationMs : undefined;
 
   const urlEndTime = urlTimespan !== undefined ? urlEnd : undefined;
 
