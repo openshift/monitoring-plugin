@@ -75,11 +75,15 @@ export const getTimeRanges = (
     // If the query is smaller than a week, leave the the query the same since it won't timeout
     return [{ endTime: maxEndTime, duration: timespan }];
   }
-  const startTime = maxEndTime - timespan;
-  const timeRanges = [{ endTime: startTime + QUERY_CHUNK_SIZE, duration: QUERY_CHUNK_SIZE }];
-  while (timeRanges.at(-1).endTime < maxEndTime) {
-    const nextEndTime = timeRanges.at(-1).endTime + QUERY_CHUNK_SIZE;
-    timeRanges.push({ endTime: nextEndTime, duration: QUERY_CHUNK_SIZE });
+  const timeRanges: TimeRange[] = [];
+  let startTime = maxEndTime - timespan;
+  while (startTime < maxEndTime) {
+    const remaining = maxEndTime - startTime;
+    // QueryBrowser subtracts 1 ms from each chunk's duration. Keep a remainder
+    // of at most 1 ms in the same chunk so it doesn't produce a zero query step.
+    const endTime = remaining <= QUERY_CHUNK_SIZE + 1 ? maxEndTime : startTime + QUERY_CHUNK_SIZE;
+    timeRanges.push({ endTime, duration: endTime - startTime });
+    startTime = endTime;
   }
   return timeRanges;
 };
