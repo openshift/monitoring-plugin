@@ -223,12 +223,10 @@ func classifyFromRule(rule *monitoringv1.Rule) (string, string) {
 	}
 
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if component == "" || component == "Others" {
-		component = "Others"
+	if layer == "" || layer == alertcomponent.Unmatched {
 		layer = deriveLayerFromSource(rule.Labels)
 	}
 
-	component, layer = applyRuleScopedDefaults(rule.Labels, component, layer)
 	return component, layer
 }
 
@@ -238,11 +236,9 @@ func classifyFromAlertLabels(alertLabels map[string]string) (string, string) {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	layer, component := alertcomponent.DetermineComponent(lbls)
-	if component == "" || component == "Others" {
-		component = "Others"
+	if layer == "" || layer == alertcomponent.Unmatched {
 		layer = deriveLayerFromSource(alertLabels)
 	}
-	component, layer = applyRuleScopedDefaults(alertLabels, component, layer)
 	return component, layer
 }
 
@@ -258,24 +254,6 @@ func deriveLayerFromSource(labels map[string]string) string {
 		return "cluster"
 	}
 	return "namespace"
-}
-
-// applyRuleScopedDefaults applies static classification labels from the rule.
-func applyRuleScopedDefaults(ruleLabels map[string]string, component, layer string) (string, string) {
-	if ruleLabels == nil {
-		return component, layer
-	}
-	if v := strings.TrimSpace(ruleLabels[k8s.AlertRuleClassificationComponentKey]); v != "" {
-		if classification.ValidateComponent(v) {
-			component = v
-		}
-	}
-	if v := strings.TrimSpace(ruleLabels[k8s.AlertRuleClassificationLayerKey]); v != "" {
-		if classification.ValidateLayer(v) {
-			layer = strings.ToLower(strings.TrimSpace(v))
-		}
-	}
-	return component, layer
 }
 
 // applyDynamicClassification handles _from labels: the rule label points to an

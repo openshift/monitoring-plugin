@@ -213,7 +213,7 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 				model.LabelName(managementlabels.AlertNameLabel): "VMDown",
 			},
 			wantLayer:     "namespace",
-			wantComponent: "OpenShift Virtualization Virtual Machine",
+			wantComponent: "openshift-virtualization-virtual-machine",
 		},
 		{
 			name: "kubevirt operator alert",
@@ -224,7 +224,7 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 				model.LabelName(managementlabels.AlertNameLabel): "VirtOperatorDown",
 			},
 			wantLayer:     "cluster",
-			wantComponent: "OpenShift Virtualization Operator",
+			wantComponent: "openshift-virtualization-operator",
 		},
 		{
 			name: "cnv-observability skipped",
@@ -247,6 +247,53 @@ func TestDetermineComponent_KubevirtOperator(t *testing.T) {
 			}
 			if component != tt.wantComponent {
 				t.Errorf("component = %q, want %q", component, tt.wantComponent)
+			}
+		})
+	}
+}
+
+func TestDetermineComponent_ExplicitClassification(t *testing.T) {
+	const vmComponent = "openshift-virtualization-virtual-machine"
+	const operatorComponent = "openshift-virtualization-operator"
+	tests := []struct {
+		name              string
+		componentOverride string
+		layerOverride     string
+		healthImpact      string
+		withoutLegacy     bool
+		wantComponent     string
+		wantLayer         string
+	}{
+		{name: "no overrides", wantComponent: operatorComponent, wantLayer: "cluster"},
+		{name: "both overrides", componentOverride: vmComponent, layerOverride: "namespace", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "critical health impact", componentOverride: vmComponent, layerOverride: "namespace", healthImpact: "critical", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "component only", componentOverride: vmComponent, wantComponent: vmComponent, wantLayer: "cluster"},
+		{name: "layer only", layerOverride: "namespace", wantComponent: operatorComponent, wantLayer: "namespace"},
+		{name: "invalid component", componentOverride: "invalid component", layerOverride: "namespace", wantComponent: operatorComponent, wantLayer: "namespace"},
+		{name: "invalid layer", componentOverride: vmComponent, layerOverride: "invalid", wantComponent: vmComponent, wantLayer: "cluster"},
+		{name: "empty overrides", componentOverride: " ", layerOverride: " ", wantComponent: operatorComponent, wantLayer: "cluster"},
+		{name: "trim overrides", componentOverride: " " + vmComponent + " ", layerOverride: " namespace ", wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "without legacy labels", componentOverride: vmComponent, layerOverride: "namespace", withoutLegacy: true, wantComponent: vmComponent, wantLayer: "namespace"},
+		{name: "unmatched layer", componentOverride: vmComponent, withoutLegacy: true, wantComponent: vmComponent, wantLayer: "others"},
+		{name: "unmatched component", layerOverride: "namespace", withoutLegacy: true, wantComponent: "others", wantLayer: "namespace"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			labels := model.LabelSet{
+				managementlabels.AlertRuleClassificationComponentKey: model.LabelValue(tt.componentOverride),
+				managementlabels.AlertRuleClassificationLayerKey:     model.LabelValue(tt.layerOverride),
+			}
+			if !tt.withoutLegacy {
+				labels["kubernetes_operator_part_of"] = "kubevirt"
+				labels["kubernetes_operator_component"] = "hyperconverged-cluster-operator"
+				labels["operator_health_impact"] = "none"
+				if tt.healthImpact != "" {
+					labels["operator_health_impact"] = model.LabelValue(tt.healthImpact)
+				}
+			}
+			layer, component := DetermineComponent(labels)
+			if layer != tt.wantLayer || component != tt.wantComponent {
+				t.Errorf("classification = (%q, %q), want (%q, %q)", layer, component, tt.wantLayer, tt.wantComponent)
 			}
 		})
 	}
@@ -296,11 +343,11 @@ func TestDetermineComponent_Fallback(t *testing.T) {
 		"namespace": "my-app",
 	}
 	layer, component := DetermineComponent(labels)
-	if layer != "Others" {
-		t.Errorf("layer = %q, want %q", layer, "Others")
+	if layer != "others" {
+		t.Errorf("layer = %q, want %q", layer, "others")
 	}
-	if component != "Others" {
-		t.Errorf("component = %q, want %q", component, "Others")
+	if component != "others" {
+		t.Errorf("component = %q, want %q", component, "others")
 	}
 }
 
