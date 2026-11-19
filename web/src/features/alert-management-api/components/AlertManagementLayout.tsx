@@ -16,8 +16,8 @@ export function AlertManagementLayout({ children }: LayoutProps) {
     QueryParams.RefreshInterval,
     RefreshIntervalParam,
   );
-  const { rulesQuery, silencesQuery } = useAlertManagementData(intervalMs);
-  const lastRefreshedAt = Math.max(rulesQuery.dataUpdatedAt, silencesQuery.dataUpdatedAt);
+  const { rulesQuery, alertsQuery } = useAlertManagementData(intervalMs);
+  const lastRefreshedAt = Math.max(rulesQuery.dataUpdatedAt, alertsQuery.dataUpdatedAt);
   const refresh: RefreshControlProps = { intervalMs, onIntervalChange, lastRefreshedAt };
 
   return <AlertManagementHeader refresh={refresh}>{children}</AlertManagementHeader>;

@@ -1,6 +1,11 @@
 import { AlertSeverity, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
 import {
+  makeAlert,
+  makeManagedAlert,
+  makeRule,
+} from '@/features/alert-management-api/tests/utils/object-factories';
+import {
   aggregateAlerts,
   defaultAlertFilters,
   filterAlerts,
@@ -9,13 +14,11 @@ import {
 import { compareSeverities } from '@/features/alert-management-api/utils/sort-alerts';
 
 const createAlert = (name: string, severity: AlertSeverity, state = AlertStates.Firing) =>
-  toManagedAlert({
-    activeAt: '2026-01-01T00:00:00Z',
-    annotations: {},
+  makeManagedAlert({
     labels: { alertname: name, severity },
-    rule: { name, id: name },
+    rule: makeRule({ name, id: name }),
     state,
-  } as never);
+  });
 
 describe('alert management derivation', () => {
   it('derives namespace scope and aggregates matching alerts', () => {
@@ -36,6 +39,57 @@ describe('alert management derivation', () => {
     );
   });
 
+  it('counts states per aggregate without mutating the input alerts', () => {
+    const alerts = [
+      AlertStates.Silenced,
+      AlertStates.Firing,
+      AlertStates.Pending,
+      AlertStates.Firing,
+      AlertStates.Silenced,
+    ].map((state) => makeManagedAlert({ state }));
+    alerts.push(makeManagedAlert({ labels: { alertname: 'Other' }, state: AlertStates.Pending }));
+    const original = structuredClone(alerts);
+    const aggregates = aggregateAlerts(alerts);
+
+    expect(aggregates.find(({ name }) => name === 'Example')).toMatchObject({
+      firingAlertCount: 2,
+      pendingAlertCount: 1,
+      silencedAlertCount: 2,
+      state: ['silenced', 'firing', 'pending'],
+    });
+    expect(aggregates.find(({ name }) => name === 'Other')).toMatchObject({
+      firingAlertCount: 0,
+      pendingAlertCount: 1,
+      silencedAlertCount: 0,
+    });
+    expect(alerts).toEqual(original);
+
+    const pendingAlerts = filterAlerts(alerts, {
+      ...defaultAlertFilters,
+      state: [AlertStates.Pending],
+    });
+    aggregateAlerts(pendingAlerts).forEach((aggregate) => {
+      expect(aggregate).toMatchObject({
+        firingAlertCount: 0,
+        pendingAlertCount: 1,
+        silencedAlertCount: 0,
+      });
+    });
+    expect(aggregateAlerts([])).toEqual([]);
+  });
+
+  it.each([AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced])(
+    'initializes counts for a single %s alert',
+    (state) => {
+      const [aggregate] = aggregateAlerts([makeManagedAlert({ state })]);
+      expect(aggregate).toMatchObject({
+        firingAlertCount: state === AlertStates.Firing ? 1 : 0,
+        pendingAlertCount: state === AlertStates.Pending ? 1 : 0,
+        silencedAlertCount: state === AlertStates.Silenced ? 1 : 0,
+      });
+    },
+  );
+
   it('filters by scope, component, severity, state, and source', () => {
     const alert = createAlert('HighCPU', AlertSeverity.Critical, AlertStates.Silenced);
 
@@ -53,18 +107,17 @@ describe('alert management derivation', () => {
   });
 
   it('filters by custom label values', () => {
-    const alert = toManagedAlert({
-      activeAt: '2026-01-01T00:00:00Z',
-      annotations: {},
-      labels: {
-        alertname: 'HighCPU',
-        namespace: 'payments',
-        severity: AlertSeverity.Critical,
-        team: 'payments',
-      },
-      rule: { id: 'cpu', name: 'HighCPU' },
-      state: AlertStates.Firing,
-    } as never);
+    const alert = toManagedAlert(
+      makeAlert({
+        labels: {
+          alertname: 'HighCPU',
+          namespace: 'payments',
+          severity: AlertSeverity.Critical,
+          team: 'payments',
+        },
+        rule: makeRule({ id: 'cpu', name: 'HighCPU' }),
+      }),
+    );
 
     expect(
       filterAlerts([alert], {
@@ -173,13 +226,12 @@ describe('alert management derivation', () => {
   });
 
   it('classifies kube and OpenShift namespaces as cluster alerts', () => {
-    const clusterAlert = toManagedAlert({
-      activeAt: '2026-01-01T00:00:00Z',
-      annotations: {},
-      labels: { alertname: 'Watchdog', namespace: 'openshift-monitoring' },
-      rule: { id: 'watchdog', name: 'Watchdog' },
-      state: AlertStates.Firing,
-    } as never);
+    const clusterAlert = toManagedAlert(
+      makeAlert({
+        labels: { alertname: 'Watchdog', namespace: 'openshift-monitoring' },
+        rule: makeRule({ id: 'watchdog', name: 'Watchdog' }),
+      }),
+    );
 
     expect(
       clusterAlert.alertScope,

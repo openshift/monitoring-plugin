@@ -1,9 +1,13 @@
-import { AlertStates, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
+import { Timestamp } from '@openshift-console/dynamic-plugin-sdk';
 import { Badge, Label } from '@patternfly/react-core';
 import { Td, Tr } from '@patternfly/react-table';
-import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { AlertStateSummary } from '@/features/alert-management-api/components/AlertStateSummary';
+import {
+  ColumnCell,
+  SortedColumnCells,
+} from '@/features/alert-management-api/components/SortedColumnCells';
 import {
   AlertName,
   AlertRow,
@@ -11,14 +15,9 @@ import {
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import {
-  AlertColumnCell,
-  SortedColumnCells,
-} from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
-import { AlertState } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { getSourceKey } from '@/shared/utils/alerts/alert-source';
@@ -46,7 +45,7 @@ export function AggregatedRow({
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const firingSince = getFiringSinceTimestamp(aggregatedAlert.alerts);
 
-  const cells: AlertColumnCell[] = [
+  const cells: ColumnCell<AlertColumn>[] = [
     {
       column: 'name',
       component: (
@@ -75,12 +74,11 @@ export function AggregatedRow({
       column: 'state',
       component: (
         <Td>
-          {aggregatedAlert.state.map((state, index) => (
-            <Fragment key={state}>
-              {index > 0 && ', '}
-              <AlertState state={state as AlertStates} />
-            </Fragment>
-          ))}
+          <AlertStateSummary
+            firingAlertCount={aggregatedAlert.firingAlertCount}
+            pendingAlertCount={aggregatedAlert.pendingAlertCount}
+            silencedAlertCount={aggregatedAlert.silencedAlertCount}
+          />
         </Td>
       ),
     },

@@ -29,6 +29,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useToast: () => ({ addToast }),
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },
+  RuleStates: { Inactive: 'inactive' },
   DocumentTitle: () => null,
   Timestamp: () => null,
   ListPageHeader: ({ title, children }: { title: string; children?: ReactNode }) => (
@@ -52,7 +53,7 @@ vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
       dataUpdatedAt: 0,
       refetch: vi.fn(),
     },
-    silencesQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
+    alertsQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
   }),
 }));
 

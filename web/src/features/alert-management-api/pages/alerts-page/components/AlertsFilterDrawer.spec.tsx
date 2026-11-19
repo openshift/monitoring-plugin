@@ -24,6 +24,9 @@ it('dims only unselected severities while keeping them clickable', () => {
   const { rerender } = render(<AlertsFilterDrawer {...props} filters={defaultAlertFilters} />);
   const severityButton = (severity: string) =>
     screen.getByRole('button', { name: `Filter ${severity} alerts` });
+  const severityGroup = severityButton('critical').closest('.pf-v6-l-flex')!;
+  expect(severityGroup.classList.contains('pf-m-column-gap-sm')).toBe(true);
+  expect(severityGroup.classList.contains('pf-m-row-gap-sm')).toBe(true);
   const background = (severity: string) =>
     severityButton(severity)
       .querySelector<HTMLElement>('.pf-v6-c-label')
@@ -222,6 +225,11 @@ it('uses dropdowns for alert filters other than severity and scope', async () =>
   fireEvent.click(screen.getByRole('button', { name: 'Namespace' }));
   expect(
     onChange.mock.lastCall[0].scope,
-    'deselecting Namespace should clear the scope filter',
-  ).toEqual([]);
+    'clicking Namespace again should keep the scope filter selected',
+  ).toEqual(['Namespace']);
+
+  fireEvent.click(screen.getByRole('button', { name: 'All' }));
+  expect(onChange.mock.lastCall[0].scope, 'selecting All should clear the scope filter').toEqual(
+    [],
+  );
 });

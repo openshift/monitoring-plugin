@@ -15,7 +15,7 @@ it.each([
   [AlertStates.Silenced, 'Silenced'],
 ] as const)('preserves legacy %s counts and alert-state icons', (state, label) => {
   const { container } = render(<AlertRuleState state={state} count={3} />);
-  expect(screen.getByText(`3 ${label}`)).toBeDefined();
+  expect(screen.getByText(`3 ${label}`).style.whiteSpace).toBe('nowrap');
   expect(container.querySelector('svg')).not.toBeNull();
 });
 
@@ -27,7 +27,7 @@ it.each([
   'renders management state %s without a count',
   (state, label) => {
     const { container } = render(<AlertRuleState state={state} />);
-    expect(screen.getByText(label)).toBeDefined();
+    expect(screen.getByText(label).style.whiteSpace).toBe('nowrap');
     expect(container.textContent?.trim()).toBe(label);
     expect(container.querySelector('svg')).not.toBeNull();
   },
@@ -40,6 +40,7 @@ it('does not hide an explicit zero count', () => {
 
 it('explains missing enablement without assuming a state', async () => {
   render(<AlertRuleState state="unknown" />);
+  expect(screen.getByText('Unknown').style.whiteSpace).toBe('nowrap');
   fireEvent.mouseEnter(screen.getByText('Unknown'));
   expect(await screen.findByRole('tooltip')).toHaveProperty(
     'textContent',

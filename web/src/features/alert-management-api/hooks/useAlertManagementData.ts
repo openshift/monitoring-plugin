@@ -1,84 +1,88 @@
-import {
-  Alert,
-  consoleFetchJSON,
-  PrometheusRulesResponse,
-  Rule,
-  Silence,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { AlertStates, Rule, RuleStates } from '@openshift-console/dynamic-plugin-sdk';
 import { useMemo } from 'react';
 
 import {
   getMockRulesResponse,
-  getMockSilencesResponse,
+  getMockSilencedAlertsResponse,
 } from '@/features/alert-management-api/tests/fixtures/mock-responses';
 import { AlertManagementData } from '@/features/alert-management-api/types/types';
 import { toManagedAlert } from '@/features/alert-management-api/utils/alerts';
-import { useMonitoring } from '@/shared/hooks/useMonitoring';
-import { fetchAlerts } from '@/shared/store/fetch-alerts';
-import { applySilences } from '@/shared/utils/alerts/apply-silences';
-import { getAlertsAndRules, getSilenceName } from '@/shared/utils/alerts/formatting';
-import { getAlertmanagerSilencesUrl, getPrometheusBasePath } from '@/shared/utils/utils';
+import { applyAlertsToRules } from '@/features/alert-management-api/utils/apply-alerts-to-rules';
+import {
+  GetAlertsResponse,
+  GetRulesResponse,
+  useGetAlerts,
+  useGetRules,
+} from '@/shared/clients/alert-management-api/generated/api';
+import { getAlertsAndRules } from '@/shared/utils/alerts/formatting';
 
 const ALERT_RULE_ID_LABEL = 'openshift_io_alert_rule_id';
 const ALERT_SOURCE_LABEL = 'openshift_io_alert_source';
 
 const useMockResponses = process.env.NODE_ENV === 'development';
 
-export const useAlertManagementData = (refreshInterval: number | false = false) => {
-  const { prometheus } = useMonitoring();
-  const rulesUrl = getPrometheusBasePath({ prometheus: 'alert-management-api' }) + '/rules';
-  const silencesUrl = getAlertmanagerSilencesUrl({
-    prometheus,
-    useTenancyPath: false,
+export const useAlertManagementData = (refreshIntervalMs: number | false = false) => {
+  const rulesQuery = useGetRules(undefined, {
+    query: {
+      ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockRulesResponse()) } : {}),
+      refetchInterval: refreshIntervalMs,
+    },
   });
-  const rulesQuery = useQuery<PrometheusRulesResponse, Error>({
-    queryKey: ['alert-management-api', 'rules'],
-    queryFn: () =>
-      useMockResponses ? Promise.resolve(getMockRulesResponse()) : fetchAlerts(rulesUrl),
-    refetchInterval: refreshInterval,
-  });
-  const silencesQuery = useQuery<Silence[], Error>({
-    queryKey: ['alert-management-api', prometheus, 'silences'],
-    queryFn: () =>
-      useMockResponses
-        ? Promise.resolve(getMockSilencesResponse())
-        : (consoleFetchJSON(silencesUrl, 'GET') as Promise<Silence[]>),
-    refetchInterval: refreshInterval,
-  });
+  const alertsQuery = useGetAlerts(
+    { state: 'silenced' },
+    {
+      query: {
+        ...(useMockResponses
+          ? { queryFn: () => Promise.resolve(getMockSilencedAlertsResponse()) }
+          : {}),
+        refetchInterval: refreshIntervalMs,
+      },
+    },
+  );
   const data = useMemo(
-    () => processAlertManagementData(rulesQuery.data, silencesQuery.data),
-    [rulesQuery.data, silencesQuery.data],
+    () => processAlertManagementData(rulesQuery.data, alertsQuery.data),
+    [rulesQuery.data, alertsQuery.data],
   );
 
-  return { data, rulesQuery, silencesQuery };
+  return { data, rulesQuery, alertsQuery };
 };
 
-const getRulesAndAlerts = (rulesResponse: PrometheusRulesResponse) => {
-  const responseRules = getAlertsAndRules(structuredClone(rulesResponse.data)).rules;
+const getRules = (rulesResponse: GetRulesResponse) => {
+  // type the states and add the alertname label to alerts
+  const groups = structuredClone(rulesResponse.data.groups).map((group) => ({
+    ...group,
+    rules: group.rules
+      .filter((rule) => rule.type === 'alerting')
+      .map((rule) => ({
+        ...rule,
+        state: rule.state as RuleStates,
+        alerts: rule.alerts.map((alert) => ({
+          ...alert,
+          state: alert.state as AlertStates,
+          labels: { alertname: rule.name, ...alert.labels },
+        })),
+      })),
+  }));
+  const responseRules = getAlertsAndRules({ groups }).rules;
   const rules: Rule[] = responseRules.map((rule) => ({
     ...rule,
     id: rule.labels[ALERT_RULE_ID_LABEL] || rule.id,
     sourceId: rule.labels[ALERT_SOURCE_LABEL] || rule.sourceId,
   }));
-  const alerts: Alert[] = rules.flatMap((rule) =>
-    rule.alerts.map((alert) => ({ ...alert, rule }) as Alert),
-  );
-
-  return { alerts, rules };
+  return rules;
 };
 
 export const processAlertManagementData = (
-  rulesResponse: PrometheusRulesResponse | undefined,
-  silencesResponse: Silence[] | undefined,
+  rulesResponse: GetRulesResponse | undefined,
+  alertsResponse: GetAlertsResponse | undefined,
 ): AlertManagementData | undefined => {
-  if (!rulesResponse) return undefined;
+  if (!rulesResponse) {
+    return undefined;
+  }
 
-  const { alerts, rules } = getRulesAndAlerts(rulesResponse);
-  const silences = (silencesResponse ?? []).map((silence) => ({
-    ...silence,
-    name: getSilenceName(silence),
-  }));
-  const derived = applySilences({ alerts, rules, silences });
-  return { alerts: derived.alerts.map(toManagedAlert), silences: derived.silences };
+  const rules = applyAlertsToRules(getRules(rulesResponse), alertsResponse?.data.alerts ?? []);
+  return {
+    rules,
+    alerts: rules.flatMap((rule) => rule.alerts.map((alert) => toManagedAlert({ ...alert, rule }))),
+  };
 };

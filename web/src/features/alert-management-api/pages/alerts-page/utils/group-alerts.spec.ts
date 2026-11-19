@@ -1,25 +1,25 @@
-import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
-
 import {
   AlertGroupBy,
   groupAlerts,
   paginateAlertGroups,
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
+import {
+  makeManagedAlert,
+  makeRule,
+} from '@/features/alert-management-api/tests/utils/object-factories';
 import { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { aggregateAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
 import { defaultAlertSort, sortAlerts } from '@/features/alert-management-api/utils/sort-alerts';
 
-const alert = (name: string, overrides: Partial<ManagedAlert> = {}): ManagedAlert => ({
-  labels: { alertname: name, severity: 'warning' },
-  annotations: {},
-  activeAt: '2026-01-01T00:00:00Z',
-  state: AlertStates.Firing,
-  rule: { id: name, name } as ManagedAlert['rule'],
-  alertScope: 'Cluster',
-  component: 'api',
-  source: 'platform',
-  ...overrides,
-});
+const makeGroupAlert = (name: string, overrides: Partial<ManagedAlert> = {}) =>
+  makeManagedAlert({
+    labels: { alertname: name, severity: 'warning' },
+    rule: makeRule({ id: name, name }),
+    alertScope: 'Cluster',
+    component: 'api',
+    source: 'platform',
+    ...overrides,
+  });
 
 describe('groupAlerts', () => {
   it.each([
@@ -33,8 +33,8 @@ describe('groupAlerts', () => {
   ])(
     'keeps aggregates within %s boundaries',
     (groupBy: AlertGroupBy, overrides: Partial<ManagedAlert>, values: string[]) => {
-      const first = alert('Same');
-      const second = alert('Same', overrides);
+      const first = makeGroupAlert('Same');
+      const second = makeGroupAlert('Same', overrides);
       const groups = groupAlerts([second, first, first, second], groupBy, true, defaultAlertSort);
 
       expect(
@@ -63,10 +63,10 @@ describe('groupAlerts', () => {
 
   it('keeps displayed rows and their alert instances distinct', () => {
     const alerts = [
-      alert('Same'),
-      alert('Same'),
-      alert('Other'),
-      alert('Critical', { labels: { alertname: 'Critical', severity: 'critical' } }),
+      makeGroupAlert('Same'),
+      makeGroupAlert('Same'),
+      makeGroupAlert('Other'),
+      makeGroupAlert('Critical', { labels: { alertname: 'Critical', severity: 'critical' } }),
     ];
 
     const [aggregatedGroup] = groupAlerts(alerts, AlertGroupBy.Scope, true, defaultAlertSort);
@@ -99,7 +99,10 @@ describe('groupAlerts', () => {
   });
 
   it('assigns distinct row keys to alerts sharing a selection key across input and sort changes', () => {
-    const alerts = [alert('Same'), alert('Same', { activeAt: '2026-01-02T00:00:00Z' })];
+    const alerts = [
+      makeGroupAlert('Same'),
+      makeGroupAlert('Same', { activeAt: '2026-01-02T00:00:00Z' }),
+    ];
     const first = groupAlerts(alerts, AlertGroupBy.None, false, defaultAlertSort)[0];
     const second = groupAlerts([...alerts].reverse(), AlertGroupBy.None, false, {
       column: 'firingSince',
@@ -124,7 +127,7 @@ describe('groupAlerts', () => {
   it('orders severity groups independently of row sorting, including missing and unknown values', () => {
     const alerts = ['zeta', 'none', 'info', 'warning', 'alpha', 'critical', undefined].map(
       (severity) =>
-        alert('Same', {
+        makeGroupAlert('Same', {
           labels: severity === undefined ? { alertname: 'Same' } : { alertname: 'Same', severity },
         }),
     );
@@ -148,10 +151,10 @@ describe('groupAlerts', () => {
 
   it.each([true, false])('sorts rows within alphabetical groups (aggregated: %s)', (aggregated) => {
     const alerts = [
-      alert('Alpha', { component: 'storage' }),
-      alert('Zulu'),
-      alert('Alpha'),
-      alert('Zulu', { component: 'storage' }),
+      makeGroupAlert('Alpha', { component: 'storage' }),
+      makeGroupAlert('Zulu'),
+      makeGroupAlert('Alpha'),
+      makeGroupAlert('Zulu', { component: 'storage' }),
     ];
     const snapshot = structuredClone(alerts);
     const sort = { column: 'name', direction: 'desc' } as const;
@@ -174,7 +177,7 @@ describe('groupAlerts', () => {
   });
 
   it('returns one ungrouped aggregate list', () => {
-    const alerts = [alert('Zulu'), alert('Alpha'), alert('Alpha')];
+    const alerts = [makeGroupAlert('Zulu'), makeGroupAlert('Alpha'), makeGroupAlert('Alpha')];
     expect(
       groupAlerts(alerts, AlertGroupBy.None, true, defaultAlertSort),
       'ungrouped aggregation should return one group with all sorted aggregate rows',
@@ -202,12 +205,12 @@ describe('groupAlerts', () => {
 describe('paginateAlertGroups', () => {
   const groups = groupAlerts(
     [
-      alert('Alpha'),
-      alert('Alpha'),
-      alert('Bravo'),
-      alert('Charlie'),
-      alert('Delta', { component: 'storage' }),
-      alert('Echo', { component: 'storage' }),
+      makeGroupAlert('Alpha'),
+      makeGroupAlert('Alpha'),
+      makeGroupAlert('Bravo'),
+      makeGroupAlert('Charlie'),
+      makeGroupAlert('Delta', { component: 'storage' }),
+      makeGroupAlert('Echo', { component: 'storage' }),
     ],
     AlertGroupBy.Component,
     true,

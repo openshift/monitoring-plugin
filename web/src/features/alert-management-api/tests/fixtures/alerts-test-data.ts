@@ -1,11 +1,13 @@
 import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
-import { toManagedAlert } from '@/features/alert-management-api/utils/alerts';
+import {
+  makeManagedAlert,
+  makeRule,
+} from '@/features/alert-management-api/tests/utils/object-factories';
 
 export const testAlerts = ['Alert1', 'Alert1', 'Alert1', 'Alert3', 'Alert4', 'Alert5'].map(
   (name, index) =>
-    toManagedAlert({
-      activeAt: '2026-01-01T00:00:00Z',
+    makeManagedAlert({
       annotations: {
         description: 'This is a long alert description that should wrap within its column.',
         runbook_url: 'https://example.com/runbook',
@@ -20,12 +22,12 @@ export const testAlerts = ['Alert1', 'Alert1', 'Alert1', 'Alert3', 'Alert4', 'Al
         resource: 'test-resource',
         team: 'payments',
       },
-      rule: {
+      rule: makeRule({
         id: name,
         name,
         duration: 600,
         query: 'sum(rate(container_cpu_usage_seconds_total{namespace="test"}[5m])) > 1',
-      },
+      }),
       state: AlertStates.Firing,
-    } as never),
+    }),
 );

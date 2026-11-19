@@ -40,7 +40,7 @@ export function AlertRuleState({ state, count }: Props) {
   }
 
   const content = (
-    <span>
+    <span style={{ whiteSpace: 'nowrap' }}>
       {icon} {count !== undefined && `${count} `}
       {label}
     </span>
