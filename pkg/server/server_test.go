@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/openshift/monitoring-plugin/pkg/management"
 )
 
 type httpClientConfig struct {
@@ -609,4 +611,12 @@ func TestNoCORSHeaders(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMetricsRegistrationFailureFailsStartup(t *testing.T) {
+	ctx := context.Background()
+	managementClient := management.New(ctx, nil)
+	_, _, err := setupRoutes(ctx, &Config{}, managementClient, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to register alert management metrics")
 }

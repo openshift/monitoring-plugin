@@ -34,6 +34,11 @@ const (
 	AlertRelabelConfigSecretName = "alert-relabel-configs"
 	AlertRelabelConfigSecretKey  = "config.yaml"
 
+	// MetricsLeaderLeaseName is the Lease used by the alert-management
+	// metrics collector to elect the replica that emits alert metrics and
+	// runs the orphan cleanup.
+	MetricsLeaderLeaseName = "monitoring-plugin-metrics"
+
 	PrometheusRuleLabelNamespace = "openshift_io_prometheus_rule_namespace"
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
@@ -59,6 +64,8 @@ type relabeledRulesManager struct {
 	alertRelabelConfigs     AlertRelabelConfigInterface
 	prometheusRulesInformer cache.SharedIndexInformer
 	secretInformer          cache.SharedIndexInformer
+	clientset               kubernetes.Interface
+	gcMetrics               *alertRelabelConfigGCMetrics
 
 	// relabeledRules stores the relabeled rules in memory
 	relabeledRules map[string]monitoringv1.Rule
@@ -92,6 +99,8 @@ func newRelabeledRulesManager(ctx context.Context, namespaceManager NamespaceInt
 		alertRelabelConfigs:     alertRelabelConfigs,
 		prometheusRulesInformer: prometheusRulesInformer,
 		secretInformer:          secretInformer,
+		clientset:               clientset,
+		gcMetrics:               defaultAlertRelabelConfigGCMetrics,
 	}
 
 	_, err := rrm.prometheusRulesInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
