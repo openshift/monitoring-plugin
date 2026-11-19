@@ -31,7 +31,8 @@ leader emits both alert metric families. Lease election tolerates API disruption
 using the OpenShift timing defaults, and replicas rejoin after losing a lease.
 General and cleanup metrics remain available on every replica, but the orphan
 cleanup itself runs only on the lease holder so replicas do not double-count
-cleanup work; if the Lease cannot be read, every replica keeps cleaning up. A
+cleanup work; if the Lease cannot be read, the cleanup is skipped and retried
+after a short delay, so it never widens beyond the confirmed holder. A
 new leadership term starts with an empty alert snapshot, and fetches from
 previous terms are ignored. Each source's snapshot expires twice the configured
 refresh interval (60 seconds by default) after its refresh starts. The extra
@@ -39,8 +40,9 @@ interval lets a slow but on-schedule refresh replace the snapshot before it
 expires. If user-workload retrieval fails, its previous series remain available
 only until that limit; platform series continue to refresh. Slow fetches cannot
 extend freshness. If alert-metric
-initialization fails, the server logs the failure and continues serving its
-other endpoints, including the independently registered cleanup metrics.
+initialization fails, route setup returns an error and startup stops: the HTTP
+server is not created, so no endpoints are served, including the cleanup
+metrics.
 
 ## Alert management metrics
 

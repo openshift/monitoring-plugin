@@ -104,7 +104,7 @@ func TestAlertMetricsElectsSingleLeader(t *testing.T) {
 	// them. The holder is the single replica emitting the alert metrics.
 	var holder string
 	err = framework.Poll(leaderPollInterval, leaderPollTimeout, func() error {
-		_, _, current, err := pluginReplicas(pollCtx, f, podSelector)
+		_, _, current, _, err := pluginReplicas(pollCtx, f, podSelector)
 		if err != nil {
 			return err
 		}
@@ -119,13 +119,17 @@ func TestAlertMetricsElectsSingleLeader(t *testing.T) {
 
 	// Exclusive emission: scrape every ready replica directly, bypassing
 	// the shared route, and require alert samples only from the holder.
-	// Retrying the whole check absorbs a leadership change mid-check.
+	// The Lease holder can change mid-check, as the pods are scraped one
+	// after another and a replica could grab the Lease right after its
+	// scrape. Re-reading the Lease after sampling and comparing the holder
+	// and its transition count before/after therefore guards the whole
+	// sampling window; on any change the check retries from scratch.
 	checkCtx, cancelCheck := context.WithTimeout(context.Background(), exclusivePollTimeout)
 	defer cancelCheck()
 
 	var holderSamples int
 	err = framework.Poll(leaderPollInterval, exclusivePollTimeout, func() error {
-		pods, ready, current, err := pluginReplicas(checkCtx, f, podSelector)
+		pods, ready, current, transitions, err := pluginReplicas(checkCtx, f, podSelector)
 		if err != nil {
 			return err
 		}
@@ -149,6 +153,16 @@ func TestAlertMetricsElectsSingleLeader(t *testing.T) {
 				holderSamples = samples
 			}
 		}
+		holderAfter, transitionsAfter, err := metricsLeaseState(checkCtx, f)
+		if err != nil {
+			return err
+		}
+		if holderAfter != current || transitionsAfter != transitions {
+			return fmt.Errorf(
+				"leadership changed while sampling the replicas (holder %s -> %s, transitions %d -> %d), retrying",
+				current, holderAfter, transitions, transitionsAfter,
+			)
+		}
 		holder = current
 		return nil
 	})
@@ -159,15 +173,15 @@ func TestAlertMetricsElectsSingleLeader(t *testing.T) {
 }
 
 // pluginReplicas lists the plugin pods, the subset that is ready, and the
-// current metrics Lease holder. It returns an error while fewer than two
-// replicas are ready or the holder is not one of them, which makes it
-// directly usable inside poll callbacks.
-func pluginReplicas(ctx context.Context, f *framework.Framework, podSelector string) (*corev1.PodList, map[string]struct{}, string, error) {
+// current metrics Lease holder together with its transition count. It
+// returns an error while fewer than two replicas are ready or the holder is
+// not one of them, which makes it directly usable inside poll callbacks.
+func pluginReplicas(ctx context.Context, f *framework.Framework, podSelector string) (*corev1.PodList, map[string]struct{}, string, int32, error) {
 	pods, err := f.Clientset.CoreV1().Pods(k8s.ClusterMonitoringNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: podSelector,
 	})
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", 0, err
 	}
 
 	ready := make(map[string]struct{})
@@ -180,26 +194,44 @@ func pluginReplicas(ctx context.Context, f *framework.Framework, podSelector str
 		}
 	}
 	if len(ready) < 2 {
-		return nil, nil, "", fmt.Errorf("waiting for ready plugin replicas: %d/%d", len(ready), 2)
+		return nil, nil, "", 0, fmt.Errorf("waiting for ready plugin replicas: %d/%d", len(ready), 2)
 	}
 
-	lease, err := f.Clientset.CoordinationV1().Leases(k8s.ClusterMonitoringNamespace).Get(
-		ctx, k8s.MetricsLeaderLeaseName, metav1.GetOptions{},
-	)
+	holder, transitions, err := metricsLeaseState(ctx, f)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", 0, err
 	}
-	if lease.Spec.HolderIdentity == nil || *lease.Spec.HolderIdentity == "" {
-		return nil, nil, "", fmt.Errorf("waiting for the %s Lease to be acquired", k8s.MetricsLeaderLeaseName)
+	if holder == "" {
+		return nil, nil, "", 0, fmt.Errorf("waiting for the %s Lease to be acquired", k8s.MetricsLeaderLeaseName)
 	}
-	holder := *lease.Spec.HolderIdentity
 
 	// Check the freshly read holder against this iteration's ready set; a
 	// holder from a previous iteration may have been replaced since.
 	if _, ok := ready[holder]; !ok {
-		return nil, nil, "", fmt.Errorf("waiting for the Lease holder %s to be a ready plugin pod", holder)
+		return nil, nil, "", 0, fmt.Errorf("waiting for the Lease holder %s to be a ready plugin pod", holder)
 	}
-	return pods, ready, holder, nil
+	return pods, ready, holder, transitions, nil
+}
+
+// metricsLeaseState reads the current metrics Lease holder and its
+// transition count. Sampling code compares the state before and after a
+// scrape window to detect a leadership change that happened mid-check.
+func metricsLeaseState(ctx context.Context, f *framework.Framework) (string, int32, error) {
+	lease, err := f.Clientset.CoordinationV1().Leases(k8s.ClusterMonitoringNamespace).Get(
+		ctx, k8s.MetricsLeaderLeaseName, metav1.GetOptions{},
+	)
+	if err != nil {
+		return "", 0, err
+	}
+	holder := ""
+	if lease.Spec.HolderIdentity != nil {
+		holder = *lease.Spec.HolderIdentity
+	}
+	transitions := int32(0)
+	if lease.Spec.LeaseTransitions != nil {
+		transitions = *lease.Spec.LeaseTransitions
+	}
+	return holder, transitions, nil
 }
 
 // pluginMetricsPort resolves the plugin container port serving /metrics by

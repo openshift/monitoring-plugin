@@ -37,14 +37,15 @@ var (
 // TLS at the router and therefore never forwards the scrape client
 // certificate, so /metrics would always answer 401 through it. A passthrough
 // route forwards the TLS session end to end, letting the plugin authenticate
-// the scrape certificate itself.
-func metricsURL(f *framework.Framework) (string, error) {
+// the scrape certificate itself. Route initialization is bounded by ctx, so
+// a canceled caller stops waiting for route admission.
+func metricsURL(ctx context.Context, f *framework.Framework) (string, error) {
 	metricsRouteMu.Lock()
 	defer metricsRouteMu.Unlock()
 	if metricsRouteURL != "" {
 		return metricsRouteURL, nil
 	}
-	url, err := createMetricsRoute(f)
+	url, err := createMetricsRoute(ctx, f)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +53,7 @@ func metricsURL(f *framework.Framework) (string, error) {
 	return url, nil
 }
 
-func createMetricsRoute(f *framework.Framework) (string, error) {
+func createMetricsRoute(ctx context.Context, f *framework.Framework) (string, error) {
 	routes := f.Routev1clientset.RouteV1().Routes(k8s.ClusterMonitoringNamespace)
 	cleanupMetricsRoute = func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -85,16 +86,18 @@ func createMetricsRoute(f *framework.Framework) (string, error) {
 		},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// The setup timeout derives from the caller's context, so cancellation
+	// stops route creation as well as admission polling below.
+	routeCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	if _, err := routes.Create(ctx, route, metav1.CreateOptions{}); err != nil {
+	if _, err := routes.Create(routeCtx, route, metav1.CreateOptions{}); err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			return "", fmt.Errorf("create metrics passthrough route: %w", err)
 		}
 		// A route left behind by an earlier run may lack the roundrobin
 		// annotation; update the existing object, whose resourceVersion is
 		// required, so the balance setting is guaranteed.
-		existing, err := routes.Get(ctx, metricsRouteName, metav1.GetOptions{})
+		existing, err := routes.Get(routeCtx, metricsRouteName, metav1.GetOptions{})
 		if err != nil {
 			return "", fmt.Errorf("read existing metrics passthrough route: %w", err)
 		}
@@ -103,14 +106,14 @@ func createMetricsRoute(f *framework.Framework) (string, error) {
 				existing.Annotations = make(map[string]string)
 			}
 			existing.Annotations["haproxy.router.openshift.io/balance"] = "roundrobin"
-			if _, err := routes.Update(ctx, existing, metav1.UpdateOptions{}); err != nil {
+			if _, err := routes.Update(routeCtx, existing, metav1.UpdateOptions{}); err != nil {
 				return "", fmt.Errorf("update metrics passthrough route: %w", err)
 			}
 		}
 	}
 
 	var host string
-	if err := framework.PollWithContext(context.Background(), 5*time.Second, 2*time.Minute, func(ctx context.Context) error {
+	if err := framework.PollWithContext(ctx, 5*time.Second, 2*time.Minute, func(ctx context.Context) error {
 		current, err := routes.Get(ctx, metricsRouteName, metav1.GetOptions{})
 		if err != nil {
 			return err
@@ -134,7 +137,7 @@ func createMetricsRoute(f *framework.Framework) (string, error) {
 }
 
 func fetchMetrics(ctx context.Context, f *framework.Framework) (metricsBody string, err error) {
-	baseURL, err := metricsURL(f)
+	baseURL, err := metricsURL(ctx, f)
 	if err != nil {
 		return "", err
 	}

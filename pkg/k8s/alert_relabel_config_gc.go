@@ -19,6 +19,9 @@ const (
 	// metricsLeaseTimeout bounds the Lease lookup so a stalled API call
 	// cannot block rule sync or the scheduled cleanup retry.
 	metricsLeaseTimeout = 10 * time.Second
+	// orphanGCLeaderRetryDelay re-attempts the cleanup after a failed
+	// leadership check instead of waiting for the next informer resync.
+	orphanGCLeaderRetryDelay = time.Minute
 )
 
 // isMetricsLeader reports whether this replica holds the Lease used by the
@@ -69,7 +72,9 @@ func (rrm *relabeledRulesManager) isMetricsLeader(ctx context.Context) (bool, er
 //
 // When the alert-management metrics leader election is running, only the
 // lease holder performs the cleanup so replicas do not double-count the
-// cleanup metrics or race on deletions.
+// cleanup metrics or race on deletions. A replica whose Lease read fails
+// skips the run and schedules a retry, so an unreadable Lease never widens
+// the cleanup to more than the holder.
 //
 // liveRuleIDs must include every alerting-rule ID still present on a
 // PrometheusRule, including platform rules dropped by relabel configs.
@@ -78,9 +83,16 @@ func (rrm *relabeledRulesManager) isMetricsLeader(ctx context.Context) (bool, er
 func (rrm *relabeledRulesManager) gcOrphanedARCs(ctx context.Context, liveRuleIDs map[string]struct{}) {
 	leader, err := rrm.isMetricsLeader(ctx)
 	if err != nil {
-		// Keep cleaning up rather than stalling on a transient Lease read.
-		log.Warnf("orphan AlertRelabelConfig cleanup: cannot determine the metrics leader, running on every replica: %v", err)
-	} else if !leader {
+		// A replica that cannot confirm the lease holder must not clean
+		// up: another replica may hold the Lease, and running here would
+		// double-count the cleanup metrics and race on deletions. The
+		// scheduled retry runs the cleanup once leadership is confirmed.
+		rrm.gcMetrics.setGitOpsOrphans(0)
+		rrm.queue.AddAfter(relabeledRulesSyncKeyPrometheusRule, orphanGCLeaderRetryDelay)
+		log.Warnf("orphan AlertRelabelConfig cleanup: cannot determine the metrics leader, skipping this run and retrying in %s: %v", orphanGCLeaderRetryDelay, err)
+		return
+	}
+	if !leader {
 		// A replica that stops leading must not keep serving the GitOps
 		// orphans gauge from its last leader run.
 		rrm.gcMetrics.setGitOpsOrphans(0)

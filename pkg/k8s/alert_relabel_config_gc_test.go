@@ -14,8 +14,10 @@ import (
 	coordinationv1 "k8s.io/api/coordination/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"k8s.io/client-go/util/workqueue"
 
 	"github.com/openshift/monitoring-plugin/pkg/managementlabels"
@@ -376,6 +378,42 @@ func TestGCOrphanedARCs_SkippedWhenNotLeader(t *testing.T) {
 	}
 	if got := testutil.ToFloat64(gcMetrics.gitopsOrphans); got != 0 {
 		t.Fatalf("gitops orphans gauge = %v, want 0 after losing leadership", got)
+	}
+}
+
+func TestGCOrphanedARCs_SkippedWhenLeaseReadFails(t *testing.T) {
+	gcMetrics := newAlertRelabelConfigGCMetrics()
+	mock := &mockARCInterface{
+		arcs: map[string]*osmv1.AlertRelabelConfig{
+			"openshift-monitoring/arc-orphan": newARC("openshift-monitoring", "arc-orphan", "rule-gone", expiredOrphanMarker(), nil),
+		},
+	}
+	clientset := fake.NewSimpleClientset()
+	clientset.Fake.PrependReactor("get", "leases", func(_ k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("lease API unavailable")
+	})
+	queue := &orphanGCQueue{}
+	rrm := &relabeledRulesManager{
+		alertRelabelConfigs: mock,
+		gcMetrics:           gcMetrics,
+		clientset:           clientset,
+		queue:               queue,
+	}
+	gcMetrics.setGitOpsOrphans(3)
+
+	rrm.gcOrphanedARCs(context.Background(), map[string]struct{}{})
+
+	if got := testutil.ToFloat64(gcMetrics.lists); got != 0 {
+		t.Fatalf("list attempts = %v, want 0 when the Lease read fails", got)
+	}
+	if len(mock.deleted) != 0 {
+		t.Fatalf("replica deleted configurations despite the failed Lease read: %v", mock.deleted)
+	}
+	if got := testutil.ToFloat64(gcMetrics.gitopsOrphans); got != 0 {
+		t.Fatalf("gitops orphans gauge = %v, want 0 after an inconclusive leadership check", got)
+	}
+	if len(queue.keys) != 1 || queue.keys[0] != relabeledRulesSyncKeyPrometheusRule || queue.delays[0] != orphanGCLeaderRetryDelay {
+		t.Fatalf("expected a cleanup retry after %s, got %v %v", orphanGCLeaderRetryDelay, queue.keys, queue.delays)
 	}
 }
 
