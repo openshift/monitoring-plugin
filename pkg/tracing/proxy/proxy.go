@@ -278,7 +278,7 @@ func (h *ProxyHandler) createProxy(tempo api.TempoResource, tenant string) (*htt
 }
 
 func handleError(w http.ResponseWriter, code int, clientMsg string, err error) {
-	log.Error(err)
+	log.WithField("error_kind", monitoring.ErrorKind(err)).Error(clientMsg)
 	http.Error(w, clientMsg, code)
 }
 
