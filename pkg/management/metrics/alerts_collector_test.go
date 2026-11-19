@@ -73,7 +73,7 @@ func TestAlertsCollector_InitialSync(t *testing.T) {
 	}}, time.Hour)
 	collector.startLeading(ctx)
 	require.Eventually(t, func() bool {
-		return findFamily(collectMetrics(t, collector), MetricName) != nil
+		return findFamily(collectMetrics(t, collector), metricName) != nil
 	}, 5*time.Second, 10*time.Millisecond)
 }
 
@@ -96,7 +96,7 @@ func TestAlertsCollector_FiringAndSilenced(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil {
 		t.Fatal("expected metric family, got nil")
@@ -151,7 +151,7 @@ func TestAlertsCollector_NoAnnotationLabels(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil {
 		t.Fatal("expected metric family")
@@ -176,7 +176,7 @@ func TestAlertsCollector_SkipsZeroActiveAt(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family != nil && len(family.GetMetric()) != 0 {
 		t.Errorf("expected no metrics for zero ActiveAt, got %d", len(family.GetMetric()))
@@ -188,7 +188,7 @@ func TestAlertsCollector_EmptyAlerts(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family != nil && len(family.GetMetric()) != 0 {
 		t.Errorf("expected no metrics for empty alerts, got %d", len(family.GetMetric()))
@@ -200,7 +200,7 @@ func TestAlertsCollector_FetcherErrorProducesNoMetrics(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family != nil && len(family.GetMetric()) != 0 {
 		t.Errorf("expected no metrics on initial failure, got %d", len(family.GetMetric()))
@@ -227,7 +227,7 @@ func TestAlertsCollector_ClassificationLabels(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 1 {
 		t.Fatalf("expected 1 metric, got family=%v", family)
@@ -257,7 +257,7 @@ func TestAlertsCollector_IncludesPendingAlerts(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 3 {
 		t.Fatalf("expected 3 metrics, got %v", family)
@@ -291,7 +291,7 @@ func TestAlertsCollector_SourceAndBackendLabels(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 1 {
 		t.Fatalf("expected 1 metric")
@@ -317,7 +317,7 @@ func TestAlertsCollector_RetainsThanosUserAlerts(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 3 {
 		t.Fatalf("expected all 3 alerts, including the Thanos-only user alert, got %v", family)
@@ -339,7 +339,7 @@ func TestAlertsCollector_InjectsClassificationFromFields(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 1 {
 		t.Fatalf("expected 1 metric")
@@ -373,7 +373,7 @@ func TestAlertsCollector_DoesNotOverwriteARCLabels(t *testing.T) {
 
 	collector := newCollector(t, mock)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family == nil || len(family.GetMetric()) != 1 {
 		t.Fatalf("expected 1 metric")
@@ -395,7 +395,7 @@ func TestAlertsCollector_FollowerExposesNoMetrics(t *testing.T) {
 	}
 	collector := NewAlertsCollector(mock, time.Hour)
 	families := collectMetrics(t, collector)
-	family := findFamily(families, MetricName)
+	family := findFamily(families, metricName)
 
 	if family != nil && len(family.GetMetric()) != 0 {
 		t.Errorf("follower should expose no metrics, got %d", len(family.GetMetric()))
@@ -411,7 +411,7 @@ func TestAlertsCollector_DeduplicatesEffectiveLabels(t *testing.T) {
 		{Labels: map[string]string{"alertname": "SameAlert", "severity": "warning"}, State: "pending", ActiveAt: activeAt},
 	}}
 	collector := newCollector(t, mock)
-	family := findFamily(collectMetrics(t, collector), MetricName)
+	family := findFamily(collectMetrics(t, collector), metricName)
 	if family == nil || len(family.Metric) != 3 {
 		t.Fatalf("want three distinct series, got %v", family)
 	}
@@ -430,7 +430,7 @@ func TestAlertsCollector_OverridesInputAlertStateLabel(t *testing.T) {
 		State:  "firing", ActiveAt: time.Now(),
 	}}}
 	collector := newCollector(t, mock)
-	family := findFamily(collectMetrics(t, collector), MetricName)
+	family := findFamily(collectMetrics(t, collector), metricName)
 	if family == nil || len(family.Metric) != 1 {
 		t.Fatalf("want one valid series, got %v", family)
 	}
@@ -446,11 +446,16 @@ func TestAlertsCollector_ExpiresFailedRefresh(t *testing.T) {
 	mock.err = errors.New("upstream unavailable")
 	collector.sync(context.Background())
 	require.Equal(t, lastSync, collector.snapshots[""].fetchedAt, "failed fetch must not extend freshness")
-	require.NotNil(t, findFamily(collectMetrics(t, collector), MetricName), "fresh snapshots remain available")
+	require.NotNil(t, findFamily(collectMetrics(t, collector), metricName), "fresh snapshots remain available")
+	// A snapshot survives one refresh interval so that a fetch slower than
+	// the sync interval cannot blank the metric family between syncs.
 	snapshot := collector.snapshots[""]
 	snapshot.fetchedAt = time.Now().Add(-collector.syncInterval - time.Second)
 	collector.snapshots[""] = snapshot
-	require.Nil(t, findFamily(collectMetrics(t, collector), MetricName), "expired snapshots must disappear")
+	require.NotNil(t, findFamily(collectMetrics(t, collector), metricName), "snapshots stay valid for a second refresh interval")
+	snapshot.fetchedAt = time.Now().Add(-snapshotTTLIntervals*collector.syncInterval - time.Second)
+	collector.snapshots[""] = snapshot
+	require.Nil(t, findFamily(collectMetrics(t, collector), metricName), "expired snapshots must disappear")
 }
 
 func TestAlertsCollector_ClearsSnapshotAcrossLeadershipTerms(t *testing.T) {
@@ -458,12 +463,12 @@ func TestAlertsCollector_ClearsSnapshotAcrossLeadershipTerms(t *testing.T) {
 	collector := newCollector(t, mock).(*AlertsCollector)
 	collector.stopLeading()
 	require.Empty(t, collector.snapshots)
-	require.Nil(t, findFamily(collectMetrics(t, collector), MetricName))
+	require.Nil(t, findFamily(collectMetrics(t, collector), metricName))
 	mock.err = errors.New("upstream unavailable on reacquisition")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	collector.startLeading(ctx)
-	require.Nil(t, findFamily(collectMetrics(t, collector), MetricName), "reacquisition cannot expose the previous term")
+	require.Nil(t, findFamily(collectMetrics(t, collector), metricName), "reacquisition cannot expose the previous term")
 }
 
 func TestAlertsCollector_DiscardsFetchFromPreviousTerm(t *testing.T) {
@@ -498,7 +503,7 @@ func TestAlertsCollector_DiscardsFetchFromPreviousTerm(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("old fetch did not finish")
 	}
-	require.Nil(t, findFamily(collectMetrics(t, collector), MetricName))
+	require.Nil(t, findFamily(collectMetrics(t, collector), metricName))
 }
 
 func TestAlertsCollector_IgnoresCanceledLeadershipCallback(t *testing.T) {
@@ -522,7 +527,7 @@ func TestAlertsCollector_DeduplicatesOverlappingBackends(t *testing.T) {
 				State:  "firing", ActiveAt: activeAt.Add(-time.Duration(i) * time.Minute),
 			})
 		}
-		family := findFamily(collectMetrics(t, newCollector(t, mock)), MetricName)
+		family := findFamily(collectMetrics(t, newCollector(t, mock)), metricName)
 		require.NotNil(t, family)
 		require.Len(t, family.Metric, 1)
 		require.Equal(t, k8s.AlertBackendAM, labelValue(family.Metric[0], k8s.AlertBackendLabel))

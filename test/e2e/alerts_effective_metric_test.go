@@ -4,29 +4,201 @@ package e2e
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	osmv1 "github.com/openshift/api/monitoring/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/prometheus/common/model"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
+
+// The e2e suite pins the wire contract of the metric instead of importing
+// the backend's unexported constant.
+const alertsEffectiveMetricName = "alerts_effective_active_at_timestamp_seconds"
 
 const (
 	metricPollInterval = 5 * time.Second
 	metricPollTimeout  = 3 * time.Minute
 )
+
+// fetchMetrics scrapes the plugin's /metrics endpoint. The endpoint only
+// accepts requests authenticated with the prometheus-k8s client certificate,
+// the same certificate the cluster-monitoring-operator mounts for the
+// ServiceMonitor with the tls-client-certificate-auth scrape class. Reencrypt
+// routes terminate TLS at the router and cannot forward that certificate, so
+// the scrape goes through a dedicated passthrough route.
+func fetchMetrics(ctx context.Context, f *framework.Framework) (string, error) {
+	scrapeURL, err := metricsScrapeURL(ctx, f)
+	if err != nil {
+		return "", err
+	}
+
+	secret, err := f.Clientset.CoreV1().Secrets(k8s.ClusterMonitoringNamespace).Get(
+		ctx, "metrics-client-certs", metav1.GetOptions{},
+	)
+	if err != nil {
+		return "", fmt.Errorf("reading prometheus-k8s client certificate: %w", err)
+	}
+
+	cert, err := tls.X509KeyPair(secret.Data["tls.crt"], secret.Data["tls.key"])
+	if err != nil {
+		return "", fmt.Errorf("parsing prometheus-k8s client certificate: %w", err)
+	}
+
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSClientConfig = &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		// TLS is terminated at the plugin, but the passthrough route is
+		// served by the router's certificate, not the plugin's own.
+		InsecureSkipVerify: true,
+	}
+	client := &http.Client{Timeout: 30 * time.Second, Transport: transport}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, scrapeURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("creating request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("executing request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("reading response body: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("GET %s: unexpected status %d: %s",
+			scrapeURL, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return string(body), nil
+}
+
+const (
+	// metricsRouteName names the passthrough route the metrics tests create
+	// for client-certificate scrapes. The name is fixed so repeated runs
+	// reuse it instead of accumulating routes.
+	metricsRouteName = "monitoring-plugin-metrics-e2e"
+
+	routePollInterval = 2 * time.Second
+	routePollTimeout  = 60 * time.Second
+	// Route teardown must stay bounded when the suite's contexts are gone.
+	routeCleanupTimeout = 20 * time.Second
+)
+
+var (
+	metricsRouteMu      sync.Mutex
+	metricsRouteHost    string
+	metricsRouteCreated bool
+)
+
+// metricsScrapeURL returns the /metrics URL served through the passthrough
+// route, creating the route on first use.
+func metricsScrapeURL(ctx context.Context, f *framework.Framework) (string, error) {
+	metricsRouteMu.Lock()
+	defer metricsRouteMu.Unlock()
+
+	if metricsRouteHost == "" {
+		host, err := ensureMetricsRoute(ctx, f)
+		if err != nil {
+			return "", err
+		}
+		metricsRouteHost = host
+	}
+	return "https://" + metricsRouteHost + "/metrics", nil
+}
+
+// ensureMetricsRoute creates the passthrough route to the plugin service and
+// returns the host assigned by the router.
+func ensureMetricsRoute(ctx context.Context, f *framework.Framework) (string, error) {
+	routes := f.Routev1clientset.RouteV1().Routes(k8s.ClusterMonitoringNamespace)
+
+	_, err := routes.Get(ctx, metricsRouteName, metav1.GetOptions{})
+	if apierrors.IsNotFound(err) {
+		route := &routev1.Route{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      metricsRouteName,
+				Namespace: k8s.ClusterMonitoringNamespace,
+				Annotations: map[string]string{
+					"openshift.io/description": "Passthrough route created by the monitoring-plugin e2e tests; safe to delete when no test suite is running.",
+				},
+			},
+			Spec: routev1.RouteSpec{
+				To: routev1.RouteTargetReference{
+					Kind: "Service",
+					Name: "monitoring-plugin",
+				},
+				Port: &routev1.RoutePort{TargetPort: intstr.FromString("https")},
+				TLS:  &routev1.TLSConfig{Termination: routev1.TLSTerminationPassthrough},
+			},
+		}
+		_, err = routes.Create(ctx, route, metav1.CreateOptions{})
+		if apierrors.IsAlreadyExists(err) {
+			err = nil
+		}
+	}
+	if err != nil {
+		return "", fmt.Errorf("creating passthrough route: %w", err)
+	}
+	metricsRouteCreated = true
+
+	// The router assigns the host asynchronously after route admission.
+	var host string
+	err = framework.Poll(routePollInterval, routePollTimeout, func() error {
+		route, err := routes.Get(ctx, metricsRouteName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		if len(route.Status.Ingress) == 0 || route.Status.Ingress[0].Host == "" {
+			return fmt.Errorf("route has no assigned host yet")
+		}
+		host = route.Status.Ingress[0].Host
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("waiting for route host: %w", err)
+	}
+	return host, nil
+}
+
+// deleteMetricsRoute removes the passthrough route if the tests created it.
+func deleteMetricsRoute() error {
+	metricsRouteMu.Lock()
+	created := metricsRouteCreated
+	metricsRouteMu.Unlock()
+
+	if !created {
+		return nil
+	}
+
+	f, err := framework.New()
+	if err != nil {
+		return fmt.Errorf("creating framework for route cleanup: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), routeCleanupTimeout)
+	defer cancel()
+	return f.Routev1clientset.RouteV1().Routes(k8s.ClusterMonitoringNamespace).Delete(
+		ctx, metricsRouteName, metav1.DeleteOptions{},
+	)
+}
 
 // parseMetricFamilies parses a Prometheus text exposition body.
 func parseMetricFamilies(body string) (map[string]*dto.MetricFamily, error) {
@@ -44,7 +216,7 @@ func parseMetricFamilies(body string) (map[string]*dto.MetricFamily, error) {
 // (defaulting to the effective-alerts family) as a model.Vector.
 func parseMetricSamples(body string, metricNames ...string) (model.Vector, error) {
 	if len(metricNames) == 0 {
-		metricNames = []string{metrics.MetricName}
+		metricNames = []string{alertsEffectiveMetricName}
 	}
 
 	families, err := parseMetricFamilies(body)
@@ -112,7 +284,7 @@ func waitForMetricSamples(t *testing.T, f *framework.Framework, match func(*mode
 			}
 		}
 		if len(found) == 0 {
-			return fmt.Errorf("no matching %s series yet", metrics.MetricName)
+			return fmt.Errorf("no matching %s series yet", alertsEffectiveMetricName)
 		}
 		matched = found
 		return nil
@@ -208,8 +380,8 @@ func TestMetricEndpointExposesEffectiveMetric(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if !strings.Contains(body, metrics.MetricName) {
-			return fmt.Errorf("metric %s not found yet (leader election may be in progress)", metrics.MetricName)
+		if !strings.Contains(body, alertsEffectiveMetricName) {
+			return fmt.Errorf("metric %s not found yet (leader election may be in progress)", alertsEffectiveMetricName)
 		}
 		metricBody = body
 		return nil
@@ -222,9 +394,9 @@ func TestMetricEndpointExposesEffectiveMetric(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to parse metrics body: %v", err)
 	}
-	family, ok := families[metrics.MetricName]
+	family, ok := families[alertsEffectiveMetricName]
 	if !ok {
-		t.Fatalf("Expected metric family %s, got none", metrics.MetricName)
+		t.Fatalf("Expected metric family %s, got none", alertsEffectiveMetricName)
 	}
 	if family.GetHelp() == "" {
 		t.Error("Missing HELP line for metric")
@@ -240,7 +412,7 @@ func TestMetricEndpointExposesEffectiveMetric(t *testing.T) {
 	if len(samples) == 0 {
 		t.Fatal("Expected at least one metric series, got none")
 	}
-	t.Logf("Found %d metric series for %s", len(samples), metrics.MetricName)
+	t.Logf("Found %d metric series for %s", len(samples), alertsEffectiveMetricName)
 }
 
 // TestMetricSeriesHaveRequiredLabels verifies every series has alertname,

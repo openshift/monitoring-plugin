@@ -8,8 +8,10 @@ const (
 	PlatformAlertmanagerRouteName     = "alertmanager-main"
 	UserWorkloadRouteName             = "prometheus-user-workload"
 	UserWorkloadAlertmanagerRouteName = "alertmanager-user-workload"
-	PrometheusAlertsPath              = "/v1/alerts"
-	PrometheusRulesPath               = "/v1/rules"
+	// Prometheus API paths are absolute: routes served under a path prefix
+	// (e.g. spec.path: /api) pass them through unchanged, see buildRouteURL.
+	PrometheusAlertsPath              = "/api/v1/alerts"
+	PrometheusRulesPath               = "/api/v1/rules"
 	PrometheusConfigPath              = "/api/v1/status/config"
 	AlertmanagerAlertsPath            = "/api/v2/alerts"
 	UserWorkloadAlertmanagerPort      = 9095

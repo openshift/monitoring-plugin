@@ -32,22 +32,24 @@ func TestCollectorPreservesOnlyFreshUnavailableSources(t *testing.T) {
 	partial, platformName = true, "PlatformDuringOutage"
 	now = now.Add(DefaultSyncInterval / 2)
 	collector.sync(context.Background())
-	family := findFamily(collectMetrics(t, collector), MetricName)
+	family := findFamily(collectMetrics(t, collector), metricName)
 	require.NotNil(t, family)
 	require.Len(t, family.Metric, 2)
 	for _, metric := range family.Metric {
 		require.NotEqual(t, "PlatformBeforeOutage", labelValue(metric, "alertname"), "healthy platform data must refresh during user-workload outages")
 	}
 	require.Equal(t, userFetchedAt, collector.snapshots[k8s.AlertSourceUser].fetchedAt)
-	now = now.Add(DefaultSyncInterval)
+	// The user snapshot is now older than two refresh intervals, the maximum
+	// age a source can reach while its fetches keep failing.
+	now = now.Add(3*DefaultSyncInterval/2 + time.Second)
 	collector.sync(context.Background())
-	family = findFamily(collectMetrics(t, collector), MetricName)
+	family = findFamily(collectMetrics(t, collector), metricName)
 	require.NotNil(t, family)
 	require.Len(t, family.Metric, 1, "cached user-workload data expires despite successful platform refreshes")
 	require.Equal(t, "PlatformDuringOutage", labelValue(family.Metric[0], "alertname"))
 	partial = false
 	collector.sync(context.Background())
-	family = findFamily(collectMetrics(t, collector), MetricName)
+	family = findFamily(collectMetrics(t, collector), metricName)
 	require.Len(t, family.Metric, 2, "user-workload metrics resume after recovery")
 	mock.alerts = nil
 	mock.fetch = nil
@@ -59,13 +61,13 @@ func TestCollectorExpiresFromFetchStart(t *testing.T) {
 	now := time.Now()
 	started := now
 	mock := &mockAlertsFetcher{fetch: func(context.Context, k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
-		now = now.Add(DefaultSyncInterval + time.Second)
+		now = now.Add(2*DefaultSyncInterval + time.Second)
 		return []k8s.PrometheusAlert{{Labels: map[string]string{"alertname": "SlowFetch"}, State: "firing", ActiveAt: started.Add(-time.Hour)}}, nil, nil
 	}}
 	collector := NewAlertsCollector(mock, DefaultSyncInterval)
 	collector.now = func() time.Time { return now }
 	collector.leading, collector.term = true, 1
 	collector.sync(context.Background())
-	require.Empty(t, collectMetrics(t, collector), "slow fetches cannot extend snapshot freshness")
+	require.Empty(t, collectMetrics(t, collector), "a fetch slower than two refresh intervals cannot extend snapshot freshness")
 	require.Equal(t, started, collector.snapshots[""].fetchedAt)
 }

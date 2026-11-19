@@ -12,7 +12,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
-	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
 
@@ -125,5 +124,5 @@ func TestAlertMetricsElectsSingleLeader(t *testing.T) {
 
 	// The leader keeps serving the metric family while other replicas stand by.
 	samples := waitForMetricSamples(t, f, nil)
-	t.Logf("Metric family %s is served by the leader (%d series)", metrics.MetricName, len(samples))
+	t.Logf("Metric family %s is served by the leader (%d series)", alertsEffectiveMetricName, len(samples))
 }

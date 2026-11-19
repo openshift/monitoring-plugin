@@ -171,13 +171,14 @@ alerting:
 			wantMatch:  true,
 		},
 		{
-			name: "configured legacy label validation is preserved",
+			name: "UTF-8 label names validate even when the scheme is legacy",
 			config: `global:
   metric_name_validation_scheme: legacy
 alerting:
   alert_relabel_configs:
-  - source_labels: [label_name]
-    target_label: "${1}"
+  - source_labels: [alertname]
+    regex: NeverMatches
+    target_label: team.name
     replacement: owned
 `,
 			promLabels: map[string]string{"alertname": "HighCPU", "label_name": "team.name"},
@@ -272,7 +273,7 @@ func TestFetchAlerts_DeliveryConfig(t *testing.T) {
 							{Labels: map[string]string{"alertname": "HighCPU", "cluster": "cluster-a", "severity": "critical"}, StartsAt: amTime, Status: alertmanagerAlertStatus{State: "active"}},
 							{Labels: map[string]string{"alertname": "ExactMatch"}, StartsAt: amTime, Status: alertmanagerAlertStatus{State: "suppressed"}},
 						})
-					case "/api" + PrometheusAlertsPath:
+					case PrometheusAlertsPath:
 						_ = json.NewEncoder(w).Encode(prometheusAlertsResponse{Status: "success", Data: prometheusAlertsData{Alerts: []PrometheusAlert{
 							{Labels: map[string]string{"alertname": "HighCPU", "cluster": "cluster-a", "severity": "warning"}, State: "firing", ActiveAt: promTime},
 							{Labels: map[string]string{"alertname": "ExactMatch"}, State: "firing", ActiveAt: promTime},
@@ -393,7 +394,7 @@ func TestUserWorkloadAlertDeliveryConfig_ServiceFallback(t *testing.T) {
 		switch r.URL.Path {
 		case AlertmanagerAlertsPath:
 			_ = json.NewEncoder(w).Encode([]alertmanagerAlert{{Labels: map[string]string{"alertname": "ServiceFallback", "cluster": "service-config", "team": "ops"}, StartsAt: receivedAt, Status: alertmanagerAlertStatus{State: "active"}}})
-		case "/api" + PrometheusAlertsPath:
+		case PrometheusAlertsPath:
 			_ = json.NewEncoder(w).Encode(prometheusAlertsResponse{Status: "success", Data: prometheusAlertsData{Alerts: []PrometheusAlert{{Labels: map[string]string{"alertname": "ServiceFallback", "cluster": "service-config", "team": "web"}, ActiveAt: activeAt, State: "firing"}}}})
 		case PrometheusConfigPath:
 			_, _ = w.Write([]byte(`{"status":"success","data":{"yaml":"global:\n  external_labels: {cluster: service-config}\nalerting:\n  alert_relabel_configs:\n  - target_label: team\n    replacement: ops\n"}}`))
@@ -419,6 +420,6 @@ func TestUserWorkloadAlertDeliveryConfig_ServiceFallback(t *testing.T) {
 	require.Equal(t, activeAt, alerts[0].ActiveAt)
 	require.Len(t, requests, 3)
 	<-requests // Alertmanager Route.
-	require.Equal(t, fmt.Sprintf("%s:%d/api%s", serviceHost, UserWorkloadPrometheusPort, PrometheusAlertsPath), <-requests)
+	require.Equal(t, fmt.Sprintf("%s:%d%s", serviceHost, UserWorkloadPrometheusPort, PrometheusAlertsPath), <-requests)
 	require.Equal(t, fmt.Sprintf("%s:%d%s", serviceHost, UserWorkloadPrometheusPort, PrometheusConfigPath), <-requests)
 }

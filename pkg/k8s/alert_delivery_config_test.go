@@ -33,11 +33,13 @@ func TestAlertRelabelingUsesUpstreamMetadata(t *testing.T) {
 
 			configs := []*relabel.Config{&copyBackend, &drop}
 
-			keep := alertsProm[0].ApplyRelabelConfigs(configs...)
+			enriched, keep := alertsProm[0].ApplyRelabelConfigs(configs...)
 			require.Equal(t, upstreamBackend != "original", keep)
-			require.Equal(t, upstreamBackend, alertsProm[0].Labels["copied_backend"])
-			require.Equal(t, AlertBackendProm, alertsProm[0].Labels[AlertBackendLabel])
-			require.Equal(t, AlertSourcePlatform, alertsProm[0].Labels[AlertSourceLabel])
+			require.Equal(t, upstreamBackend, enriched.Labels["copied_backend"])
+			require.Equal(t, AlertBackendProm, enriched.Labels[AlertBackendLabel])
+			require.Equal(t, AlertSourcePlatform, enriched.Labels[AlertSourceLabel])
+			require.Equal(t, AlertBackendProm, alertsProm[0].Labels[AlertBackendLabel], "receiver stays unmodified")
+			require.NotContains(t, alertsProm[0].Labels, "copied_backend", "receiver stays unmodified")
 		})
 	}
 }

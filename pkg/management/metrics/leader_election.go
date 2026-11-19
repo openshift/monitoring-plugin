@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,19 +21,26 @@ const (
 	leaseDuration = 137 * time.Second
 	leaseRenew    = 107 * time.Second
 	leaseRetry    = 26 * time.Second
+
+	// Bound for waiting on the leader elector during shutdown: releasing
+	// the lease is a single API call, and the lease expires on its own
+	// after leaseDuration even when the release cannot be delivered.
+	leaderElectionStopTimeout = 15 * time.Second
 )
 
 // startLeaderElection sets up Lease-based leader election for the alerts
-// metrics and connects its leadership lifecycle to the collector.
-func startLeaderElection(ctx context.Context, kubeConfig *rest.Config, namespace string, onStartedLeading func(context.Context), onStoppedLeading func()) error {
+// metrics and connects its leadership lifecycle to the collector. The
+// returned function blocks until the elector has stopped and released its
+// lease after ctx is cancelled; it is safe to call multiple times.
+func startLeaderElection(ctx context.Context, kubeConfig *rest.Config, namespace string, onStartedLeading func(context.Context), onStoppedLeading func()) (func(), error) {
 	coordClient, err := coordinationv1client.NewForConfig(kubeConfig)
 	if err != nil {
-		return fmt.Errorf("create coordination client: %w", err)
+		return nil, fmt.Errorf("create coordination client: %w", err)
 	}
 
 	identity, err := os.Hostname()
 	if err != nil {
-		return fmt.Errorf("get hostname: %w", err)
+		return nil, fmt.Errorf("get hostname: %w", err)
 	}
 
 	lock := &resourcelock.LeaseLock{
@@ -61,11 +69,25 @@ func startLeaderElection(ctx context.Context, kubeConfig *rest.Config, namespace
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("create leader elector: %w", err)
+		return nil, fmt.Errorf("create leader elector: %w", err)
 	}
 
-	go runLeaderElection(ctx, le.Run)
-	return nil
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		runLeaderElection(ctx, le.Run)
+	}()
+
+	var once sync.Once
+	return func() {
+		once.Do(func() {
+			select {
+			case <-done:
+			case <-time.After(leaderElectionStopTimeout):
+				metricsLog.Warn("timed out waiting for the metrics leader election to stop; the lease expires on its own")
+			}
+		})
+	}, nil
 }
 
 // runLeaderElection rejoins after losing a lease, until the server shuts down.

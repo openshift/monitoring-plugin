@@ -29,15 +29,18 @@ When alert management is enabled, the plugin service account also needs `get`,
 The alert collector uses the `monitoring-plugin-metrics` Lease so only the
 leader emits alert metrics. Lease election tolerates API disruption
 using the OpenShift timing defaults, and replicas rejoin after losing a lease.
-A
-new leadership term starts with an empty alert snapshot, and fetches from
-previous terms are ignored. Each source's snapshot expires one configured
-refresh interval (30 seconds by default) after its refresh starts. If
-user-workload retrieval fails, its previous series remain available only until
-that limit; platform series continue to refresh. Slow fetches cannot extend
-freshness. If alert-metric
-initialization fails, the server logs the failure and continues serving its
-other endpoints.
+The leader releases the Lease when the process receives SIGTERM or SIGINT, so
+a replacement can take over without waiting for the Lease to expire. A new
+leadership term starts with an empty alert snapshot, and fetches from
+previous terms are ignored. The collector refreshes each source once per
+interval (30 seconds by default) whether or not it is scraped, and a source's
+series expire two refresh intervals after its last successful refresh: the
+slack of one interval tolerates a single slow or failed fetch, while a source
+whose fetches stop disappears from the metric. Slow fetches cannot extend
+freshness. Sources are tracked independently; if user-workload retrieval
+fails, its series expire on the same limit while platform series continue to
+refresh. If alert-metric initialization fails, the server logs the failure
+and continues serving its other endpoints.
 
 ## Alert management metrics
 
@@ -61,23 +64,34 @@ one-second timeout. If
 configuration cannot be read, only exact label matches are enriched until the
 next refresh; unmatched alerts retain Alertmanager's `startsAt`.
 
-Separate alerts and configuration requests can reach different Prometheus
-replicas. Any external label learned only from configuration, including
-`cluster` and `prometheus_replica`, is treated as ambiguous unless relabeling
-discards it before reading or copying its value. Labels supplied directly by
-the alert remain usable for matching. Both matching and ARC evaluation use
+Alert and configuration requests are separate, and load balancing can send
+them to different Prometheus replicas, so the plugin cannot assume both
+answers describe the same instance. External labels can differ between
+replicas: `prometheus_replica` names the replica itself, and deployments
+commonly set a `cluster` external label (for example in multi-cluster
+setups), which can also change across a rollout. When such a label is absent
+from the alert itself and the relabeling rules do not drop it before the
+delivered identity is built, the plugin treats the identity as ambiguous and
+keeps Alertmanager's `startsAt`. Labels carried by the alert itself remain
+usable for matching. Both matching and ARC evaluation use
 captured upstream labels so plugin metadata cannot change delivery decisions
 or hide genuine upstream values under the reserved source/backend names.
 
-Prometheus sends its firing timestamp as Alertmanager's `startsAt`; `activeAt`
-also includes the pending period. Only firing Prometheus instances can enrich
-Alertmanager timestamps. If a matching instance's `activeAt` is later than
-`startsAt`, the plugin retains `startsAt`: a new occurrence and clock skew are
-both possible. Pending instances never overwrite an older firing occurrence.
+Prometheus reports the condition start as `activeAt` and sends the firing
+time to Alertmanager as `startsAt`: an alert configured with `for` spends that
+duration pending first, so `activeAt` includes the pending period and is the
+earlier timestamp. The effective metric therefore reports when the alert's
+condition became true rather than when it fired. Only firing Prometheus
+instances can enrich Alertmanager timestamps. If a matching instance's
+`activeAt` is later than `startsAt`, the plugin retains `startsAt`: a new
+occurrence and clock skew are both possible. Pending instances never overwrite
+an older firing occurrence.
 Timestamp matching leaves the returned alert labels unchanged.
 
-CMO will supply the corresponding alerting rules; this repository does not
-install them.
+The alerting rules that consume this metric will be supplied by CMO in its own
+PrometheusRule resources (CNV-87536); this repository does not install them.
+They alert on the exposed series and are separate from any health monitoring
+of the plugin component itself.
 
 ## E2E testing
 

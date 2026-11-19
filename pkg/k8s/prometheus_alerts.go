@@ -149,9 +149,12 @@ func (alert *PrometheusAlert) upstreamLabels() map[string]string {
 	return upstream
 }
 
-// ApplyRelabelConfigs evaluates delivery rules against upstream labels, then
-// restores the plugin's source/backend metadata on the enriched result.
-func (alert *PrometheusAlert) ApplyRelabelConfigs(configs ...*relabel.Config) bool {
+// ApplyRelabelConfigs returns a copy of the alert with Prometheus's alert
+// relabeling rules applied to its upstream labels, and reports whether the
+// alert survives relabeling, i.e. whether Prometheus would deliver it to
+// Alertmanager. The plugin's source and backend metadata labels are restored
+// on the returned copy. The receiver is left unchanged.
+func (alert *PrometheusAlert) ApplyRelabelConfigs(configs ...*relabel.Config) (*PrometheusAlert, bool) {
 	builder := labels.NewBuilder(labels.FromMap(alert.upstreamLabels()))
 	keep := relabel.ProcessBuilder(builder, configs...)
 	for _, name := range []string{AlertSourceLabel, AlertBackendLabel} {
@@ -159,8 +162,9 @@ func (alert *PrometheusAlert) ApplyRelabelConfigs(configs ...*relabel.Config) bo
 			builder.Set(name, value)
 		}
 	}
-	alert.Labels = builder.Labels().Map()
-	return keep
+	enriched := *alert
+	enriched.Labels = builder.Labels().Map()
+	return &enriched, keep
 }
 
 type prometheusAlertsData struct {
@@ -478,7 +482,7 @@ func (pa *prometheusAlerts) getPrometheusAlertsViaService(ctx context.Context, n
 		ctx = timeoutCtx
 	}
 
-	raw, err := pa.getServiceResponse(ctx, namespace, serviceName, port, "/api"+PrometheusAlertsPath)
+	raw, err := pa.getServiceResponse(ctx, namespace, serviceName, port, PrometheusAlertsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -950,8 +954,7 @@ func filterAlertsByState(alerts []PrometheusAlert, state string) []PrometheusAle
 // between the Prometheus alerts API and delivery to Alertmanager.
 type alertDeliveryConfig struct {
 	Global struct {
-		ExternalLabels             map[string]string      `yaml:"external_labels"`
-		MetricNameValidationScheme model.ValidationScheme `yaml:"metric_name_validation_scheme"`
+		ExternalLabels map[string]string `yaml:"external_labels"`
 	} `yaml:"global"`
 	Alerting struct {
 		RelabelConfigs []*relabel.Config `yaml:"alert_relabel_configs"`
@@ -975,14 +978,12 @@ func parseAlertDeliveryConfig(raw []byte) (*alertDeliveryConfig, error) {
 	if err := yaml.Unmarshal([]byte(response.Data.YAML), &config); err != nil {
 		return nil, fmt.Errorf("decode prometheus alert delivery config: %w", err)
 	}
-	if config.Global.MetricNameValidationScheme == model.UnsetValidation {
-		config.Global.MetricNameValidationScheme = model.UTF8Validation
-	}
 	for _, relabelConfig := range config.Alerting.RelabelConfigs {
 		if relabelConfig == nil {
 			return nil, fmt.Errorf("prometheus alert delivery config contains a null relabel rule")
 		}
-		if err := relabelConfig.Validate(config.Global.MetricNameValidationScheme); err != nil {
+		// Prometheus on OpenShift always serves UTF-8 metric and label names.
+		if err := relabelConfig.Validate(model.UTF8Validation); err != nil {
 			return nil, fmt.Errorf("invalid prometheus alert relabel rule: %w", err)
 		}
 	}

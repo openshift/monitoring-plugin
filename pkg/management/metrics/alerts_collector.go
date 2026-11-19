@@ -18,11 +18,16 @@ import (
 var metricsLog = logrus.WithField("module", "metrics")
 
 const (
-	MetricName = "alerts_effective_active_at_timestamp_seconds"
+	metricName = "alerts_effective_active_at_timestamp_seconds"
 	metricHelp = "The activeAt timestamp of effective alerts that survive ARC relabeling. " +
 		"Value is the Unix timestamp when the alert became active."
 
 	DefaultSyncInterval = 30 * time.Second
+
+	// A snapshot stays valid for two refresh intervals: one slow or partial
+	// fetch must not blank the metric family between syncs, while a source
+	// whose fetches stop succeeding disappears within two intervals.
+	snapshotTTLIntervals = 2
 
 	labelAlertState = "alertstate"
 )
@@ -77,17 +82,24 @@ type AlertsCollector struct {
 }
 
 // Register adds cleanup metrics and a leader-elected alert collector
-// to the server's registry when alert management is enabled.
-func Register(ctx context.Context, registry *prometheus.Registry, fetcher AlertsFetcher, kubeConfig *rest.Config) error {
+// to the server's registry when alert management is enabled. The returned
+// function blocks until the leader election has stopped after ctx is
+// cancelled and the lease has been released, so callers can defer process
+// exit until then.
+func Register(ctx context.Context, registry *prometheus.Registry, fetcher AlertsFetcher, kubeConfig *rest.Config) (func(), error) {
 	if kubeConfig == nil {
-		return fmt.Errorf("metrics leader election requires Kubernetes configuration")
+		return nil, fmt.Errorf("metrics leader election requires Kubernetes configuration")
 	}
 	collector := NewAlertsCollector(fetcher, DefaultSyncInterval)
-	if err := startLeaderElection(ctx, kubeConfig, k8s.ClusterMonitoringNamespace, collector.startLeading, collector.stopLeading); err != nil {
-		return fmt.Errorf("start metrics leader election: %w", err)
+	waitForLeaderElection, err := startLeaderElection(ctx, kubeConfig, k8s.ClusterMonitoringNamespace, collector.startLeading, collector.stopLeading)
+	if err != nil {
+		return nil, fmt.Errorf("start metrics leader election: %w", err)
 	}
-	registry.MustRegister(collector)
-	return nil
+	if err := registry.Register(collector); err != nil {
+		waitForLeaderElection()
+		return nil, fmt.Errorf("register alerts collector: %w", err)
+	}
+	return waitForLeaderElection, nil
 }
 
 // NewAlertsCollector creates a collector. Leader election starts and stops its
@@ -98,7 +110,7 @@ func NewAlertsCollector(fetcher AlertsFetcher, syncInterval time.Duration) *Aler
 		syncInterval: syncInterval,
 		now:          time.Now,
 		sentinelDescs: []*prometheus.Desc{
-			prometheus.NewDesc(MetricName, metricHelp, nil, nil),
+			prometheus.NewDesc(metricName, metricHelp, nil, nil),
 		},
 	}
 }
@@ -145,7 +157,7 @@ func (c *AlertsCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, snapshot := range c.snapshots {
 		// Each source expires independently from the start of its fetch. A
 		// partial result cannot refresh the unavailable source's old samples.
-		if now.Sub(snapshot.fetchedAt) > c.syncInterval {
+		if now.Sub(snapshot.fetchedAt) > snapshotTTLIntervals*c.syncInterval {
 			continue
 		}
 		for _, m := range snapshot.metrics {
@@ -268,7 +280,6 @@ func buildAlertMetric(alert *k8s.PrometheusAlert) *alertMetric {
 	if alert.ActiveAt.IsZero() {
 		return nil
 	}
-	name, help := MetricName, metricHelp
 
 	labelNames := make([]string, 0, len(alert.Labels)+1)
 	for k := range alert.Labels {
@@ -289,7 +300,7 @@ func buildAlertMetric(alert *k8s.PrometheusAlert) *alertMetric {
 	}
 
 	return &alertMetric{
-		desc:            prometheus.NewDesc(name, help, labelNames, nil),
+		desc:            prometheus.NewDesc(metricName, metricHelp, labelNames, nil),
 		labelValues:     labelValues,
 		activeAtSec:     float64(alert.ActiveAt.Unix()),
 		backendPriority: alertBackendPriority(alert.Labels[k8s.AlertBackendLabel]),
