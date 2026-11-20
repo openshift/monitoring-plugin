@@ -32,6 +32,7 @@ export function sortRules(rules: ManagedRule[], { column, direction }: RuleSort)
         break;
       case 'enablement':
         comparison =
+          compareRuleFilterValues('enablement', a.enablement, b.enablement) ||
           b.firingAlertCount - a.firingAlertCount ||
           b.pendingAlertCount - a.pendingAlertCount ||
           b.silencedAlertCount - a.silencedAlertCount;

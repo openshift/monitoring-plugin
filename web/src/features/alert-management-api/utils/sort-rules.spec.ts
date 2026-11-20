@@ -28,11 +28,11 @@ it.each([
   },
 );
 
-it('sorts State by highest firing, then pending, then silenced count without mutating input', () => {
+it('sorts State by alert counts within the same enablement without mutating input', () => {
   const rules = [
     makeRule({ id: 'silenced', silencedAlertCount: 100 }),
     makeRule({ id: 'firing', firingAlertCount: 10 }),
-    makeRule({ id: 'empty', enablement: 'Disabled' }),
+    makeRule({ id: 'empty' }),
     makeRule({ id: 'pending', pendingAlertCount: 2 }),
     makeRule({ id: 'firing-pending', firingAlertCount: 2, pendingAlertCount: 10 }),
     makeRule({ id: 'pending-silenced', pendingAlertCount: 2, silencedAlertCount: 10 }),
@@ -64,14 +64,20 @@ it('sorts State by highest firing, then pending, then silenced count without mut
   expect(rules).toEqual(original);
 });
 
-it('does not use enablement labels to order rules with equal alert counts', () => {
+it('sorts Enabled, Disabled, then Unknown before comparing alert counts or names', () => {
   const rules = [
-    makeRule({ id: 'disabled', name: 'Zulu', enablement: 'Disabled' }),
-    makeRule({ id: 'enabled', name: 'Alpha', enablement: 'Enabled' }),
+    makeRule({ id: 'unknown', name: 'Alpha', enablement: 'Unknown', firingAlertCount: 10 }),
+    makeRule({ id: 'disabled', name: 'Bravo', enablement: 'Disabled', pendingAlertCount: 2 }),
+    makeRule({ id: 'enabled', name: 'Zulu', enablement: 'Enabled' }),
   ];
+  const original = structuredClone(rules);
   expect(
     sortRules(rules, { column: 'enablement', direction: 'asc' }).map((rule) => rule.id),
-  ).toEqual(['enabled', 'disabled']);
+  ).toEqual(['enabled', 'disabled', 'unknown']);
+  expect(
+    sortRules(rules, { column: 'enablement', direction: 'desc' }).map((rule) => rule.id),
+  ).toEqual(['unknown', 'disabled', 'enabled']);
+  expect(rules).toEqual(original);
 });
 
 it('sorts severity by importance without mutating input', () => {
