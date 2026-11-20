@@ -88,12 +88,12 @@ export function AlertRulesManagementPage() {
   const pageRules = filteredRules.slice((page - 1) * perPage, page * perPage);
 
   // Update all filters to new values, move to page one and reset selection
-  const setFilters = (filters: RuleFilters) => {
+  const setFilters = (filters: RuleFilters, options: { replace?: boolean } = {}) => {
     setParams((current) => {
       const next = serializeFilterParams(current, filters, filterKeys);
       next.set(QueryParams.Page, '1');
       return next;
-    });
+    }, options);
     setSelected(new Set());
   };
 
@@ -161,8 +161,8 @@ export function AlertRulesManagementPage() {
                     aria-label={t('Search by rule name')}
                     placeholder={t('Search by rule name')}
                     value={filters.name}
-                    onChange={(_event, name) => setFilters({ ...filters, name })}
-                    onClear={() => setFilters({ ...filters, name: '' })}
+                    onChange={(_event, name) => setFilters({ ...filters, name }, { replace: true })}
+                    onClear={() => setFilters({ ...filters, name: '' }, { replace: true })}
                   />
                 </FlexItem>
                 <FlexItem>

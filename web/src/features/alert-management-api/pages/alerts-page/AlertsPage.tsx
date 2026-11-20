@@ -144,8 +144,10 @@ export function AlertManagementAlertsPage() {
                       aria-label={t('Search alert name')}
                       value={filters.name}
                       placeholder={t('Search alert name')}
-                      onChange={(_event, name) => setFilters({ ...filters, name })}
-                      onClear={() => setFilters({ ...filters, name: '' })}
+                      onChange={(_event, name) =>
+                        setFilters({ ...filters, name }, { replace: true })
+                      }
+                      onClear={() => setFilters({ ...filters, name: '' }, { replace: true })}
                     />
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>

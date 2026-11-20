@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 
 import { processAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
 import { AlertRulesManagementPage } from '@/features/alert-management-api/pages/rules-page/RulesPage';
@@ -69,6 +69,26 @@ function renderPage(search = '') {
   );
 }
 
+function renderPageWithHistory(search: string) {
+  const path = '/monitoring/v2/management/alertrules';
+  const router = createMemoryRouter(
+    [
+      {
+        path,
+        element: (
+          <>
+            <AlertRulesManagementPage />
+            <Location />
+          </>
+        ),
+      },
+    ],
+    { initialEntries: [`${path}?name=etcd`, `${path}${search}`] },
+  );
+  render(<RouterProvider router={router} />);
+  return router;
+}
+
 const tableRows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1);
 
 beforeEach(() => {
@@ -122,6 +142,47 @@ it('restores URL filters and sort, and resets pagination when searching', () => 
   expect(params.get('page')).toBe('1');
   expect(params.get('refreshInterval')).toBe('30000');
   expect(params.get('sortDirection')).toBe('desc');
+});
+
+it('replaces history when typing or clearing the rule-name search', async () => {
+  const router = renderPageWithHistory(
+    '?page=2&sort=name&sortDirection=desc&refreshInterval=30000',
+  );
+  const search = screen.getByRole('textbox', { name: 'Search by rule name' });
+
+  for (const name of ['W', 'Work', 'Workload']) {
+    fireEvent.change(search, { target: { value: name } });
+    expect(router.state.historyAction).toBe('REPLACE');
+    expect(new URLSearchParams(router.state.location.search).get('name')).toBe(name);
+  }
+
+  const params = new URLSearchParams(router.state.location.search);
+  expect(params.get('page')).toBe('1');
+  expect(params.get('sortDirection')).toBe('desc');
+  expect(params.get('refreshInterval')).toBe('30000');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+  expect(router.state.historyAction).toBe('REPLACE');
+  expect(new URLSearchParams(router.state.location.search).has('name')).toBe(false);
+  expect((search as HTMLInputElement).value).toBe('');
+
+  await act(async () => router.navigate(-1));
+  expect(new URLSearchParams(router.state.location.search).get('name')).toBe('etcd');
+  expect((search as HTMLInputElement).value).toBe('etcd');
+
+  await act(async () => router.navigate(1));
+  expect((search as HTMLInputElement).value).toBe('');
+});
+
+it('still creates history entries for discrete filter changes', async () => {
+  const router = renderPageWithHistory('?severity=critical');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+  expect(router.state.historyAction).toBe('PUSH');
+  expect(new URLSearchParams(router.state.location.search).has('severity')).toBe(false);
+
+  await act(async () => router.navigate(-1));
+  expect(new URLSearchParams(router.state.location.search).get('severity')).toBe('critical');
 });
 
 it('shows chips from URL filters and clears them', () => {

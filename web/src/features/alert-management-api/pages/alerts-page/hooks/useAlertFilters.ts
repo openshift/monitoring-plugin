@@ -38,7 +38,7 @@ export const useAlertManagementFilters = () => {
     return parsed;
   }, [searchParams]);
 
-  const setFilters = (nextFilters: AlertFilters) => {
+  const setFilters = (nextFilters: AlertFilters, options: { replace?: boolean } = {}) => {
     setSearchParams((current) => {
       const next = serializeFilterParams(current, nextFilters, filterKeys);
       const clearFiringTime = filters.firingTime !== '' && nextFilters.firingTime === '';
@@ -48,7 +48,7 @@ export const useAlertManagementFilters = () => {
         next.delete(QueryParams.EndTime);
       }
       return next;
-    });
+    }, options);
   };
 
   return { filters, setFilters };
