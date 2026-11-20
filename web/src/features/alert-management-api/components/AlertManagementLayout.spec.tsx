@@ -29,7 +29,7 @@ vi.mock('@/features/incidents/pages/IncidentsPage', () => ({
 vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
   useAlertManagementData: () => ({
     rulesQuery: { dataUpdatedAt: queryTimes.rules },
-    alertsQuery: { dataUpdatedAt: queryTimes.alerts },
+    silencedAlertsQuery: { dataUpdatedAt: queryTimes.alerts },
   }),
 }));
 

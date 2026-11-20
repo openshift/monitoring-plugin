@@ -33,7 +33,7 @@ vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', async (i
   >()),
   useAlertManagementData: () => ({
     data: state.error ? undefined : { rules: state.rules },
-    alertsQuery: { isError: state.alertsError },
+    silencedAlertsQuery: { isError: state.alertsError },
     rulesQuery: {
       isLoading: state.loading,
       isError: state.error,

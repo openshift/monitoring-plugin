@@ -51,7 +51,7 @@ import { startCase } from '@/shared/utils/strings';
 
 export function AlertManagementAlertsPage() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { data, rulesQuery, alertsQuery } = useAlertManagementData();
+  const { data, rulesQuery, silencedAlertsQuery } = useAlertManagementData();
   const { filters, setFilters } = useAlertManagementFilters();
   const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
@@ -89,7 +89,7 @@ export function AlertManagementAlertsPage() {
       panel={<AlertDetailsPanel alert={selectedAlert} />}
     >
       <PageSection hasBodyWrapper={false} isFilled>
-        {alertsQuery.isError && (
+        {silencedAlertsQuery.isError && (
           <Alert isInline variant="warning" title={t('Silenced alerts could not be loaded')} />
         )}
         <PageWithFilters

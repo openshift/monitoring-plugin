@@ -63,7 +63,7 @@ it('exposes a failed silenced-alert query without blocking rules or changing the
   mocks.useGetAlerts.mockReturnValue({ data: undefined, isError: true, error });
   const { result } = renderHook(() => useAlertManagementData());
 
-  expect(result.current.alertsQuery.error).toBe(error);
+  expect(result.current.silencedAlertsQuery.error).toBe(error);
   expect(result.current.data?.rules).toHaveLength(alertingRules.length);
   expect(result.current.data?.rules.map((rule) => rule.state)).toEqual(
     alertingRules.map((rule) => rule.state),

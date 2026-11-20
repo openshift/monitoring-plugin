@@ -53,7 +53,7 @@ vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
       dataUpdatedAt: 0,
       refetch: vi.fn(),
     },
-    alertsQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
+    silencedAlertsQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
   }),
 }));
 

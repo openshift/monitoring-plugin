@@ -57,7 +57,7 @@ const filtersId = 'alert-rule-filters';
 
 export function AlertRulesManagementPage() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { data, rulesQuery, alertsQuery } = useAlertManagementData();
+  const { data, rulesQuery, silencedAlertsQuery } = useAlertManagementData();
   const [params, setParams] = useSearchParams();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -120,7 +120,7 @@ export function AlertRulesManagementPage() {
           {rulesQuery.error?.message}
         </Alert>
       )}
-      {alertsQuery.isError && (
+      {silencedAlertsQuery.isError && (
         <Alert isInline variant="warning" title={t('Silenced alerts could not be loaded')} />
       )}
       <PageWithFilters

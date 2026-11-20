@@ -30,7 +30,7 @@ export const useAlertManagementData = (refreshIntervalMs: number | false = false
       },
     },
   });
-  const alertsQuery = useGetAlerts({
+  const silencedAlertsQuery = useGetAlerts({
     params: { state: 'silenced' },
     options: {
       query: {
@@ -42,11 +42,11 @@ export const useAlertManagementData = (refreshIntervalMs: number | false = false
     },
   });
   const data = useMemo(
-    () => processAlertManagementData(rulesQuery.data, alertsQuery.data),
-    [rulesQuery.data, alertsQuery.data],
+    () => processAlertManagementData(rulesQuery.data, silencedAlertsQuery.data),
+    [rulesQuery.data, silencedAlertsQuery.data],
   );
 
-  return { data, rulesQuery, alertsQuery };
+  return { data, rulesQuery, silencedAlertsQuery };
 };
 
 const getRules = (rulesResponse: GetRulesResponse) => {
