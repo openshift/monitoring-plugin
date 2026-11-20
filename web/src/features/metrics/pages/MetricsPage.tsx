@@ -93,6 +93,7 @@ import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { QueryParams } from '@/shared/constants/query-params';
+import { MAX_TIMESPAN_MS } from '@/shared/constants/timespan';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useFeatures } from '@/shared/hooks/useFeatures';
@@ -962,6 +963,10 @@ const QueryBrowserWrapper: FC<{
     (state: MonitoringState) => getObserveState(plugin, state).queryBrowser?.queries,
   );
 
+  const relativeTimespan = useSelector(
+    (state: MonitoringState) => getObserveState(plugin, state).queryBrowser.timespan,
+  );
+
   /* eslint-disable react-hooks/exhaustive-deps */
   // Use useMemo() to prevent these two arrays being recreated on every render, which would
   // trigger unnecessary re-renders of QueryBrowser, which can be quite slow
@@ -978,7 +983,24 @@ const QueryBrowserWrapper: FC<{
   const prevParams = useRef<URLSearchParams | null>(null);
   const prevQueryStrings = useRef<string[] | null>(null);
 
-  // Keep URL query0/query1/… and Redux in sync.
+  const startParam = queryParams.get(QueryParams.Start);
+  const endParam = queryParams.get(QueryParams.End);
+
+  const urlStart = startParam?.trim() ? Number(startParam) : NaN;
+  const urlEnd = endParam?.trim() ? Number(endParam) : NaN;
+
+  const hasValidDates =
+    Number.isFinite(new Date(urlStart).getTime()) && Number.isFinite(new Date(urlEnd).getTime());
+  const durationMs = urlEnd - urlStart;
+  const urlTimespan =
+    hasValidDates && durationMs >= 1000 && durationMs <= MAX_TIMESPAN_MS ? durationMs : undefined;
+
+  const urlEndTime = urlTimespan !== undefined ? urlEnd : undefined;
+
+  const hasInvalidUrlTimeRange =
+    (startParam !== null || endParam !== null) && urlTimespan === undefined;
+
+  // Keep URL query0/query1/… and Redux in sync, and drop invalid URL ranges.
   useEffect(() => {
     const fromUrl: string[] = [];
     for (let i = 0; queryParams.has(`query${i}`); i++) {
@@ -991,12 +1013,8 @@ const QueryBrowserWrapper: FC<{
     prevParams.current = queryParams;
     prevQueryStrings.current = queryStrings;
 
-    if (JSON.stringify(fromUrl) === JSON.stringify(queryStrings)) {
-      return;
-    }
-
-    const writeUrlFromStore = () => {
-      const newParams = new URLSearchParams(removeQueryKeys(queryParams));
+    const buildUrlFromStore = () => {
+      const newParams = removeQueryKeys(queryParams);
       queryStrings.forEach((query, i) => newParams.set(`query${i}`, query || ''));
       if (customDataSourceName) {
         newParams.set(QueryParams.Datasource, customDataSourceName);
@@ -1004,7 +1022,7 @@ const QueryBrowserWrapper: FC<{
       if (!newParams.get(QueryParams.Units)) {
         newParams.set(QueryParams.Units, 'short');
       }
-      setQueryParams(newParams, { replace: true });
+      return newParams;
     };
 
     const writeStoreFromUrl = () => {
@@ -1021,22 +1039,54 @@ const QueryBrowserWrapper: FC<{
       });
     };
 
-    if (first) {
-      if (fromUrl.some((q) => q)) {
+    let nextParams: URLSearchParams | undefined;
+    if (JSON.stringify(fromUrl) !== JSON.stringify(queryStrings)) {
+      if (first) {
+        if (fromUrl.some((q) => q)) {
+          writeStoreFromUrl();
+        } else {
+          nextParams = buildUrlFromStore();
+        }
+      } else if (urlChanged) {
         writeStoreFromUrl();
-      } else {
-        writeUrlFromStore();
+      } else if (storeChanged) {
+        nextParams = buildUrlFromStore();
       }
-      return;
     }
-    if (urlChanged) {
-      writeStoreFromUrl();
-      return;
+
+    if (hasInvalidUrlTimeRange) {
+      nextParams = removeUrlTimeRange(nextParams ?? queryParams);
     }
-    if (storeChanged) {
-      writeUrlFromStore();
+    if (nextParams) {
+      setQueryParams(nextParams, { replace: true });
     }
-  }, [customDataSourceName, dispatch, queryParams, queryStrings, setQueryParams]);
+  }, [
+    customDataSourceName,
+    dispatch,
+    hasInvalidUrlTimeRange,
+    queryParams,
+    queryStrings,
+    setQueryParams,
+  ]);
+
+  const handleZoom = useCallback(
+    (from: number, to: number) => {
+      setQueryParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set(QueryParams.Start, String(from));
+          next.set(QueryParams.End, String(to));
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setQueryParams],
+  );
+
+  const clearUrlTimeRange = useCallback(() => {
+    setQueryParams(removeUrlTimeRange, { replace: true });
+  }, [setQueryParams]);
 
   if (hideGraphs) {
     return null;
@@ -1100,12 +1150,23 @@ const QueryBrowserWrapper: FC<{
     <QueryBrowser
       customDataSource={customDataSource}
       disabledSeries={disabledSeries}
+      fixedEndTime={urlEndTime}
+      onSpanChange={clearUrlTimeRange}
+      onZoom={handleZoom}
       queries={queryStrings}
+      timespan={urlTimespan ?? relativeTimespan}
       units={units}
       showStackedControl
       showDisconnectedControl
     />
   );
+};
+
+const removeUrlTimeRange = (searchParams: URLSearchParams): URLSearchParams => {
+  const next = new URLSearchParams(searchParams);
+  next.delete(QueryParams.Start);
+  next.delete(QueryParams.End);
+  return next;
 };
 
 const removeQueryKeys = (searchParams: URLSearchParams): URLSearchParams => {

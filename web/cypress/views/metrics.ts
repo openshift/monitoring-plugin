@@ -446,6 +446,31 @@ export const metricsPage = {
       .click();
   },
 
+  dragToZoom: () => {
+    cy.byTestID(DataTestIDs.MetricGraph)
+      .find(`[id^="${IDs.ChartAxis0ChartLabel}"]`)
+      .first()
+      .closest(`[data-test="${DataTestIDs.MetricGraph}"] > div`)
+      .scrollIntoView()
+      .should('be.visible')
+      .then(($surface) => {
+        const { width, height } = $surface[0].getBoundingClientRect();
+        const left = Math.round(width / 4);
+        const right = Math.round((3 * width) / 4);
+        const y = Math.round(height / 2);
+        const options = { eventConstructor: 'MouseEvent', force: true };
+        cy.wrap($surface).trigger('mousedown', left, y, options);
+        cy.wrap($surface).should('have.attr', 'tabindex', '-1');
+        cy.wrap($surface).trigger('mousemove', right, y, options);
+        // Wait for React to render the selection before releasing the mouse.
+        cy.wrap($surface)
+          .children()
+          .first()
+          .should('have.css', 'width', `${right - left}px`);
+        cy.wrap($surface).trigger('mouseup', right, y, options);
+      });
+  },
+
   clickResetZoomButton: () => {
     cy.log('metricsPage.clickResetZoomButton');
     cy.byTestID(DataTestIDs.MetricResetZoomButton).scrollIntoView().should('be.visible').click();
