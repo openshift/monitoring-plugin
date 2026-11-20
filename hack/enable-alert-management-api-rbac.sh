@@ -42,6 +42,10 @@ rules:
   - apiGroups: ["monitoring.openshift.io"]
     resources: ["alertrelabelconfigs", "alertingrules"]
     verbs: ["get", "list", "watch"]
+  # Orphan cleanup updates or deletes AlertRelabelConfigs after source rules disappear.
+  - apiGroups: ["monitoring.openshift.io"]
+    resources: ["alertrelabelconfigs"]
+    verbs: ["update", "patch", "delete"]
   # The ConfigMap informer filters by metadata.name, allowing a name-scoped rule.
   - apiGroups: [""]
     resources: ["configmaps"]
