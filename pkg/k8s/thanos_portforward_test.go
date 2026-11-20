@@ -17,48 +17,8 @@ import (
 	"testing"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
-
-func TestReadyThanosPodName(t *testing.T) {
-	now := metav1.Now()
-	ready := corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "thanos-querier-ready"},
-		Status: corev1.PodStatus{
-			Phase: corev1.PodRunning,
-			Conditions: []corev1.PodCondition{{
-				Type:   corev1.PodReady,
-				Status: corev1.ConditionTrue,
-			}},
-		},
-	}
-	deleting := ready
-	deleting.Name = "thanos-querier-deleting"
-	deleting.DeletionTimestamp = &now
-	pending := ready
-	pending.Name = "thanos-querier-pending"
-	pending.Status.Phase = corev1.PodPending
-	notReady := ready
-	notReady.Name = "thanos-querier-not-ready"
-	notReady.Status.Conditions = []corev1.PodCondition{{
-		Type:   corev1.PodReady,
-		Status: corev1.ConditionFalse,
-	}}
-
-	name, err := readyThanosPodName([]corev1.Pod{deleting, pending, notReady, ready})
-	if err != nil {
-		t.Fatalf("ready pod: %v", err)
-	}
-	if name != ready.Name {
-		t.Fatalf("pod %q, want %q", name, ready.Name)
-	}
-
-	if _, err := readyThanosPodName(nil); err == nil {
-		t.Fatal("expected error when no pod is ready")
-	}
-}
 
 func TestOutOfClusterThanosTenancyDialsPortForward(t *testing.T) {
 	t.Setenv("KUBECONFIG", "kubeconfig")

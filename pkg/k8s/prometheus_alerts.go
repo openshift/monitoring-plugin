@@ -69,7 +69,7 @@ type prometheusAlerts struct {
 	transport    *transport
 	ruleManager  PrometheusRuleInterface
 	nsCache      *namespaceCache
-	thanosTunnel thanosPortForward
+	thanosTunnel portForwardTunnel
 }
 
 // GetAlertsRequest holds parameters for filtering alerts
@@ -746,7 +746,7 @@ func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleG
 }
 
 func (pa *prometheusAlerts) getRouteResponse(ctx context.Context, namespace string, routeName string, path string) ([]byte, error) {
-	requestURL, err := pa.buildMonitoringRouteURL(ctx, namespace, routeName, path)
+	requestURL, err := pa.buildURLFromRouteName(ctx, namespace, routeName, path)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +774,7 @@ func (pa *prometheusAlerts) getThanosTenancyResponse(ctx context.Context, path s
 	return pa.transport.executeRequest(ctx, client, requestURL)
 }
 
-func (pa *prometheusAlerts) buildMonitoringRouteURL(ctx context.Context, namespace string, routeName string, path string) (string, error) {
+func (pa *prometheusAlerts) buildURLFromRouteName(ctx context.Context, namespace string, routeName string, path string) (string, error) {
 	route, err := pa.fetchRoute(ctx, namespace, routeName)
 	if err != nil {
 		return "", err

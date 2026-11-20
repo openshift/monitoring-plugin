@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -214,29 +213,6 @@ func (e *upstreamHTTPError) Error() string {
 func isForbiddenResponse(err error) bool {
 	httpErr, ok := err.(*upstreamHTTPError)
 	return ok && httpErr.statusCode == http.StatusForbidden
-}
-
-// here
-func (mt *transport) portForwardHTTPClient(ctx context.Context, localAddress string) (*http.Client, error) {
-	tlsConfig, err := mt.outOfClusterServiceTLSConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	dialer := &net.Dialer{Timeout: 5 * time.Second}
-	return &http.Client{
-		Timeout: serviceRequestTimeout,
-		Transport: &http.Transport{
-			// Leave Proxy unset. A nil Proxy does not consult HTTP_PROXY;
-			// only http.DefaultTransport does. These requests must stay on
-			// the local port-forward.
-			TLSClientConfig:   tlsConfig,
-			DisableKeepAlives: true,
-			DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
-				return dialer.DialContext(ctx, network, localAddress)
-			},
-		},
-	}, nil
 }
 
 func (mt *transport) outOfClusterServiceTLSConfig(ctx context.Context) (*tls.Config, error) {
