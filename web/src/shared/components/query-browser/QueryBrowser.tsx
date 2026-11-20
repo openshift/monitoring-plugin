@@ -708,7 +708,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
                   endTime: timeRange.endTime,
                   namespace,
                   query,
-                  samples: Math.ceil(samples / timeRanges.length),
+                  samples:
+                    timeRanges.length === 1
+                      ? samples
+                      : Math.max(1, Math.ceil((samples * timeRange.duration) / span)),
                   timeout: '60s',
                   timespan: timeRange.duration - 1,
                 },

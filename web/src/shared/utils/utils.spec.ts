@@ -7,9 +7,11 @@ const startTime = 1_700_000_000_000.25;
 
 describe('getTimeRanges', () => {
   it.each([
+    { timespan: 0, durations: [0] },
     { timespan: week - hour, durations: [week - hour] },
     { timespan: week, durations: Array<number>(7).fill(day) },
     { timespan: week + hour, durations: [...Array<number>(7).fill(day), hour] },
+    { timespan: 8 * day + 6 * hour, durations: [...Array<number>(8).fill(day), 6 * hour] },
     { timespan: week + 1, durations: [...Array<number>(6).fill(day), day + 1] },
   ])('covers exactly $timespan ms', ({ timespan, durations }) => {
     const endTime = startTime + timespan;
