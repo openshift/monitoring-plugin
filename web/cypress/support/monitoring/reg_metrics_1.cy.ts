@@ -526,4 +526,27 @@ export function testMetricsRegression1(perspectiveName: keyof typeof metricsRoot
       expect(requestEnd).to.be.within(selectionStartedAt / 1000, Date.now() / 1000);
     });
   });
+
+  it(`${perspectiveName} perspective - Metrics > Clear invalid URL time range`, () => {
+    const query = MetricsPageQueryInput.VECTOR_QUERY;
+    cy.intercept({
+      method: 'GET',
+      pathname: '**/api/v1/query_range',
+      query: { query },
+    }).as('relativeTimeRange');
+
+    cy.log('11.1 Open Metrics with an invalid end timestamp');
+    cy.visit({
+      url: metricsUrl,
+      qs: { query0: query, start: Date.now() - 5 * 60 * 1000, end: 'abc' },
+    });
+
+    cy.location('search').should((search) => {
+      const params = new URLSearchParams(search);
+      expect(params.has('start')).to.equal(false);
+      expect(params.has('end')).to.equal(false);
+      expect(params.get('query0')).to.equal(query);
+    });
+    cy.wait('@relativeTimeRange').its('response.statusCode').should('eq', 200);
+  });
 }

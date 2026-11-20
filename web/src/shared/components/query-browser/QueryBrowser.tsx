@@ -658,7 +658,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   const endTime = fixedEndTime ?? xDomain?.[1];
 
   const safeFetch = useSafeFetch();
-  const requests = useRef({ nextId: 0, oldestAllowedId: 0 });
+  const requests = useRef({ nextId: 0, minAcceptedRequestId: 0 });
 
   const [isStacked, setIsStacked] = useState(isStack);
   const [showDisconnectedValues, setIsShowDisconnectedValues] = useState(false);
@@ -700,14 +700,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     }
 
     const requestId = requests.current.nextId++;
-    const acceptResponse = () => {
-      if (requestId < requests.current.oldestAllowedId) {
-        return false;
-      }
-      // A slower poll for this range must not overwrite a newer result.
-      requests.current.oldestAllowedId = requestId;
-      return true;
-    };
+    const isResponseStale = () => requestId < requests.current.minAcceptedRequestId;
 
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
@@ -772,9 +765,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
     return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
-        if (!acceptResponse()) {
+        if (isResponseStale()) {
           return;
         }
+        requests.current.minAcceptedRequestId = requestId;
         const newResults = _.map(responses, 'data.result');
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));
 
@@ -851,7 +845,8 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
         setError(undefined);
       })
       .catch((err) => {
-        if (err.name !== 'AbortError' && acceptResponse()) {
+        if (err.name !== 'AbortError' && !isResponseStale()) {
+          requests.current.minAcceptedRequestId = requestId;
           // eslint-disable-next-line no-console
           console.log(err);
           setError(err);
@@ -896,7 +891,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     setUpdating(true);
     return () => {
       // Discard outstanding requests when the displayed query or range changes.
-      pending.oldestAllowedId = pending.nextId;
+      pending.minAcceptedRequestId = pending.nextId;
     };
   }, [endTime, namespace, queriesKey, samples, span]);
 
