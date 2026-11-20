@@ -193,11 +193,11 @@ func TestProxyBodyCopyErrorDoesNotLeakUpstream(t *testing.T) {
 	stdlog.SetOutput(&stdLogs)
 	t.Cleanup(func() { stdlog.SetOutput(os.Stderr) })
 
-	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	handler := NewProxyHandler(nil, caFile, ThanosQuerierKind, upstream.URL)
 	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, httptest.NewRequestWithContext(ctx, http.MethodGet, "/api/v1/query", nil))
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/query", nil).WithContext(ctx))
 
 	require.Empty(t, stdLogs.String())
 	var messages []string
