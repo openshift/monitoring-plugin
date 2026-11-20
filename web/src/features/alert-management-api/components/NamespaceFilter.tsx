@@ -1,4 +1,5 @@
 import { CubesIcon } from '@patternfly/react-icons';
+import { useTranslation } from 'react-i18next';
 
 import { AlertFilterSelect } from '@/features/alert-management-api/components/AlertFilterSelect';
 import { AlertFilterOption } from '@/features/alert-management-api/types/types';
@@ -16,16 +17,18 @@ export function NamespaceFilter({
   selected,
   onChange,
 }: NamespaceFilterProps) {
+  const { t } = useTranslation(process.env.I18N_NAMESPACE);
+
   return (
     <AlertFilterSelect
       filterKey={filterKey}
-      label="Namespace"
+      label={t('Namespace')}
       icon={<CubesIcon aria-hidden />}
-      placeholder="Select namespaces"
-      emptyHint="Showing all namespaces"
-      emptyOptionsLabel="No namespaces found"
-      searchLabel="Search namespaces"
-      searchPlaceholder="Search namespaces..."
+      placeholder={t('Select namespaces')}
+      emptyHint={t('Showing all namespaces')}
+      emptyOptionsLabel={t('No namespaces found')}
+      searchLabel={t('Search namespaces')}
+      searchPlaceholder={t('Search namespaces...')}
       options={options}
       selected={selected}
       onChange={onChange}
