@@ -183,7 +183,12 @@ func (mt *transport) loadBearerToken() (string, error) {
 		return "", fmt.Errorf("load bearer token file: %w", err)
 	}
 
-	return strings.TrimSpace(string(tokenBytes)), nil
+	token := strings.TrimSpace(string(tokenBytes))
+	if token == "" {
+		return "", fmt.Errorf("bearer token file %s is empty", mt.config.BearerTokenFile)
+	}
+
+	return token, nil
 }
 
 func (mt *transport) performRequest(client *http.Client, req *http.Request) ([]byte, error) {

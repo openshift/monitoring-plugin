@@ -91,6 +91,32 @@ func TestTransportAuthentication(t *testing.T) {
 	}
 }
 
+func TestLoadBearerToken_EmptyTokenFile(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		contents string
+	}{
+		{name: "empty"},
+		{name: "whitespace only", contents: " \t\r\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tokenPath := filepath.Join(t.TempDir(), "token")
+			if err := os.WriteFile(tokenPath, []byte(tc.contents), 0o600); err != nil {
+				t.Fatal(err)
+			}
+
+			transport := newTransport(nil, &rest.Config{BearerTokenFile: tokenPath})
+			token, err := transport.loadBearerToken()
+			if err == nil {
+				t.Fatal("expected a configuration error for an empty token file")
+			}
+			if token != "" {
+				t.Fatal("expected no token on error")
+			}
+		})
+	}
+}
+
 func TestForbiddenUpstreamResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/denied" {
