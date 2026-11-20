@@ -10,11 +10,15 @@ export function AlertSeverityButton({
   severity,
   count,
   isDimmed = false,
+  ariaLabel,
+  isPressed,
   onClick,
 }: {
   severity: string;
   count?: number;
   isDimmed?: boolean;
+  ariaLabel?: string;
+  isPressed?: boolean;
   onClick: () => void;
 }) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -39,7 +43,8 @@ export function AlertSeverityButton({
             <SeverityIcon severity={severity} aria-hidden color={color} />
           ) : undefined
         }
-        aria-label={t('Filter {{severity}} alerts', { severity })}
+        aria-label={ariaLabel ?? t('Filter {{severity}} alerts', { severity })}
+        aria-pressed={isPressed}
         onClick={onClick}
       >
         {count ?? <SeverityBadge severity={severity} isDimmed={isDimmed} />}

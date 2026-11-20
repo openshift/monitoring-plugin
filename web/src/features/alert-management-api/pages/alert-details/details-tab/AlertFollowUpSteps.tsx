@@ -41,7 +41,8 @@ export function AlertFollowUpSteps({ alert }: { alert: ManagedAlert }) {
         ) : (
           isFetching && (
             <ListItem>
-              <Spinner size="sm" /> {t('Loading investigations...')}
+              <Spinner size="sm" aria-label={t('Loading investigations...')} />{' '}
+              {t('Loading investigations...')}
             </ListItem>
           )
         )}

@@ -29,6 +29,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useToast: () => ({ addToast }),
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },
+  RuleStates: { Inactive: 'inactive' },
   DocumentTitle: () => null,
   Timestamp: () => null,
   ListPageHeader: ({ title, children }: { title: string; children?: ReactNode }) => (
@@ -52,7 +53,7 @@ vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
       dataUpdatedAt: 0,
       refetch: vi.fn(),
     },
-    silencesQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
+    silencedAlertsQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
   }),
 }));
 
@@ -106,6 +107,61 @@ const HistoryControls = () => {
   }, [navigate]);
   return null;
 };
+
+it('replaces history when typing or clearing the alert-name search', () => {
+  const path = '/monitoring/v2/alerts';
+  render(
+    <MemoryRouter
+      initialEntries={[
+        `${path}?name=Alert5`,
+        `${path}?aggregate=0&page=2&perPage=2&sort=name&sortDirection=desc&refreshInterval=30000`,
+      ]}
+    >
+      <AlertsPage />
+      <HistoryControls />
+      <Query />
+    </MemoryRouter>,
+  );
+  const search = screen.getByRole('textbox', { name: 'Search alert name' });
+
+  for (const name of ['A', 'Alert', 'Alert1']) {
+    fireEvent.change(search, { target: { value: name } });
+    expect(queryParams().get('name')).toBe(name);
+  }
+  expect(screen.getAllByRole('link', { name: 'Alert1' })).toHaveLength(2);
+  expect(queryParams().get('page')).toBe('1');
+  expect(queryParams().get('perPage')).toBe('2');
+  expect(queryParams().get('sortDirection')).toBe('desc');
+  expect(queryParams().get('refreshInterval')).toBe('30000');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+  expect(queryParams().has('name')).toBe(false);
+  expect((search as HTMLInputElement).value).toBe('');
+
+  act(() => navigateHistory(-1));
+  expect(queryParams().get('name')).toBe('Alert5');
+  expect((search as HTMLInputElement).value).toBe('Alert5');
+
+  act(() => navigateHistory(1));
+  expect(queryParams().has('name')).toBe(false);
+  expect((search as HTMLInputElement).value).toBe('');
+});
+
+it('still creates history entries for discrete alert-filter changes', () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts?severity=critical']}>
+      <AlertsPage />
+      <HistoryControls />
+      <Query />
+    </MemoryRouter>,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+  expect(queryParams().has('severity')).toBe(false);
+
+  act(() => navigateHistory(-1));
+  expect(queryParams().get('severity')).toBe('critical');
+});
 
 it('opens an individual alert while preserving the list and its query parameters', () => {
   const search =
@@ -467,6 +523,18 @@ it('displays selected filter chips and clears them individually', () => {
     queryParams().has('severity'),
     'Removing the chip should clear the severity URL parameter',
   ).toBe(false);
+});
+
+it('uses the translated source label in filter chips without changing its value', () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts?source=user']}>
+      <AlertsPage />
+      <Query />
+    </MemoryRouter>,
+  );
+
+  expect(within(screen.getByRole('list', { name: 'Source' })).getByText('User')).toBeDefined();
+  expect(queryParams().get('source')).toBe('user');
 });
 
 it('resets pagination when filters change without dropping other URL state', () => {

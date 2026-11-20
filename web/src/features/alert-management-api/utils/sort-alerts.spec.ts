@@ -1,6 +1,7 @@
 import { AlertSeverity, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
-import { AggregatedAlert, ManagedAlert } from '@/features/alert-management-api/types/types';
+import { makeManagedAlert } from '@/features/alert-management-api/tests/utils/object-factories';
+import { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { sortAlerts } from '@/features/alert-management-api/utils/sort-alerts';
 
 const row = (
@@ -19,7 +20,10 @@ const row = (
   component,
   source,
   state: [state],
-  alerts: Array.from({ length: total }, () => ({}) as ManagedAlert),
+  firingAlertCount: state === AlertStates.Firing ? total : 0,
+  pendingAlertCount: state === AlertStates.Pending ? total : 0,
+  silencedAlertCount: state === AlertStates.Silenced ? total : 0,
+  alerts: Array.from({ length: total }, () => makeManagedAlert({ state })),
 });
 
 const rows = [
@@ -91,9 +95,9 @@ describe('alert management sort', () => {
 
   it('sorts by the earliest firing time in each aggregate', () => {
     const firingRows = [
-      { ...rows[0], alerts: [{ activeAt: '2026-01-03T00:00:00Z' } as ManagedAlert] },
-      { ...rows[1], alerts: [{ activeAt: '2026-01-01T00:00:00Z' } as ManagedAlert] },
-      { ...rows[2], alerts: [{ activeAt: '2026-01-02T00:00:00Z' } as ManagedAlert] },
+      { ...rows[0], alerts: [makeManagedAlert({ activeAt: '2026-01-03T00:00:00Z' })] },
+      { ...rows[1], alerts: [makeManagedAlert({ activeAt: '2026-01-01T00:00:00Z' })] },
+      { ...rows[2], alerts: [makeManagedAlert({ activeAt: '2026-01-02T00:00:00Z' })] },
     ];
 
     expect(

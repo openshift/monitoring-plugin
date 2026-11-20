@@ -46,12 +46,13 @@ import { TimeRangeSelect } from '@/shared/components/TimeRangeSelect';
 import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { DataTestIDs } from '@/shared/constants/data-test';
+import { getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { getSeverityColors } from '@/shared/utils/alerts/formatting';
 import { startCase } from '@/shared/utils/strings';
 
 export function AlertManagementAlertsPage() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { data, rulesQuery, silencesQuery } = useAlertManagementData();
+  const { data, rulesQuery, silencedAlertsQuery } = useAlertManagementData();
   const { filters, setFilters } = useAlertManagementFilters();
   const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
@@ -89,8 +90,8 @@ export function AlertManagementAlertsPage() {
       panel={<AlertDetailsPanel alert={selectedAlert} />}
     >
       <PageSection hasBodyWrapper={false} isFilled>
-        {silencesQuery.isError && (
-          <Alert isInline variant="warning" title={t('Silences could not be loaded')} />
+        {silencedAlertsQuery.isError && (
+          <Alert isInline variant="warning" title={t('Silenced alerts could not be loaded')} />
         )}
         <PageWithFilters
           filtersId={DataTestIDs.AlertManagementAPI.FiltersPanel}
@@ -144,8 +145,11 @@ export function AlertManagementAlertsPage() {
                       aria-label={t('Search alert name')}
                       value={filters.name}
                       placeholder={t('Search alert name')}
-                      onChange={(_event, name) => setFilters({ ...filters, name })}
-                      onClear={() => setFilters({ ...filters, name: '' })}
+                      resetButtonLabel={t('Reset')}
+                      onChange={(_event, name) =>
+                        setFilters({ ...filters, name }, { replace: true })
+                      }
+                      onClear={() => setFilters({ ...filters, name: '' }, { replace: true })}
                     />
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
@@ -164,9 +168,14 @@ export function AlertManagementAlertsPage() {
                   getLabelStatus={(key, value) =>
                     key === 'severity' ? getSeverityColors(value).labelStatus : undefined
                   }
-                  formatLabelText={(key, value) =>
-                    ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value
-                  }
+                  formatLabelText={(key, value) => {
+                    if (key === 'source') {
+                      return getSourceKey(startCase(value), t);
+                    }
+                    return ['scope', 'severity', 'state'].includes(key)
+                      ? t(startCase(value))
+                      : value;
+                  }}
                   onChange={setFilters}
                 />
               </PanelMainBody>

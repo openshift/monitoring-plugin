@@ -23,7 +23,7 @@ import {
   AlertRulesFilterOptions,
   AlertRulesFilters,
 } from '@/features/alerts/pages/alert-rules-page/filter-rules';
-import { AlertStateIcon, getAlertStateKey } from '@/shared/components/AlertState';
+import { AlertRuleState } from '@/shared/components/AlertRuleState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { useTableColumns } from '@/shared/components/table/hooks/useTableColumns';
 import { rowFilter, useTableFilters } from '@/shared/components/table/hooks/useTableFilters';
@@ -300,8 +300,6 @@ const AlertRulesPage_: FC = () => {
 const AlertRulesPageWithFallback = withFallback(AlertRulesPage_);
 
 const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
   const counts = _.countBy(alerts, 'state');
   const states = [AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced].filter(
     (s) => counts[s] > 0,
@@ -311,7 +309,7 @@ const StateCounts: FC<{ alerts: PrometheusAlert[] }> = ({ alerts }) => {
     <>
       {states.map((s) => (
         <div key={s}>
-          <AlertStateIcon state={s} /> {counts[s]} {getAlertStateKey(s, t)}
+          <AlertRuleState state={s} count={counts[s]} />
         </div>
       ))}
     </>

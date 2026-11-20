@@ -26,6 +26,7 @@ beforeEach(() => {
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },
+  RuleStates: { Inactive: 'inactive' },
   ResourceLink: ({ kind, name }: { kind: string; name: string }) => (
     <span>
       {kind}: {name}

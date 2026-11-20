@@ -17,6 +17,7 @@ import { AlertFilterLabel } from '@/features/alert-management-api/components/Ale
 import { AlertFilterOption } from '@/features/alert-management-api/types/types';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
+// Display text is translated by the caller; option values remain unchanged.
 type Props = {
   filterKey: string;
   label: string;
@@ -55,10 +56,10 @@ export function AlertFilterSelect({
   const [search, setSearch] = useState('');
   const selectedText =
     selected.length === 0
-      ? t(placeholder)
+      ? placeholder
       : selected.length === 1
         ? (options.find((option) => option.value === selected[0])?.label ?? selected[0])
-        : `${t(placeholder)} (${selected.length})`;
+        : `${placeholder} (${selected.length})`;
   const visibleOptions = options.filter((option) =>
     option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
   );
@@ -78,12 +79,12 @@ export function AlertFilterSelect({
         (labelTooltip ? (
           <AlertFilterLabel label={label} tooltip={labelTooltip} />
         ) : (
-          <strong>{t(label)}</strong>
+          <strong>{label}</strong>
         ))}
       <Select
         id={`${DataTestIDs.AlertManagementAPI.FilterSelectPrefix}-${filterKey}`}
         role="menu"
-        aria-label={t(label)}
+        aria-label={label}
         isOpen={isOpen}
         selected={selected}
         onOpenChange={setOpenState}
@@ -114,8 +115,9 @@ export function AlertFilterSelect({
             <MenuSearchInput>
               <SearchInput
                 id={`${DataTestIDs.AlertManagementAPI.FilterSearchInputPrefix}-${filterKey}`}
-                aria-label={t(searchLabel)}
-                placeholder={t(searchPlaceholder ?? searchLabel)}
+                aria-label={searchLabel}
+                placeholder={searchPlaceholder ?? searchLabel}
+                resetButtonLabel={t('Reset')}
                 value={search}
                 onChange={(_event, value) => setSearch(value)}
                 onClear={() => setSearch('')}
@@ -126,7 +128,7 @@ export function AlertFilterSelect({
         <SelectList>
           {visibleOptions.length === 0 ? (
             <SelectOption isDisabled>
-              {t(emptyOptionsLabel ?? 'No filter options found')}
+              {emptyOptionsLabel ?? t('No filter options found')}
             </SelectOption>
           ) : (
             visibleOptions.map((option) => (
@@ -145,7 +147,7 @@ export function AlertFilterSelect({
       {emptyHint && selected.length === 0 && (
         <HelperText>
           <HelperTextItem>
-            <em style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>{t(emptyHint)}</em>
+            <em style={{ color: 'var(--pf-t--global--text--color--subtle)' }}>{emptyHint}</em>
           </HelperTextItem>
         </HelperText>
       )}

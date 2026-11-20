@@ -1,6 +1,6 @@
 import { AlertSeverity } from '@openshift-console/dynamic-plugin-sdk';
 
-import { AggregatedAlert } from '@/features/alert-management-api/types/types';
+import { AggregatedAlert, TableSort } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
 
 const severityOrder = {
@@ -33,10 +33,7 @@ export const sortColumns = [
   'resource',
 ] as const;
 
-export type AlertSort = {
-  column: (typeof sortColumns)[number];
-  direction: 'asc' | 'desc';
-};
+export type AlertSort = TableSort<(typeof sortColumns)[number]>;
 
 export const defaultAlertSort: AlertSort = { column: 'severity', direction: 'asc' };
 

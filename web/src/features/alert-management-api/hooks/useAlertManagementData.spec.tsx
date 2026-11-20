@@ -1,155 +1,178 @@
 /** @vitest-environment jsdom */
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 
 import {
   processAlertManagementData,
   useAlertManagementData,
 } from '@/features/alert-management-api/hooks/useAlertManagementData';
+import { toManagedRule } from '@/features/alert-management-api/pages/rules-page/utils/rules';
 import {
+  getMockAlertingRulesResponse,
   getMockRulesResponse,
-  getMockSilencesResponse,
+  getMockSilencedAlertsResponse,
 } from '@/features/alert-management-api/tests/fixtures/mock-responses';
 
-const mocks = vi.hoisted(() => ({
-  consoleFetchJSON: vi.fn(),
-  fetchAlerts: vi.fn(),
-  getAlertmanagerSilencesUrl: vi.fn(() => '/prometheus/alertmanager/api/v2/silences'),
-}));
+const mocks = vi.hoisted(() => ({ useGetRules: vi.fn(), useGetAlerts: vi.fn() }));
+vi.mock('@/shared/clients/alert-management-api/generated/api', () => mocks);
 
-vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
-  ...(await vi.importActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types')),
-  ...(await vi.importActual('@/shared/test-utils/sdk-const-enums')),
-  consoleFetchJSON: mocks.consoleFetchJSON,
-}));
+const rulesResponse = getMockRulesResponse();
+const silencedResponse = getMockSilencedAlertsResponse();
+const alertingRules = getMockAlertingRulesResponse(rulesResponse);
 
-vi.mock('@/shared/hooks/useMonitoring', () => ({
-  useMonitoring: () => ({ prometheus: 'cmo' }),
-}));
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.useGetRules.mockReturnValue({ data: rulesResponse, isError: false });
+  mocks.useGetAlerts.mockReturnValue({ data: silencedResponse, isError: false });
+});
 
-vi.mock('@/shared/store/fetch-alerts', () => ({ fetchAlerts: mocks.fetchAlerts }));
+it('uses generated rules and silenced-alert hooks with the same refresh interval', () => {
+  const { result } = renderHook(() => useAlertManagementData(30_000));
 
-vi.mock('@/shared/utils/utils', async () => ({
-  ...(await vi.importActual('@/shared/utils/utils')),
-  getAlertmanagerSilencesUrl: mocks.getAlertmanagerSilencesUrl,
-}));
-
-const rulesResponse = {
-  data: {
-    groups: [
-      {
-        name: 'example-group',
-        rules: [
-          {
-            alerts: [
-              {
-                activeAt: '2026-01-01T00:00:00Z',
-                annotations: {},
-                labels: {
-                  alertname: 'ExampleAlert',
-                  component: 'Compute',
-                  severity: 'critical',
-                },
-                state: 'firing',
-                value: '1',
-              },
-            ],
-            annotations: {},
-            duration: 0,
-            labels: {
-              openshift_io_alert_rule_id: 'rid_example',
-              openshift_io_alert_source: 'platform',
-              prometheus: 'openshift-monitoring/k8s',
-              severity: 'critical',
-            },
-            name: 'ExampleAlert',
-            query: 'up == 0',
-            state: 'firing',
-            type: 'alerting',
-          },
-        ],
-      },
-    ],
-  },
-};
-
-const QueryResult = () => {
-  const { data } = useAlertManagementData();
-  return (
-    <output data-testid="alerts">
-      {data?.alerts.map(({ source, component, rule }) => `${source}|${component}|${rule.id}`)}
-    </output>
-  );
-};
-
-it('fetches rules from the management API and silences from the selected Prometheus', async () => {
-  mocks.fetchAlerts.mockResolvedValue(rulesResponse);
-  mocks.consoleFetchJSON.mockResolvedValue([]);
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+  expect(mocks.useGetRules).toHaveBeenCalledWith({
+    options: { query: expect.objectContaining({ refetchInterval: 30_000 }) },
   });
 
-  render(
-    <QueryClientProvider client={queryClient}>
-      <QueryResult />
-    </QueryClientProvider>,
+  expect(mocks.useGetAlerts).toHaveBeenCalledWith({
+    params: { state: 'silenced' },
+    options: { query: expect.objectContaining({ refetchInterval: 30_000 }) },
+  });
+
+  const silencedAlert = silencedResponse.data.alerts[0];
+  expect(result.current.data?.alerts.find((alert) => alert.state === 'silenced')).toMatchObject({
+    source: silencedAlert.labels.openshift_io_alert_source,
+    component: silencedAlert.labels.component,
+    state: 'silenced',
+    rule: { id: silencedAlert.alertRuleId, state: 'firing' },
+  });
+});
+
+it('disables polling by default', () => {
+  renderHook(() => useAlertManagementData());
+  expect(mocks.useGetRules).toHaveBeenCalledWith({
+    options: { query: expect.objectContaining({ refetchInterval: false }) },
+  });
+  expect(mocks.useGetAlerts).toHaveBeenCalledWith({
+    params: { state: 'silenced' },
+    options: { query: expect.objectContaining({ refetchInterval: false }) },
+  });
+});
+
+it('exposes a failed silenced-alert query without blocking rules or changing their states', () => {
+  const error = new Error('Alertmanager unavailable');
+  mocks.useGetAlerts.mockReturnValue({ data: undefined, isError: true, error });
+  const { result } = renderHook(() => useAlertManagementData());
+
+  expect(result.current.silencedAlertsQuery.error).toBe(error);
+  expect(result.current.data?.rules).toHaveLength(alertingRules.length);
+  expect(result.current.data?.rules.map((rule) => rule.state)).toEqual(
+    alertingRules.map((rule) => rule.state),
+  );
+  expect(result.current.data?.alerts.map((alert) => alert.state)).toEqual(
+    alertingRules.flatMap((rule) => rule.alerts.map((alert) => alert.state)),
+  );
+});
+
+it('exposes rules-query failures and waits for rules even when silenced alerts are available', () => {
+  const error = new Error('Access denied');
+  mocks.useGetRules.mockReturnValue({ data: undefined, isError: true, error });
+  const { result } = renderHook(() => useAlertManagementData());
+
+  expect(result.current.rulesQuery.error).toBe(error);
+  expect(result.current.data).toBeUndefined();
+});
+
+it('updates instance states when silenced-alert data arrives or is cleared on refresh', () => {
+  mocks.useGetAlerts.mockReturnValue({ data: undefined });
+  const { result, rerender } = renderHook(() => useAlertManagementData());
+  expect(result.current.data?.alerts.filter((alert) => alert.state === 'silenced')).toHaveLength(0);
+
+  mocks.useGetAlerts.mockReturnValue({ data: silencedResponse });
+  rerender();
+  expect(result.current.data?.alerts.filter((alert) => alert.state === 'silenced')).toHaveLength(
+    silencedResponse.data.alerts.length,
+  );
+  expect(result.current.data?.rules.map((rule) => rule.state)).toEqual(
+    alertingRules.map((rule) => rule.state),
   );
 
-  await waitFor(() =>
-    expect(
-      screen.getByTestId('alerts').textContent,
-      'the query should expose the transformed alert data',
-    ).toBe('platform|Compute|rid_example'),
+  mocks.useGetAlerts.mockReturnValue({ data: { data: { alerts: [] } } });
+  rerender();
+  expect(result.current.data?.alerts.map((alert) => alert.state)).toEqual(
+    alertingRules.flatMap((rule) => rule.alerts.map((alert) => alert.state)),
   );
-  expect(mocks.fetchAlerts, 'alert rules should come from the management API').toHaveBeenCalledWith(
-    '/api/plugins/monitoring-plugin/api/v1/alerting/rules',
+});
+
+it('ignores recording rules from the generated API response', () => {
+  const data = processAlertManagementData(rulesResponse, silencedResponse);
+
+  const recordingRules = rulesResponse.data.groups
+    .flatMap((group) => group.rules)
+    .filter((rule) => rule.type === 'recording');
+
+  expect(recordingRules.length).toBeGreaterThan(0);
+  expect(data?.rules.map((rule) => rule.name)).toEqual(alertingRules.map((rule) => rule.name));
+  expect(data?.alerts).toHaveLength(
+    alertingRules.reduce((count, rule) => count + rule.alerts.length, 0),
   );
-  expect(
-    mocks.getAlertmanagerSilencesUrl,
-    'the silence URL should use the selected Prometheus without a tenancy path',
-  ).toHaveBeenCalledWith({
-    prometheus: 'cmo',
-    useTenancyPath: false,
-  });
-  expect(
-    mocks.consoleFetchJSON,
-    'silences should be fetched from the Alertmanager API',
-  ).toHaveBeenCalledWith('/prometheus/alertmanager/api/v2/silences', 'GET');
 });
 
 it('waits for the rules response before deriving page data', () => {
-  expect(
-    processAlertManagementData(undefined, []),
-    'page data should not be derived before rules are available',
-  ).toBeUndefined();
+  expect(processAlertManagementData(undefined, silencedResponse)).toBeUndefined();
 });
 
-it('derives alerts from rules, applies silences, and preserves its inputs', () => {
+it('derives alerts from rules, applies instance states, and preserves its inputs', () => {
   const rules = getMockRulesResponse();
-  const silences = getMockSilencesResponse();
+  const silenced = getMockSilencedAlertsResponse();
   const originalRules = structuredClone(rules);
-  const originalSilences = structuredClone(silences);
+  const originalSilenced = structuredClone(silenced);
 
-  const data = processAlertManagementData(rules, silences);
-  const alertCount = rules.data.groups
-    .flatMap(({ rules: groupRules }) => groupRules)
-    .flatMap(({ alerts: ruleAlerts }) => ruleAlerts ?? []).length;
+  const data = processAlertManagementData(rules, silenced);
+  const expectedRules = getMockAlertingRulesResponse(rules);
+  const alertCount = expectedRules.reduce((count, rule) => count + rule.alerts.length, 0);
 
-  expect(data?.alerts, 'all alerts in the rules response should be included').toHaveLength(
-    alertCount,
-  );
-  expect(
-    data?.alerts[0],
-    'derived alerts should include source, component, and rule identity',
-  ).toMatchObject({
+  expect(data?.alerts).toHaveLength(alertCount);
+  expect(data?.alerts[0]).toMatchObject({
     component: expect.any(String),
     source: expect.any(String),
     rule: { id: expect.any(String) },
   });
-  expect(data?.silences, 'silences should be included in the derived page data').toEqual([
-    expect.objectContaining({ name: expect.any(String) }),
-  ]);
-  expect(rules, 'processing should not mutate the rules response').toEqual(originalRules);
-  expect(silences, 'processing should not mutate the silences response').toEqual(originalSilences);
+  expect(data?.rules).toHaveLength(expectedRules.length);
+  expect(new Set(data?.rules.map((rule) => toManagedRule(rule).enablement))).toEqual(
+    new Set(['Enabled', 'Disabled']),
+  );
+  const disabledRules = data?.rules
+    .map(toManagedRule)
+    .filter((rule) => rule.enablement === 'Disabled');
+  expect(disabledRules?.length).toBeGreaterThan(0);
+  disabledRules?.forEach((rule) => {
+    expect(rule.alerts).toEqual([]);
+    expect(rule.firingAlertCount).toBe(0);
+    expect(rule.pendingAlertCount).toBe(0);
+    expect(rule.silencedAlertCount).toBe(0);
+  });
+  expect(new Set(data?.rules.map((rule) => rule.labels.openshift_io_alert_rule_component))).toEqual(
+    new Set([
+      'Compute',
+      'Networking',
+      'Storage',
+      'Workload',
+      'kube-apiserver',
+      'etcd',
+      'Scheduler',
+      'Controller',
+    ]),
+  );
+  expect(data?.alerts.some((alert) => alert.state === 'silenced')).toBe(true);
+  expect(data?.alerts.some((alert) => alert.state === 'firing')).toBe(true);
+  expect(data?.alerts.some((alert) => alert.state === 'pending')).toBe(true);
+  const pendingRules = data?.rules.map(toManagedRule).filter((rule) => rule.pendingAlertCount > 0);
+  expect(pendingRules?.length).toBeGreaterThan(0);
+  pendingRules?.forEach((rule) => {
+    expect(rule.enablement).toBe('Enabled');
+  });
+  expect(data?.alerts.every((alert) => data.rules.includes(alert.rule))).toBe(true);
+  expect(data?.rules.map((rule) => rule.state)).toEqual(expectedRules.map((rule) => rule.state));
+  expect(rules).toEqual(originalRules);
+  expect(silenced).toEqual(originalSilenced);
 });
