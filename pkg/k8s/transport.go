@@ -96,13 +96,17 @@ func (mt *transport) loadCACertPool() (*x509.CertPool, error) {
 	// Kubeconfig CA (API server) and the OpenShift service CA sign different
 	// certificates. The service CA must still be appended when CAData is set.
 	if len(mt.config.CAData) > 0 {
-		caCertPool.AppendCertsFromPEM(mt.config.CAData)
+		if !caCertPool.AppendCertsFromPEM(mt.config.CAData) {
+			return nil, fmt.Errorf("parse kubeconfig CAData: no valid CA certificates")
+		}
 	} else if mt.config.CAFile != "" {
 		caCert, err := os.ReadFile(mt.config.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("read CA cert file: %w", err)
 		}
-		caCertPool.AppendCertsFromPEM(caCert)
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			return nil, fmt.Errorf("parse kubeconfig CAFile %s: no valid CA certificates", mt.config.CAFile)
+		}
 	}
 
 	if err := appendServiceCA(caCertPool); err != nil {

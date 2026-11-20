@@ -164,6 +164,70 @@ func TestLoadCACertPool_MissingDefaultServiceCAIsOptional(t *testing.T) {
 	}
 }
 
+func TestLoadCACertPool_ConfiguredCA(t *testing.T) {
+	t.Setenv(serviceCAFileEnv, "")
+	leaf := mustLeafSignedBy(t, "kubeconfig")
+	validPath := filepath.Join(t.TempDir(), "valid-ca.crt")
+	invalidPath := filepath.Join(t.TempDir(), "invalid-ca.crt")
+	emptyPath := filepath.Join(t.TempDir(), "empty-ca.crt")
+	for path, data := range map[string][]byte{
+		validPath:   leaf.caPEM,
+		invalidPath: []byte("not a certificate"),
+		emptyPath:   {},
+	} {
+		if err := os.WriteFile(path, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for _, tc := range []struct {
+		name      string
+		tlsConfig rest.TLSClientConfig
+		wantError string
+	}{
+		{
+			name:      "valid CAData",
+			tlsConfig: rest.TLSClientConfig{CAData: leaf.caPEM},
+		},
+		{
+			name:      "valid CAFile",
+			tlsConfig: rest.TLSClientConfig{CAFile: validPath},
+		},
+		{
+			name:      "invalid CAData does not fall back to CAFile",
+			tlsConfig: rest.TLSClientConfig{CAData: []byte("not a certificate"), CAFile: validPath},
+			wantError: "parse kubeconfig CAData",
+		},
+		{
+			name:      "invalid CAFile",
+			tlsConfig: rest.TLSClientConfig{CAFile: invalidPath},
+			wantError: "parse kubeconfig CAFile " + invalidPath,
+		},
+		{
+			name:      "empty CAFile",
+			tlsConfig: rest.TLSClientConfig{CAFile: emptyPath},
+			wantError: "parse kubeconfig CAFile " + emptyPath,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			transport := newTransport(nil, &rest.Config{TLSClientConfig: tc.tlsConfig})
+			pool, err := transport.loadCACertPool()
+			if tc.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantError) {
+					t.Fatalf("expected error containing %q, got %v", tc.wantError, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := leaf.leaf.Verify(x509.VerifyOptions{Roots: pool}); err != nil {
+				t.Fatalf("configured CA not trusted: %v", err)
+			}
+		})
+	}
+}
+
 func TestTransportPortForwardVerifiesDestinationCertificate(t *testing.T) {
 	t.Setenv(serviceCAFileEnv, "")
 	caPEM, serverCert := mustServiceServerCert(t, "trusted.monitoring.svc")
