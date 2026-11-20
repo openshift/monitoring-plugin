@@ -32,6 +32,7 @@ it('shows available severities without dimming them when there is no selection',
   expect(screen.queryByRole('button', { name: 'Filter none alerts' })).toBeNull();
   for (const { value } of options) {
     expect(background(value)).toBe('');
+    expect(button(value).getAttribute('aria-pressed')).toBe('false');
   }
 });
 
@@ -42,6 +43,8 @@ it('adds and removes severities without changing the supplied selection', () => 
     <SeverityFilter options={options} selected={selected} onChange={onChange} />,
   );
 
+  expect(button('critical').getAttribute('aria-pressed')).toBe('true');
+  expect(button('warning').getAttribute('aria-pressed')).toBe('false');
   expect(background('critical')).toBe('');
   expect(background('warning')).toBe(getSeverityColors('warning').mutedBackgroundColor);
 
@@ -53,14 +56,23 @@ it('adds and removes severities without changing the supplied selection', () => 
   rerender(
     <SeverityFilter options={options} selected={['critical', 'warning']} onChange={onChange} />,
   );
+  expect(button('critical').getAttribute('aria-pressed')).toBe('true');
+  expect(button('warning').getAttribute('aria-pressed')).toBe('true');
   fireEvent.click(button('critical'));
 
   expect(onChange).toHaveBeenLastCalledWith(['warning']);
 
   rerender(<SeverityFilter options={options} selected={['warning']} onChange={onChange} />);
+  expect(button('critical').getAttribute('aria-pressed')).toBe('false');
+  expect(button('warning').getAttribute('aria-pressed')).toBe('true');
   fireEvent.click(button('warning'));
 
   expect(onChange).toHaveBeenLastCalledWith([]);
+
+  rerender(<SeverityFilter options={options} selected={[]} onChange={onChange} />);
+  for (const { value } of options) {
+    expect(button(value).getAttribute('aria-pressed')).toBe('false');
+  }
 });
 
 it('supports rule-specific accessible labels', () => {

@@ -27,6 +27,7 @@ export function SeverityFilter({ options, selected, onChange, getAriaLabel }: Se
             key={value}
             severity={value}
             ariaLabel={getAriaLabel?.(value)}
+            isPressed={selected.includes(value)}
             isDimmed={selected.length > 0 && !selected.includes(value)}
             onClick={() =>
               onChange(
