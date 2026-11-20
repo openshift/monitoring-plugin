@@ -525,6 +525,18 @@ it('displays selected filter chips and clears them individually', () => {
   ).toBe(false);
 });
 
+it('uses the translated source label in filter chips without changing its value', () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts?source=user']}>
+      <AlertsPage />
+      <Query />
+    </MemoryRouter>,
+  );
+
+  expect(within(screen.getByRole('list', { name: 'Source' })).getByText('User')).toBeDefined();
+  expect(queryParams().get('source')).toBe('user');
+});
+
 it('resets pagination when filters change without dropping other URL state', () => {
   render(
     <MemoryRouter initialEntries={['/monitoring/v2/alerts?page=2&perPage=2&refreshInterval=30s']}>

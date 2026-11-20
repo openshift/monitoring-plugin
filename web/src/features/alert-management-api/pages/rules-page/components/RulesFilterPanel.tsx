@@ -11,6 +11,7 @@ import { getRuleFilterOptions } from '@/features/alert-management-api/pages/rule
 import {
   defaultRuleFilters,
   ruleFilterLabels,
+  ruleLabel,
 } from '@/features/alert-management-api/pages/rules-page/utils/rules';
 import { ManagedRule, RuleFilters } from '@/features/alert-management-api/types/types';
 import { AlertRuleState, AlertRuleStateValue } from '@/shared/components/AlertRuleState';
@@ -52,8 +53,8 @@ export function RulesFilterPanel({ rules, filters, onChange, onClose }: RulesFil
         filterKey="rule-labels"
         label={t('Rule labels')}
         icon={<RhUiFilterFillIcon aria-hidden />}
-        placeholder="Select labels"
-        emptyHint="Showing all labels"
+        placeholder={t('Select labels')}
+        emptyHint={t('Showing all labels')}
         searchLabel={t('Search rule labels')}
         options={options.labels}
         selected={filters.labels}
@@ -73,8 +74,8 @@ export function RulesFilterPanel({ rules, filters, onChange, onClose }: RulesFil
         <AlertFilterSelect
           key={key}
           filterKey={`rule-${key}`}
-          label={ruleFilterLabels[key]}
-          placeholder={ruleFilterLabels[key]}
+          label={ruleLabel(ruleFilterLabels[key], t)}
+          placeholder={ruleLabel(ruleFilterLabels[key], t)}
           options={options[key]}
           renderOptionLabel={
             key === 'enablement'

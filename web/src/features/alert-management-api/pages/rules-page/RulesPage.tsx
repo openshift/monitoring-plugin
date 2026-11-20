@@ -160,6 +160,7 @@ export function AlertRulesManagementPage() {
                   <SearchInput
                     aria-label={t('Search by rule name')}
                     placeholder={t('Search by rule name')}
+                    resetButtonLabel={t('Reset')}
                     value={filters.name}
                     onChange={(_event, name) => setFilters({ ...filters, name }, { replace: true })}
                     onClear={() => setFilters({ ...filters, name: '' }, { replace: true })}
@@ -188,7 +189,7 @@ export function AlertRulesManagementPage() {
                 labels={ruleFilterLabels}
                 onChange={setFilters}
                 formatLabelText={(key, value) => {
-                  if (key === 'labels' || key === 'namespace') {
+                  if (key === 'labels' || key === 'namespace' || key === 'component') {
                     return value;
                   }
                   if (key === 'managedBy') {

@@ -86,7 +86,7 @@ export function AggregatedRow({
       column: 'scope',
       component: (
         <Td>
-          <Label color="grey">{aggregatedAlert.alertScope}</Label>
+          <Label color="grey">{t(aggregatedAlert.alertScope)}</Label>
         </Td>
       ),
     },

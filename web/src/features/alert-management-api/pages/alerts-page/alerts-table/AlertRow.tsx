@@ -148,7 +148,7 @@ export function AlertRow({
       column: 'scope',
       component: (
         <Td>
-          <Label color="grey">{alert.alertScope}</Label>
+          <Label color="grey">{t(alert.alertScope)}</Label>
         </Td>
       ),
     },

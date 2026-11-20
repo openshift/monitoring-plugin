@@ -11,22 +11,26 @@ type ScopeFilterProps = {
 
 export function ScopeFilter({ selected, onChange, ariaLabel }: ScopeFilterProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
+  const scopes = [
+    { value: 'Cluster', label: t('Cluster') },
+    { value: 'Namespace', label: t('Namespace') },
+  ];
 
   return (
     <div>
-      <AlertFilterLabel label="Alert scope" tooltip="Alert scope tooltip" />
+      <AlertFilterLabel label={t('Alert scope')} tooltip={t('Alert scope tooltip')} />
       <ToggleGroup isCompact aria-label={ariaLabel ?? t('Alert scope')}>
         <ToggleGroupItem
           text={t('All')}
           isSelected={selected.length === 0}
           onChange={() => onChange([])}
         />
-        {['Cluster', 'Namespace'].map((scope) => (
+        {scopes.map(({ value, label }) => (
           <ToggleGroupItem
-            key={scope}
-            text={t(scope)}
-            isSelected={selected.includes(scope)}
-            onChange={() => onChange([scope])}
+            key={value}
+            text={label}
+            isSelected={selected.includes(value)}
+            onChange={() => onChange([value])}
           />
         ))}
       </ToggleGroup>

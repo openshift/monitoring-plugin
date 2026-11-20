@@ -138,6 +138,16 @@ it('translates display labels without translating values, rule labels or namespa
   expect(options.namespace).toEqual([{ value: 'production', label: 'production', count: 1 }]);
 });
 
+it.each(['Others', 'component', 'Source', 'Unknown', 'constructor'])(
+  'preserves component name %s without translating it',
+  (component) => {
+    const translated = ((key: string) => `translated:${key}`) as TFunction;
+    const options = getRuleFilterOptions([makeManagedRule({ component })], translated);
+
+    expect(options.component).toEqual([{ value: component, label: component, count: 1 }]);
+  },
+);
+
 it('returns an empty options array for every filter when there are no rules', () => {
   const options = getRuleFilterOptions([], t);
   expect(Object.keys(options)).toEqual(Object.keys(ruleFilterLabels));

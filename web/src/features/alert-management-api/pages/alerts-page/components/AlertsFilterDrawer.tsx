@@ -25,11 +25,6 @@ type Props = {
 };
 
 type DropdownFilter = 'labels' | 'component' | 'state' | 'source';
-const emptyHint: Partial<Record<DropdownFilter, string>> = {
-  labels: 'Showing all labels',
-  component: 'Showing all components',
-};
-
 export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const labels = {
@@ -38,17 +33,21 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
     state: t('State'),
     source: t('Source'),
   };
+  const emptyHint: Partial<Record<DropdownFilter, string>> = {
+    labels: t('Showing all labels'),
+    component: t('Showing all components'),
+  };
 
   const dropdownFilter = (key: DropdownFilter, placeholder: string) => {
-    const options = filterOptionsByKey(alerts, key).map((option) => ({
-      ...option,
-      label:
-        key === 'state'
-          ? getAlertStateKey(option.value as AlertStates, t)
-          : key === 'source'
-            ? getSourceKey(startCase(option.value), t)
-            : option.label,
-    }));
+    const options = filterOptionsByKey(alerts, key).map((option) => {
+      let label = option.label;
+      if (key === 'state') {
+        label = getAlertStateKey(option.value as AlertStates, t);
+      } else if (key === 'source') {
+        label = getSourceKey(startCase(option.value), t);
+      }
+      return { ...option, label };
+    });
 
     return (
       <AlertFilterSelect
@@ -71,8 +70,8 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         selected={filters[key]}
         onChange={(values) => onChange({ ...filters, [key]: values } as AlertFilters)}
         emptyHint={emptyHint[key]}
-        labelTooltip={key === 'component' ? 'Affected components tooltip' : undefined}
-        searchLabel={key === 'labels' ? 'Search alert labels' : undefined}
+        labelTooltip={key === 'component' ? t('Affected components tooltip') : undefined}
+        searchLabel={key === 'labels' ? t('Search alert labels') : undefined}
       />
     );
   };
@@ -111,7 +110,7 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         onChange={(namespace) => onChange({ ...filters, namespace })}
       />
       <Divider />
-      {dropdownFilter('labels', 'Select labels')}
+      {dropdownFilter('labels', t('Select labels'))}
       <Divider />
       <SeverityFilter
         options={filterOptionsByKey(alerts, 'severity')}
@@ -125,11 +124,11 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         onChange={(scope) => onChange({ ...filters, scope })}
       />
       <Divider />
-      {dropdownFilter('component', 'Select components')}
+      {dropdownFilter('component', t('Select components'))}
       <Divider />
       <strong>{t('Alert Filters')}</strong>
-      {dropdownFilter('state', 'State')}
-      {dropdownFilter('source', 'Source')}
+      {dropdownFilter('state', t('State'))}
+      {dropdownFilter('source', t('Source'))}
       {Object.values(filters).some((value) => value.length > 0) && (
         <>
           <Divider />

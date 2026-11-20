@@ -53,7 +53,7 @@ export function getRuleFilterOptions(
             label = t(startCase(value));
           } else if (key === 'managedBy') {
             label = ruleLabel(value, t);
-          } else if (key !== 'labels' && key !== 'namespace') {
+          } else if (key !== 'labels' && key !== 'namespace' && key !== 'component') {
             label = t(value);
           }
           return { value, count, label };
