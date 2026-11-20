@@ -22,15 +22,17 @@ const ALERT_SOURCE_LABEL = 'openshift_io_alert_source';
 const useMockResponses = process.env.NODE_ENV === 'development';
 
 export const useAlertManagementData = (refreshIntervalMs: number | false = false) => {
-  const rulesQuery = useGetRules(undefined, {
-    query: {
-      ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockRulesResponse()) } : {}),
-      refetchInterval: refreshIntervalMs,
+  const rulesQuery = useGetRules({
+    options: {
+      query: {
+        ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockRulesResponse()) } : {}),
+        refetchInterval: refreshIntervalMs,
+      },
     },
   });
-  const alertsQuery = useGetAlerts(
-    { state: 'silenced' },
-    {
+  const alertsQuery = useGetAlerts({
+    params: { state: 'silenced' },
+    options: {
       query: {
         ...(useMockResponses
           ? { queryFn: () => Promise.resolve(getMockSilencedAlertsResponse()) }
@@ -38,7 +40,7 @@ export const useAlertManagementData = (refreshIntervalMs: number | false = false
         refetchInterval: refreshIntervalMs,
       },
     },
-  );
+  });
   const data = useMemo(
     () => processAlertManagementData(rulesQuery.data, alertsQuery.data),
     [rulesQuery.data, alertsQuery.data],

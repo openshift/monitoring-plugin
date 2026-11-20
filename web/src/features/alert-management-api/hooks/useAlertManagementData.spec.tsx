@@ -29,14 +29,14 @@ beforeEach(() => {
 it('uses generated rules and silenced-alert hooks with the same refresh interval', () => {
   const { result } = renderHook(() => useAlertManagementData(30_000));
 
-  expect(mocks.useGetRules).toHaveBeenCalledWith(undefined, {
-    query: expect.objectContaining({ refetchInterval: 30_000 }),
+  expect(mocks.useGetRules).toHaveBeenCalledWith({
+    options: { query: expect.objectContaining({ refetchInterval: 30_000 }) },
   });
 
-  expect(mocks.useGetAlerts).toHaveBeenCalledWith(
-    { state: 'silenced' },
-    { query: expect.objectContaining({ refetchInterval: 30_000 }) },
-  );
+  expect(mocks.useGetAlerts).toHaveBeenCalledWith({
+    params: { state: 'silenced' },
+    options: { query: expect.objectContaining({ refetchInterval: 30_000 }) },
+  });
 
   const silencedAlert = silencedResponse.data.alerts[0];
   expect(result.current.data?.alerts.find((alert) => alert.state === 'silenced')).toMatchObject({
@@ -49,13 +49,13 @@ it('uses generated rules and silenced-alert hooks with the same refresh interval
 
 it('disables polling by default', () => {
   renderHook(() => useAlertManagementData());
-  expect(mocks.useGetRules).toHaveBeenCalledWith(undefined, {
-    query: expect.objectContaining({ refetchInterval: false }),
+  expect(mocks.useGetRules).toHaveBeenCalledWith({
+    options: { query: expect.objectContaining({ refetchInterval: false }) },
   });
-  expect(mocks.useGetAlerts).toHaveBeenCalledWith(
-    { state: 'silenced' },
-    { query: expect.objectContaining({ refetchInterval: false }) },
-  );
+  expect(mocks.useGetAlerts).toHaveBeenCalledWith({
+    params: { state: 'silenced' },
+    options: { query: expect.objectContaining({ refetchInterval: false }) },
+  });
 });
 
 it('exposes a failed silenced-alert query without blocking rules or changing their states', () => {
