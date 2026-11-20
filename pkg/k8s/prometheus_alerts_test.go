@@ -568,7 +568,7 @@ func TestForbiddenUpstreamResponse(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = (&prometheusAlerts{}).performRequest(server.Client(), req)
+		_, err = (&transport{}).performRequest(server.Client(), req)
 		if err == nil || isForbiddenResponse(err) != tc.forbidden {
 			t.Fatalf("request %s: error = %v, forbidden = %t, want %t", tc.path, err, isForbiddenResponse(err), tc.forbidden)
 		}
@@ -630,10 +630,10 @@ func TestLoadCACertPool_TrustsServiceCAAlongsideKubeconfigCA(t *testing.T) {
 	}
 	t.Setenv(serviceCAFileEnv, servicePath)
 
-	pa := &prometheusAlerts{config: &rest.Config{
+	transport := newTransport(nil, &rest.Config{
 		TLSClientConfig: rest.TLSClientConfig{CAData: kubeLeaf.caPEM},
-	}}
-	pool, err := pa.loadCACertPool()
+	})
+	pool, err := transport.loadCACertPool()
 	if err != nil {
 		t.Fatalf("load CA pool: %v", err)
 	}
@@ -647,16 +647,16 @@ func TestLoadCACertPool_TrustsServiceCAAlongsideKubeconfigCA(t *testing.T) {
 
 func TestLoadCACertPool_ExplicitServiceCAMustExist(t *testing.T) {
 	t.Setenv(serviceCAFileEnv, filepath.Join(t.TempDir(), "missing.crt"))
-	pa := &prometheusAlerts{config: &rest.Config{}}
-	if _, err := pa.loadCACertPool(); err == nil {
+	transport := newTransport(nil, &rest.Config{})
+	if _, err := transport.loadCACertPool(); err == nil {
 		t.Fatal("expected error when MONITORING_PLUGIN_SERVICE_CA_FILE is missing")
 	}
 }
 
 func TestLoadCACertPool_MissingDefaultServiceCAIsOptional(t *testing.T) {
 	t.Setenv(serviceCAFileEnv, "")
-	pa := &prometheusAlerts{config: &rest.Config{}}
-	pool, err := pa.loadCACertPool()
+	transport := newTransport(nil, &rest.Config{})
+	pool, err := transport.loadCACertPool()
 	if err != nil {
 		t.Fatalf("missing default service CA should be ignored: %v", err)
 	}

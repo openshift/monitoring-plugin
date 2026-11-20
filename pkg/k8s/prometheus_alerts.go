@@ -2,14 +2,9 @@ package k8s
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -26,20 +21,9 @@ import (
 var prometheusLog = logrus.WithField("module", "k8s-prometheus")
 
 const (
-	namespaceCacheTTL     = 30 * time.Second
-	serviceHealthTimeout  = 5 * time.Second
-	serviceRequestTimeout = 10 * time.Second
-	// serviceCACacheTTL is how long an out-of-cluster tenancy client
-	// reuses the service CA from openshift-config-managed. The cache
-	// skips a ConfigMap read on every request, and the bound is short
-	// so a rotated CA is picked up without restarting the plugin.
-	serviceCACacheTTL      = time.Minute
+	namespaceCacheTTL      = 30 * time.Second
+	serviceHealthTimeout   = 5 * time.Second
 	maxTenancyProbeTargets = 3
-
-	// serviceCAFileEnv points at the test cluster service CA when the
-	// plugin runs outside that cluster (e2e-management-api). The default
-	// in-cluster path is optional; an explicit path must be readable.
-	serviceCAFileEnv = "MONITORING_PLUGIN_SERVICE_CA_FILE"
 )
 
 type namespaceCache struct {
@@ -80,16 +64,12 @@ func (c *namespaceCache) set(namespaces []string) {
 }
 
 type prometheusAlerts struct {
-	routeClient        routeclient.Interface
-	coreClient         corev1client.CoreV1Interface
-	config             *rest.Config
-	ruleManager        PrometheusRuleInterface
-	nsCache            *namespaceCache
-	tunnel             thanosPortForward
-	serviceCAMu        sync.Mutex
-	serviceCAWarn      sync.Once
-	serviceCAPEM       []byte
-	serviceCAExpiresAt time.Time
+	routeClient  routeclient.Interface
+	coreClient   corev1client.CoreV1Interface
+	transport    *transport
+	ruleManager  PrometheusRuleInterface
+	nsCache      *namespaceCache
+	thanosTunnel thanosPortForward
 }
 
 // GetAlertsRequest holds parameters for filtering alerts
@@ -152,7 +132,7 @@ func newPrometheusAlerts(routeClient routeclient.Interface, coreClient corev1cli
 	return &prometheusAlerts{
 		routeClient: routeClient,
 		coreClient:  coreClient,
-		config:      config,
+		transport:   newTransport(coreClient, config),
 		ruleManager: ruleManager,
 		nsCache:     newNamespaceCache(namespaceCacheTTL),
 	}
@@ -299,14 +279,14 @@ func (pa *prometheusAlerts) routeHealth(ctx context.Context, namespace string, r
 	}
 
 	url := buildRouteURL(route.Spec.Host, route.Spec.Path, path)
-	client, err := pa.createHTTPClient()
+	client, err := pa.transport.createHTTPClient()
 	if err != nil {
 		health.Status = RouteUnreachable
 		health.Error = err.Error()
 		return health
 	}
 
-	if _, err := pa.executeRequest(ctx, client, url); err != nil {
+	if _, err := pa.transport.executeRequest(ctx, client, url); err != nil {
 		health.Status = RouteUnreachable
 		health.Error = err.Error()
 		return health
@@ -470,12 +450,12 @@ func (pa *prometheusAlerts) getServiceResponse(ctx context.Context, namespace st
 	baseURL := fmt.Sprintf("https://%s.%s.svc:%d", serviceName, namespace, port)
 	requestURL := fmt.Sprintf("%s%s", baseURL, path)
 
-	client, err := pa.createHTTPClient()
+	client, err := pa.transport.createHTTPClient()
 	if err != nil {
 		return nil, err
 	}
 
-	return pa.executeRequest(ctx, client, requestURL)
+	return pa.transport.executeRequest(ctx, client, requestURL)
 }
 
 func (pa *prometheusAlerts) thanosTenancyReachable(ctx context.Context, path string) bool {
@@ -497,7 +477,7 @@ func (pa *prometheusAlerts) thanosTenancyReachable(ctx context.Context, path str
 		if err == nil {
 			return true
 		}
-		if isTenancyExpectedError(err) {
+		if isExpectedThanosTenancyError(err) {
 			continue
 		}
 		return false
@@ -506,11 +486,11 @@ func (pa *prometheusAlerts) thanosTenancyReachable(ctx context.Context, path str
 	return false
 }
 
-// isTenancyExpectedError returns true for errors that are expected when probing
+// isExpectedThanosTenancyError returns true for errors that are expected when probing
 // Thanos tenancy endpoints across user namespaces — e.g. the namespace has no
 // rules (404), the SA lacks access (401/403), or the namespace is not yet
 // instrumented. These are skipped; only a network/server error aborts the probe.
-func isTenancyExpectedError(err error) bool {
+func isExpectedThanosTenancyError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -524,7 +504,7 @@ func isTenancyExpectedError(err error) bool {
 }
 
 func (pa *prometheusAlerts) getAlertsViaProxy(ctx context.Context, namespace string, routeName string, source string) ([]PrometheusAlert, error) {
-	raw, err := pa.getPrometheusResponse(ctx, namespace, routeName, PrometheusAlertsPath)
+	raw, err := pa.getRouteResponse(ctx, namespace, routeName, PrometheusAlertsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +542,7 @@ func (pa *prometheusAlerts) getAlertsViaThanosTenancy(ctx context.Context, names
 }
 
 func (pa *prometheusAlerts) getAlertmanagerAlerts(ctx context.Context, namespace string, routeName string, source string) ([]PrometheusAlert, error) {
-	raw, err := pa.getPrometheusResponse(ctx, namespace, routeName, AlertmanagerAlertsPath)
+	raw, err := pa.getRouteResponse(ctx, namespace, routeName, AlertmanagerAlertsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -691,7 +671,7 @@ func (pa *prometheusAlerts) getRulesViaThanosTenancyNamespaces(ctx context.Conte
 }
 
 func (pa *prometheusAlerts) getRulesViaProxy(ctx context.Context, namespace string, routeName string, source string) ([]PrometheusRuleGroup, error) {
-	raw, err := pa.getPrometheusResponse(ctx, namespace, routeName, PrometheusRulesPath)
+	raw, err := pa.getRouteResponse(ctx, namespace, routeName, PrometheusRulesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -765,17 +745,17 @@ func parsePrometheusRulesResponse(raw []byte, apiName string) ([]PrometheusRuleG
 	return groups, nil
 }
 
-func (pa *prometheusAlerts) getPrometheusResponse(ctx context.Context, namespace string, routeName string, path string) ([]byte, error) {
-	url, err := pa.buildPrometheusURL(ctx, namespace, routeName, path)
+func (pa *prometheusAlerts) getRouteResponse(ctx context.Context, namespace string, routeName string, path string) ([]byte, error) {
+	requestURL, err := pa.buildMonitoringRouteURL(ctx, namespace, routeName, path)
 	if err != nil {
 		return nil, err
 	}
-	client, err := pa.createHTTPClient()
+	client, err := pa.transport.createHTTPClient()
 	if err != nil {
 		return nil, err
 	}
 
-	return pa.executeRequest(ctx, client, url)
+	return pa.transport.executeRequest(ctx, client, requestURL)
 }
 
 func (pa *prometheusAlerts) getThanosTenancyResponse(ctx context.Context, path string, namespace string) ([]byte, error) {
@@ -786,16 +766,16 @@ func (pa *prometheusAlerts) getThanosTenancyResponse(ctx context.Context, path s
 	baseURL := fmt.Sprintf("https://%s.%s.svc:%d", ThanosQuerierServiceName, ClusterMonitoringNamespace, DefaultThanosQuerierTenancyRulesPort)
 	requestURL := fmt.Sprintf("%s%s?namespace=%s", baseURL, path, url.QueryEscape(namespace))
 
-	client, err := pa.tenancyHTTPClient(ctx)
+	client, err := pa.thanosTenancyHTTPClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return pa.executeRequest(ctx, client, requestURL)
+	return pa.transport.executeRequest(ctx, client, requestURL)
 }
 
-func (pa *prometheusAlerts) buildPrometheusURL(ctx context.Context, namespace string, routeName string, path string) (string, error) {
-	route, err := pa.fetchPrometheusRoute(ctx, namespace, routeName)
+func (pa *prometheusAlerts) buildMonitoringRouteURL(ctx context.Context, namespace string, routeName string, path string) (string, error) {
+	route, err := pa.fetchRoute(ctx, namespace, routeName)
 	if err != nil {
 		return "", err
 	}
@@ -803,7 +783,7 @@ func (pa *prometheusAlerts) buildPrometheusURL(ctx context.Context, namespace st
 	return buildRouteURL(route.Spec.Host, route.Spec.Path, path), nil
 }
 
-func (pa *prometheusAlerts) fetchPrometheusRoute(ctx context.Context, namespace string, routeName string) (*routev1.Route, error) {
+func (pa *prometheusAlerts) fetchRoute(ctx context.Context, namespace string, routeName string) (*routev1.Route, error) {
 	if pa.routeClient == nil {
 		return nil, fmt.Errorf("route client is not configured")
 	}
@@ -890,83 +870,6 @@ func namespaceFromLabels(labels map[string]string) string {
 	return strings.TrimSpace(labels["namespace"])
 }
 
-func (pa *prometheusAlerts) createHTTPClient() (*http.Client, error) {
-	tlsConfig, err := pa.buildTLSConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	return &http.Client{
-		Timeout: serviceRequestTimeout,
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}, nil
-}
-
-func (pa *prometheusAlerts) buildTLSConfig() (*tls.Config, error) {
-	caCertPool, err := pa.loadCACertPool()
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		RootCAs:    caCertPool,
-	}, nil
-}
-
-func (pa *prometheusAlerts) loadCACertPool() (*x509.CertPool, error) {
-	caCertPool, err := x509.SystemCertPool()
-	if err != nil {
-		caCertPool = x509.NewCertPool()
-	}
-
-	// Kubeconfig CA (API server) and the OpenShift service CA sign different
-	// certificates. Out-of-cluster kubeconfigs set CAData, so the service CA
-	// must still be appended or thanos-querier TLS fails closed.
-	if len(pa.config.CAData) > 0 {
-		caCertPool.AppendCertsFromPEM(pa.config.CAData)
-	} else if pa.config.CAFile != "" {
-		caCert, err := os.ReadFile(pa.config.CAFile)
-		if err != nil {
-			return nil, fmt.Errorf("read CA cert file: %w", err)
-		}
-		caCertPool.AppendCertsFromPEM(caCert)
-	}
-
-	if err := appendServiceCA(caCertPool); err != nil {
-		return nil, err
-	}
-
-	return caCertPool, nil
-}
-
-func serviceCAFilePath() (string, bool) {
-	if path := strings.TrimSpace(os.Getenv(serviceCAFileEnv)); path != "" {
-		return path, true
-	}
-	return ServiceCAPath, false
-}
-
-func appendServiceCA(pool *x509.CertPool) error {
-	path, required := serviceCAFilePath()
-	pemBytes, err := os.ReadFile(path)
-	if err != nil {
-		if !required {
-			return nil
-		}
-		return fmt.Errorf("read service CA file %s: %w", path, err)
-	}
-	if !pool.AppendCertsFromPEM(pemBytes) {
-		if !required {
-			return nil
-		}
-		return fmt.Errorf("parse service CA file %s", path)
-	}
-	return nil
-}
-
 func copyStringSlice(in []string) []string {
 	if len(in) == 0 {
 		return []string{}
@@ -975,82 +878,4 @@ func copyStringSlice(in []string) []string {
 	out := make([]string, len(in))
 	copy(out, in)
 	return out
-}
-
-func (pa *prometheusAlerts) executeRequest(ctx context.Context, client *http.Client, url string) ([]byte, error) {
-	req, err := pa.createAuthenticatedRequest(ctx, url)
-	if err != nil {
-		return nil, err
-	}
-
-	return pa.performRequest(client, req)
-}
-
-func (pa *prometheusAlerts) createAuthenticatedRequest(ctx context.Context, url string) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create request: %w", err)
-	}
-
-	token := BearerTokenFromContext(ctx)
-	if token == "" {
-		var err error
-		token, err = pa.loadBearerToken()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-	return req, nil
-}
-
-func (pa *prometheusAlerts) loadBearerToken() (string, error) {
-	if pa.config.BearerToken != "" {
-		return pa.config.BearerToken, nil
-	}
-
-	if pa.config.BearerTokenFile == "" {
-		return "", fmt.Errorf("no bearer token or token file configured")
-	}
-
-	tokenBytes, err := os.ReadFile(pa.config.BearerTokenFile)
-	if err != nil {
-		return "", fmt.Errorf("load bearer token file: %w", err)
-	}
-
-	return strings.TrimSpace(string(tokenBytes)), nil
-}
-
-func (pa *prometheusAlerts) performRequest(client *http.Client, req *http.Request) ([]byte, error) {
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("execute request: %w", err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("read response body: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, &upstreamHTTPError{statusCode: resp.StatusCode, body: string(body)}
-	}
-
-	return body, nil
-}
-
-type upstreamHTTPError struct {
-	statusCode int
-	body       string
-}
-
-func (e *upstreamHTTPError) Error() string {
-	return fmt.Sprintf("unexpected status %d: %s", e.statusCode, e.body)
-}
-
-func isForbiddenResponse(err error) bool {
-	httpErr, ok := err.(*upstreamHTTPError)
-	return ok && httpErr.statusCode == http.StatusForbidden
 }
