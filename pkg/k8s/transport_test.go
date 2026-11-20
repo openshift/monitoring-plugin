@@ -3,6 +3,8 @@ package k8s
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -102,8 +104,10 @@ func TestTransportPortForwardVerifiesDestinationCertificate(t *testing.T) {
 	}
 	defer client.CloseIdleConnections()
 
-	if _, err := transport.executeRequest(context.Background(), client, "https://wrong.monitoring.svc/api"); err == nil {
-		t.Fatal("expected TLS hostname verification to reject the request")
+	_, err = transport.executeRequest(context.Background(), client, "https://wrong.monitoring.svc/api")
+	var hostnameErr x509.HostnameError
+	if !errors.As(err, &hostnameErr) {
+		t.Fatalf("expected x509.HostnameError, got %v", err)
 	}
 }
 
