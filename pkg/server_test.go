@@ -19,7 +19,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"k8s.io/apiserver/pkg/server/dynamiccertificates"
 )
 
 type httpClientConfig struct {
@@ -422,4 +424,23 @@ func TestNoCORSHeaders(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCertLoadLoggerDoesNotLeakPath(t *testing.T) {
+	dir := t.TempDir()
+	certFile := filepath.Join(dir, "tls.crt")
+	keyFile := filepath.Join(dir, "tls.key")
+
+	_, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", certFile, keyFile)
+	require.Error(t, err)
+	entry := certLoadLogger(err)
+	require.NotNil(t, entry.Data[logrus.ErrorKey])
+	require.NotContains(t, fmt.Sprint(entry.Data), dir)
+
+	// Empty files fail with an error that embeds the paths.
+	require.NoError(t, os.WriteFile(certFile, nil, 0600))
+	require.NoError(t, os.WriteFile(keyFile, nil, 0600))
+	_, err = dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", certFile, keyFile)
+	require.ErrorContains(t, err, dir)
+	require.NotContains(t, fmt.Sprint(certLoadLogger(err).Data), dir)
 }
