@@ -48,7 +48,7 @@ import {
 } from '@patternfly/react-tokens';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentType, FC, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -75,6 +75,7 @@ import { usePoll } from '@/shared/console/utils/poll-hook';
 import { useRefWidth } from '@/shared/console/utils/ref-width-hook';
 import { useSafeFetch } from '@/shared/console/utils/safe-fetch-hook';
 import { DataTestIDs } from '@/shared/constants/data-test';
+import { MAX_TIMESPAN_MS } from '@/shared/constants/timespan';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { getObserveState } from '@/shared/hooks/usePerspective';
@@ -117,7 +118,7 @@ const GraphEmptyState: FC<GraphEmptyStateProps> = ({ children, title }) => (
   </div>
 );
 
-const SpanControls = memo(
+export const SpanControls = memo(
   ({ defaultSpanText, onChange, span, hasReducedResolution }: SpanControlsProps) => {
     const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
@@ -130,17 +131,19 @@ const SpanControls = memo(
       setText(formatPrometheusDuration(span));
     }, [span]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnChange = useCallback(_.debounce(onChange, 400), [onChange]);
+    const debouncedOnChange = useMemo(() => _.debounce(onChange, 400), [onChange]);
+    useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange]);
 
     const setSpan = (newText: string, isDebounced = false) => {
       const newSpan = parsePrometheusDuration(newText);
-      const newIsValid = newSpan > 0;
+      const newIsValid = newSpan > 0 && newSpan <= MAX_TIMESPAN_MS;
       setIsValid(newIsValid);
       setText(newText);
-      if (newIsValid && newSpan !== span) {
+      if (newIsValid) {
         const fn = isDebounced ? debouncedOnChange : onChange;
         fn(newSpan);
+      } else {
+        debouncedOnChange.cancel();
       }
     };
 
@@ -186,7 +189,10 @@ const SpanControls = memo(
         </FlexItem>
         <FlexItem grow={{ default: 'grow' }}>
           <Button
-            onClick={() => setSpan(defaultSpanText)}
+            onClick={() => {
+              debouncedOnChange.cancel();
+              setSpan(defaultSpanText);
+            }}
             type="button"
             variant="tertiary"
             data-test={DataTestIDs.MetricResetZoomButton}
@@ -590,12 +596,13 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   disabledSeries,
   disableZoom,
   filterLabels,
-  fixedEndTime,
+  fixedEndTime: requestedEndTime,
   formatSeriesTitle,
   GraphLink,
   hideControls,
   isStack = false,
   onLoadingChange,
+  onSpanChange: onSpanChangeProp,
   onZoom,
   pollInterval,
   queries,
@@ -647,9 +654,11 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   const [containerRef, width] = useRefWidth();
 
-  const endTime = xDomain?.[1];
+  const fixedEndTime = Number.isFinite(requestedEndTime) ? requestedEndTime : undefined;
+  const endTime = fixedEndTime ?? xDomain?.[1];
 
   const safeFetch = useSafeFetch();
+  const requests = useRef({ nextId: 0, minAcceptedRequestId: 0 });
 
   const [isStacked, setIsStacked] = useState(isStack);
   const [showDisconnectedValues, setIsShowDisconnectedValues] = useState(false);
@@ -669,13 +678,13 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
   useEffect(() => {
     setGraphData(null);
-    if (fixedEndTime) {
+    if (fixedEndTime !== undefined) {
       setXDomain(getXDomain(fixedEndTime, span));
     }
   }, [fixedEndTime, span]);
 
   useEffect(() => {
-    if (!fixedEndTime) {
+    if (fixedEndTime === undefined) {
       setXDomain(undefined);
     }
   }, [fixedEndTime]);
@@ -690,9 +699,12 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
       return undefined;
     }
 
+    const requestId = requests.current.nextId++;
+    const isResponseStale = () => requestId < requests.current.minAcceptedRequestId;
+
     // Define this once for all queries so that they have exactly the same time range and X values
     const now = Date.now();
-    const timeRanges = getTimeRanges(span, endTime || now);
+    const timeRanges = getTimeRanges(span, endTime ?? now);
 
     const queryPromises = _.map(queries, (query) => {
       if (_.isEmpty(query)) {
@@ -753,6 +765,10 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
 
     return Promise.all(queryPromises)
       .then((responses: PrometheusResponse[]) => {
+        if (isResponseStale()) {
+          return;
+        }
+        requests.current.minAcceptedRequestId = requestId;
         const newResults = _.map(responses, 'data.result');
         const numDataPoints = _.sumBy(newResults, (r) => _.sumBy(r, 'values.length'));
 
@@ -829,7 +845,8 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
         setError(undefined);
       })
       .catch((err) => {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isResponseStale()) {
+          requests.current.minAcceptedRequestId = requestId;
           // eslint-disable-next-line no-console
           console.log(err);
           setError(err);
@@ -841,7 +858,7 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
   // Don't poll if an end time was set (because the latest data is not displayed) or if the graph is
   // hidden. Otherwise use a polling interval relative to the graph's timespan.
   let delay: number;
-  if (endTime || hideGraphs || tickInterval === null) {
+  if (endTime !== undefined || hideGraphs || tickInterval === null) {
     delay = null;
   } else if (tickInterval === 0) {
     delay = 0;
@@ -869,17 +886,35 @@ const QueryBrowser_: FC<QueryBrowserProps> = ({
     useMetricsTenancy,
   );
 
-  useLayoutEffect(() => setUpdating(true), [endTime, namespace, queriesKey, samples, span]);
+  useLayoutEffect(() => {
+    const pending = requests.current;
+    setUpdating(true);
+    return () => {
+      // Discard outstanding requests when the displayed query or range changes.
+      pending.minAcceptedRequestId = pending.nextId;
+    };
+  }, [endTime, namespace, queriesKey, samples, span]);
 
   const onSpanChange = useCallback(
     (newSpan: number) => {
-      setGraphData(null);
-      setXDomain(undefined);
-      setSpan(newSpan);
-      dispatch(queryBrowserSetTimespan(newSpan));
-      setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      const rangeChanged =
+        newSpan !== span || (fixedEndTime === undefined && xDomain !== undefined);
+
+      if (rangeChanged) {
+        setGraphData(null);
+        setXDomain(undefined);
+        setSpan(newSpan);
+        setSamples(defaultSamples || getMaxSamplesForSpan(newSpan));
+      }
+
+      // The parent can clear the fixed range and use this preset as the relative span.
+      if (rangeChanged || (fixedEndTime !== undefined && onSpanChangeProp)) {
+        dispatch(queryBrowserSetTimespan(newSpan));
+      }
+
+      onSpanChangeProp?.(newSpan);
     },
-    [defaultSamples, dispatch],
+    [defaultSamples, dispatch, fixedEndTime, onSpanChangeProp, span, xDomain],
   );
 
   const isRangeVector = _.get(error, 'json.error', '').match(
@@ -1116,6 +1151,7 @@ export type QueryBrowserProps = {
   hideControls?: boolean;
   isStack?: boolean;
   onLoadingChange?: (isLoading: boolean) => void;
+  onSpanChange?: (span: number) => void;
   onZoom?: GraphOnZoom;
   pollInterval?: number;
   queries: string[];
