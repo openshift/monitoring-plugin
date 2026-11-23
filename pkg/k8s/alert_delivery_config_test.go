@@ -18,8 +18,10 @@ func TestAlertRelabelingUsesUpstreamMetadata(t *testing.T) {
 	for _, upstreamBackend := range []string{"", "original"} {
 		t.Run("upstream="+upstreamBackend, func(t *testing.T) {
 			alertsProm := []PrometheusAlert{{Labels: map[string]string{"alertname": "Collision", AlertBackendLabel: upstreamBackend}, State: "firing"}}
+			alertsAM := []PrometheusAlert{{Labels: map[string]string{"alertname": "Collision", AlertBackendLabel: upstreamBackend}, State: "firing"}}
 
 			applyAlertMetadata(alertsProm, AlertSourcePlatform, AlertBackendProm)
+			applyAlertMetadata(alertsAM, AlertSourcePlatform, AlertBackendAM)
 
 			copyBackend := relabel.DefaultRelabelConfig
 			copyBackend.NameValidationScheme = model.UTF8Validation
@@ -32,6 +34,15 @@ func TestAlertRelabelingUsesUpstreamMetadata(t *testing.T) {
 			drop.Regex = relabel.MustNewRegexp("original|prom")
 
 			configs := []*relabel.Config{&copyBackend, &drop}
+
+			merged := mergeAlertsIncludingDropped(alertsAM, alertsProm, configs)
+			require.Len(t, merged, 1)
+
+			if upstreamBackend == "original" {
+				require.Equal(t, AlertBackendProm, merged[0].Labels[AlertBackendLabel], "rejected instances come from live Prometheus data")
+			} else {
+				require.Equal(t, AlertBackendAM, merged[0].Labels[AlertBackendLabel], "plugin metadata must not cause rejection")
+			}
 
 			enriched, keep := alertsProm[0].ApplyRelabelConfigs(configs...)
 			require.Equal(t, upstreamBackend != "original", keep)
@@ -126,6 +137,37 @@ func TestEnrichActiveAtChecksEveryExternalLabel(t *testing.T) {
 				require.Equal(t, want, am[0].ActiveAt)
 			})
 		}
+	}
+}
+
+func TestDeliveryDiscardsLabel(t *testing.T) {
+	// keepequal and dropequal compare the source values with the target
+	// label's current value, so an external label used as the target is
+	// read, not discarded.
+	keepequal := relabel.DefaultRelabelConfig
+	keepequal.Action = relabel.KeepEqual
+	keepequal.SourceLabels = model.LabelNames{"alertname"}
+	keepequal.TargetLabel = "cluster"
+	dropequal := keepequal
+	dropequal.Action = relabel.DropEqual
+	labelDrop := relabel.DefaultRelabelConfig
+	labelDrop.Action = relabel.LabelDrop
+	labelDrop.Regex = relabel.MustNewRegexp("cluster")
+
+	for _, tc := range []struct {
+		name     string
+		label    string
+		configs  []*relabel.Config
+		discards bool
+	}{
+		{name: "keepequal reads the target label", label: "cluster", configs: []*relabel.Config{&keepequal}},
+		{name: "dropequal reads the target label", label: "cluster", configs: []*relabel.Config{&dropequal}},
+		{name: "labeldrop discards the label", label: "cluster", configs: []*relabel.Config{&labelDrop}, discards: true},
+		{name: "untouched label survives relabeling", label: "unrelated", configs: []*relabel.Config{&keepequal}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.discards, deliveryDiscardsLabel(tc.label, tc.configs))
+		})
 	}
 }
 

@@ -5,10 +5,40 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/rest"
 
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 )
+
+func TestCleanupMetricsSurviveLeaderElectionInitializationFailure(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		config *rest.Config
+	}{
+		{name: "missing configuration"},
+		{name: "invalid configuration", config: &rest.Config{Host: "://invalid"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			registry := prometheus.NewRegistry()
+			_, err := Register(context.Background(), registry, nil, tc.config)
+			require.Error(t, err)
+			families, err := registry.Gather()
+			require.NoError(t, err)
+			for _, name := range []string{
+				k8s.MetricAlertRelabelConfigGCListTotal,
+				k8s.MetricAlertRelabelConfigGCListErrorsTotal,
+				k8s.MetricAlertRelabelConfigGCDeleteTotal,
+				k8s.MetricAlertRelabelConfigGCDeleteErrorsTotal,
+				k8s.MetricAlertRelabelConfigGitOpsOrphans,
+			} {
+				require.NotNil(t, findFamily(families, name))
+			}
+			require.Nil(t, findFamily(families, metricName))
+		})
+	}
+}
 
 func TestCollectorPreservesOnlyFreshUnavailableSources(t *testing.T) {
 	now := time.Now()

@@ -55,11 +55,18 @@ func startLeaderElection(ctx context.Context, kubeConfig *rest.Config, namespace
 	}
 
 	le, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
-		Lock:            lock,
-		LeaseDuration:   leaseDuration,
-		RenewDeadline:   leaseRenew,
-		RetryPeriod:     leaseRetry,
-		ReleaseOnCancel: true,
+		Lock:          lock,
+		LeaseDuration: leaseDuration,
+		RenewDeadline: leaseRenew,
+		RetryPeriod:   leaseRetry,
+		// ReleaseOnCancel must remain false. With release enabled, the release
+		// attempt after a failed renewal runs before OnStoppedLeading fires and
+		// can itself block for the RenewDeadline, so this replica would keep
+		// exposing metrics while the expired Lease is acquired by another
+		// replica, producing duplicate alert series. Without release, leadership
+		// stops as soon as renewal gives up; a graceful shutdown instead waits
+		// out the Lease TTL before the next leader takes over.
+		ReleaseOnCancel: false,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: onStartedLeading,
 			OnStoppedLeading: onStoppedLeading,

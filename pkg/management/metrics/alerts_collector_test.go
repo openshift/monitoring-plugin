@@ -3,6 +3,7 @@ package metrics
 import (
 	"context"
 	"errors"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -75,6 +76,55 @@ func TestAlertsCollector_InitialSync(t *testing.T) {
 	require.Eventually(t, func() bool {
 		return findFamily(collectMetrics(t, collector), metricName) != nil
 	}, 5*time.Second, 10*time.Millisecond)
+}
+
+func TestAlertsCollector_SyncLoopKeepsScheduleAfterSlowFirstSync(t *testing.T) {
+	// A first fetch that outlasts one interval must not push the next fetch
+	// a full interval further out: the ticker runs from the start, so its
+	// buffered tick refreshes immediately after the slow fetch completes.
+	interval := 100 * time.Millisecond
+
+	type fetchRecord struct {
+		started time.Time
+		ended   time.Time
+	}
+	var mu sync.Mutex
+	var fetches []fetchRecord
+	mock := &mockAlertsFetcher{
+		fetch: func(context.Context, k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+			started := time.Now()
+			mu.Lock()
+			first := len(fetches) == 0
+			mu.Unlock()
+			if first {
+				time.Sleep(3 * interval / 2)
+			}
+			mu.Lock()
+			fetches = append(fetches, fetchRecord{started: started, ended: time.Now()})
+			mu.Unlock()
+			return nil, nil, nil
+		},
+	}
+
+	collector := NewAlertsCollector(mock, interval)
+	collector.leading, collector.term = true, 1
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go collector.syncLoop(ctx)
+
+	require.Eventually(t, func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(fetches) >= 2
+	}, 5*time.Second, 10*time.Millisecond, "second fetch did not run")
+	cancel()
+
+	mu.Lock()
+	defer mu.Unlock()
+	gap := fetches[1].started.Sub(fetches[0].ended)
+	require.Less(t, gap, interval/2,
+		"the second fetch should start right after the slow first fetch via the buffered tick")
 }
 
 func TestAlertsCollector_FiringAndSilenced(t *testing.T) {
@@ -452,7 +502,7 @@ func TestAlertsCollector_ExpiresFailedRefresh(t *testing.T) {
 	snapshot := collector.snapshots[""]
 	snapshot.fetchedAt = time.Now().Add(-collector.syncInterval - time.Second)
 	collector.snapshots[""] = snapshot
-	require.NotNil(t, findFamily(collectMetrics(t, collector), metricName), "snapshots stay valid for a second refresh interval")
+	require.NotNil(t, findFamily(collectMetrics(t, collector), metricName), "a slow but on-schedule refresh must not expire the previous snapshot")
 	snapshot.fetchedAt = time.Now().Add(-snapshotTTLIntervals*collector.syncInterval - time.Second)
 	collector.snapshots[""] = snapshot
 	require.Nil(t, findFamily(collectMetrics(t, collector), metricName), "expired snapshots must disappear")
@@ -533,4 +583,71 @@ func TestAlertsCollector_DeduplicatesOverlappingBackends(t *testing.T) {
 		require.Equal(t, k8s.AlertBackendAM, labelValue(family.Metric[0], k8s.AlertBackendLabel))
 		require.Equal(t, float64(activeAt.Add(-2*time.Minute).Unix()), family.Metric[0].GetGauge().GetValue())
 	}
+}
+
+func TestAlertsCollector_RequestsAndExposesDroppedAlerts(t *testing.T) {
+	activeAt := time.Now().Add(-time.Hour).Truncate(time.Second)
+	mock := &mockAlertsFetcher{fetch: func(_ context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+		require.True(t, req.IncludeDropped)
+		require.True(t, req.AllowPartialResults, "collector refreshes must tolerate a partial platform outage")
+		return []k8s.PrometheusAlert{
+			{Labels: map[string]string{"alertname": "SameIdentity"}, State: "firing", ActiveAt: activeAt},
+			{Labels: map[string]string{"alertname": "SameIdentity"}, State: "firing", ActiveAt: activeAt, Dropped: true},
+			{Labels: map[string]string{"alertname": "SameIdentity"}, State: "firing", ActiveAt: activeAt.Add(-30 * time.Second), Dropped: true},
+			{Labels: map[string]string{"alertname": "PendingDrop"}, State: "pending", ActiveAt: activeAt.Add(-time.Minute), Dropped: true},
+			{Labels: map[string]string{"alertname": "SilencedDrop"}, State: "silenced", ActiveAt: activeAt, Dropped: true},
+			{Labels: map[string]string{"alertname": "NoTimestamp"}, State: "firing", Dropped: true},
+		}, nil, nil
+	}}
+	families := collectMetrics(t, newCollector(t, mock))
+	effective := findFamily(families, metricName)
+	require.NotNil(t, effective)
+	require.Len(t, effective.Metric, 1, "dropped instances must not enter the effective family")
+	require.Equal(t, "SameIdentity", labelValue(effective.Metric[0], "alertname"))
+	require.Equal(t, float64(activeAt.Unix()), effective.Metric[0].GetGauge().GetValue())
+	dropped := findFamily(families, droppedMetricName)
+	require.NotNil(t, dropped)
+	require.Len(t, dropped.Metric, 2)
+	for _, metric := range dropped.Metric {
+		switch labelValue(metric, "alertname") {
+		case "SameIdentity":
+			require.Equal(t, "firing", labelValue(metric, "alertstate"))
+			require.Equal(t, float64(activeAt.Add(-30*time.Second).Unix()), metric.GetGauge().GetValue())
+		case "PendingDrop":
+			require.Equal(t, "pending", labelValue(metric, "alertstate"))
+			require.Equal(t, float64(activeAt.Add(-time.Minute).Unix()), metric.GetGauge().GetValue())
+		default:
+			t.Fatalf("unexpected dropped series: %s", metric)
+		}
+	}
+}
+
+func TestAlertsCollector_TransitionsBetweenMetricFamilies(t *testing.T) {
+	activeAt := time.Now().Add(-time.Hour).Truncate(time.Second)
+	mock := &mockAlertsFetcher{alerts: []k8s.PrometheusAlert{{Labels: map[string]string{"alertname": "Transitions"}, State: "pending", ActiveAt: activeAt}}}
+	collector := newCollector(t, mock).(*AlertsCollector)
+	for _, dropped := range []bool{false, true, false} {
+		mock.alerts[0].Dropped = dropped
+		collector.sync(context.Background())
+		families := collectMetrics(t, collector)
+		present, absent := metricName, droppedMetricName
+		if dropped {
+			present, absent = absent, present
+		}
+		family := findFamily(families, present)
+		require.NotNil(t, family)
+		require.Len(t, family.Metric, 1)
+		require.Equal(t, "pending", labelValue(family.Metric[0], "alertstate"))
+		require.Equal(t, float64(activeAt.Unix()), family.Metric[0].GetGauge().GetValue())
+		require.Nil(t, findFamily(families, absent))
+	}
+	mock.alerts[0].Dropped = true
+	collector.sync(context.Background())
+	snapshot := collector.snapshots[""]
+	snapshot.fetchedAt = time.Now().Add(-2*collector.syncInterval - time.Second)
+	collector.snapshots[""] = snapshot
+	require.Empty(t, collectMetrics(t, collector), "expired dropped snapshots must disappear")
+	collector.sync(context.Background())
+	collector.stopLeading()
+	require.Empty(t, collectMetrics(t, collector), "followers expose neither family")
 }

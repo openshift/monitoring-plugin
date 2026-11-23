@@ -38,6 +38,10 @@ type Framework struct {
 	PluginURL   string
 	BearerToken string
 	httpClient  *http.Client
+	// RestConfig is the cluster connection config behind Clientset; tests
+	// use it to open streams the typed clients do not cover, such as pod
+	// port forwards.
+	RestConfig *rest.Config
 }
 
 type CleanupFunc func() error
@@ -120,6 +124,7 @@ func New() (*Framework, error) {
 		Routev1clientset:      routev1clientset,
 		PluginURL:             pluginURL,
 		BearerToken:           bearerToken,
+		RestConfig:            config,
 	}
 
 	return f, nil

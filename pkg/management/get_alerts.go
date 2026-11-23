@@ -22,12 +22,15 @@ var cvoAlertNames = map[string]struct{}{
 }
 
 func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]k8s.PrometheusAlert, []string, error) {
+	configs := c.k8sClient.RelabeledRules().Config()
+	if req.IncludeDropped {
+		req.DroppedAlertRelabelConfigs = configs
+	}
 	alerts, warnings, err := c.k8sClient.PrometheusAlerts().FetchAlerts(ctx, req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get prometheus alerts: %w", err)
 	}
 
-	configs := c.k8sClient.RelabeledRules().Config()
 	rules := c.k8sClient.RelabeledRules().List(ctx)
 
 	result := make([]k8s.PrometheusAlert, 0, len(alerts))
@@ -37,7 +40,10 @@ func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]
 		if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
 			enriched, keep := alert.ApplyRelabelConfigs(configs...)
 			if !keep {
-				continue
+				if !req.IncludeDropped {
+					continue
+				}
+				enriched.Dropped = true
 			}
 			alert = *enriched
 		}

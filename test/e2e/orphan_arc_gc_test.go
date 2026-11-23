@@ -180,7 +180,7 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		t.Fatalf("Timeout waiting for orphan ARC GC: %v", err)
 	}
 
-	for _, keeper := range []string{liveName, gitopsName, manualName} {
+	for _, keeper := range []string{liveName, manualName} {
 		exists, existsErr := alertRelabelConfigExists(ctx, f, keeper)
 		if existsErr != nil {
 			t.Fatalf("Failed to get keeper ARC %s: %v", keeper, existsErr)
@@ -188,6 +188,22 @@ func TestOrphanAlertRelabelConfigGC(t *testing.T) {
 		if !exists {
 			t.Errorf("keeper ARC %s was deleted", keeper)
 		}
+	}
+	err = framework.PollWithContext(ctx, orphanARCGCPollInterval, orphanARCGCOpTimeout, func(pollCtx context.Context) error {
+		arc, getErr := f.Osmv1clientset.MonitoringV1().AlertRelabelConfigs(k8s.ClusterMonitoringNamespace).Get(pollCtx, gitopsName, metav1.GetOptions{})
+		if getErr != nil {
+			return getErr
+		}
+		if arc.Annotations[managementlabels.ARCAnnotationAlertRuleIDKey] != gitopsRuleID || arc.Annotations["argocd.argoproj.io/tracking-id"] != "e2e-orphan-arc-gc" {
+			return fmt.Errorf("GitOps orphan %s no longer has its original rule and tracking annotations", gitopsName)
+		}
+		if arc.Annotations["monitoring.openshift.io/orphaned-since"] != "" {
+			return fmt.Errorf("GitOps orphan %s was marked for automatic cleanup", gitopsName)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("GitOps orphan %s was not preserved: %v", gitopsName, err)
 	}
 }
 

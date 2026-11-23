@@ -2,8 +2,8 @@
 
 The backend serves Prometheus metrics at `/metrics` on its HTTPS listener.
 Go and process metrics are available regardless of the `alert-management-api`
-feature. With that feature enabled, the endpoint also exposes the effective
-alert timestamp metrics described below.
+feature. With that feature enabled, the endpoint also exposes cleanup metrics
+and the effective and dropped alert timestamp metrics described below.
 
 Authentication and authorization follow the [OpenShift metrics conventions](https://github.com/openshift/enhancements/blob/master/CONVENTIONS.md#handling-kube-apiserver-disruption).
 The endpoint authorizes `system:serviceaccount:openshift-monitoring:prometheus-k8s`
@@ -27,10 +27,14 @@ management feature:
 When alert management is enabled, the plugin service account also needs `get`,
 `create`, and `update` on coordination API Leases in `openshift-monitoring`.
 The alert collector uses the `monitoring-plugin-metrics` Lease so only the
-leader emits alert metrics. Lease election tolerates API disruption
+leader emits both alert metric families. Lease election tolerates API disruption
 using the OpenShift timing defaults, and replicas rejoin after losing a lease.
 The leader releases the Lease when the process receives SIGTERM or SIGINT, so
-a replacement can take over without waiting for the Lease to expire. A new
+a replacement can take over without waiting for the Lease to expire. General
+and cleanup metrics remain available on every replica, but the orphan cleanup
+itself runs only on the lease holder so replicas do not double-count cleanup
+work; if the Lease cannot be read, the cleanup is skipped and retried
+after a short delay, so it never widens beyond the confirmed holder. A new
 leadership term starts with an empty alert snapshot, and fetches from
 previous terms are ignored. The collector refreshes each source once per
 interval (30 seconds by default) whether or not it is scraped, and a source's
@@ -39,8 +43,9 @@ slack of one interval tolerates a single slow or failed fetch, while a source
 whose fetches stop disappears from the metric. Slow fetches cannot extend
 freshness. Sources are tracked independently; if user-workload retrieval
 fails, its series expire on the same limit while platform series continue to
-refresh. If alert-metric initialization fails, the server logs the failure
-and continues serving its other endpoints.
+refresh. If alert-metric initialization fails, route setup returns an error
+and startup stops: the HTTP server is not created, so no endpoints are
+served, including the cleanup metrics.
 
 ## Alert management metrics
 
@@ -54,6 +59,20 @@ Thanos-only user-workload alerts are retained. Alerts without an active
 timestamp are excluded.
 
 Its `alertstate` label can be `firing`, `pending`, or `silenced`.
+
+`alerts_dropped_active_at_timestamp_seconds` separately exposes platform
+instances rejected by an AlertRelabelConfig while they remain active or pending
+in Prometheus, even after they disappear from Alertmanager. Its `alertstate`
+label retains the original `pending` or `firing` state. The value is the original
+`activeAt` timestamp, and labels include changes made before the rejecting
+relabel rule. Drop decisions evaluate the delivered label set, including
+external labels Prometheus adds before relabeling, so a rule matching an
+external label also rejects the instance. Dropped instances never appear in
+the effective metric. Once
+Prometheus no longer reports the instance, its dropped series is removed.
+Disabled rules with no active instance produce no series. If Prometheus cannot
+be read, no dropped series is emitted from Alertmanager alone. The alerts API
+continues to omit rejected instances.
 
 To match Alertmanager timestamps to Prometheus `activeAt`, the plugin reads
 Prometheus's `/api/v1/status/config` endpoint and applies its external labels
@@ -74,8 +93,9 @@ from the alert itself and the relabeling rules do not drop it before the
 delivered identity is built, the plugin treats the identity as ambiguous and
 keeps Alertmanager's `startsAt`. Labels carried by the alert itself remain
 usable for matching. Both matching and ARC evaluation use
-captured upstream labels so plugin metadata cannot change delivery decisions
-or hide genuine upstream values under the reserved source/backend names.
+captured upstream labels plus Prometheus's external labels, so plugin
+metadata cannot change delivery decisions or hide genuine upstream values
+under the reserved source/backend names.
 
 Prometheus reports the condition start as `activeAt` and sends the firing
 time to Alertmanager as `startsAt`: an alert configured with `for` spends that
@@ -92,6 +112,25 @@ The alerting rules that consume this metric will be supplied by CMO in its own
 PrometheusRule resources (CNV-87536); this repository does not install them.
 They alert on the exposed series and are separate from any health monitoring
 of the plugin component itself.
+
+Cleanup exposes these additional metrics:
+
+- `monitoring_plugin_alert_relabel_config_gc_list_total`: all cleanup list
+  attempts, including failures.
+- `monitoring_plugin_alert_relabel_config_gc_list_errors_total`: failed cleanup
+  list operations.
+- `monitoring_plugin_alert_relabel_config_gc_delete_total`: all orphan deletion
+  attempts, including failures.
+- `monitoring_plugin_alert_relabel_config_gc_delete_errors_total`: failed
+  deletions of orphaned configurations.
+- `monitoring_plugin_alert_relabel_config_gitops_orphans`: GitOps-managed
+  configurations whose associated rule is absent. They require manual cleanup.
+
+The cleanup feature logs errors and GitOps warnings even when these metrics are
+not scraped. Non-GitOps orphans are marked with
+`monitoring.openshift.io/orphaned-since` and retained for at least 15 minutes.
+When the associated rule returns, the marker is cleared. A scheduled retry
+ensures cleanup continues even if no more rule events arrive.
 
 ## E2E testing
 
