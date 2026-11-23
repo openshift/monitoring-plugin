@@ -30,6 +30,7 @@ import (
 	"github.com/openshift/monitoring-plugin/internal/managementrouter"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/pkg/management"
+	"github.com/openshift/monitoring-plugin/pkg/management/metrics"
 	"github.com/openshift/monitoring-plugin/pkg/monitoring"
 	"github.com/openshift/monitoring-plugin/pkg/tracing/api"
 	"github.com/openshift/monitoring-plugin/pkg/tracing/proxy"
@@ -61,6 +62,10 @@ func (c *Config) IsTLSEnabled() bool {
 type PluginServer struct {
 	*http.Server
 	Config *Config
+	// waitForLeaderElection blocks until the alert-metrics leader elector
+	// has stopped and released its lease after the server context is
+	// cancelled. It is nil when alert management metrics are disabled.
+	waitForLeaderElection func()
 }
 
 type PluginConfig struct {
@@ -98,14 +103,15 @@ func (pluginConfig *PluginConfig) MarshalJSON() ([]byte, error) {
 }
 
 func CreateServer(ctx context.Context, cfg *Config) (*PluginServer, error) {
-	httpServer, err := createHTTPServer(ctx, cfg)
+	httpServer, waitForLeaderElection, err := createHTTPServer(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &PluginServer{
-		Config: cfg,
-		Server: httpServer,
+		Config:                cfg,
+		Server:                httpServer,
+		waitForLeaderElection: waitForLeaderElection,
 	}, nil
 }
 
@@ -125,7 +131,17 @@ func (s *PluginServer) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
+// WaitForLeaderElection blocks until the alert-metrics leader elector has
+// stopped and released its lease after the server context is cancelled, or a
+// timeout elapses. It returns immediately when alert management metrics are
+// disabled. Call it after StartHTTPServer has returned during shutdown.
+func (s *PluginServer) WaitForLeaderElection() {
+	if s.waitForLeaderElection != nil {
+		s.waitForLeaderElection()
+	}
+}
+
+func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, func(), error) {
 	hasFeatures := false
 	for _, enabled := range cfg.Features {
 		if enabled {
@@ -134,7 +150,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		}
 	}
 	if !hasFeatures {
-		return nil, fmt.Errorf("cannot start server without any features selected")
+		return nil, nil, fmt.Errorf("cannot start server without any features selected")
 	}
 
 	acmMode := cfg.Features[AcmAlerting]
@@ -143,18 +159,18 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	acmLocationsLength := len(cfg.AlertmanagerUrl) + len(cfg.ThanosQuerierUrl)
 
 	if acmLocationsLength > 0 && !acmMode {
-		return nil, fmt.Errorf("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
+		return nil, nil, fmt.Errorf("alertmanager and thanos-querier cannot be set without the 'acm-alerting' feature flag")
 	}
 	if acmLocationsLength == 0 && acmMode {
-		return nil, fmt.Errorf("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
+		return nil, nil, fmt.Errorf("alertmanager and thanos-querier must be set to use the 'acm-alerting' feature flag")
 	}
 
 	if cfg.Port == int(monitoring.AlertmanagerPort) || cfg.Port == int(monitoring.ThanosQuerierPort) {
-		return nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
+		return nil, nil, fmt.Errorf("cannot set default port to reserved port %d", cfg.Port)
 	}
 
 	if cfg.ClientCAFile != "" && !cfg.IsTLSEnabled() {
-		return nil, fmt.Errorf("client CA file requires TLS to be enabled")
+		return nil, nil, fmt.Errorf("client CA file requires TLS to be enabled")
 	}
 
 	var k8sconfig *rest.Config
@@ -163,12 +179,12 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	if acmMode || alertManagementAPIMode || tracingMode {
 		k8sconfig, err = loadKubeConfig()
 		if err != nil {
-			return nil, fmt.Errorf("cannot load kubernetes config: %w", err)
+			return nil, nil, fmt.Errorf("cannot load kubernetes config: %w", err)
 		}
 
 		k8sclient, err = dynamic.NewForConfig(k8sconfig)
 		if err != nil {
-			return nil, fmt.Errorf("error creating dynamicClient: %w", err)
+			return nil, nil, fmt.Errorf("error creating dynamicClient: %w", err)
 		}
 	} else {
 		k8sclient = nil
@@ -192,7 +208,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		// relabeled-rules cache freezes.
 		k8sClient, err := k8s.NewClient(ctx, k8sconfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
+			return nil, nil, fmt.Errorf("failed to create k8s client for alert management API: %w", err)
 		}
 
 		const initTimeout = 30 * time.Second
@@ -200,7 +216,7 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		defer initCancel()
 
 		if err := k8sClient.TestConnection(initCtx); err != nil {
-			return nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
+			return nil, nil, fmt.Errorf("failed to connect to kubernetes cluster for alert management API: %w", err)
 		}
 
 		managementClient = management.New(ctx, k8sClient)
@@ -211,15 +227,18 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	// authn/authz. This will never be the case when the plugin is deployed for
 	// OCP monitoring: the deploying operator always enables TLS.
 	metricsAuthorizer := mux.MiddlewareFunc(func(next http.Handler) http.Handler { return next })
+	var clientCA dynamiccertificates.CAContentProvider
 	if cfg.IsTLSEnabled() {
 		if cfg.ClientCAFile != "" {
-			clientCA, err := metricsClientCA(ctx, cfg.ClientCAFile)
+			provider, err := metricsClientCA(ctx, cfg.ClientCAFile)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			metricsAuthorizer = func(next http.Handler) http.Handler {
-				return authorizeMetrics(clientCA, next)
-			}
+			// Client certificates are verified against the provider at TLS
+			// handshake time (see below); authorizeMetrics then checks the
+			// scraper identity.
+			clientCA = provider
+			metricsAuthorizer = authorizeMetrics
 		} else {
 			// Fail closed: without a client CA bundle, scrapes cannot be
 			// authenticated.
@@ -227,7 +246,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 			metricsAuthorizer = denyAllMetrics
 		}
 	}
-	router, pluginConfig := setupRoutes(cfg, managementClient, tracingClient, metricsAuthorizer)
+	router, pluginConfig, waitForLeaderElection, err := setupRoutes(ctx, cfg, managementClient, tracingClient, k8sconfig, metricsAuthorizer)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to set up routes: %w", err)
+	}
 
 	tlsConfig := &tls.Config{}
 
@@ -235,14 +257,19 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 	if tlsEnabled {
 		baseTLSConfig, err := newBaseTLSConfig(cfg)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		tlsConfig = baseTLSConfig
 
-		// Request (but do not require) client certificates on every connection:
-		// /metrics verifies them for authorization while every other route accepts
-		// connections without one.
+		// Verify presented client certificates against the operator-managed
+		// CA bundle at handshake time; /metrics additionally checks the
+		// scraper identity. Connections without a certificate remain valid
+		// for every other route. Without a client CA bundle, certificates
+		// are only requested (and /metrics fails closed, see above).
 		tlsConfig.ClientAuth = tls.RequestClientCert
+		if clientCA != nil {
+			tlsConfig.ClientAuth = tls.VerifyClientCertIfGiven
+		}
 
 		// Build and run the controller which reloads the certificate and key
 		// files whenever they change.
@@ -263,18 +290,26 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 
 		ctrl := dynamiccertificates.NewDynamicServingCertificateController(
 			tlsConfig,
-			nil,
+			clientCA,
 			certKeyPair,
 			nil,
 			record.NewEventRecorderAdapter(
 				eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: "monitoring-plugin"}),
 			),
 		)
+		// Prime the serving configuration, including the client CA pool,
+		// before the server starts accepting connections.
+		if err := ctrl.RunOnce(); err != nil {
+			log.WithError(err).Fatal("failed to initialize serving certificate controller")
+		}
 		// Configure the server to use the cert/key pair for all client connections.
 		tlsConfig.GetConfigForClient = ctrl.GetConfigForClient
 
-		// Notify cert/key file changes to the controller.
+		// Notify cert/key and client CA file changes to the controller.
 		certKeyPair.AddListener(ctrl)
+		if clientCA != nil {
+			clientCA.AddListener(ctrl)
+		}
 
 		// Start certificate controllers in background
 		go ctrl.Run(1, ctx.Done())
@@ -305,10 +340,10 @@ func createHTTPServer(ctx context.Context, cfg *Config) (*http.Server, error) {
 		startProxy(cfg, k8sclient, tlsConfig, timeout, monitoring.ThanosQuerierKind, monitoring.ThanosQuerierPort)
 	}
 
-	return httpServer, nil
+	return httpServer, waitForLeaderElection, nil
 }
 
-func setupRoutes(cfg *Config, managementClient management.Client, tracingClient *dynamic.DynamicClient, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig) {
+func setupRoutes(ctx context.Context, cfg *Config, managementClient management.Client, tracingClient *dynamic.DynamicClient, k8sconfig *rest.Config, metricsAuthorizer mux.MiddlewareFunc) (*mux.Router, *PluginConfig, func(), error) {
 	configHandlerFunc, pluginConfig := configHandler(cfg)
 
 	router := mux.NewRouter()
@@ -320,11 +355,17 @@ func setupRoutes(cfg *Config, managementClient management.Client, tracingClient 
 	router.Path("/features").HandlerFunc(featuresHandler(cfg))
 	router.Path("/config").HandlerFunc(configHandlerFunc)
 
+	var waitForLeaderElection func()
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	if managementClient != nil {
 		managementRouter := managementrouter.New(managementClient)
 		router.PathPrefix("/api/v1/alerting").Handler(managementRouter)
+		var err error
+		waitForLeaderElection, err = metrics.Register(ctx, registry, managementClient, k8sconfig)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("failed to register alert management metrics: %w", err)
+		}
 	}
 	if tracingClient != nil {
 		router.Path("/api/v1/list-tempo-resources").HandlerFunc(api.ListTempoResourcesHandler(tracingClient))
@@ -336,7 +377,7 @@ func setupRoutes(cfg *Config, managementClient management.Client, tracingClient 
 
 	router.PathPrefix("/").Handler(filesHandler(http.Dir(cfg.StaticPath)))
 
-	return router, pluginConfig
+	return router, pluginConfig, waitForLeaderElection, nil
 }
 
 func setupProxyRoutes(cfg *Config, k8sclient *dynamic.DynamicClient, kind monitoring.KindType) *mux.Router {

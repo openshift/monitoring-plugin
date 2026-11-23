@@ -13,6 +13,7 @@ import (
 	"time"
 
 	osmv1client "github.com/openshift/client-go/monitoring/clientset/versioned"
+	routev1client "github.com/openshift/client-go/route/clientset/versioned"
 	monitoringv1client "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -32,6 +33,7 @@ type Framework struct {
 	Clientset             kubernetes.Interface
 	Monitoringv1clientset *monitoringv1client.Clientset
 	Osmv1clientset        *osmv1client.Clientset
+	Routev1clientset      *routev1client.Clientset
 
 	PluginURL   string
 	BearerToken string
@@ -101,6 +103,11 @@ func New() (*Framework, error) {
 		return nil, fmt.Errorf("failed to create osmv1 clientset: %w", err)
 	}
 
+	routev1clientset, err := routev1client.NewForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create routev1 clientset: %w", err)
+	}
+
 	bearerToken, err := resolveToken(clientset, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve bearer token: %w", err)
@@ -110,6 +117,7 @@ func New() (*Framework, error) {
 		Clientset:             clientset,
 		Monitoringv1clientset: monitoringv1clientset,
 		Osmv1clientset:        osmv1clientset,
+		Routev1clientset:      routev1clientset,
 		PluginURL:             pluginURL,
 		BearerToken:           bearerToken,
 	}

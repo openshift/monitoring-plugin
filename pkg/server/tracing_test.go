@@ -155,7 +155,7 @@ func TestTracingRouteGate(t *testing.T) {
 		cfg.StaticPath = staticPath
 		cfg.ConfigPath = tracingConfigPath(t)
 		cfg.PluginConfigPath = filepath.Join(staticPath, "config.yaml")
-		httpServer, err := createHTTPServer(context.Background(), cfg)
+		httpServer, _, err := createHTTPServer(context.Background(), cfg)
 		require.NoError(t, err)
 		return httpServer.Handler
 	}

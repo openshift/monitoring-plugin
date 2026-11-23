@@ -17,6 +17,10 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	code := m.Run()
+	if err := deleteMetricsRoute(); err != nil {
+		fmt.Fprintf(os.Stderr, "delete metrics route: %v\n", err)
+		code = 1
+	}
 	if err := cleanup(); err != nil {
 		fmt.Fprintf(os.Stderr, "restore user workload monitoring: %v\n", err)
 		code = 1
