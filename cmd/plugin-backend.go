@@ -21,7 +21,7 @@ var (
 	staticPathArg       = flag.String("static-path", "/opt/app-root/web/dist", "static files path to serve frontend")
 	configPathArg       = flag.String("config-path", "/opt/app-root/config", "config files path")
 	pluginConfigArg     = flag.String("plugin-config-path", "/etc/plugin/config.yaml", "plugin yaml configuration")
-	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests")
+	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level logs every incoming request URI, including query strings; enable it only temporarily for debugging")
 	alertmanagerUrlArg  = flag.String("alertmanager", "", "Alertmanager URL to proxy to for ACM mode")
 	thanosQuerierUrlArg = flag.String("thanos-querier", "", "Thanos Querier URL to proxy to for ACM mode")
 	tlsMinVersionArg    = flag.String("tls-min-version", "VersionTLS12", "minimum TLS version\noptions: ['VersionTLS10', 'VersionTLS11', 'VersionTLS12', 'VersionTLS13']")
