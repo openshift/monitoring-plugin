@@ -7,11 +7,11 @@ import { Link } from 'react-router';
 import { AlertFollowUpSteps } from '@/features/alert-management-api/pages/alert-details/details-tab/AlertFollowUpSteps';
 import { DetailsField } from '@/features/alert-management-api/pages/alert-details/details-tab/DetailsField';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
+import { getAlertRuleDetailsUrl } from '@/features/alert-management-api/utils/urls';
 import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
 import { Labels } from '@/shared/components/Labels';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { ExternalLink, LinkifyExternal } from '@/shared/console/utils/Link';
-import { getRuleUrl } from '@/shared/hooks/usePerspective';
 import { getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { startCase } from '@/shared/utils/strings';
 
@@ -62,7 +62,7 @@ export function DetailsTab({ alert }: { alert: ManagedAlert }) {
         )}
         <DetailsField
           name={t('Alert rule')}
-          description={<Link to={getRuleUrl('admin', rule)}>{rule.name}</Link>}
+          description={<Link to={getAlertRuleDetailsUrl(rule)}>{rule.name}</Link>}
         />
         {annotations.runbook_url && (
           <DetailsField

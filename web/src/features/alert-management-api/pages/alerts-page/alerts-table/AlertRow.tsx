@@ -1,10 +1,11 @@
 import { ResourceIcon, Timestamp } from '@openshift-console/dynamic-plugin-sdk';
-import { DropdownItem, Flex, FlexItem, Label } from '@patternfly/react-core';
+import { Flex, FlexItem, Label } from '@patternfly/react-core';
 import { Td, Tr } from '@patternfly/react-table';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router';
 
+import { AlertActions } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActions';
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
@@ -13,27 +14,15 @@ import {
   SortedColumnCells,
 } from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
-import { getAlertDetailsSearch } from '@/features/alert-management-api/pages/alerts-page/utils/alert-details';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
+import { getAlertDetailsSearch } from '@/features/alert-management-api/utils/urls';
 import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
-import KebabDropdown from '@/shared/components/KebabDropdown';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { startCase } from '@/shared/utils/strings';
 import { AlertResource } from '@/shared/utils/utils';
-
-const alertActions = [
-  'Silence alert',
-  'Acknowledge',
-  'View alert rule',
-  'View logs',
-  'View metrics',
-  'See related incident',
-  'Troubleshoot with Signal Correlation',
-  'Investigate with AI',
-];
 
 export function AlertName({ name, children }: { name: string; children?: ReactNode }) {
   return (
@@ -47,27 +36,6 @@ export function AlertName({ name, children }: { name: string; children?: ReactNo
       </FlexItem>
       <FlexItem>{children ?? name}</FlexItem>
     </Flex>
-  );
-}
-
-export function AlertActions({ alert }: { alert: ManagedAlert }) {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const name = alert.labels.alertname ?? alert.rule.name;
-  const namespace = alert.labels.namespace ?? '';
-
-  return (
-    <KebabDropdown
-      ariaLabel={t('Actions for {{name}}', { name })}
-      dropdownItems={alertActions.map((action) => (
-        <DropdownItem
-          key={action}
-          // eslint-disable-next-line no-console
-          onClick={() => console.debug(`${action}: ${name}, namespace: ${namespace}`)}
-        >
-          {t(action)}
-        </DropdownItem>
-      ))}
-    />
   );
 }
 

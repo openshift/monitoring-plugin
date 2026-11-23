@@ -33,6 +33,15 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
+vi.mock('@/shared/hooks/agentic-runs/useAgenticRunCheck', () => ({
+  useAgenticRunCheck: () => ({
+    agenticRuns: [],
+    hasAgenticRun: false,
+    prefetch: vi.fn(),
+    isFetching: false,
+  }),
+}));
+
 vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
   ...(await vi.importActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types')),
   ...(await vi.importActual('@/shared/test-utils/sdk-const-enums')),
@@ -40,6 +49,15 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
     <span data-testid={DataTestIDs.AlertResourceIcon}>{kind}</span>
   ),
   Timestamp: () => null,
+  ActionServiceProvider: ({ children }) => children({ actions: [], loaded: true }),
+  useAccessReview: () => [true, false],
+}));
+
+vi.mock('@/shared/hooks/useMonitoring', () => ({
+  useMonitoring: () => ({
+    useAlertsTenancy: false,
+    accessCheckLoading: false,
+  }),
 }));
 
 const rows = aggregateAlerts(testAlerts);
