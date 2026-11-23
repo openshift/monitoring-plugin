@@ -106,6 +106,8 @@ The application will be running at [localhost:9000](http://localhost:9000/).
 1. Disable cache. Select 'disable cache' in your browser's DevTools > Network > 'disable cache'. Or use private/incognito mode in your browser.
 2. Enable higher log verbosity by setting `-log-level=trace` when starting the plugin backend. For more options to set log level see [logrus documentation](https://github.com/sirupsen/logrus?tab=readme-ov-file#level-logging).
 
+   > **Warning**: at `trace` level the backend logs every incoming request, including the full request URI and query string. Query strings can carry PromQL expressions, namespaces, label values and Tempo search parameters. Enable `trace` only temporarily while debugging, and avoid it in production clusters.
+
 ## monitoring-console-plugin (mcp)
 
 ### Dependencies
