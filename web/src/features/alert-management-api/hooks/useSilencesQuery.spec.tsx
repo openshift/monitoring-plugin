@@ -21,8 +21,12 @@ vi.mock('@/shared/hooks/useMonitoring', () => ({
 const globalUrl = getAlertmanagerSilencesUrl({ prometheus: 'cmo', useTenancyPath: false });
 const tenancyUrl = (namespace: string) =>
   getAlertmanagerSilencesUrl({ prometheus: 'cmo', useTenancyPath: true, namespace });
-const globalError = new Error('Global silences forbidden');
-const tenancyError = new Error('Namespace silences forbidden');
+const globalError = Object.assign(new Error('Global silences forbidden'), {
+  response: { status: 403 },
+});
+const tenancyError = Object.assign(new Error('Namespace silences forbidden'), {
+  response: { status: 403 },
+});
 const projects = ['first', 'second'].map((name) => ({ metadata: { name } }));
 
 function deferred<T>() {
@@ -66,6 +70,63 @@ it.each([{ data: [] }, { data: [makeSilence()] }])(
     expect(mocks.k8sListItems).not.toHaveBeenCalled();
   },
 );
+
+it.each([404, 429, 500, 502, 503, 504, undefined])(
+  'does not fall back to namespace requests for non-403/401 failures (status=%s)',
+  async (status) => {
+    const error = Object.assign(new Error('Silences request failed'), {
+      response: status === undefined ? undefined : { status },
+    });
+    mocks.consoleFetchJSON.mockRejectedValue(error);
+
+    const { result } = mount();
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBe(error);
+    expect(mocks.consoleFetchJSON).toHaveBeenCalledExactlyOnceWith(globalUrl, 'GET', {
+      signal: expect.any(AbortSignal),
+    });
+    expect(mocks.k8sListItems).not.toHaveBeenCalled();
+  },
+);
+
+it('limits namespace concurrency to 25 and waits for later batches even if earlier batches fail', async () => {
+  const namespaces = Array.from({ length: 53 }, (_, index) => `namespace-${index}`);
+  const requests = namespaces.map(() => deferred<Silence[]>());
+  mocks.k8sListItems.mockResolvedValue(namespaces.map((name) => ({ metadata: { name } })));
+  mocks.consoleFetchJSON.mockImplementation((url: string) => {
+    if (url === globalUrl) {
+      return Promise.reject(globalError);
+    }
+    return requests[namespaces.findIndex((namespace) => tenancyUrl(namespace) === url)].promise;
+  });
+
+  const { result } = mount();
+  await waitFor(() => expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(26));
+  expect(result.current.isLoading).toBe(true);
+
+  await act(async () => requests.slice(0, 24).forEach((request) => request.reject(tenancyError)));
+  expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(26);
+
+  await act(async () => requests[24].reject(tenancyError));
+  await waitFor(() => expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(51));
+  expect(result.current.isLoading).toBe(true);
+  expect(result.current.isError).toBe(false);
+
+  await act(async () => requests.slice(25, 50).forEach((request) => request.reject(tenancyError)));
+  await waitFor(() => expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(54));
+  expect(result.current.isLoading).toBe(true);
+
+  const silences = [50, 51, 52].map((index) => makeSilence({ id: `silence-${index}` }));
+  await act(async () => {
+    // Resolve out of order; aggregation should still follow namespace order.
+    requests[52].resolve([silences[2]]);
+    requests[50].resolve([silences[0]]);
+    requests[51].resolve([silences[1]]);
+  });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  expect(result.current.data).toEqual(silences);
+});
 
 it('stays loading through the waterfall and all parallel requests, then aggregates partial success', async () => {
   const global = deferred<Silence[]>();
@@ -231,6 +292,31 @@ it('does not start namespace requests when cancelled during project discovery', 
   expect(signal.aborted).toBe(true);
   await act(async () => listing.resolve(projects));
   expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(1);
+});
+
+it('does not start queued namespace batches after cancellation', async () => {
+  const pending = deferred<Silence[]>();
+  const namespaces = Array.from({ length: 26 }, (_, index) => `namespace-${index}`);
+  mocks.k8sListItems.mockResolvedValue(namespaces.map((name) => ({ metadata: { name } })));
+  mocks.consoleFetchJSON.mockImplementation((url: string) =>
+    url === globalUrl ? Promise.reject(globalError) : pending.promise,
+  );
+
+  const { unmount } = mount();
+  await waitFor(() => expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(26));
+  const signal = mocks.consoleFetchJSON.mock.calls[0][2].signal as AbortSignal;
+  unmount();
+  expect(signal.aborted).toBe(true);
+
+  await act(async () => pending.resolve([makeSilence()]));
+
+  expect(mocks.consoleFetchJSON).toHaveBeenCalledTimes(26);
+  expect(mocks.consoleFetchJSON).not.toHaveBeenCalledWith(
+    tenancyUrl(namespaces[25]),
+    'GET',
+    expect.anything(),
+  );
+  expect(client.getQueryData(['alert-management-api', 'cmo', 'silences'])).toBeUndefined();
 });
 
 it('restarts the sequence on refetch and uses global data if access is subsequently granted', async () => {

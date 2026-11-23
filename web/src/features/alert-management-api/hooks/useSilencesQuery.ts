@@ -1,4 +1,5 @@
 import { consoleFetchJSON, k8sListItems, Silence } from '@openshift-console/dynamic-plugin-sdk';
+import type { HttpError } from '@openshift-console/dynamic-plugin-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 import { getMockSilencesResponse } from '@/features/alert-management-api/tests/fixtures/mock-responses';
@@ -7,6 +8,7 @@ import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { getAlertmanagerSilencesUrl, Prometheus } from '@/shared/utils/utils';
 
 const useMockResponses = process.env.NODE_ENV === 'development';
+const MAX_CONCURRENT_SILENCE_REQUESTS = 25;
 
 const fetchSilences = async (prometheus: Prometheus, signal?: AbortSignal): Promise<Silence[]> => {
   const nonTenancySilencesUrl = getAlertmanagerSilencesUrl({ prometheus, useTenancyPath: false });
@@ -15,6 +17,12 @@ const fetchSilences = async (prometheus: Prometheus, signal?: AbortSignal): Prom
     return await consoleFetchJSON(nonTenancySilencesUrl, 'GET', { signal });
   } catch (error) {
     signal?.throwIfAborted();
+
+    // Only fan out permission errors
+    const status = (error as HttpError)?.response?.status;
+    if (status !== 403 && status !== 401) {
+      throw error;
+    }
 
     const projects = await k8sListItems({
       model: ProjectModel,
@@ -31,19 +39,24 @@ const fetchSilences = async (prometheus: Prometheus, signal?: AbortSignal): Prom
       throw error;
     }
 
-    // Each tenancy request is also an RBAC check. Wait for all of them to complete
-    // so any namespace success is a overall success
-    const responses = await Promise.allSettled(
-      namespaces.map(
-        (namespace: string): Promise<Silence[]> =>
-          consoleFetchJSON(
-            getAlertmanagerSilencesUrl({ prometheus, useTenancyPath: true, namespace }),
-            'GET',
-            { signal },
-          ),
-      ),
-    );
-    signal?.throwIfAborted();
+    // Each tenancy request is also an RBAC check. Bound concurrency and wait for all
+    // namespaces so any namespace success counts as overall success.
+    const responses: PromiseSettledResult<Silence[]>[] = [];
+    for (let offset = 0; offset < namespaces.length; offset += MAX_CONCURRENT_SILENCE_REQUESTS) {
+      const batch = namespaces.slice(offset, offset + MAX_CONCURRENT_SILENCE_REQUESTS);
+      const batchResponses = await Promise.allSettled(
+        batch.map(
+          (namespace: string): Promise<Silence[]> =>
+            consoleFetchJSON(
+              getAlertmanagerSilencesUrl({ prometheus, useTenancyPath: true, namespace }),
+              'GET',
+              { signal },
+            ),
+        ),
+      );
+      signal?.throwIfAborted();
+      responses.push(...batchResponses);
+    }
 
     const successfulResponses = responses.filter(
       (response): response is PromiseFulfilledResult<Silence[]> => response.status === 'fulfilled',
