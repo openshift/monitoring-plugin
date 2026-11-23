@@ -19,7 +19,10 @@ export const alertManagementFetch = async <T>(
   }
 
   const basePath = getPrometheusBasePath({ prometheus: 'alert-management-api' });
-  const response = await consoleFetch(`${basePath}${path}`, { ...options, headers });
+  const response = await consoleFetch(`${basePath}${path}`, {
+    ...options,
+    headers: Object.fromEntries(headers.entries()),
+  });
   if (response.status === 204) {
     return undefined as T;
   }

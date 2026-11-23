@@ -1,4 +1,4 @@
-import { Alert, AlertStates, Silence } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, AlertStates, Rule, Silence } from '@openshift-console/dynamic-plugin-sdk';
 
 export type ManagedAlert = Alert & {
   alertScope: string;
@@ -35,7 +35,10 @@ export type AggregatedAlert = {
   alerts: ManagedAlert[];
 };
 
+export type RuleWithEnablement = Rule & { alertingRuleEnabled?: boolean };
+
 export type AlertManagementData = {
+  rules: RuleWithEnablement[];
   alerts: ManagedAlert[];
   silences: Silence[];
 };

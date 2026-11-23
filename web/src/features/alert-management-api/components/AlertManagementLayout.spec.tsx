@@ -17,6 +17,7 @@ import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 const flags = vi.hoisted(() => ({ incidents: false }));
 const queryTimes = vi.hoisted(() => ({
   rules: Date.UTC(2026, 8, 29, 12, 15, 0),
+  alerts: Date.UTC(2026, 8, 29, 12, 17, 0),
   silences: Date.UTC(2026, 8, 29, 12, 16, 15),
 }));
 
@@ -31,6 +32,7 @@ vi.mock('@/features/incidents/pages/IncidentsPage', () => ({
 vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
   useAlertManagementData: () => ({
     rulesQuery: { dataUpdatedAt: queryTimes.rules },
+    alertsQuery: { dataUpdatedAt: queryTimes.alerts },
     silencesQuery: { dataUpdatedAt: queryTimes.silences },
   }),
 }));
@@ -204,7 +206,7 @@ describe('alert management navigation', () => {
   });
 
   it('allows changing the refresh interval and shows the last refresh time', async () => {
-    const lastRefreshedAt = queryTimes.silences;
+    const lastRefreshedAt = queryTimes.alerts;
     renderLayout('/monitoring/v2/alerts?refreshInterval=0', 'Alert list');
 
     expect(

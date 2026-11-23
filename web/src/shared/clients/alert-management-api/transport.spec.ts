@@ -198,9 +198,10 @@ describe('generated Management API client with Console transport', () => {
       },
     );
     const options = mocks.consoleFetch.mock.calls[0][1];
-    expect(options.headers.get('Accept')).toBe('application/json');
-    expect(options.headers.get('Content-Type')).toBe('application/json');
-    expect(options.headers.get('X-Test')).toBe('value');
+    const headers = new Headers(options.headers);
+    expect(headers.get('Accept')).toBe('application/json');
+    expect(headers.get('Content-Type')).toBe('application/json');
+    expect(headers.get('X-Test')).toBe('value');
     expect(options.credentials).toBe('same-origin');
     expect(options.signal).toBe(controller.signal);
   });
