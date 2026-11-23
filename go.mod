@@ -14,10 +14,12 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.87.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.87.0
 	github.com/prometheus/client_golang v1.25.0
+	github.com/prometheus/client_model v0.6.3
 	github.com/prometheus/common v0.72.0
 	github.com/prometheus/prometheus v0.311.3
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.12.1
+	golang.org/x/sync v0.24.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.35.3
 	k8s.io/apimachinery v0.35.3
@@ -129,7 +131,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/alertmanager v0.31.1 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20260325093428-d8591d0db856 // indirect
-	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/prometheus/sigv4 v0.4.1 // indirect
@@ -163,7 +164,6 @@ require (
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.43.0 // indirect

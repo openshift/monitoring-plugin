@@ -34,6 +34,10 @@ const (
 	AlertRelabelConfigSecretName = "alert-relabel-configs"
 	AlertRelabelConfigSecretKey  = "config.yaml"
 
+	// MetricsLeaderLeaseName is the Lease used by the alert-management
+	// metrics collector to elect the replica that emits alert metrics.
+	MetricsLeaderLeaseName = "monitoring-plugin-metrics"
+
 	PrometheusRuleLabelNamespace = "openshift_io_prometheus_rule_namespace"
 	PrometheusRuleLabelName      = "openshift_io_prometheus_rule_name"
 	AlertRuleLabelId             = "openshift_io_alert_rule_id"
