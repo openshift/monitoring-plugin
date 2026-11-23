@@ -10,7 +10,6 @@ import {
 } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
 
 import { AlertActionItem } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActionItem';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
@@ -27,7 +26,6 @@ import { getAgenticRunUrl, getQueryBrowserUrl } from '@/shared/hooks/usePerspect
 
 export function AlertActions({ alert }: { alert: ManagedAlert }) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const navigate = useNavigate();
   const { useAlertsTenancy, accessCheckLoading } = useMonitoring();
   const { namespace } = alert.labels;
 
@@ -61,7 +59,7 @@ export function AlertActions({ alert }: { alert: ManagedAlert }) {
         }
         isDisabled={accessCheckLoading}
         description={t('Temporarily stop notifications for this alert.')}
-        onClick={() => navigate(getNewSilenceAlertUrl(alert))}
+        to={getNewSilenceAlertUrl(alert)}
         data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}
@@ -71,18 +69,14 @@ export function AlertActions({ alert }: { alert: ManagedAlert }) {
   }
 
   dropdownItems.push(
-    <DropdownItem
-      key="view-alert-rule"
-      onClick={() => navigate(getAlertRuleDetailsUrl(alert.rule))}
-    >
+    <DropdownItem key="view-alert-rule" to={getAlertRuleDetailsUrl(alert.rule)}>
       {t('View alert rule')}
     </DropdownItem>,
     <DropdownItem
       key="view-metrics"
       isDisabled={!alert.rule.query}
-      onClick={() =>
-        navigate(getQueryBrowserUrl({ perspective: 'admin', query: alert.rule.query }))
-      }
+      isAriaDisabled={!alert.rule.query}
+      to={getQueryBrowserUrl({ perspective: 'admin', query: alert.rule.query })}
     >
       {t('View metrics')}
     </DropdownItem>,
@@ -94,7 +88,7 @@ export function AlertActions({ alert }: { alert: ManagedAlert }) {
       <DropdownItem
         key="view-ai-investigation"
         icon={<CustomIcon name="ai-experience" />}
-        onClick={() => navigate(getAgenticRunUrl(run.metadata.namespace, run.metadata.name))}
+        to={getAgenticRunUrl(run.metadata.namespace, run.metadata.name)}
         data-test={DataTestIDs.ViewAIInvestigationDropdownItem}
         description={
           <Content component={ContentVariants.small}>

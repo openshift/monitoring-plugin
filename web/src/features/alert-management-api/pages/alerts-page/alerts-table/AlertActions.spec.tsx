@@ -4,7 +4,7 @@ import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 import type { Action, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router';
+import { MemoryRouter } from 'react-router';
 
 import { AlertActions } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActions';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
@@ -61,16 +61,10 @@ beforeEach(() => {
 
 const alert = testAlerts[0];
 
-function Location() {
-  const { pathname, search } = useLocation();
-  return <output data-testid="location">{pathname + search}</output>;
-}
-
 async function renderActions(selectedAlert: ManagedAlert = alert) {
   render(
     <MemoryRouter initialEntries={['/monitoring/v2/alerts?name=Alert1&alertID=old']}>
       <AlertActions alert={selectedAlert} />
-      <Location />
     </MemoryRouter>,
   );
   await act(async () => {
@@ -78,8 +72,10 @@ async function renderActions(selectedAlert: ManagedAlert = alert) {
   });
 }
 
-function currentUrl() {
-  return new URL(screen.getByTestId('location').textContent, 'https://console.example.com');
+function itemUrl(name: string | RegExp) {
+  const item = screen.getByRole('menuitem', { name });
+  expect(item.tagName).toBe('A');
+  return new URL(item.getAttribute('href'), 'https://console.example.com');
 }
 
 it('offers only the implemented actions when no AI actions are available', async () => {
@@ -107,33 +103,30 @@ it('describes silencing and separates it from navigation actions', async () => {
 it('links to the future create-silence page with every alert label prefilled', async () => {
   const selectedAlert = { ...alert, labels: { ...alert.labels, custom: 'a b&c="d"' } };
   await renderActions(selectedAlert);
-  fireEvent.click(screen.getByRole('menuitem', { name: /^Silence alert/ }));
-  const url = currentUrl();
+  const url = itemUrl(/^Silence alert/);
   expect(url.pathname).toBe('/monitoring/v2/management/silences/~new');
   expect(Object.fromEntries(url.searchParams)).toEqual(selectedAlert.labels);
 });
 
-it('opens the new rule table with only the rule selection', async () => {
+it('links to the new rule table with only the rule selection', async () => {
   await renderActions();
-  fireEvent.click(screen.getByRole('menuitem', { name: 'View alert rule' }));
-  const url = currentUrl();
+  const url = itemUrl('View alert rule');
   expect(url.pathname).toBe('/monitoring/v2/management/alertrules');
   expect([...url.searchParams]).toEqual([['alertRuleID', alert.rule.id]]);
 });
 
-it('opens metrics with the rule expression', async () => {
+it('links to metrics with the rule expression', async () => {
   await renderActions();
-  fireEvent.click(screen.getByRole('menuitem', { name: 'View metrics' }));
-  const url = currentUrl();
+  const url = itemUrl('View metrics');
   expect(url.pathname).toBe('/monitoring/query-browser');
   expect(url.searchParams.get('query0')).toBe(alert.rule.query);
 });
 
 it('disables metrics when the rule has no expression', async () => {
   await renderActions({ ...alert, rule: { ...alert.rule, query: '' } });
-  expect(
-    (screen.getByRole('menuitem', { name: 'View metrics' }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  const item = screen.getByRole('menuitem', { name: 'View metrics' });
+  expect(item.getAttribute('aria-disabled')).toBe('true');
+  expect(fireEvent.click(item)).toBe(false);
 });
 
 it('prefetches investigations on pointer hover and keyboard focus', async () => {
@@ -155,7 +148,7 @@ it('shows a disabled loading item while checking investigations', async () => {
   ).toBe(true);
 });
 
-it('opens the latest existing investigation and displays the AI warning', async () => {
+it('links to the latest existing investigation and displays the AI warning', async () => {
   check.mockReturnValue({
     agenticRuns: [{ metadata: { name: 'latest-run', namespace: 'openshift-lightspeed' } }],
     hasAgenticRun: true,
@@ -164,8 +157,9 @@ it('opens the latest existing investigation and displays the AI warning', async 
   });
   await renderActions();
   expect(screen.getByText('Always review AI-generated content prior to use.')).toBeDefined();
-  fireEvent.click(screen.getByRole('menuitem', { name: /View AI Investigation/ }));
-  expect(currentUrl().pathname).toBe('/lightspeed/runs/openshift-lightspeed/latest-run');
+  expect(itemUrl(/View AI Investigation/).pathname).toBe(
+    '/lightspeed/runs/openshift-lightspeed/latest-run',
+  );
 });
 
 it('shows an investigation returned by the SDK using the real agentic run hook', async () => {
@@ -193,7 +187,6 @@ it('shows an investigation returned by the SDK using the real agentic run hook',
     <QueryClientProvider client={client}>
       <MemoryRouter>
         <AlertActions alert={alert} />
-        <Location />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -205,7 +198,7 @@ it('shows an investigation returned by the SDK using the real agentic run hook',
     fireEvent.click(toggle);
   });
 
-  const investigation = await screen.findByRole('menuitem', { name: /View AI Investigation/ });
+  await screen.findByRole('menuitem', { name: /View AI Investigation/ });
   expect(screen.getByText('Always review AI-generated content prior to use.')).toBeDefined();
   for (const namespace of [AGENTIC_RUN_NAMESPACE, alert.labels.namespace]) {
     expect(k8sListItems).toHaveBeenCalledWith({
@@ -221,8 +214,7 @@ it('shows an investigation returned by the SDK using the real agentic run hook',
       },
     });
   }
-  fireEvent.click(investigation);
-  expect(currentUrl().pathname).toBe(
+  expect(itemUrl(/View AI Investigation/).pathname).toBe(
     `/lightspeed/runs/${run.metadata.namespace}/${run.metadata.name}`,
   );
 });
@@ -293,11 +285,11 @@ it('waits for the tenancy decision only before enabling silencing', async () => 
     accessCheckLoading: true,
   });
   await renderActions();
-  expect(
-    (screen.getByRole('menuitem', { name: /^Silence alert/ }) as HTMLButtonElement).disabled,
-  ).toBe(true);
+  const silenceItem = screen.getByRole('menuitem', { name: /^Silence alert/ });
+  expect(silenceItem.getAttribute('aria-disabled')).toBe('true');
+  expect(fireEvent.click(silenceItem)).toBe(false);
   for (const name of ['View alert rule', 'View metrics']) {
-    expect((screen.getByRole('menuitem', { name }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByRole('menuitem', { name }).getAttribute('aria-disabled')).not.toBe('true');
   }
 });
 
