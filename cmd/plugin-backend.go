@@ -18,7 +18,7 @@ var (
 	staticPathArg       = flag.String("static-path", "", "static files path to serve frontend (default: './web/dist')")
 	configPathArg       = flag.String("config-path", "", "config files path (default: './config')")
 	pluginConfigArg     = flag.String("plugin-config-path", "", "plugin yaml configuration")
-	logLevelArg         = flag.String("log-level", "error", "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level will log all incoming requests\n(default 'error')")
+	logLevelArg         = flag.String("log-level", logrus.InfoLevel.String(), "verbosity of logs\noptions: ['panic', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']\n'trace' level logs every incoming request URI, including query strings; enable it only temporarily for debugging")
 	alertmanagerUrlArg  = flag.String("alertmanager", "", "alertmanager url to proxy to for acm mode")
 	thanosQuerierUrlArg = flag.String("thanos-querier", "", "thanos querier url to proxy to for acm mode")
 	log                 = logrus.WithField("module", "main")

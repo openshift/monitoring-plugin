@@ -80,3 +80,7 @@ deploy-acm:
 .PHONY: build-mcp-image
 build-mcp-image:
 	DOCKER_FILE_NAME="Dockerfile.mcp" scripts/build-image.sh
+
+.PHONY: test-backend
+test-backend:
+	go1.22.12 test ./pkg/... -v
