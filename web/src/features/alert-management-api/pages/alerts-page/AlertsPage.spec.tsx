@@ -199,8 +199,6 @@ it('opens an individual alert while preserving the list and its query parameters
   );
   const table = screen.getByRole('grid');
   const link = screen.getByRole('link', { name: 'Alert3' });
-  const checkbox = screen.getByRole('checkbox', { name: 'Select Alert3 alerts' });
-  fireEvent.click(checkbox);
   fireEvent.click(link);
 
   const panel = screen.getByTestId(DataTestIDs.PageWithSidepanel.Panel);
@@ -219,7 +217,6 @@ it('opens an individual alert while preserving the list and its query parameters
   fireEvent.click(within(panel).getByRole('button', { name: 'Close panel' }));
   expect(screen.queryByRole('tab', { name: 'Details' })).toBeNull();
   expect(screen.getByRole('grid')).toBe(table);
-  expect((checkbox as HTMLInputElement).checked).toBe(true);
   expect(queryParams().has('alertRuleID')).toBe(false);
   expect(queryParams().has('alertID')).toBe(false);
   expect(queryParams().has('tab')).toBe(false);
@@ -544,7 +541,7 @@ it('restores ordered columns from shared links and browser history', () => {
   const headers = () =>
     screen
       .getAllByRole('columnheader')
-      .slice(2, -1)
+      .slice(1, -1)
       .map((header) => header.textContent);
   expect(headers()).toEqual(['Severity', 'Total', 'Source', 'Alert name']);
   fireEvent.click(screen.getByRole('switch', { name: 'Aggregate identical alerts' }));
@@ -698,12 +695,12 @@ it.each([
       'Restored groups should start collapsed',
     ).toBe('false');
     expect(
-      screen.queryByRole('checkbox', { name: /^Select Alert\d alerts$/ }),
-      'Restored collapsed groups should hide alert selections',
+      screen.queryByText(/^Alert\d$/),
+      'Restored collapsed groups should hide alert rows',
     ).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Expand all groups on this page' }));
     expect(
-      screen.getAllByRole('checkbox', { name: /^Select Alert\d alerts$/ }),
+      screen.getAllByText(/^Alert\d$/),
       'Expanding restored groups should reveal all five aggregates',
     ).toHaveLength(5);
     expect(
@@ -754,7 +751,7 @@ it('limits group collapse and expansion to the current page', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Collapse all groups on this page' }));
   fireEvent.click(screen.getAllByRole('button', { name: 'Go to next page' })[0]);
   expect(
-    screen.queryByRole('checkbox', { name: /^Select Alert\d alerts$/ }),
+    screen.queryByText(/^Alert\d$/),
     'A newly selected page should start with its groups collapsed',
   ).toBeNull();
   screen.getAllByRole('button', { name: /^Toggle group:/ }).forEach((button) => {
@@ -764,33 +761,27 @@ it('limits group collapse and expansion to the current page', () => {
     ).toBe('false');
   });
   fireEvent.click(screen.getByRole('button', { name: 'Expand all groups on this page' }));
-  expect(
-    screen.getByRole('checkbox', { name: 'Select Alert4 alerts' }),
-    'Expanding the current page should show Alert4',
-  ).toBeDefined();
-  expect(
-    screen.getByRole('checkbox', { name: 'Select Alert5 alerts' }),
-    'Expanding the current page should show Alert5',
-  ).toBeDefined();
+  expect(screen.getByText('Alert4'), 'Expanding the current page should show Alert4').toBeDefined();
+  expect(screen.getByText('Alert5'), 'Expanding the current page should show Alert5').toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Collapse all groups on this page' }));
   fireEvent.click(screen.getByRole('button', { name: 'Expand all groups on this page' }));
   expect(
-    screen.getByRole('checkbox', { name: 'Select Alert4 alerts' }),
+    screen.getByText('Alert4'),
     'Repeated group toggles should keep current-page groups available',
   ).toBeDefined();
 
   fireEvent.click(screen.getAllByRole('button', { name: 'Go to previous page' })[0]);
   expect(
-    screen.queryByRole('checkbox', { name: /^Select Alert\d alerts$/ }),
+    screen.queryByText(/^Alert\d$/),
     'Returning to the previous page should start with its groups collapsed',
   ).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Expand all groups on this page' }));
   expect(
-    screen.getAllByRole('checkbox', { name: 'Select Alert1 alerts' }),
+    screen.getAllByText('Alert1'),
     'Expanding the previous page should show both Alert1 groups',
   ).toHaveLength(2);
   expect(
-    screen.getByRole('checkbox', { name: 'Select Alert3 alerts' }),
+    screen.getByText('Alert3'),
     'Expanding the previous page should show Alert3',
   ).toBeDefined();
 });
@@ -822,8 +813,8 @@ it('exports all filtered aggregates across pages and collapsed groups without gr
       );
     });
     expect(
-      screen.queryByRole('checkbox', { name: /^Select Alert\d alerts$/ }),
-      'Collapsed groups should hide individual selections before export',
+      screen.queryByText(/^Alert\d$/),
+      'Collapsed groups should hide alert rows before export',
     ).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Export as CSV' }));
 
