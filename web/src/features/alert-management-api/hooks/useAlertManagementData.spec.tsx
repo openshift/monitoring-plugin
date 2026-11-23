@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { Silence } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -22,11 +23,16 @@ import {
 } from '@/shared/clients/alert-management-api/generated/api';
 import { getAlertmanagerSilencesUrl } from '@/shared/utils/utils';
 
-const mocks = vi.hoisted(() => ({ fetch: vi.fn(), consoleFetchJSON: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  fetch: vi.fn(),
+  consoleFetchJSON: vi.fn(),
+  k8sListItems: vi.fn(),
+}));
 vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
   ...(await vi.importActual('@openshift-console/dynamic-plugin-sdk/lib/api/common-types')),
   ...(await vi.importActual('@/shared/test-utils/sdk-const-enums')),
   consoleFetchJSON: mocks.consoleFetchJSON,
+  k8sListItems: mocks.k8sListItems,
 }));
 vi.mock('@/shared/clients/alert-management-api/transport', () => ({
   alertManagementFetch: mocks.fetch,
@@ -89,6 +95,10 @@ const rulesResponse = (...rules: RuleResponse[]): GetRulesResponse => ({
   },
 });
 const alertsResponse = (...alerts: PrometheusAlert[]): GetAlertsResponse => ({ data: { alerts } });
+const silencesQueryResult = (data: Silence[] | undefined, isLoading = false) => ({
+  data,
+  isLoading,
+});
 
 let queryClient: QueryClient;
 beforeEach(() => {
@@ -98,6 +108,7 @@ beforeEach(() => {
     Promise.resolve(path === '/rules' ? rulesResponse(makeRule()) : alertsResponse(makeAlert())),
   );
   mocks.consoleFetchJSON.mockResolvedValue([]);
+  mocks.k8sListItems.mockResolvedValue([]);
 });
 afterEach(() => queryClient.clear());
 
@@ -133,7 +144,17 @@ it('fetches alerts, rules and cross-namespace silences with the same polling int
   }
 });
 
-it.each(['rules', 'alerts', 'silences'] as const)(
+it('reuses processed data when query data and silence-loading state are unchanged', async () => {
+  const { result, rerender } = mount();
+  await waitFor(() => expect(result.current.data?.alerts).toHaveLength(1));
+  const data = result.current.data;
+
+  rerender();
+
+  expect(result.current.data).toBe(data);
+});
+
+it.each(['rules', 'alerts'] as const)(
   'keeps data unavailable until the %s response arrives',
   async (pendingRequest) => {
     let resolveResponse!: (response: unknown) => void;
@@ -148,10 +169,6 @@ it.each(['rules', 'alerts', 'silences'] as const)(
         path === '/rules' ? rulesResponse(makeRule()) : alertsResponse(makeAlert()),
       );
     });
-    if (pendingRequest === 'silences') {
-      mocks.consoleFetchJSON.mockReturnValue(pendingResponse);
-    }
-
     const { result } = mount();
     await waitFor(() => {
       for (const request of ['rules', 'alerts', 'silences'] as const) {
@@ -166,10 +183,67 @@ it.each(['rules', 'alerts', 'silences'] as const)(
     const responses = {
       rules: rulesResponse(makeRule()),
       alerts: alertsResponse(makeAlert()),
-      silences: [],
     };
     resolveResponse(responses[pendingRequest]);
     await waitFor(() => expect(result.current.data?.alerts).toHaveLength(1));
+  },
+);
+
+it('waits for the initial silences fetch before processing alerts and applying silences', async () => {
+  let resolveSilences!: (silences: ReturnType<typeof makeSilence>[]) => void;
+  mocks.consoleFetchJSON.mockReturnValue(
+    new Promise<ReturnType<typeof makeSilence>[]>((resolve) => {
+      resolveSilences = resolve;
+    }),
+  );
+
+  const { result } = mount();
+  await waitFor(() => {
+    expect(result.current.rulesQuery.isSuccess).toBe(true);
+    expect(result.current.alertsQuery.isSuccess).toBe(true);
+  });
+  expect(result.current.silencesQuery.isLoading).toBe(true);
+  expect(result.current.data).toBeUndefined();
+
+  const silence = makeSilence();
+  resolveSilences([silence]);
+
+  await waitFor(() => expect(result.current.data?.alerts[0].state).toBe('silenced'));
+  expect(result.current.silencesQuery.isSuccess).toBe(true);
+  expect(result.current.data?.alerts[0].silencedBy).toEqual([
+    expect.objectContaining({ id: silence.id }),
+  ]);
+  expect(result.current.data?.silences[0].firingAlerts).toHaveLength(1);
+});
+
+it('keeps alerts and rules available when silences cannot be loaded', async () => {
+  const error = new Error('Silences forbidden');
+  mocks.consoleFetchJSON.mockRejectedValue(error);
+
+  const { result } = mount();
+  await waitFor(() => expect(result.current.silencesQuery.isError).toBe(true));
+  await waitFor(() => expect(result.current.data?.alerts).toHaveLength(1));
+  expect(result.current.silencesQuery.error).toBe(error);
+  expect(result.current.data?.rules).toHaveLength(1);
+  expect(result.current.data?.alerts[0].state).toBe('firing');
+  expect(result.current.data?.silences).toEqual([]);
+});
+
+it.each([true, false])(
+  'only processes missing silence data after loading has finished (isLoading=%s)',
+  (isLoading) => {
+    const data = processAlertManagementData(
+      rulesResponse(makeRule()),
+      alertsResponse(makeAlert()),
+      silencesQueryResult(undefined, isLoading),
+    );
+
+    if (isLoading) {
+      expect(data).toBeUndefined();
+    } else {
+      expect(data?.alerts).toHaveLength(1);
+      expect(data?.silences).toEqual([]);
+    }
   },
 );
 
@@ -187,7 +261,11 @@ it('exposes alerts request errors rather than falling back to evaluation instanc
 it.each([true, undefined, false])('respects alertingRuleEnabled=%s everywhere', (enabled) => {
   const alert = makeAlert();
   const rules = rulesResponse(makeRule({ alertingRuleEnabled: enabled, alerts: [alert] }));
-  const data = processAlertManagementData(rules, alertsResponse(alert), [makeSilence()]);
+  const data = processAlertManagementData(
+    rules,
+    alertsResponse(alert),
+    silencesQueryResult([makeSilence()]),
+  );
   const expectedCount = enabled === false ? 0 : 1;
   expect(data?.rules).toHaveLength(1);
   expect(data?.rules[0].alertingRuleEnabled).toBe(enabled);
@@ -211,9 +289,11 @@ it('only displays instances from /alerts, not stale evaluation instances from /r
   const rule = makeRule({
     alerts: [makeAlert(), { ...makeAlert(), labels: { alertname: 'Example', pod: 'stale' } }],
   });
-  const data = processAlertManagementData(rulesResponse(rule), alertsResponse(pending), [
-    makeSilence(),
-  ]);
+  const data = processAlertManagementData(
+    rulesResponse(rule),
+    alertsResponse(pending),
+    silencesQueryResult([makeSilence()]),
+  );
   expect(data?.alerts).toHaveLength(1);
   expect(data?.rules[0].alerts).toHaveLength(1);
   expect(data?.alerts[0].state).toBe('pending');
@@ -226,9 +306,11 @@ it('uses Alertmanager labels and status', () => {
   });
   const alert = makeAlert({ state: 'silenced' });
   alert.labels.prometheus = 'custom-stack';
-  const data = processAlertManagementData(rulesResponse(makeRule()), alertsResponse(alert), [
-    silence,
-  ]);
+  const data = processAlertManagementData(
+    rulesResponse(makeRule()),
+    alertsResponse(alert),
+    silencesQueryResult([silence]),
+  );
   expect(data?.alerts[0]).toMatchObject({
     state: 'silenced',
     labels: { prometheus: 'custom-stack' },
@@ -246,9 +328,11 @@ it('prefers Alertmanager over its Thanos duplicate regardless of input order', (
     [am, thanos],
     [thanos, am],
   ]) {
-    const data = processAlertManagementData(rulesResponse(makeRule()), alertsResponse(...alerts), [
-      makeSilence(),
-    ]);
+    const data = processAlertManagementData(
+      rulesResponse(makeRule()),
+      alertsResponse(...alerts),
+      silencesQueryResult([makeSilence()]),
+    );
     expect(data?.alerts).toHaveLength(1);
     expect(data?.rules[0].alerts).toHaveLength(1);
     expect(data?.silences[0].firingAlerts).toHaveLength(1);
@@ -278,7 +362,7 @@ it.each([
       const data = processAlertManagementData(
         rulesResponse(makeRule()),
         alertsResponse(...alerts),
-        [],
+        silencesQueryResult([]),
       );
       expect(data?.alerts).toHaveLength(1);
       expect(data?.rules[0].alerts).toHaveLength(1);
@@ -298,7 +382,7 @@ it('deduplicates repeated Alertmanager entries before matching their evaluated d
   const data = processAlertManagementData(
     rulesResponse(makeRule()),
     alertsResponse(am, structuredClone(am), thanos),
-    [makeSilence()],
+    silencesQueryResult([makeSilence()]),
   );
   expect(data?.alerts).toHaveLength(1);
   expect(data?.silences[0].firingAlerts).toHaveLength(1);
@@ -313,7 +397,7 @@ it('keeps ambiguous cross-source matches instead of choosing an arbitrary extern
   const data = processAlertManagementData(
     rulesResponse(makeRule()),
     alertsResponse(first, second, thanos),
-    [],
+    silencesQueryResult([]),
   );
   expect(data?.alerts).toHaveLength(3);
 });
@@ -322,7 +406,7 @@ it('preserves Alertmanager notification status when no silences are returned', (
   const data = processAlertManagementData(
     rulesResponse(makeRule()),
     alertsResponse(makeAlert({ state: 'silenced' })),
-    [],
+    silencesQueryResult([]),
   );
   expect(data?.alerts[0].state).toBe('silenced');
   expect(data?.silences).toEqual([]);
@@ -331,7 +415,11 @@ it('preserves Alertmanager notification status when no silences are returned', (
 it('ignores recording rules while keeping empty alerting rules', () => {
   const response = rulesResponse(makeRule());
   response.data.groups[0].rules.push({ ...makeRule(), type: 'recording', name: 'recorded:metric' });
-  const data = processAlertManagementData(response, alertsResponse(), [makeSilence()]);
+  const data = processAlertManagementData(
+    response,
+    alertsResponse(),
+    silencesQueryResult([makeSilence()]),
+  );
   expect(data?.rules).toHaveLength(1);
   expect(data?.rules[0]).toMatchObject({ name: 'Example', alerts: [], state: 'firing' });
   expect(data?.silences[0].firingAlerts).toEqual([]);
@@ -350,11 +438,31 @@ it('keeps different instances and uses rule ID/source rather than alertname alon
   const data = processAlertManagementData(
     rulesResponse(platform, user, otherRule),
     alertsResponse(a, b, userAlert, otherAlert),
-    [makeSilence()],
+    silencesQueryResult([makeSilence()]),
   );
   expect(data?.rules.map((rule) => rule.alerts.length)).toEqual([0, 1, 1]);
   expect(data?.alerts).toHaveLength(2);
   expect(data?.silences[0].firingAlerts).toHaveLength(2);
+});
+
+it('preserves input order within each rule without mutating either response', () => {
+  const first = makeAlert();
+  const second = makeAlert({ labels: { ...first.labels, pod: 'pod-b' } });
+  const other = makeAlert({ alertRuleId: 'rid_other' });
+  const rules = rulesResponse(
+    makeRule(),
+    makeRule({ labels: { ...makeRule().labels, openshift_io_alert_rule_id: 'rid_other' } }),
+  );
+  const alerts = alertsResponse(second, other, first);
+  const originals = structuredClone([rules, alerts]);
+
+  const data = processAlertManagementData(rules, alerts, silencesQueryResult([]));
+
+  expect(data?.rules.map((rule) => rule.alerts.map((alert) => alert.labels.pod))).toEqual([
+    ['pod-b', 'pod-a'],
+    ['pod-a'],
+  ]);
+  expect([rules, alerts]).toEqual(originals);
 });
 
 it('does not collapse different pods, namespaces, clusters or custom identity labels', () => {
@@ -365,7 +473,11 @@ it('does not collapse different pods, namespaces, clusters or custom identity la
       makeAlert({ labels: { ...first.labels, [name]: 'different' } }),
     ),
   ];
-  const data = processAlertManagementData(rulesResponse(makeRule()), alertsResponse(...alerts), []);
+  const data = processAlertManagementData(
+    rulesResponse(makeRule()),
+    alertsResponse(...alerts),
+    silencesQueryResult([]),
+  );
   expect(data?.alerts).toHaveLength(5);
 });
 
@@ -373,11 +485,19 @@ it('can match by the rule ID label or an unambiguous name and labels on older re
   const alert = makeAlert({ alertRuleId: undefined });
   alert.labels.openshift_io_alert_rule_id = 'rid_example';
   expect(
-    processAlertManagementData(rulesResponse(makeRule()), alertsResponse(alert), [])?.alerts,
+    processAlertManagementData(
+      rulesResponse(makeRule()),
+      alertsResponse(alert),
+      silencesQueryResult([]),
+    )?.alerts,
   ).toHaveLength(1);
   delete alert.labels.openshift_io_alert_rule_id;
   expect(
-    processAlertManagementData(rulesResponse(makeRule()), alertsResponse(alert), [])?.alerts,
+    processAlertManagementData(
+      rulesResponse(makeRule()),
+      alertsResponse(alert),
+      silencesQueryResult([]),
+    )?.alerts,
   ).toHaveLength(1);
 });
 
@@ -389,12 +509,18 @@ it('does not attach unknown IDs or ambiguous matches to an arbitrary rule', () =
     }),
   );
   expect(
-    processAlertManagementData(rules, alertsResponse(makeAlert({ alertRuleId: 'unknown' })), [])
-      ?.alerts,
+    processAlertManagementData(
+      rules,
+      alertsResponse(makeAlert({ alertRuleId: 'unknown' })),
+      silencesQueryResult([]),
+    )?.alerts,
   ).toEqual([]);
   expect(
-    processAlertManagementData(rules, alertsResponse(makeAlert({ alertRuleId: undefined })), [])
-      ?.alerts,
+    processAlertManagementData(
+      rules,
+      alertsResponse(makeAlert({ alertRuleId: undefined })),
+      silencesQueryResult([]),
+    )?.alerts,
   ).toEqual([]);
 });
 
@@ -403,7 +529,7 @@ it('merges the development fixtures without mutating any response', () => {
   const alerts = getMockAlertsResponse();
   const silences = getMockSilencesResponse();
   const originals = structuredClone([rules, alerts, silences]);
-  const data = processAlertManagementData(rules, alerts, silences);
+  const data = processAlertManagementData(rules, alerts, silencesQueryResult(silences));
   expect(data?.alerts).toHaveLength(alerts.data.alerts.length);
   expect(data?.silences[0].firingAlerts?.length).toBeGreaterThan(0);
   expect([rules, alerts, silences]).toEqual(originals);

@@ -204,6 +204,17 @@ it('surfaces an alerts endpoint failure instead of rendering an empty alert list
   expect(screen.queryByRole('grid')).toBeNull();
 });
 
+it('shows a warning and keeps the alert list when silences cannot be loaded', () => {
+  Object.assign(silencesQuery, { data: undefined, isError: true });
+  render(
+    <MemoryRouter>
+      <AlertsPage />
+    </MemoryRouter>,
+  );
+  expect(screen.getByText('Silences could not be loaded')).toBeDefined();
+  expect(screen.getByRole('grid')).toBeDefined();
+});
+
 it('resolves direct links independently of list filters and supports history navigation', () => {
   const search = getAlertDetailsSearch('?name=Alert5&aggregate=0', testAlerts[0]);
   render(

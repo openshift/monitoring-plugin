@@ -1,4 +1,5 @@
 import { Silence } from '@openshift-console/dynamic-plugin-sdk';
+import { UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useSilencesQuery } from '@/features/alert-management-api/hooks/useSilencesQuery';
@@ -38,8 +39,12 @@ export const useAlertManagementData = (refreshIntervalMs: number | false = false
   const silencesQuery = useSilencesQuery(refreshIntervalMs);
 
   const data = useMemo(
-    () => processAlertManagementData(rulesQuery.data, alertsQuery.data, silencesQuery.data),
-    [rulesQuery.data, alertsQuery.data, silencesQuery.data],
+    () =>
+      processAlertManagementData(rulesQuery.data, alertsQuery.data, {
+        data: silencesQuery.data,
+        isLoading: silencesQuery.isLoading,
+      }),
+    [rulesQuery.data, alertsQuery.data, silencesQuery.data, silencesQuery.isLoading],
   );
 
   return { data, rulesQuery, alertsQuery, silencesQuery };
@@ -48,9 +53,9 @@ export const useAlertManagementData = (refreshIntervalMs: number | false = false
 export const processAlertManagementData = (
   rulesResponse: GetRulesResponse | undefined,
   alertsResponse: GetAlertsResponse | undefined,
-  silencesResponse: Silence[] | undefined,
+  silencesQuery: Pick<UseQueryResult<Silence[], Error>, 'data' | 'isLoading'>,
 ): AlertManagementData | undefined => {
-  if (!rulesResponse || !alertsResponse || !silencesResponse) {
+  if (!rulesResponse || !alertsResponse || silencesQuery.isLoading) {
     return undefined;
   }
 
@@ -58,7 +63,7 @@ export const processAlertManagementData = (
 
   const alerts = rules.flatMap((rule) => rule.alerts.map((alert) => ({ ...alert, rule })));
 
-  const silences = silencesResponse.map((silence) => ({
+  const silences = (silencesQuery.data ?? []).map((silence) => ({
     ...silence,
     name: getSilenceName(silence),
   }));

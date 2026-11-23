@@ -97,7 +97,12 @@ export const combineAlertsAndRules = (
     }
 
     const rule = matches[0];
-    alertsByRule.set(rule, [...(alertsByRule.get(rule) ?? []), alert]);
+    let bucket = alertsByRule.get(rule);
+    if (!bucket) {
+      bucket = [];
+      alertsByRule.set(rule, bucket);
+    }
+    bucket.push(alert);
   });
 
   return rulesWithEnablement.map((rule) => ({
