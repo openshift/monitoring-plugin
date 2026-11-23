@@ -14,7 +14,11 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 }));
 
 vi.mock('@/shared/console/models', () => ({
-  AgenticRunModel: { kind: 'AgenticRun' },
+  AgenticRunModel: {
+    kind: 'AgenticRun',
+    apiGroup: 'agentic.openshift.io',
+    apiVersion: 'v1alpha1',
+  },
 }));
 
 import { getAlertFingerprintPrefix } from '@/shared/hooks/agentic-runs/alert-identifier';
