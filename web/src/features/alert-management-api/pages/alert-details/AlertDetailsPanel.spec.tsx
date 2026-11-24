@@ -124,9 +124,9 @@ it('renders alert details and links', () => {
     'Details should include the namespace resource link',
   ).toBeDefined();
   expect(
-    screen.getByRole('link', { name: alert.rule.name }),
-    'Details should link to the alert rule',
-  ).toBeDefined();
+    screen.getByRole('link', { name: alert.rule.name }).getAttribute('href'),
+    'Details should link to the new alert rules table with the rule selected',
+  ).toBe(`/monitoring/v2/management/alertrules?alertRuleID=${encodeURIComponent(alert.rule.id)}`);
   expect(
     screen.getByRole('link', { name: alert.annotations.runbook_url }).getAttribute('href'),
     'The runbook link should use the runbook annotation',

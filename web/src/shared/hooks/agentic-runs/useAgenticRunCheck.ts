@@ -12,9 +12,16 @@ import {
   AGENTIC_RUN_SOURCE_ALERTMANAGER,
   AGENTIC_RUN_STALE_TIME,
 } from '@/shared/hooks/agentic-runs/constants';
+import { getMockAgenticRunsResponse } from '@/shared/hooks/agentic-runs/fixtures/mock-responses';
 
-const buildQueryFn = (namespace: string, alertFingerprint: string) => () =>
-  k8sListItems<K8sResourceCommon>({
+const useMockResponses = process.env.NODE_ENV === 'development';
+
+const buildQueryFn = (namespace: string, alertFingerprint: string) => () => {
+  if (useMockResponses) {
+    return getMockAgenticRunsResponse(namespace, alertFingerprint);
+  }
+
+  return k8sListItems<K8sResourceCommon>({
     model: AgenticRunModel,
     queryParams: {
       ns: namespace,
@@ -26,6 +33,7 @@ const buildQueryFn = (namespace: string, alertFingerprint: string) => () =>
       },
     },
   });
+};
 
 export const useAgenticRunCheck = (alert: Alert) => {
   const alertFingerprint = useMemo(() => getAlertFingerprintPrefix(alert.labels), [alert.labels]);

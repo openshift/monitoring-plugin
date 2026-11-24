@@ -7,8 +7,8 @@ import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
 import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
-import { getAlertDetailsSearch } from '@/features/alert-management-api/pages/alerts-page/utils/alert-details';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
+import { getAlertDetailsSearch } from '@/features/alert-management-api/utils/urls';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
@@ -22,6 +22,12 @@ vi.mock('@/shared/hooks/agentic-runs/useAgenticRunCheck', () => ({
 }));
 
 vi.mock('@/shared/components/query-browser/QueryBrowser', () => ({ QueryBrowser: () => null }));
+vi.mock('@/shared/hooks/useMonitoring', () => ({
+  useMonitoring: () => ({
+    useAlertsTenancy: false,
+    accessCheckLoading: false,
+  }),
+}));
 
 const addToast = vi.hoisted(() => vi.fn());
 const rulesQuery = vi.hoisted(() => ({
@@ -50,6 +56,8 @@ afterEach(() => {
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useToast: () => ({ addToast }),
+  useAccessReview: () => [true, false],
+  ActionServiceProvider: ({ children }) => children({ actions: [], loaded: true }),
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },
   DocumentTitle: () => null,
