@@ -2,6 +2,10 @@ import { PrometheusRulesResponse, Silence } from '@openshift-console/dynamic-plu
 
 import rulesResponse from '@/features/alert-management-api/tests/fixtures/rules.json';
 import silencesResponse from '@/features/alert-management-api/tests/fixtures/silences.json';
+import {
+  GetAlertsResponse,
+  GetRulesResponse,
+} from '@/shared/clients/alert-management-api/generated/api';
 
 const mockTime = Date.now();
 const minutesAgo = (minutes: number) => new Date(mockTime - minutes * 60_000).toISOString();
@@ -139,6 +143,49 @@ export const getMockRulesResponse = (): PrometheusRulesResponse => {
   });
   return response;
 };
+
+export const getMockManagementRulesResponse = (): GetRulesResponse => ({
+  data: {
+    groups: getMockRulesResponse().data.groups.map((group, groupIndex) => ({
+      ...group,
+      interval: 30,
+      limit: 0,
+      evaluationTime: 0,
+      lastEvaluation: new Date(mockTime).toISOString(),
+      rules: group.rules.map((rule, ruleIndex) => ({
+        ...rule,
+        type: 'alerting',
+        alerts: rule.alerts.map((alert) => ({ ...alert, value: String(alert.value ?? '') })),
+        keepFiringFor: 0,
+        health: 'ok',
+        evaluationTime: 0,
+        lastEvaluation: new Date(mockTime).toISOString(),
+        labels: {
+          ...rule.labels,
+          openshift_io_alert_rule_id: `mock-rule-${groupIndex}-${ruleIndex}`,
+          openshift_io_alert_source: groupIndex === 0 ? 'platform' : 'user',
+        },
+      })),
+    })),
+  },
+});
+
+export const getMockAlertsResponse = (): GetAlertsResponse => ({
+  data: {
+    alerts: getMockManagementRulesResponse().data.groups.flatMap((group) =>
+      group.rules.flatMap((rule) =>
+        rule.type === 'alerting'
+          ? rule.alerts.map((alert) => ({
+              ...alert,
+              activeAt: alert.activeAt ?? new Date(mockTime).toISOString(),
+              alertRuleId: rule.labels.openshift_io_alert_rule_id,
+              labels: { ...rule.labels, ...alert.labels },
+            }))
+          : [],
+      ),
+    ),
+  },
+});
 
 export const getMockSilencesResponse = (): Silence[] =>
   structuredClone(silencesResponse) as Silence[];

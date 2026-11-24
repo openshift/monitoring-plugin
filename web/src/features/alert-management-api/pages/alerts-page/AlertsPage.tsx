@@ -51,13 +51,13 @@ import { startCase } from '@/shared/utils/strings';
 
 export function AlertManagementAlertsPage() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const { data, rulesQuery, silencesQuery } = useAlertManagementData();
+  const { data, rulesQuery, alertsQuery, silencesQuery } = useAlertManagementData();
   const { filters, setFilters } = useAlertManagementFilters();
   const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   const alerts = data?.alerts;
   const { selectedAlert, closeAlertDetails } = useAlertDetailsSidebar(
-    rulesQuery.isError ? undefined : alerts,
+    rulesQuery.isError || alertsQuery.isError ? undefined : alerts,
   );
 
   const counts = (alerts ?? []).reduce(
@@ -70,14 +70,17 @@ export function AlertManagementAlertsPage() {
     { states: {} as Record<string, number>, severities: {} as Record<string, number> },
   );
 
-  const isLoading = rulesQuery.isLoading && !rulesQuery.data;
-  const error = rulesQuery.error;
+  const isLoading =
+    (rulesQuery.isLoading && !rulesQuery.data) ||
+    (alertsQuery.isLoading && !alertsQuery.data) ||
+    (silencesQuery.isLoading && !silencesQuery.data);
+  const error = rulesQuery.error ?? alertsQuery.error;
 
   if (isLoading) {
     return <LoadingBox />;
   }
 
-  if (rulesQuery.isError) {
+  if (rulesQuery.isError || alertsQuery.isError) {
     return <AccessDenied message={error instanceof Error ? error.message : ''} />;
   }
 

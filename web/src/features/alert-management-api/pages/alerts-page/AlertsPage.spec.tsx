@@ -24,6 +24,29 @@ vi.mock('@/shared/hooks/agentic-runs/useAgenticRunCheck', () => ({
 vi.mock('@/shared/components/query-browser/QueryBrowser', () => ({ QueryBrowser: () => null }));
 
 const addToast = vi.hoisted(() => vi.fn());
+const rulesQuery = vi.hoisted(() => ({
+  data: {} as object | undefined,
+  isLoading: false,
+  isError: false,
+  error: null as Error | null,
+}));
+const alertsQuery = vi.hoisted(() => ({
+  data: {} as object | undefined,
+  isLoading: false,
+  isError: false,
+  error: null as Error | null,
+}));
+const silencesQuery = vi.hoisted(() => ({
+  data: {} as object | undefined,
+  isLoading: false,
+  isError: false,
+}));
+
+afterEach(() => {
+  Object.assign(rulesQuery, { data: {}, isLoading: false, isError: false, error: null });
+  Object.assign(alertsQuery, { data: {}, isLoading: false, isError: false, error: null });
+  Object.assign(silencesQuery, { data: {}, isLoading: false, isError: false });
+});
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useToast: () => ({ addToast }),
@@ -43,16 +66,10 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
 
 vi.mock('@/features/alert-management-api/hooks/useAlertManagementData', () => ({
   useAlertManagementData: () => ({
-    data: { alerts: testAlerts },
-    rulesQuery: {
-      data: {},
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      dataUpdatedAt: 0,
-      refetch: vi.fn(),
-    },
-    silencesQuery: { isError: false, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
+    data: { alerts: testAlerts, rules: [], silences: [] },
+    rulesQuery: { ...rulesQuery, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
+    alertsQuery,
+    silencesQuery: { ...silencesQuery, isFetching: false, dataUpdatedAt: 0, refetch: vi.fn() },
   }),
 }));
 
@@ -142,6 +159,60 @@ it('opens an individual alert while preserving the list and its query parameters
   expect(queryParams().has('alertRuleID')).toBe(false);
   expect(queryParams().has('alertID')).toBe(false);
   expect(queryParams().has('tab')).toBe(false);
+});
+
+it.each([
+  [false, false, false],
+  [false, false, true],
+  [false, true, false],
+  [false, true, true],
+  [true, false, false],
+  [true, false, true],
+  [true, true, false],
+  [true, true, true],
+])(
+  'waits for all endpoints to settle (rules loading: %s, alerts loading: %s, silences loading: %s)',
+  (rulesLoading, alertsLoading, silencesLoading) => {
+    Object.assign(rulesQuery, { data: undefined, isLoading: rulesLoading });
+    Object.assign(alertsQuery, { data: undefined, isLoading: alertsLoading });
+    Object.assign(silencesQuery, { data: undefined, isLoading: silencesLoading });
+    render(
+      <MemoryRouter>
+        <AlertsPage />
+      </MemoryRouter>,
+    );
+    if (rulesLoading || alertsLoading || silencesLoading) {
+      expect(screen.queryByRole('grid')).toBeNull();
+    } else {
+      expect(screen.getByRole('grid')).toBeDefined();
+    }
+  },
+);
+
+it('surfaces an alerts endpoint failure instead of rendering an empty alert list', () => {
+  Object.assign(alertsQuery, {
+    data: undefined,
+    isError: true,
+    error: new Error('Alerts forbidden'),
+  });
+  render(
+    <MemoryRouter>
+      <AlertsPage />
+    </MemoryRouter>,
+  );
+  expect(screen.getByText('Alerts forbidden')).toBeDefined();
+  expect(screen.queryByRole('grid')).toBeNull();
+});
+
+it('shows a warning and keeps the alert list when silences cannot be loaded', () => {
+  Object.assign(silencesQuery, { data: undefined, isError: true });
+  render(
+    <MemoryRouter>
+      <AlertsPage />
+    </MemoryRouter>,
+  );
+  expect(screen.getByText('Silences could not be loaded')).toBeDefined();
+  expect(screen.getByRole('grid')).toBeDefined();
 });
 
 it('resolves direct links independently of list filters and supports history navigation', () => {

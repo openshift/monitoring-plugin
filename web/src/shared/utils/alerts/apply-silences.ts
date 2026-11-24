@@ -178,4 +178,6 @@ const isAlertSilenced = (alert: PrometheusAlert, silence: Silence): boolean =>
   });
 
 export const isRuleSilenced = (rule: PrometheusRule, silence: Silence): boolean =>
-  isRuleFiring(rule) && rule.alerts.every((alert) => isAlertSilenced(alert, silence));
+  isRuleFiring(rule) &&
+  rule.alerts.length > 0 &&
+  rule.alerts.every((alert) => isAlertSilenced(alert, silence));

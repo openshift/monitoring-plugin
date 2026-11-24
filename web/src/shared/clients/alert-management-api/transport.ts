@@ -19,7 +19,12 @@ export const alertManagementFetch = async <T>(
   }
 
   const basePath = getPrometheusBasePath({ prometheus: 'alert-management-api' });
-  const response = await consoleFetch(`${basePath}${path}`, { ...options, headers });
+  const response = await consoleFetch(`${basePath}${path}`, {
+    ...options,
+    // Console's fetch helpers mutate headers as a plain object. Passing a Headers
+    // instance causes requests to fail in Firefox
+    headers: Object.fromEntries(headers.entries()),
+  });
   if (response.status === 204) {
     return undefined as T;
   }

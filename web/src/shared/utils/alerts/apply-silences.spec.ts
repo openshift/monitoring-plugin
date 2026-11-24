@@ -7,7 +7,7 @@ import {
   SilenceStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-import { applySilences } from '@/shared/utils/alerts/apply-silences';
+import { applySilences, isRuleSilenced } from '@/shared/utils/alerts/apply-silences';
 
 const createRule = (): Rule =>
   ({
@@ -77,6 +77,27 @@ describe('applySilences', () => {
     expect(rule.state).toBe(RuleStates.Firing);
     expect(silence.firingAlerts).toBeUndefined();
   });
+
+  it.each([RuleStates.Firing, RuleStates.Pending, RuleStates.Inactive, RuleStates.Silenced])(
+    'preserves an empty rule in state %s without associating any silence',
+    (state) => {
+      const rule = { ...createRule(), state, alerts: [] };
+      const silence = createSilence();
+      const originalRule = structuredClone(rule);
+
+      expect(isRuleSilenced(rule, silence)).toBe(false);
+
+      const result = applySilences({ alerts: [], rules: [rule], silences: [silence] });
+
+      expect(result.rules).toHaveLength(1);
+      expect(result.rules[0]).not.toBe(rule);
+      expect(result.rules[0].state).toBe(state);
+      expect(result.rules[0].alerts).toEqual([]);
+      expect(result.rules[0].silencedBy ?? []).toEqual([]);
+      expect(result.silences[0].firingAlerts).toEqual([]);
+      expect(rule).toEqual(originalRule);
+    },
+  );
 
   it('does not apply inactive silences', () => {
     const rule = createRule();
