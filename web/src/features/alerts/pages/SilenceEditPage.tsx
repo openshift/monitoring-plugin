@@ -1,29 +1,17 @@
 import { Silence, SilenceStates } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert } from '@patternfly/react-core';
 import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 
-import { SilenceForm } from '@/features/alerts/components/SilenceForm';
+import { LegacySilenceForm } from '@/features/alerts/components/LegacySilenceForm';
+import { SilenceEditInfo } from '@/shared/components/silences/SilenceEditInfo';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { silenceState } from '@/shared/utils/alerts/formatting';
-import { formatSilenceDate } from '@/shared/utils/date';
+import { getSilenceFormDefaults } from '@/shared/utils/alerts/get-silence-form-defaults';
 import { SilenceResource } from '@/shared/utils/utils';
-
-const EditInfo = () => {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
-  return (
-    <Alert isInline title={t('Overwriting current silence')} variant="info">
-      {t(
-        'When changes are saved, the currently existing silence will be expired and a new silence with the new configuration will take its place.',
-      )}
-    </Alert>
-  );
-};
 
 const SilenceEditPage = () => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
@@ -34,16 +22,6 @@ const SilenceEditPage = () => {
 
   const silence: Silence = _.find(silences?.data, { id: params.id });
   const isExpired = silenceState(silence) === SilenceStates.Expired;
-  const defaults = _.pick(silence, [
-    'comment',
-    'createdBy',
-    'endsAt',
-    'id',
-    'matchers',
-    'startsAt',
-  ]);
-  defaults.startsAt = isExpired ? undefined : formatSilenceDate(new Date(defaults.startsAt));
-  defaults.endsAt = isExpired ? undefined : formatSilenceDate(new Date(defaults.endsAt));
 
   return (
     <StatusBox
@@ -52,12 +30,14 @@ const SilenceEditPage = () => {
       loaded={silences?.loaded && !accessCheckLoading}
       loadError={silences?.loadError}
     >
-      <SilenceForm
-        defaults={defaults}
-        Info={isExpired ? undefined : EditInfo}
-        title={isExpired ? t('Recreate silence') : t('Edit silence')}
-        isNamespaced={useAlertsTenancy}
-      />
+      {silence && (
+        <LegacySilenceForm
+          defaults={getSilenceFormDefaults(silence)}
+          Info={isExpired ? undefined : SilenceEditInfo}
+          title={isExpired ? t('Recreate silence') : t('Edit silence')}
+          isNamespaced={useAlertsTenancy}
+        />
+      )}
     </StatusBox>
   );
 };

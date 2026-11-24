@@ -57,6 +57,7 @@ afterEach(() => {
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useToast: () => ({ addToast }),
   useAccessReview: () => [true, false],
+  useActiveNamespace: () => ['#ALL_NS#', vi.fn()],
   ActionServiceProvider: ({ children }) => children({ actions: [], loaded: true }),
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
   AlertStates: { Firing: 'firing', Pending: 'pending', Silenced: 'silenced' },

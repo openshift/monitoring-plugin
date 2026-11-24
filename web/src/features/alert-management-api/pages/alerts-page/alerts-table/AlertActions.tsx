@@ -11,11 +11,12 @@ import {
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import { useTranslation } from 'react-i18next';
 
+import { useSilenceAlertNavigation } from '@/features/alert-management-api/hooks/useSilenceAlertNavigation';
 import { AlertActionItem } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActionItem';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import {
   getAlertRuleDetailsUrl,
-  getNewSilenceAlertUrl,
+  getCreateSilenceUrl,
 } from '@/features/alert-management-api/utils/urls';
 import CustomIcon from '@/shared/components/CustomIcon';
 import KebabDropdown from '@/shared/components/KebabDropdown';
@@ -33,6 +34,7 @@ export function AlertActions({ alert }: { alert: ManagedAlert }) {
 
   const { agenticRuns, hasAgenticRun, prefetch, isFetching } = useAgenticRunCheck(alert);
   const run = hasAgenticRun ? agenticRuns[0] : undefined;
+  const { navigateToSilence } = useSilenceAlertNavigation();
 
   const dropdownItems = [];
 
@@ -59,7 +61,20 @@ export function AlertActions({ alert }: { alert: ManagedAlert }) {
         }
         isDisabled={accessCheckLoading}
         description={t('Temporarily stop notifications for this alert.')}
-        to={getNewSilenceAlertUrl(alert)}
+        to={getCreateSilenceUrl(alert.labels)}
+        onClick={(event) => {
+          if (
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey ||
+            event.button !== 0
+          ) {
+            return;
+          }
+          event.preventDefault();
+          navigateToSilence(alert.labels);
+        }}
         data-test={DataTestIDs.SilenceAlertDropdownItem}
       >
         {t('Silence alert')}

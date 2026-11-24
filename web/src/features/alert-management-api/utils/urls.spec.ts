@@ -3,17 +3,24 @@ import {
   getAlertDetailsSearch,
   getAlertRuleDetailsSearch,
   getAlertRuleDetailsUrl,
-  getNewSilenceAlertUrl,
+  getCreateSilenceUrl,
+  getSilencesPageUrl,
+  silencesPath,
 } from '@/features/alert-management-api/utils/urls';
 import { computeAlertFingerprint } from '@/shared/utils/alerts/alert-fingerprint';
 
 const alert = testAlerts[0];
 
-it('links to the silence creation page with encoded alert labels', () => {
-  const labels = { ...alert.labels, custom: 'a b&c="d"?#', 'custom/key': 'value/with spaces' };
-  const url = new URL(getNewSilenceAlertUrl({ labels }), 'https://console.example.com');
-  expect(url.pathname).toBe('/monitoring/v2/management/silences/~new');
-  expect(Object.fromEntries(url.searchParams)).toEqual(labels);
+it('builds blank silence create links', () => {
+  expect(getCreateSilenceUrl()).toBe(`${silencesPath}/~new`);
+  expect(getCreateSilenceUrl({})).toBe(`${silencesPath}/~new`);
+});
+
+it('carries the saved silence ID on the v2 silences page', () => {
+  const silenceID = 'id / ? # &';
+  const url = new URL(getSilencesPageUrl(silenceID), 'https://console.example.com');
+  expect(url.pathname).toBe(silencesPath);
+  expect(url.searchParams.get('silenceID')).toBe(silenceID);
 });
 
 it('preserves table state and replaces the selected alert', () => {

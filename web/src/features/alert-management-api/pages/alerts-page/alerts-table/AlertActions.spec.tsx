@@ -4,7 +4,7 @@ import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 import type { Action, K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 
 import { AlertActions } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActions';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
@@ -18,16 +18,16 @@ import {
   AGENTIC_RUN_SOURCE_ALERTMANAGER,
 } from '@/shared/hooks/agentic-runs/constants';
 
-const { check, prefetch, actionService, k8sListItems, accessReview, monitoring } = vi.hoisted(
-  () => ({
+const { check, prefetch, actionService, k8sListItems, accessReview, monitoring, setNamespace } =
+  vi.hoisted(() => ({
     check: vi.fn(),
     prefetch: vi.fn(),
     actionService: vi.fn(),
     k8sListItems: vi.fn(),
     accessReview: vi.fn(),
     monitoring: vi.fn(),
-  }),
-);
+    setNamespace: vi.fn(),
+  }));
 
 vi.mock('@/shared/hooks/agentic-runs/useAgenticRunCheck', () => ({ useAgenticRunCheck: check }));
 vi.mock('@/shared/hooks/useMonitoring', () => ({ useMonitoring: monitoring }));
@@ -38,6 +38,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
   ActionServiceProvider: ({ context, children }) => children(actionService(context)),
   k8sListItems,
   useAccessReview: accessReview,
+  useActiveNamespace: () => ['#ALL_NS#', setNamespace],
 }));
 
 vi.mock('react-i18next', () => ({
@@ -100,12 +101,62 @@ it('describes silencing and separates it from navigation actions', async () => {
   );
 });
 
-it('links to the future create-silence page with every alert label prefilled', async () => {
+it('links to the create-silence page with every alert label prefilled', async () => {
   const selectedAlert = { ...alert, labels: { ...alert.labels, custom: 'a b&c="d"' } };
   await renderActions(selectedAlert);
   const url = itemUrl(/^Silence alert/);
   expect(url.pathname).toBe('/monitoring/v2/management/silences/~new');
   expect(Object.fromEntries(url.searchParams)).toEqual(selectedAlert.labels);
+});
+
+function CurrentLocation() {
+  const { pathname, search } = useLocation();
+  return (
+    <output data-testid="location">
+      {pathname}
+      {search}
+    </output>
+  );
+}
+
+it.each([
+  ['Ctrl-click', { ctrlKey: true }],
+  ['Meta-click', { metaKey: true }],
+  ['Shift-click', { shiftKey: true }],
+  ['Alt-click', { altKey: true }],
+  ['non-primary click', { button: 1 }],
+])('leaves %s on Silence alert to the browser', async (_gesture, eventInit) => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts']}>
+      <CurrentLocation />
+      <AlertActions alert={alert} />
+    </MemoryRouter>,
+  );
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Actions for/ }));
+  });
+  expect(fireEvent.click(screen.getByRole('menuitem', { name: /^Silence alert/ }), eventInit)).toBe(
+    true,
+  );
+  expect(setNamespace).not.toHaveBeenCalled();
+  expect(screen.getByTestId('location').textContent).toBe('/monitoring/v2/alerts');
+});
+
+it('navigates with the router to a prefilled create page on a plain click', async () => {
+  render(
+    <MemoryRouter initialEntries={['/monitoring/v2/alerts']}>
+      <CurrentLocation />
+      <AlertActions alert={alert} />
+    </MemoryRouter>,
+  );
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Actions for/ }));
+  });
+  expect(fireEvent.click(screen.getByRole('menuitem', { name: /^Silence alert/ }))).toBe(false);
+  expect(setNamespace).toHaveBeenCalledExactlyOnceWith(alert.labels.namespace);
+  const url = new URL(screen.getByTestId('location').textContent!, 'https://console.example.com');
+  expect(url.pathname).toBe('/monitoring/v2/management/silences/~new');
+  expect(Object.fromEntries(url.searchParams)).toEqual(alert.labels);
 });
 
 it('links to the new rule table with only the rule selection', async () => {
