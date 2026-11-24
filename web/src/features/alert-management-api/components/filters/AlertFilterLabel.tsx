@@ -7,12 +7,12 @@ export function AlertFilterLabel({ label, tooltip }: { label: string; tooltip: s
 
   return (
     <div>
-      <strong>{t(label)}</strong>
-      <Tooltip content={t(tooltip)}>
+      <strong>{label}</strong>
+      <Tooltip content={tooltip}>
         <Button
           variant="plain"
           size="sm"
-          aria-label={t('Help for {{filter}}', { filter: t(label) })}
+          aria-label={t('Help for {{filter}}', { filter: label })}
           icon={<HelpIcon />}
         />
       </Tooltip>

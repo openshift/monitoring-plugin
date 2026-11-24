@@ -2,13 +2,13 @@ import { Th, Thead, Tr } from '@patternfly/react-table';
 import type { ThProps } from '@patternfly/react-table';
 import { useTranslation } from 'react-i18next';
 
+import {
+  ColumnCell,
+  SortedColumnCells,
+} from '@/features/alert-management-api/components/table/SortedColumnCells';
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import {
-  AlertColumnCell,
-  SortedColumnCells,
-} from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { AlertSort } from '@/features/alert-management-api/utils/sort-alerts';
@@ -45,7 +45,7 @@ export function AlertsTableHeader({
     onSort: (_event, _index, direction) => onSort({ column, direction }),
   });
 
-  const cells: AlertColumnCell[] = [
+  const cells: ColumnCell<AlertColumn>[] = [
     {
       column: 'name',
       component: (

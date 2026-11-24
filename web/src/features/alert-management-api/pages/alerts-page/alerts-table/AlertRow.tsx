@@ -5,19 +5,20 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router';
 
+import {
+  ColumnCell,
+  SortedColumnCells,
+} from '@/features/alert-management-api/components/table/SortedColumnCells';
 import { AlertActions } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActions';
 import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
-import {
-  AlertColumnCell,
-  SortedColumnCells,
-} from '@/features/alert-management-api/pages/alerts-page/alerts-table/SortedColumnCells';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { getFiringSinceTimestamp } from '@/features/alert-management-api/utils/alert-values';
 import { getAlertDetailsSearch } from '@/features/alert-management-api/utils/urls';
-import { AlertState, AlertStateDescription } from '@/shared/components/AlertState';
+import { AlertRuleState } from '@/shared/components/AlertRuleState';
+import { AlertStateDescription } from '@/shared/components/AlertState';
 import { SeverityBadge } from '@/shared/components/SeverityBadge';
 import { DataTestIDs } from '@/shared/constants/data-test';
 import { getSourceKey } from '@/shared/utils/alerts/alert-source';
@@ -65,7 +66,7 @@ export function AlertRow({
   const name = alert.labels.alertname ?? alert.rule.name;
   const firingSince = getFiringSinceTimestamp([alert]);
 
-  const cells: AlertColumnCell[] = [
+  const cells: ColumnCell<AlertColumn>[] = [
     {
       column: 'name',
       component: (
@@ -106,7 +107,7 @@ export function AlertRow({
       column: 'state',
       component: (
         <Td>
-          <AlertState state={alert.state} />
+          <AlertRuleState state={alert.state} count={1} />
           <AlertStateDescription alert={alert} />
         </Td>
       ),
@@ -115,7 +116,7 @@ export function AlertRow({
       column: 'scope',
       component: (
         <Td>
-          <Label color="grey">{alert.alertScope}</Label>
+          <Label color="grey">{t(alert.alertScope)}</Label>
         </Td>
       ),
     },

@@ -1,0 +1,26 @@
+# Drop CannotRetrieveUpdates using the same rule-scoped format as the management API.
+# Source: openshift-cluster-version/cluster-version-operator, group cluster-version.
+# Restore: kubectl delete -f hack/cannot-retrieve-updates-drop.yaml
+apiVersion: monitoring.openshift.io/v1
+kind: AlertRelabelConfig
+metadata:
+  name: arc-cluster-version-operator-7b90247b72a2
+  namespace: openshift-monitoring
+  labels:
+    monitoring.openshift.io/prometheusrule-name: cluster-version-operator
+    monitoring.openshift.io/alertname: CannotRetrieveUpdates
+  annotations:
+    monitoring.openshift.io/alertRuleId: rid_0njhT27Ts97gp80E7_2pO9300ux-emlTbi3ix3JM3_s
+spec:
+  configs:
+    - action: Replace
+      sourceLabels:
+        - alertname
+        - severity
+      regex: '^CannotRetrieveUpdates;warning$'
+      targetLabel: openshift_io_alert_rule_id
+      replacement: rid_0njhT27Ts97gp80E7_2pO9300ux-emlTbi3ix3JM3_s
+    - action: Drop
+      sourceLabels:
+        - openshift_io_alert_rule_id
+      regex: rid_0njhT27Ts97gp80E7_2pO9300ux-emlTbi3ix3JM3_s

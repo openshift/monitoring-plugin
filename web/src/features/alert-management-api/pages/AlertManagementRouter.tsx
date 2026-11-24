@@ -2,12 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 
-import { AlertManagementLayout } from '@/features/alert-management-api/components/AlertManagementLayout';
+import { AlertManagementLayout } from '@/features/alert-management-api/components/layout/AlertManagementLayout';
 import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
-import {
-  AlertRulesManagementPage,
-  SilencesManagementPage,
-} from '@/features/alert-management-api/pages/PlaceholderPages';
+import { SilencesManagementPage } from '@/features/alert-management-api/pages/PlaceholderPages';
+import { AlertRulesManagementPage } from '@/features/alert-management-api/pages/rules-page/RulesPage';
 import { McpCmoAlertingPage } from '@/features/incidents/pages/IncidentsPage';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import type { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';

@@ -11,7 +11,7 @@ import {
 } from '@/features/alert-management-api/hooks/useAlertManagementData';
 import {
   getMockAlertsResponse,
-  getMockManagementRulesResponse,
+  getMockRulesResponse,
   getMockSilencesResponse,
 } from '@/features/alert-management-api/tests/fixtures/mock-responses';
 import { makeSilence } from '@/features/alert-management-api/tests/utils/object-factories';
@@ -141,6 +141,16 @@ it('fetches alerts, rules and cross-namespace silences with the same polling int
   expect(queryClient.getQueryCache().getAll()).toHaveLength(3);
   for (const query of queryClient.getQueryCache().getAll()) {
     expect(query.options).toMatchObject({ refetchInterval: 30_000 });
+  }
+});
+
+it('disables polling by default', async () => {
+  const { result } = mount();
+  await waitFor(() => expect(result.current.data).toBeDefined());
+
+  expect(queryClient.getQueryCache().getAll()).toHaveLength(3);
+  for (const query of queryClient.getQueryCache().getAll()) {
+    expect(query.options).toMatchObject({ refetchInterval: false });
   }
 });
 
@@ -525,12 +535,18 @@ it('does not attach unknown IDs or ambiguous matches to an arbitrary rule', () =
 });
 
 it('merges the development fixtures without mutating any response', () => {
-  const rules = getMockManagementRulesResponse();
+  const rules = getMockRulesResponse();
   const alerts = getMockAlertsResponse();
   const silences = getMockSilencesResponse();
   const originals = structuredClone([rules, alerts, silences]);
   const data = processAlertManagementData(rules, alerts, silencesQueryResult(silences));
   expect(data?.alerts).toHaveLength(alerts.data.alerts.length);
+  expect(new Set(data?.alerts.map((alert) => alert.state))).toEqual(
+    new Set(['firing', 'pending', 'silenced']),
+  );
+  expect(new Set(data?.rules.map((rule) => rule.alertingRuleEnabled))).toEqual(
+    new Set([true, false]),
+  );
   expect(data?.silences[0].firingAlerts?.length).toBeGreaterThan(0);
   expect([rules, alerts, silences]).toEqual(originals);
 });

@@ -5,13 +5,14 @@ import { MemoryRouter, useLocation } from 'react-router';
 
 import { useAlertManagementSort } from '@/features/alert-management-api/hooks/useAlertManagementSort';
 import { useAlertManagementFilters } from '@/features/alert-management-api/pages/alerts-page/hooks/useAlertFilters';
-import { defaultAlertSort } from '@/features/alert-management-api/utils/sort-alerts';
+import { defaultAlertSort, sortColumns } from '@/features/alert-management-api/utils/sort-alerts';
+import { defaultRuleSort, RuleSort } from '@/features/alert-management-api/utils/sort-rules';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 const SortControls = () => {
   const { search } = useLocation();
   const { filters, setFilters } = useAlertManagementFilters();
-  const { sort, setSort } = useAlertManagementSort();
+  const { sort, setSort } = useAlertManagementSort(sortColumns, defaultAlertSort);
   return (
     <>
       <output data-testid={DataTestIDs.AlertManagementAPI.SortOutput}>
@@ -21,6 +22,24 @@ const SortControls = () => {
       <button onClick={() => setSort({ column: 'total', direction: 'asc' })}>Total</button>
       <button onClick={() => setSort(defaultAlertSort)}>Default</button>
       <button onClick={() => setFilters({ ...filters, name: 'HighCPU' })}>Filter</button>
+    </>
+  );
+};
+
+const RuleSortControls = ({ defaultSort = defaultRuleSort }: { defaultSort?: RuleSort }) => {
+  const { search } = useLocation();
+  const { sort, setSort } = useAlertManagementSort(
+    ['name', 'enablement', 'namespace', 'managedBy'] as const,
+    defaultSort,
+  );
+  return (
+    <>
+      <output data-testid={DataTestIDs.AlertManagementAPI.SortOutput}>
+        {`${sort.column}:${sort.direction}`}
+      </output>
+      <output data-testid={DataTestIDs.AlertManagementAPI.QueryOutput}>{search}</output>
+      <button onClick={() => setSort({ column: 'namespace', direction: 'asc' })}>Namespace</button>
+      <button onClick={() => setSort(defaultSort)}>Default</button>
     </>
   );
 };
@@ -88,3 +107,53 @@ it('ignores unknown sort columns and directions', () => {
     'unknown sort values should fall back to the default sort',
   ).toBe('severity:asc');
 });
+
+it('supports rule columns and defaults while preserving unrelated URL parameters', () => {
+  render(
+    <MemoryRouter
+      initialEntries={[
+        '/monitoring/v2/management/alertrules?sort=managedBy&sortDirection=desc&page=3&enablement=Enabled&refreshInterval=30000',
+      ]}
+    >
+      <RuleSortControls />
+    </MemoryRouter>,
+  );
+  expect(screen.getByTestId(DataTestIDs.AlertManagementAPI.SortOutput).textContent).toBe(
+    'managedBy:desc',
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Namespace' }));
+  const params = new URLSearchParams(
+    screen.getByTestId(DataTestIDs.AlertManagementAPI.QueryOutput).textContent!,
+  );
+  expect(params.get('sort')).toBe('namespace');
+  expect(params.get('sortDirection')).toBe('asc');
+  expect(params.get('page')).toBe('1');
+  expect(params.get('enablement')).toBe('Enabled');
+  expect(params.get('refreshInterval')).toBe('30000');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Default' }));
+  expect(screen.getByTestId(DataTestIDs.AlertManagementAPI.SortOutput).textContent).toBe(
+    'name:asc',
+  );
+  const resetParams = new URLSearchParams(
+    screen.getByTestId(DataTestIDs.AlertManagementAPI.QueryOutput).textContent!,
+  );
+  expect(resetParams.has('sort')).toBe(false);
+  expect(resetParams.has('sortDirection')).toBe(false);
+  expect(resetParams.get('page')).toBe('1');
+  expect(resetParams.get('enablement')).toBe('Enabled');
+});
+
+it.each(['', '?sort=total&sortDirection=sideways'])(
+  'uses configured defaults, including descending direction, for invalid or missing values: %s',
+  (search) => {
+    render(
+      <MemoryRouter initialEntries={[`/monitoring/v2/management/alertrules${search}`]}>
+        <RuleSortControls defaultSort={{ column: 'namespace', direction: 'desc' }} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId(DataTestIDs.AlertManagementAPI.SortOutput).textContent).toBe(
+      'namespace:desc',
+    );
+  },
+);

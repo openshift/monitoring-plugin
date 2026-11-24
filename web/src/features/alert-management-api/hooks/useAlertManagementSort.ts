@@ -1,33 +1,33 @@
 import { useSearchParams } from 'react-router';
 
-import {
-  AlertSort,
-  defaultAlertSort,
-  sortColumns,
-} from '@/features/alert-management-api/utils/sort-alerts';
+import { TableSort } from '@/features/alert-management-api/types/types';
+import { QueryParams } from '@/shared/constants/query-params';
 
-export const useAlertManagementSort = () => {
+export const useAlertManagementSort = <Column extends string>(
+  columns: readonly Column[],
+  defaultSort: TableSort<Column>,
+) => {
   const [params, setParams] = useSearchParams();
-  const column = params.get('sort');
-  const direction = params.get('sortDirection');
-  const sort: AlertSort = {
-    column: sortColumns.find((option) => option === column) ?? defaultAlertSort.column,
-    direction: direction === 'desc' ? 'desc' : 'asc',
+  const column = params.get(QueryParams.Sort);
+  const direction = params.get(QueryParams.SortDirection);
+  const sort: TableSort<Column> = {
+    column: columns.find((option) => option === column) ?? defaultSort.column,
+    direction: defaultSort.direction,
   };
+  if (direction === 'asc' || direction === 'desc') {
+    sort.direction = direction;
+  }
 
-  const setSort = (nextSort: AlertSort) =>
+  const setSort = (nextSort: TableSort<Column>) =>
     setParams((current) => {
       const next = new URLSearchParams(current);
-      next.set('page', '1');
-      if (
-        nextSort.column === defaultAlertSort.column &&
-        nextSort.direction === defaultAlertSort.direction
-      ) {
-        next.delete('sort');
-        next.delete('sortDirection');
+      next.set(QueryParams.Page, '1');
+      if (nextSort.column === defaultSort.column && nextSort.direction === defaultSort.direction) {
+        next.delete(QueryParams.Sort);
+        next.delete(QueryParams.SortDirection);
       } else {
-        next.set('sort', nextSort.column);
-        next.set('sortDirection', nextSort.direction);
+        next.set(QueryParams.Sort, nextSort.column);
+        next.set(QueryParams.SortDirection, nextSort.direction);
       }
       return next;
     });

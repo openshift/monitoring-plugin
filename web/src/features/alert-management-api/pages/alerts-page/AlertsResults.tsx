@@ -16,8 +16,8 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { useQueryParam } from 'use-query-params';
 
-import { ManageColumnsButton } from '@/features/alert-management-api/components/ManageColumnsButton';
-import { TableColumnsModal } from '@/features/alert-management-api/components/TableColumnsModal';
+import { ManageColumnsButton } from '@/features/alert-management-api/components/table/ManageColumnsButton';
+import { TableColumnsModal } from '@/features/alert-management-api/components/table/TableColumnsModal';
 import { useAlertManagementSort } from '@/features/alert-management-api/hooks/useAlertManagementSort';
 import { AlertsTable } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
 import type { AlertsTableRef } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTable';
@@ -36,6 +36,7 @@ import {
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { AlertFilters, ManagedAlert } from '@/features/alert-management-api/types/types';
 import { filterAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
+import { defaultAlertSort, sortColumns } from '@/features/alert-management-api/utils/sort-alerts';
 import { parseTableColumns } from '@/features/alert-management-api/utils/table-columns';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
 import { TablePagination } from '@/shared/components/table/TablePagination';
@@ -67,7 +68,7 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
 
   const [selectedAlertKeys, setSelectedAlertKeys] = useState<Set<string>>(() => new Set());
 
-  const { sort, setSort } = useAlertManagementSort();
+  const { sort, setSort } = useAlertManagementSort(sortColumns, defaultAlertSort);
   const { column, direction } = sort;
   const pagination = useTablePagination({ perPage: 20 });
   const { page, perPage, setPage } = pagination;

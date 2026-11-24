@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { SelectedFilters } from '@/features/alert-management-api/components/SelectedFilters';
+import { SelectedFilters } from '@/features/alert-management-api/components/filters/SelectedFilters';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 

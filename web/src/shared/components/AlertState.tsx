@@ -45,7 +45,7 @@ export function AlertStateDescription({ alert }: { alert: Alert }) {
   if (!_.isEmpty(alert.silencedBy)) {
     return <StateTimestamp text={t('Ends')} timestamp={_.max(_.map(alert.silencedBy, 'endsAt'))} />;
   }
-  if (alert.activeAt) {
+  if (alert.activeAt && alert.state !== AlertStates.Silenced) {
     return <StateTimestamp text={t('Since')} timestamp={alert.activeAt} />;
   }
   return null;

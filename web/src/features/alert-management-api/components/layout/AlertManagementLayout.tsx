@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useQueryParam } from 'use-query-params';
 
-import { AlertManagementHeader } from '@/features/alert-management-api/components/AlertManagementHeader';
-import { RefreshControlProps } from '@/features/alert-management-api/components/RefreshControl';
+import { AlertManagementHeader } from '@/features/alert-management-api/components/layout/AlertManagementHeader';
+import { RefreshControlProps } from '@/features/alert-management-api/components/layout/RefreshControl';
 import { useAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
 import { QueryParams } from '@/shared/constants/query-params';
 import { RefreshIntervalParam } from '@/shared/constants/timespan';

@@ -1,4 +1,4 @@
-import { Alert, AlertSeverity } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, AlertSeverity, AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 
 import {
   AggregatedAlert,
@@ -102,25 +102,39 @@ export const aggregateAlerts = (alerts: ManagedAlert[]): AggregatedAlert[] => {
       alert.source,
     ].join('');
 
-    const existingAggregate = aggregates.get(aggregationKey);
-    if (existingAggregate) {
-      existingAggregate.alerts.push(alert);
-      if (!existingAggregate.state.includes(alert.state)) {
-        existingAggregate.state.push(alert.state);
-      }
-      return;
+    let aggregate = aggregates.get(aggregationKey);
+    if (!aggregate) {
+      aggregate = {
+        key: aggregationKey,
+        name: alertName,
+        severity,
+        alertScope: alert.alertScope,
+        component: alert.component,
+        source: alert.source,
+        state: [],
+        firingAlertCount: 0,
+        pendingAlertCount: 0,
+        silencedAlertCount: 0,
+        alerts: [],
+      };
+      aggregates.set(aggregationKey, aggregate);
     }
 
-    aggregates.set(aggregationKey, {
-      key: aggregationKey,
-      name: alertName,
-      severity,
-      alertScope: alert.alertScope,
-      component: alert.component,
-      source: alert.source,
-      state: [alert.state],
-      alerts: [alert],
-    });
+    aggregate.alerts.push(alert);
+    if (!aggregate.state.includes(alert.state)) {
+      aggregate.state.push(alert.state);
+    }
+    switch (alert.state) {
+      case AlertStates.Firing:
+        aggregate.firingAlertCount++;
+        break;
+      case AlertStates.Pending:
+        aggregate.pendingAlertCount++;
+        break;
+      case AlertStates.Silenced:
+        aggregate.silencedAlertCount++;
+        break;
+    }
   });
   return [...aggregates.values()].sort(compareAggregatedAlerts);
 };

@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import type { ComponentPropsWithRef } from 'react';
@@ -216,6 +217,51 @@ it('expands an ungrouped aggregate into its individual rows', () => {
     ).toBeDefined();
   });
 });
+
+it('shows ordered state counts for aggregates and single counts for their alert rows', () => {
+  const alerts = [
+    AlertStates.Silenced,
+    AlertStates.Firing,
+    AlertStates.Pending,
+    AlertStates.Firing,
+  ].map((state, index) => ({
+    ...testAlerts[0],
+    activeAt: `2026-01-01T00:00:0${index}Z`,
+    state,
+  }));
+  render(
+    table({
+      aggregatedAlerts: aggregateAlerts(alerts),
+      pageGroups: [],
+      groupBy: AlertGroupBy.None,
+    }),
+  );
+  const stateCell = screen.getByRole('cell', { name: /2 Firing/ });
+  expect(stateCell.textContent).toBe(' 2 Firing 1 Pending 1 Silenced');
+  expect(within(stateCell).queryByText(/Enabled|Disabled|Unknown/)).toBeNull();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+  const alertRows = screen.getAllByRole('row').slice(2);
+  expect(alertRows).toHaveLength(4);
+  for (const [index, label] of ['Silenced', 'Firing', 'Pending', 'Firing'].entries()) {
+    expect(within(alertRows[index]).getByText(`1 ${label}`)).toBeDefined();
+  }
+});
+
+it.each([AlertStates.Firing, AlertStates.Pending, AlertStates.Silenced])(
+  'shows a count of one for an unaggregated %s alert',
+  (state) => {
+    render(
+      table({
+        aggregatedAlerts: aggregateAlerts([{ ...testAlerts[0], state }]),
+        isAggregated: false,
+        pageGroups: [],
+        groupBy: AlertGroupBy.None,
+      }),
+    );
+    expect(screen.getByRole('cell', { name: new RegExp(`1 ${state}`, 'i') })).toBeDefined();
+  },
+);
 
 it('derives group counts from rows in aligned sibling bodies with optional columns', () => {
   const { container } = render(table({ columns: alertColumns.map(({ key }) => key) }));
