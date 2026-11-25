@@ -10,8 +10,10 @@ import {
   PersesTempoDatasourceWrapper,
   PersesWrapper,
 } from '@/features/tracing/components/PersesWrapper';
+import { TempoInstanceNotReadyState } from '@/features/tracing/components/TempoInstanceNotReadyState';
 import { TimeRangeSelect } from '@/features/tracing/components/TimeRangeSelect';
 import { useTempoInstance } from '@/features/tracing/hooks/useTempoInstance';
+import { useTempoResources } from '@/features/tracing/hooks/useTempoResources';
 import { DEFAULT_LIMIT, LimitSelect } from '@/features/tracing/pages/TracesPage/LimitSelect';
 import { ScatterPlot } from '@/features/tracing/pages/TracesPage/ScatterPlot';
 import { FilterToolbar } from '@/features/tracing/pages/TracesPage/Toolbar/FilterToolbar';
@@ -33,7 +35,12 @@ export function QueryBrowserBody() {
   const [query, setQuery] = useQueryParam('q', withDefault(StringParam, '{}'));
   const [limit, setLimit] = useQueryParam('limit', withDefault(NumberParam, DEFAULT_LIMIT));
   const { refresh } = useTimeRange();
+  const { data: tempoResources } = useTempoResources();
   const isInitialRender = useRef(true);
+
+  const selectedTempoResource = tempoResources?.find(
+    (resource) => resource.namespace === tempo?.namespace && resource.name === tempo?.name,
+  );
 
   // Refresh query if Tempo instance or tenant changes.
   // The Perses data source is selected via a mock DatasourceApiImpl implementation in
@@ -72,17 +79,21 @@ export function QueryBrowserBody() {
       <PageSection className="mui-pf-theme">
         <Stack hasGutter>
           <FilterToolbar tempo={tempo} setTempo={setTempo} query={query} runQuery={runQuery} />
-          <PersesTempoDatasourceWrapper
-            tempo={tempo}
-            definitions={[
-              {
-                kind: 'TraceQuery',
-                spec: { plugin: { kind: 'TempoTraceQuery', spec: { query, limit } } },
-              },
-            ]}
-          >
-            <TraceSearchResults setQuery={setQuery} />
-          </PersesTempoDatasourceWrapper>
+          {tempo && selectedTempoResource && !selectedTempoResource.ready ? (
+            <TempoInstanceNotReadyState statusMessage={selectedTempoResource.statusMessage} />
+          ) : (
+            <PersesTempoDatasourceWrapper
+              tempo={tempo}
+              definitions={[
+                {
+                  kind: 'TraceQuery',
+                  spec: { plugin: { kind: 'TempoTraceQuery', spec: { query, limit } } },
+                },
+              ]}
+            >
+              <TraceSearchResults setQuery={setQuery} />
+            </PersesTempoDatasourceWrapper>
+          )}
         </Stack>
       </PageSection>
     </>
