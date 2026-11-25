@@ -26,6 +26,7 @@ export const TempoInstanceDropdown = ({ tempo, setTempo }: TempoInstanceDropdown
     .map((tempo) => ({
       value: `${tempo.namespace}__${tempo.name}`,
       content: `${tempo.namespace} / ${tempo.name}`,
+      description: tempo.ready ? undefined : t('Not ready'),
       icon: <ResourceIcon groupVersionKind={{ kind: tempo.kind, version: '' }} />,
       tempo,
     }))
@@ -48,6 +49,9 @@ export const TempoInstanceDropdown = ({ tempo, setTempo }: TempoInstanceDropdown
           namespace: tempo.namespace,
           name: tempo.name,
           tenants: tempo.tenant ? [tempo.tenant] : undefined,
+          // assume the instance is ready while loading, to avoid flagging a healthy instance as
+          // not ready
+          ready: true,
         },
       };
       options.push(selected);

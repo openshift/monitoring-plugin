@@ -23,6 +23,10 @@ type TempoResource struct {
 	Name      string   `json:"name"`
 	// A list of tenant names for multi-tenant instances, or an empty list for single-tenant instances.
 	Tenants []string `json:"tenants,omitempty"`
+	// Ready reports if all components of the instance are up and the instance can be queried.
+	Ready bool `json:"ready"`
+	// A human readable message explaining why the instance is not ready, if the operator reported one.
+	StatusMessage string `json:"statusMessage,omitempty"`
 }
 
 type KindType string
@@ -31,6 +35,9 @@ const (
 	KindTempoStack      KindType = "TempoStack"
 	KindTempoMonolithic KindType = "TempoMonolithic"
 )
+
+// ConditionReady is the status condition the Tempo operator sets once all components of an instance are up.
+const ConditionReady = "Ready"
 
 var (
 	tempostackGVR = schema.GroupVersionResource{
@@ -119,11 +126,15 @@ func listTempos(ctx context.Context, k8sclient *dynamic.DynamicClient, gvr schem
 			continue
 		}
 
+		ready, statusMessage := readStatusFromCR(&resource)
+
 		resources = append(resources, TempoResource{
-			Kind:      KindType(resource.GetKind()),
-			Namespace: resource.GetNamespace(),
-			Name:      resource.GetName(),
-			Tenants:   tenants,
+			Kind:          KindType(resource.GetKind()),
+			Namespace:     resource.GetNamespace(),
+			Name:          resource.GetName(),
+			Tenants:       tenants,
+			Ready:         ready,
+			StatusMessage: statusMessage,
 		})
 	}
 
@@ -176,6 +187,44 @@ func readTenantsFromCR(spec *unstructured.Unstructured) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("invalid Tempo resource with kind '%s'", spec.GetKind())
 	}
+}
+
+// readStatusFromCR reports if the Tempo instance is ready, i.e. if it has a status condition of
+// type 'Ready' set to 'True'. If the instance is not ready, the message of the condition which is
+// currently active ('Pending', 'Failed' or 'ConfigurationError') is returned as well, to explain
+// why the instance cannot be queried yet.
+//
+// TempoStack and TempoMonolithic both report the health of the deployment as a list of
+// metav1.Condition in status.conditions:
+// https://github.com/grafana/tempo-operator/blob/main/api/tempo/v1alpha1/tempostack_types.go
+// An instance without any condition has not been reconciled by the operator yet, i.e. it is not ready.
+func readStatusFromCR(spec *unstructured.Unstructured) (bool, string) {
+	conditions, found, err := unstructured.NestedSlice(spec.Object, "status", "conditions")
+	if err != nil || !found {
+		return false, ""
+	}
+
+	message := ""
+	for _, condition := range conditions {
+		conditionMap, ok := condition.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if conditionMap["status"] != string(metav1.ConditionTrue) {
+			continue
+		}
+
+		if conditionMap["type"] == ConditionReady {
+			return true, ""
+		}
+
+		// the first active condition other than 'Ready' explains why the instance is not ready
+		if message == "" {
+			message, _ = conditionMap["message"].(string)
+		}
+	}
+
+	return false, message
 }
 
 func validateTenancyMode(spec *unstructured.Unstructured, fields ...string) (bool, error) {
