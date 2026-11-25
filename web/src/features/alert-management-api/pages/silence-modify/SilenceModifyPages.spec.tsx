@@ -66,7 +66,7 @@ vi.mock('@/shared/components/silences/SilenceForm', () => ({
     );
   },
 }));
-vi.mock('@/features/alert-management-api/components/AlertManagementLayout', () => ({
+vi.mock('@/features/alert-management-api/components/layout/AlertManagementLayout', () => ({
   AlertManagementLayout: ({ children }: { children: ReactNode }) => (
     <div data-testid="layout">{children}</div>
   ),
@@ -121,10 +121,13 @@ beforeEach(() => {
   mocks.query = { data: undefined, isLoading: false, error: null };
 });
 
-it('opens a direct create link only after its namespace is selected, preserving all labels', async () => {
-  mount('/monitoring/v2/management/silences/~new?namespace=team-b&alertname=A%26B');
+it.each([
+  'namespace=team-b&alertname=A%26B',
+  'namespace=team-c&alertname=Old&namespace=team-b&alertname=A%26B',
+])('prefills a direct create link using the last value for each label: %s', async (search) => {
+  mount(`/monitoring/v2/management/silences/~new?${search}`);
   await screen.findByRole('heading', { name: 'Silence alert' });
-  expect(mocks.setNamespace).toHaveBeenCalledWith('team-b');
+  expect(mocks.setNamespace).toHaveBeenCalledExactlyOnceWith('team-b');
   expect(mocks.form.mock.calls.every(([props]) => props.namespaceAtMount === 'team-b')).toBe(true);
   expect(JSON.parse(screen.getByTestId('defaults').textContent!).matchers).toEqual([
     { name: 'namespace', value: 'team-b', isEqual: true, isRegex: false },
@@ -227,11 +230,16 @@ it('does not render an editor until the silence query finishes', () => {
   expect(mocks.form).not.toHaveBeenCalled();
 });
 
-it('shows the loading box while checking edit access', () => {
-  mocks.query.data = [makeSilence()];
+it('waits for edit access before switching namespaces or mounting the form', () => {
+  mocks.query.data = [
+    makeSilence({
+      matchers: [{ name: 'namespace', value: 'team-b', isRegex: false, isEqual: true }],
+    }),
+  ];
   mocks.accessLoading = true;
   mount('/monitoring/v2/management/silences/silence-example/edit');
   expect(screen.getByRole('progressbar')).toBeTruthy();
+  expect(mocks.setNamespace).not.toHaveBeenCalled();
   expect(mocks.form).not.toHaveBeenCalled();
 });
 
@@ -300,6 +308,40 @@ it('preserves unrestricted regex matchers without changing the selected namespac
   mount('/monitoring/v2/management/silences/silence-example/edit');
   expect(JSON.parse(screen.getByTestId('defaults').textContent!).matchers).toEqual(matchers);
   expect(mocks.setNamespace).not.toHaveBeenCalled();
+});
+
+it.each(['~new', 'silence-example/edit'])('contains render errors on the %s route', (route) => {
+  const path = `/monitoring/v2/management/silences/${route}`;
+  const error = new Error('Silence form failed to render');
+  // React 18 also reports caught render errors as window events in development.
+  const suppressExpectedError = (event: ErrorEvent) => {
+    if (event.error === error) {
+      event.preventDefault();
+    }
+  };
+
+  window.addEventListener('error', suppressExpectedError);
+  const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  mocks.tenancy = false;
+  mocks.query.data = [makeSilence()];
+  mocks.form.mockImplementation(() => {
+    throw error;
+  });
+
+  try {
+    mount(path);
+    expect(screen.getByTestId('location').textContent).toBe(path);
+    expect(screen.queryByTestId('defaults')).toBeNull();
+    expect(logError).toHaveBeenCalledWith(
+      'Caught error in a child component:',
+      error,
+      expect.anything(),
+    );
+  } finally {
+    window.removeEventListener('error', suppressExpectedError);
+    logError.mockRestore();
+    mocks.form.mockReset();
+  }
 });
 
 it('still falls back for unknown v2 routes', async () => {

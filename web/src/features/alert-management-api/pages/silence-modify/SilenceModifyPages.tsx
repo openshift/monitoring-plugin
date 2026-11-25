@@ -9,6 +9,7 @@ import { useSilencesQuery } from '@/features/alert-management-api/hooks/useSilen
 import { getSilencesPageUrl, silencesPath } from '@/features/alert-management-api/utils/urls';
 import { SilenceEditInfo } from '@/shared/components/silences/SilenceEditInfo';
 import { SilenceFormContent } from '@/shared/components/silences/SilenceForm';
+import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import { ConsoleEmptyState } from '@/shared/console/console-shared/src/components/empty-state/ConsoleEmptyState';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { StatusBox } from '@/shared/console/console-shared/src/components/status/StatusBox';
@@ -55,7 +56,7 @@ const useSilenceFormActions = () => {
   };
 };
 
-export function SilenceManagementCreatePage() {
+function SilenceManagementCreatePageContent() {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { accessCheckLoading, useAlertsTenancy } = useMonitoring();
@@ -63,14 +64,15 @@ export function SilenceManagementCreatePage() {
   const actions = useSilenceFormActions();
 
   const [params] = useSearchParams();
-  const namespaceReady = useSilenceNamespace(params.get(QueryParams.Namespace) || undefined);
-
-  const matchers = Array.from(params, ([name, value]) => ({
+  const labels = Object.fromEntries(params);
+  const matchers = Object.entries(labels).map(([name, value]) => ({
     name,
     value,
     isRegex: false,
     isEqual: true,
   }));
+
+  const namespaceReady = useSilenceNamespace(labels[QueryParams.Namespace]);
 
   if (accessCheckLoading || !namespaceReady) {
     return <LoadingBox />;
@@ -87,7 +89,7 @@ export function SilenceManagementCreatePage() {
   );
 }
 
-export function SilenceManagementEditPage({ id }: { id: string }) {
+function SilenceManagementEditPageContent({ id }: { id: string }) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
 
   const { accessCheckLoading, useAlertsTenancy } = useMonitoring();
@@ -107,7 +109,7 @@ export function SilenceManagementEditPage({ id }: { id: string }) {
       : undefined;
 
   const namespaceReady = useSilenceNamespace(
-    !query.isLoading && useAlertsTenancy ? exactNamespace : undefined,
+    !query.isLoading && !accessCheckLoading && useAlertsTenancy ? exactNamespace : undefined,
   );
 
   const loaded = !query.isLoading && (!silence || (!accessCheckLoading && namespaceReady));
@@ -149,3 +151,6 @@ export function SilenceManagementEditPage({ id }: { id: string }) {
     </StatusBox>
   );
 }
+
+export const SilenceManagementCreatePage = withFallback(SilenceManagementCreatePageContent);
+export const SilenceManagementEditPage = withFallback(SilenceManagementEditPageContent);
