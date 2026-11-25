@@ -1,19 +1,17 @@
 import { Fragment } from 'react';
 import type { ReactElement } from 'react';
 
-import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
-
-export type AlertColumnCell = {
-  column: AlertColumn;
+export type ColumnCell<Column extends string> = {
+  column: Column;
   component: ReactElement;
 };
 
-export function SortedColumnCells({
+export function SortedColumnCells<Column extends string>({
   columns,
   cells,
 }: {
-  columns: AlertColumn[];
-  cells: AlertColumnCell[];
+  columns: Column[];
+  cells: ColumnCell<Column>[];
 }) {
   return columns.map((column) => (
     <Fragment key={column}>{cells.find((cell) => cell.column === column)?.component}</Fragment>

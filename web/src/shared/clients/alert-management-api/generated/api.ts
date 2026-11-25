@@ -476,13 +476,16 @@ export type GetAlertsQueryError = ErrorType<ErrorResponse>;
 export function useGetAlerts<
   TData = Awaited<ReturnType<typeof getAlerts>>,
   TError = ErrorType<ErrorResponse>,
->(
-  params?: GetAlertsParams,
+>({
+  params,
+  options,
+}: {
+  params?: GetAlertsParams;
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof getAlerts>>, TError, TData>;
     request?: SecondParameter<typeof alertManagementFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  };
+} = {}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetAlertsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
@@ -597,13 +600,16 @@ export type GetRulesQueryError = ErrorType<ErrorResponse>;
 export function useGetRules<
   TData = Awaited<ReturnType<typeof getRules>>,
   TError = ErrorType<ErrorResponse>,
->(
-  params?: GetRulesParams,
+>({
+  params,
+  options,
+}: {
+  params?: GetRulesParams;
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof getRules>>, TError, TData>;
     request?: SecondParameter<typeof alertManagementFetch>;
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  };
+} = {}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRulesQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
@@ -1194,10 +1200,14 @@ export type GetHealthQueryError = ErrorType<ErrorResponse>;
 export function useGetHealth<
   TData = Awaited<ReturnType<typeof getHealth>>,
   TError = ErrorType<ErrorResponse>,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
-  request?: SecondParameter<typeof alertManagementFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+>({
+  options,
+}: {
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>;
+    request?: SecondParameter<typeof alertManagementFetch>;
+  };
+} = {}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetHealthQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };

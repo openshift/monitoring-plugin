@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { TableColumnsModal } from '@/features/alert-management-api/components/TableColumnsModal';
+import { TableColumnsModal } from '@/features/alert-management-api/components/table/TableColumnsModal';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('@patternfly/react-component-groups/dist/dynamic/ColumnManagementModal', () => ({

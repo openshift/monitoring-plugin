@@ -2,7 +2,7 @@
 
 import { render, screen } from '@testing-library/react';
 
-import { PageWithFilters } from '@/features/alert-management-api/components/PageWithFilters';
+import { PageWithFilters } from '@/features/alert-management-api/components/layout/PageWithFilters';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 it('keeps results mounted while the PatternFly sidebar is toggled', () => {

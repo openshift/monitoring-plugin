@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { useState } from 'react';
 
-import { PageWithSidepanel } from '@/features/alert-management-api/components/PageWithSidepanel';
+import { PageWithSidepanel } from '@/features/alert-management-api/components/layout/PageWithSidepanel';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
 vi.mock('react-i18next', () => ({
@@ -60,7 +60,7 @@ it('preserves child state and node identity while toggling modal isolation', () 
 it('declares a non-scrolling frame and stationary backdrop inside nested drawers', () => {
   const stylesheet = document.createElement('style');
   stylesheet.textContent = readFileSync(
-    resolve(__dirname, '../assets/page-with-sidepanel.css'),
+    resolve(__dirname, '../../assets/page-with-sidepanel.css'),
     'utf8',
   );
   document.head.append(stylesheet);

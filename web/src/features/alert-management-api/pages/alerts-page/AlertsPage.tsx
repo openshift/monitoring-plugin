@@ -23,10 +23,10 @@ import { ClockIcon, RhUiFilterFillIcon } from '@patternfly/react-icons';
 import { CSSProperties, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AlertSeverityButton } from '@/features/alert-management-api/components/AlertSeverityButton';
-import { PageWithFilters } from '@/features/alert-management-api/components/PageWithFilters';
-import { PageWithSidepanel } from '@/features/alert-management-api/components/PageWithSidepanel';
-import { SelectedFilters } from '@/features/alert-management-api/components/SelectedFilters';
+import { AlertSeverityButton } from '@/features/alert-management-api/components/filters/AlertSeverityButton';
+import { SelectedFilters } from '@/features/alert-management-api/components/filters/SelectedFilters';
+import { PageWithFilters } from '@/features/alert-management-api/components/layout/PageWithFilters';
+import { PageWithSidepanel } from '@/features/alert-management-api/components/layout/PageWithSidepanel';
 import { useAlertManagementData } from '@/features/alert-management-api/hooks/useAlertManagementData';
 // The alerts page hosts the alert-details panel rather than navigating to a separate page.
 // eslint-disable-next-line import/no-restricted-paths
@@ -46,6 +46,7 @@ import { TimeRangeSelect } from '@/shared/components/TimeRangeSelect';
 import { AccessDenied } from '@/shared/console/console-shared/src/components/empty-state/AccessDenied';
 import { LoadingBox } from '@/shared/console/console-shared/src/components/loading/LoadingBox';
 import { DataTestIDs } from '@/shared/constants/data-test';
+import { getSourceKey } from '@/shared/utils/alerts/alert-source';
 import { getSeverityColors } from '@/shared/utils/alerts/formatting';
 import { startCase } from '@/shared/utils/strings';
 
@@ -147,8 +148,11 @@ export function AlertManagementAlertsPage() {
                       aria-label={t('Search alert name')}
                       value={filters.name}
                       placeholder={t('Search alert name')}
-                      onChange={(_event, name) => setFilters({ ...filters, name })}
-                      onClear={() => setFilters({ ...filters, name: '' })}
+                      resetButtonLabel={t('Reset')}
+                      onChange={(_event, name) =>
+                        setFilters({ ...filters, name }, { replace: true })
+                      }
+                      onClear={() => setFilters({ ...filters, name: '' }, { replace: true })}
                     />
                   </FlexItem>
                   <FlexItem align={{ default: 'alignRight' }}>
@@ -167,9 +171,14 @@ export function AlertManagementAlertsPage() {
                   getLabelStatus={(key, value) =>
                     key === 'severity' ? getSeverityColors(value).labelStatus : undefined
                   }
-                  formatLabelText={(key, value) =>
-                    ['scope', 'severity', 'state'].includes(key) ? t(startCase(value)) : value
-                  }
+                  formatLabelText={(key, value) => {
+                    if (key === 'source') {
+                      return getSourceKey(startCase(value), t);
+                    }
+                    return ['scope', 'severity', 'state'].includes(key)
+                      ? t(startCase(value))
+                      : value;
+                  }}
                   onChange={setFilters}
                 />
               </PanelMainBody>

@@ -2,7 +2,7 @@
 
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { AlertSeverityButton } from '@/features/alert-management-api/components/AlertSeverityButton';
+import { AlertSeverityButton } from '@/features/alert-management-api/components/filters/AlertSeverityButton';
 
 vi.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   AlertSeverity: { Critical: 'critical', Warning: 'warning', Info: 'info', None: 'none' },
@@ -23,6 +23,16 @@ it.each([
 ])('shows the %s severity tooltip with count %s', async (severity, count, tooltip) => {
   render(<AlertSeverityButton severity={severity} count={count} onClick={vi.fn()} />);
 
-  fireEvent.mouseEnter(screen.getByRole('button', { name: `Filter ${severity} alerts` }));
+  const button = screen.getByRole('button', { name: `Filter ${severity} alerts` });
+  expect(button.hasAttribute('aria-pressed')).toBe(false);
+  fireEvent.mouseEnter(button);
   expect((await screen.findByRole('tooltip')).textContent).toBe(tooltip);
+});
+
+it.each([true, false])('exposes an explicitly supplied pressed state of %s', (isPressed) => {
+  render(
+    <AlertSeverityButton severity="critical" count={3} isPressed={isPressed} onClick={vi.fn()} />,
+  );
+
+  expect(screen.getByRole('button').getAttribute('aria-pressed')).toBe(String(isPressed));
 });

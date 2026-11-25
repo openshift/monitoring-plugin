@@ -8,10 +8,6 @@ function PlaceholderPage({ name }: { name: string }) {
   );
 }
 
-export function AlertRulesManagementPage() {
-  return <PlaceholderPage name="Alert rules" />;
-}
-
 export function SilencesManagementPage() {
   return <PlaceholderPage name="Silences" />;
 }

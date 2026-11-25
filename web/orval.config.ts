@@ -1,5 +1,7 @@
 import { defineConfig } from 'orval';
 
+import { namedQueryParameters } from './src/shared/clients/alert-management-api/named-query-parameters';
+
 export default defineConfig({
   alertManagement: {
     hooks: {
@@ -8,7 +10,16 @@ export default defineConfig({
     input: '../api/openapi.yaml',
     output: {
       target: './src/shared/clients/alert-management-api/generated/api.ts',
-      client: 'react-query',
+      client: (clients) => ({
+        ...clients['react-query'],
+        client: async (...args) => {
+          const result = await clients['react-query'].client(...args);
+          return {
+            ...result,
+            implementation: namedQueryParameters(result.implementation),
+          };
+        },
+      }),
       httpClient: 'fetch',
       // base url and fetch are configured in transport.ts
       baseUrl: '',

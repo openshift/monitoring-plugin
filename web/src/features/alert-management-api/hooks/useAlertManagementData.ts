@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useSilencesQuery } from '@/features/alert-management-api/hooks/useSilencesQuery';
 import {
   getMockAlertsResponse,
-  getMockManagementRulesResponse,
+  getMockRulesResponse,
 } from '@/features/alert-management-api/tests/fixtures/mock-responses';
 import { AlertManagementData } from '@/features/alert-management-api/types/types';
 import { toManagedAlert } from '@/features/alert-management-api/utils/alerts';
@@ -22,18 +22,20 @@ import { getSilenceName } from '@/shared/utils/alerts/formatting';
 const useMockResponses = process.env.NODE_ENV === 'development';
 
 export const useAlertManagementData = (refreshIntervalMs: number | false = false) => {
-  const rulesQuery = useGetRules(undefined, {
-    query: {
-      ...(useMockResponses
-        ? { queryFn: () => Promise.resolve(getMockManagementRulesResponse()) }
-        : {}),
-      refetchInterval: refreshIntervalMs,
+  const rulesQuery = useGetRules({
+    options: {
+      query: {
+        ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockRulesResponse()) } : {}),
+        refetchInterval: refreshIntervalMs,
+      },
     },
   });
-  const alertsQuery = useGetAlerts(undefined, {
-    query: {
-      ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockAlertsResponse()) } : {}),
-      refetchInterval: refreshIntervalMs,
+  const alertsQuery = useGetAlerts({
+    options: {
+      query: {
+        ...(useMockResponses ? { queryFn: () => Promise.resolve(getMockAlertsResponse()) } : {}),
+        refetchInterval: refreshIntervalMs,
+      },
     },
   });
   const silencesQuery = useSilencesQuery(refreshIntervalMs);

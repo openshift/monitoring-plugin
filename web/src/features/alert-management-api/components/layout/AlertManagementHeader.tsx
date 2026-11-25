@@ -15,7 +15,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import {
   RefreshControl,
   RefreshControlProps,
-} from '@/features/alert-management-api/components/RefreshControl';
+} from '@/features/alert-management-api/components/layout/RefreshControl';
 import '@/features/alert-management-api/assets/alerts-list.css';
 import { useFeatures } from '@/shared/hooks/useFeatures';
 

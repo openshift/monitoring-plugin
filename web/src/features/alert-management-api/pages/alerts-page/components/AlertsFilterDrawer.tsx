@@ -1,12 +1,13 @@
 import { AlertStates } from '@openshift-console/dynamic-plugin-sdk';
-import { Button, Divider, Flex, Title, ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
-import { CogIcon, CubesIcon, RhUiFilterFillIcon, TimesIcon } from '@patternfly/react-icons';
+import { Button, Divider, Flex, Title } from '@patternfly/react-core';
+import { CogIcon, RhUiFilterFillIcon, TimesIcon } from '@patternfly/react-icons';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AlertFilterLabel } from '@/features/alert-management-api/components/AlertFilterLabel';
-import { AlertFilterSelect } from '@/features/alert-management-api/components/AlertFilterSelect';
-import { AlertSeverityButton } from '@/features/alert-management-api/components/AlertSeverityButton';
+import { AlertFilterSelect } from '@/features/alert-management-api/components/filters/AlertFilterSelect';
+import { NamespaceFilter } from '@/features/alert-management-api/components/filters/NamespaceFilter';
+import { ScopeFilter } from '@/features/alert-management-api/components/filters/ScopeFilter';
+import { SeverityFilter } from '@/features/alert-management-api/components/filters/SeverityFilter';
 import { AlertFilters, ManagedAlert } from '@/features/alert-management-api/types/types';
 import {
   defaultAlertFilters,
@@ -24,40 +25,29 @@ type Props = {
 };
 
 type DropdownFilter = 'labels' | 'component' | 'state' | 'source';
-type MultiFilter = Exclude<keyof AlertFilters, 'firingTime' | 'name'>;
-const emptyHint: Partial<Record<DropdownFilter, string>> = {
-  labels: 'Showing all labels',
-  component: 'Showing all components',
-};
-
 export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const labels = {
     labels: t('Alert labels'),
     component: t('Affected component'),
-    severity: t('Severity'),
     state: t('State'),
     source: t('Source'),
-    scope: t('Scope'),
   };
-
-  const toggle = (key: MultiFilter, value: string, checked: boolean) => {
-    const values = checked
-      ? [...filters[key], value]
-      : filters[key].filter((item) => item !== value);
-    onChange({ ...filters, [key]: values });
+  const emptyHint: Partial<Record<DropdownFilter, string>> = {
+    labels: t('Showing all labels'),
+    component: t('Showing all components'),
   };
 
   const dropdownFilter = (key: DropdownFilter, placeholder: string) => {
-    const options = filterOptionsByKey(alerts, key).map((option) => ({
-      ...option,
-      label:
-        key === 'state'
-          ? getAlertStateKey(option.value as AlertStates, t)
-          : key === 'source'
-            ? getSourceKey(startCase(option.value), t)
-            : option.label,
-    }));
+    const options = filterOptionsByKey(alerts, key).map((option) => {
+      let label = option.label;
+      if (key === 'state') {
+        label = getAlertStateKey(option.value as AlertStates, t);
+      } else if (key === 'source') {
+        label = getSourceKey(startCase(option.value), t);
+      }
+      return { ...option, label };
+    });
 
     return (
       <AlertFilterSelect
@@ -80,8 +70,8 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
         selected={filters[key]}
         onChange={(values) => onChange({ ...filters, [key]: values } as AlertFilters)}
         emptyHint={emptyHint[key]}
-        labelTooltip={key === 'component' ? 'Affected components tooltip' : undefined}
-        searchLabel={key === 'labels' ? 'Search alert labels' : undefined}
+        labelTooltip={key === 'component' ? t('Affected components tooltip') : undefined}
+        searchLabel={key === 'labels' ? t('Search alert labels') : undefined}
       />
     );
   };
@@ -114,64 +104,31 @@ export function AlertsFilterDrawer({ alerts, filters, onChange, onClose }: Props
           }
         />
       </Flex>
-      <AlertFilterSelect
-        filterKey="namespace"
-        label="Namespace"
-        icon={<CubesIcon aria-hidden />}
-        placeholder="Select namespaces"
-        emptyHint="Showing all namespaces"
-        emptyOptionsLabel="No namespaces found"
-        searchLabel="Search namespaces"
-        searchPlaceholder="Search namespaces..."
+      <NamespaceFilter
         options={filterOptionsByKey(alerts, 'namespace')}
         selected={filters.namespace}
         onChange={(namespace) => onChange({ ...filters, namespace })}
       />
       <Divider />
-      {dropdownFilter('labels', 'Select labels')}
+      {dropdownFilter('labels', t('Select labels'))}
       <Divider />
-      <div>
-        <strong>{labels.severity}</strong>
-        <Flex spaceItems={{ default: 'spaceItemsSm' }}>
-          {filterOptionsByKey(alerts, 'severity').map(({ value: severity }) => {
-            return (
-              <AlertSeverityButton
-                key={severity}
-                severity={severity}
-                isDimmed={filters.severity.length > 0 && !filters.severity.includes(severity)}
-                onClick={() => toggle('severity', severity, !filters.severity.includes(severity))}
-              />
-            );
-          })}
-        </Flex>
-      </div>
+      <SeverityFilter
+        options={filterOptionsByKey(alerts, 'severity')}
+        selected={filters.severity}
+        onChange={(severity) => onChange({ ...filters, severity })}
+      />
       <Divider />
-      <div>
-        <AlertFilterLabel label="Alert scope" tooltip="Alert scope tooltip" />
-        <ToggleGroup isCompact aria-label={labels.scope}>
-          <ToggleGroupItem
-            text={t('All')}
-            isSelected={filters.scope.length === 0}
-            onChange={() => onChange({ ...filters, scope: [] })}
-          />
-          {['Cluster', 'Namespace'].map((scope) => (
-            <ToggleGroupItem
-              key={scope}
-              text={t(scope)}
-              isSelected={filters.scope.length === 1 && filters.scope[0] === scope}
-              onChange={(_event, selected) =>
-                onChange({ ...filters, scope: selected ? [scope] : [] })
-              }
-            />
-          ))}
-        </ToggleGroup>
-      </div>
+      <ScopeFilter
+        selected={filters.scope}
+        ariaLabel={t('Scope')}
+        onChange={(scope) => onChange({ ...filters, scope })}
+      />
       <Divider />
-      {dropdownFilter('component', 'Select components')}
+      {dropdownFilter('component', t('Select components'))}
       <Divider />
       <strong>{t('Alert Filters')}</strong>
-      {dropdownFilter('state', 'State')}
-      {dropdownFilter('source', 'Source')}
+      {dropdownFilter('state', t('State'))}
+      {dropdownFilter('source', t('Source'))}
       {Object.values(filters).some((value) => value.length > 0) && (
         <>
           <Divider />

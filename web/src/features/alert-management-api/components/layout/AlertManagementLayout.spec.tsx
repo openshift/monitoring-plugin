@@ -5,12 +5,10 @@ import { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { QueryParamProvider } from 'use-query-params';
 
-import { AlertManagementLayout } from '@/features/alert-management-api/components/AlertManagementLayout';
+import { AlertManagementLayout } from '@/features/alert-management-api/components/layout/AlertManagementLayout';
 import { AlertManagementProvider } from '@/features/alert-management-api/pages/AlertManagementRouter';
-import {
-  AlertRulesManagementPage,
-  SilencesManagementPage,
-} from '@/features/alert-management-api/pages/PlaceholderPages';
+import { SilencesManagementPage } from '@/features/alert-management-api/pages/PlaceholderPages';
+import { AlertRulesManagementPage } from '@/features/alert-management-api/pages/rules-page/RulesPage';
 import { McpCmoAlertingPage } from '@/features/incidents/pages/IncidentsPage';
 import { ReactRouter7Adapter } from '@/shared/utils/react-router-7-adapter';
 
