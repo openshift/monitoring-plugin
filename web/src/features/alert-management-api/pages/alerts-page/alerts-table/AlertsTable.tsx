@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { AggregatedRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AggregatedRow';
 import { AlertRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertRow';
-import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import { AlertsTableHeader } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertsTableHeader';
 import { GroupRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/GroupRow';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
@@ -34,8 +33,6 @@ type AlertsTableProps = {
   columns?: AlertColumn[];
   sort: AlertSort;
   onSort: (nextSort: AlertSort) => void;
-  selectedAlertKeys: Set<string>;
-  onSelectionChange: (nextSelectedAlertKeys: Set<string>) => void;
 };
 
 export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function AlertsTable(
@@ -47,8 +44,6 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
     columns: configuredColumns = defaultAlertColumns,
     sort,
     onSort,
-    selectedAlertKeys,
-    onSelectionChange,
   },
   ref,
 ) {
@@ -100,7 +95,6 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
 
   const columns = configuredColumns.filter((column) => isAggregated || column !== 'total');
   const startColumns = getStartColumnConfiguration(hasExpandColumn, columns[0] === 'name');
-  const selection: AlertSelection = { selectedAlertKeys, onSelectionChange };
   let rowOffset = 0;
 
   if (alerts.length === 0) {
@@ -117,13 +111,11 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
         gridBreakPoint=""
       >
         <AlertsTableHeader
-          alerts={alerts}
           startColumns={startColumns}
           hasExpandColumn={hasExpandColumn}
           columns={columns}
           sort={sort}
           onSort={onSort}
-          selection={selection}
         />
         {groupBy !== AlertGroupBy.None
           ? groups.map((group) => {
@@ -143,7 +135,6 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
                   onToggleAggregate={toggleAggregatedRow}
                   startColumns={startColumns}
                   columns={columns}
-                  selection={selection}
                 />
               );
             })
@@ -162,11 +153,10 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
                     onToggle={() => toggleAggregatedRow(aggregatedAlerts.key)}
                     startColumns={startColumns}
                     columns={columns}
-                    selection={selection}
                   />
                 </Tbody>
               ))
-            : alerts.map((aggregate, rowIndex) => (
+            : alerts.map((aggregate) => (
                 <Tbody
                   key={aggregate.key}
                   isExpanded={expandedAggregate.has(aggregate.key)}
@@ -174,11 +164,9 @@ export const AlertsTable = forwardRef<AlertsTableRef, AlertsTableProps>(function
                 >
                   <AlertRow
                     alert={aggregate.alerts[0]}
-                    rowIndex={rowIndex}
                     hasExpandColumn={false}
                     startColumns={startColumns}
                     columns={columns}
-                    selection={selection}
                   />
                 </Tbody>
               ))}
@@ -199,14 +187,8 @@ const getStartColumnConfiguration = (hasExpandColumn: boolean, isNameFirst: bool
     isStickyColumn: isNameFirst,
     hasRightBorder: isNameFirst,
     stickyMinWidth: '12rem',
-    stickyLeftOffset: hasExpandColumn ? '5rem' : '2rem',
-  };
-  const selectionColumn: StartColumnsConfiguration['selectionColumn'] = {
-    modifier: 'fitContent' as const,
-    isStickyColumn: true,
-    stickyMinWidth: '2rem',
     stickyLeftOffset: hasExpandColumn ? '3rem' : '0',
   };
 
-  return { expandColumn, nameColumn, selectionColumn };
+  return { expandColumn, nameColumn };
 };

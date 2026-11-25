@@ -6,35 +6,27 @@ import {
   ColumnCell,
   SortedColumnCells,
 } from '@/features/alert-management-api/components/table/SortedColumnCells';
-import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
-import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
-import type { AggregatedAlert } from '@/features/alert-management-api/types/types';
 import { AlertSort } from '@/features/alert-management-api/utils/sort-alerts';
-import { DataTestIDs } from '@/shared/constants/data-test';
 
 type AlertsTableHeaderProps = {
-  alerts: AggregatedAlert[];
   startColumns: StartColumnsConfiguration;
   hasExpandColumn: boolean;
   columns: AlertColumn[];
   sort: AlertSort;
   onSort: (nextSort: AlertSort) => void;
-  selection: AlertSelection;
 };
 
 export function AlertsTableHeader({
-  alerts,
-  startColumns: { expandColumn, selectionColumn, nameColumn },
+  startColumns: { expandColumn, nameColumn },
   hasExpandColumn,
   columns,
   sort,
   onSort,
-  selection,
 }: AlertsTableHeaderProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
-  const firstColumnIndex = hasExpandColumn ? 2 : 1;
+  const firstColumnIndex = hasExpandColumn ? 1 : 0;
   const sortBy = {
     index: columns.indexOf(sort.column) + firstColumnIndex,
     direction: sort.direction,
@@ -135,14 +127,6 @@ export function AlertsTableHeader({
     <Thead className="pf-m-nowrap">
       <Tr>
         {hasExpandColumn && <Th screenReaderText={t('Expand alert')} {...expandColumn} />}
-        <Th modifier="fitContent" {...selectionColumn}>
-          <AlertSelectionCheckbox
-            alerts={alerts.flatMap((aggregate) => aggregate.alerts)}
-            label={t('Select all alerts on this page')}
-            id={DataTestIDs.AlertManagementAPI.SelectAllAlertsCheckbox}
-            {...selection}
-          />
-        </Th>
         <SortedColumnCells columns={columns} cells={cells} />
         <Th modifier="fitContent" screenReaderText={t('Actions')} />
       </Tr>

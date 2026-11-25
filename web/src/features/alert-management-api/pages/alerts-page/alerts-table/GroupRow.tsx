@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { AggregatedRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AggregatedRow';
 import { AlertRow } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertRow';
-import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import { AlertGroupBy } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
@@ -25,7 +24,6 @@ type GroupRowProps = {
   onToggleAggregate: (key: string) => void;
   startColumns: StartColumnsConfiguration;
   columns: AlertColumn[];
-  selection: AlertSelection;
 };
 
 export function GroupRow({
@@ -39,7 +37,6 @@ export function GroupRow({
   onToggleAggregate,
   startColumns,
   columns,
-  selection,
 }: GroupRowProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const severityCounts: Record<string, number> = {};
@@ -81,7 +78,6 @@ export function GroupRow({
             icon={isExpanded ? <AngleDownIcon /> : <AngleRightIcon />}
           />
         </Td>
-        <Td {...startColumns.selectionColumn} />
         {columns.map((column) =>
           column === 'name' ? (
             <Td key={column} {...startColumns.nameColumn}>
@@ -120,17 +116,14 @@ export function GroupRow({
               onToggle={() => onToggleAggregate(aggregatedAlert.key)}
               startColumns={startColumns}
               columns={columns}
-              selection={selection}
             />
           ) : (
             <AlertRow
               key={aggregatedAlert.key}
               alert={aggregatedAlert.alerts[0]}
-              rowIndex={firstRowIndex + index}
               hasExpandColumn
               startColumns={startColumns}
               columns={columns}
-              selection={selection}
             />
           ),
         )}

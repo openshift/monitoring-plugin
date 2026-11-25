@@ -10,8 +10,6 @@ import {
   SortedColumnCells,
 } from '@/features/alert-management-api/components/table/SortedColumnCells';
 import { AlertActions } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertActions';
-import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
-import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
@@ -42,24 +40,18 @@ export function AlertName({ name, children }: { name: string; children?: ReactNo
 
 type AlertRowProps = {
   alert: ManagedAlert;
-  rowIndex: number;
-  alertIndex?: number;
   hasExpandColumn: boolean;
   isAggregateChild?: boolean;
   startColumns: StartColumnsConfiguration;
   columns: AlertColumn[];
-  selection: AlertSelection;
 };
 
 export function AlertRow({
   alert,
-  rowIndex,
-  alertIndex = 0,
   hasExpandColumn,
   isAggregateChild = false,
   startColumns,
   columns,
-  selection,
 }: AlertRowProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { pathname, search, hash } = useLocation();
@@ -155,25 +147,6 @@ export function AlertRow({
   return (
     <Tr>
       {hasExpandColumn && <Td {...startColumns.expandColumn} />}
-      <Td modifier="fitContent" {...startColumns.selectionColumn}>
-        <AlertSelectionCheckbox
-          alerts={[alert]}
-          label={
-            isAggregateChild
-              ? t('Select {{name}} alert in namespace {{namespace}}', {
-                  name,
-                  namespace: alert.labels.namespace ?? '',
-                })
-              : t('Select {{name}} alerts', { name })
-          }
-          id={
-            DataTestIDs.AlertManagementAPI.SelectionCheckboxPrefix +
-            '-' +
-            (isAggregateChild ? `alert-${rowIndex}-${alertIndex}` : `group-${rowIndex}`)
-          }
-          {...selection}
-        />
-      </Td>
       <SortedColumnCells columns={columns} cells={cells} />
       <Td hasAction>
         <AlertActions alert={alert} />

@@ -17,7 +17,7 @@ import {
   groupAlerts,
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { testAlerts } from '@/features/alert-management-api/tests/fixtures/alerts-test-data';
-import { aggregateAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
+import { aggregateAlerts } from '@/features/alert-management-api/utils/alerts';
 import { defaultAlertSort } from '@/features/alert-management-api/utils/sort-alerts';
 import { DataTestIDs } from '@/shared/constants/data-test';
 
@@ -73,8 +73,6 @@ const table = (props: Partial<ComponentPropsWithRef<typeof AlertsTable>> = {}) =
       isAggregated
       sort={defaultAlertSort}
       onSort={vi.fn()}
-      selectedAlertKeys={new Set()}
-      onSelectionChange={vi.fn()}
       {...props}
     />
   </MemoryRouter>
@@ -93,7 +91,7 @@ it.each([true, false])(
       }),
     );
     const headers = screen.getAllByRole('columnheader');
-    expect(headers.slice(2, -1).map((header) => header.textContent)).toEqual(
+    expect(headers.slice(1, -1).map((header) => header.textContent)).toEqual(
       isAggregated
         ? ['Source', 'Total', 'Severity', 'Alert name']
         : ['Source', 'Severity', 'Alert name'],
@@ -107,8 +105,8 @@ it.each([true, false])(
     expect(onSort).toHaveBeenCalledWith({ column: 'source', direction: 'asc' });
     const summary = screen.getByText('Alert scope: Cluster (4 alerts)').closest('tr')!;
     const cells = within(summary).getAllByRole('cell');
-    expect(cells[2].textContent).toBe('');
-    expect(cells[isAggregated ? 5 : 4].textContent).toContain('Alert scope: Cluster');
+    expect(cells[1].textContent).toBe('');
+    expect(cells[isAggregated ? 4 : 3].textContent).toContain('Alert scope: Cluster');
     fireEvent.click(within(summary).getByRole('button'));
     if (isAggregated) {
       fireEvent.click(screen.getAllByRole('button', { name: 'Details' })[0]);
@@ -155,8 +153,8 @@ it('expands an ungrouped aggregate into its individual rows', () => {
   ).toBe(false);
   expect(
     header.style.getPropertyValue('--pf-v6-c-table__sticky-cell--InsetInlineStart'),
-    'The alert name header should be offset past the selection and expand controls',
-  ).toBe('5rem');
+    'The alert name header should be offset past the expand control',
+  ).toBe('3rem');
   expect(
     screen.getAllByText('Alert1'),
     'One collapsed aggregate row should show Alert1 once',
@@ -275,34 +273,27 @@ it('derives group counts from rows in aligned sibling bodies with optional colum
   ).toBeNull();
   const summary = screen.getByText('Alert scope: Cluster (4 alerts)').closest('tr')!;
   const cells = within(summary).getAllByRole('cell');
-  expect(cells[1].textContent, 'The group summary should leave its selection column empty').toBe(
-    '',
-  );
   expect(
-    within(summary).queryByRole('checkbox'),
-    'Group summary rows should not have selection checkboxes',
-  ).toBeNull();
-  expect(
-    cells[2].classList.contains('pf-v6-c-table__sticky-cell'),
+    cells[1].classList.contains('pf-v6-c-table__sticky-cell'),
     'The group summary label should remain sticky with the alert name column',
   ).toBe(true);
   expect(
-    cells[2].getAttribute('colspan'),
+    cells[1].getAttribute('colspan'),
     'The sticky summary label should occupy one cell',
   ).toBeNull();
   expect(
     cells[1].style.getPropertyValue('--pf-v6-c-table__sticky-cell--InsetInlineStart'),
-    'The summary row should offset its sticky label past the selection column',
+    'The summary row should offset its sticky label past the expand column',
   ).toBe('3rem');
   expect(
     screen.getByRole('button', { name: 'Toggle group: Alert scope: Cluster (4 alerts)' }),
     'Each group summary should provide a control to expand or collapse it',
   ).toBeDefined();
-  expect(cells[3].textContent, 'The group summary should show the aggregate alert total').toBe(
+  expect(cells[2].textContent, 'The group summary should show the aggregate alert total').toBe(
     '21',
   );
   expect(
-    cells[4].textContent,
+    cells[3].textContent,
     'The group summary should show the number of alerts in the group',
   ).toBe('4');
   const headers = screen.getAllByRole('columnheader');
@@ -310,8 +301,8 @@ it('derives group counts from rows in aligned sibling bodies with optional colum
   headers.forEach((header, index) => {
     expect(
       header.classList.contains('pf-m-fit-content'),
-      'Only the selection, alert name, and final detail columns should fit their content',
-    ).toBe(index < 2 || index === columnCount - 1);
+      'Only the expand and final detail columns should fit their content',
+    ).toBe(index === 0 || index === columnCount - 1);
   });
   screen
     .getAllByRole('row')
@@ -356,11 +347,7 @@ it('preserves aggregate expansion across group collapse and reordering', () => {
   const ref = createRef<AlertsTableRef>();
   const { rerender } = render(table({ ref }));
   act(() => ref.current?.expandAllGroups());
-  fireEvent.click(
-    within(
-      screen.getAllByRole('checkbox', { name: 'Select Alert1 alerts' })[0].closest('tr')!,
-    ).getByRole('button'),
-  );
+  fireEvent.click(within(screen.getAllByText('Alert1')[0].closest('tr')!).getByRole('button'));
   expect(
     screen.getAllByRole('link', { name: rows[0].name }),
     'The expanded aggregate should show links for both alerts',
@@ -392,7 +379,7 @@ it('preserves aggregate expansion across group collapse and reordering', () => {
   ).toHaveLength(2);
   const summaryCells = within(groupToggle.closest('tr')!).getAllByRole('cell');
   const headers = screen.getAllByRole('columnheader');
-  [summaryCells[0], summaryCells[1], headers[0], headers[1]].forEach((cell) => {
+  [summaryCells[0], headers[0]].forEach((cell) => {
     expect(
       cell.classList.contains('pf-m-fit-content'),
       'Group summary and leading header cells should fit their content',
@@ -434,10 +421,6 @@ it('shows alert state descriptions on individual rows', () => {
     within(row).getByRole('link', { name: 'Alert3' }).getAttribute('href'),
     'Individual alert names should link to their sidepanel selection',
   ).toContain('alertRuleID=Alert3&alertID=');
-  expect(
-    within(row).getByRole('checkbox', { name: 'Select Alert3 alerts' }),
-    'Each individual alert row should be selectable',
-  ).toBeDefined();
   expect(row.cells, 'Each alert row should have one cell for every table column').toHaveLength(
     screen.getAllByRole('columnheader').length,
   );
@@ -445,8 +428,8 @@ it('shows alert state descriptions on individual rows', () => {
     screen
       .getByRole('columnheader', { name: 'Alert name' })
       .style.getPropertyValue('--pf-v6-c-table__sticky-cell--InsetInlineStart'),
-    'The alert name header should be offset only by the selection column when ungrouped',
-  ).toBe('2rem');
+    'The alert name header should have no offset when ungrouped',
+  ).toBe('0');
   expect(
     screen.queryByRole('button', { name: 'Details' }),
     'Individual alert rows should not show aggregate detail controls',
@@ -476,11 +459,10 @@ it('keeps the optional description column on a single line', () => {
 });
 
 it.each([AlertGroupBy.Severity, AlertGroupBy.Scope, AlertGroupBy.Component])(
-  'groups individual rows by %s without aggregate controls and selects collapsed rows',
+  'groups individual rows by %s without aggregate controls',
   (groupBy) => {
     const pageGroups = groupAlerts(testAlerts, groupBy, false, defaultAlertSort);
     const ref = createRef<AlertsTableRef>();
-    const onSelectionChange = vi.fn();
     const onSort = vi.fn();
     const { container } = render(
       table({
@@ -490,22 +472,10 @@ it.each([AlertGroupBy.Severity, AlertGroupBy.Scope, AlertGroupBy.Component])(
         pageGroups,
         columns: ['name', 'severity'],
         ref,
-        onSelectionChange,
         onSort,
       }),
     );
     act(() => ref.current?.expandAllGroups());
-    fireEvent.click(screen.getAllByRole('button', { name: /^Toggle group:/ })[0]);
-    expect(
-      screen.queryByRole('checkbox', { name: 'Select Alert3 alerts' }),
-      'Collapsing a group should hide its individual selection controls',
-    ).toBeNull();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Select all alerts on this page' }));
-    expect(
-      onSelectionChange,
-      'Select-all should include every alert even when groups are collapsed',
-    ).toHaveBeenCalledWith(new Set(testAlerts.map(getAlertStableKey)));
-    fireEvent.click(screen.getAllByRole('button', { name: /^Toggle group:/ })[0]);
     expect(
       screen.queryByRole('columnheader', { name: 'Total' }),
       'The total column should be hidden for individual alert rows',
@@ -513,8 +483,8 @@ it.each([AlertGroupBy.Severity, AlertGroupBy.Scope, AlertGroupBy.Component])(
     const header = screen.getByRole('columnheader', { name: 'Alert name' });
     expect(
       header.style.getPropertyValue('--pf-v6-c-table__sticky-cell--InsetInlineStart'),
-      'Grouped alert names should be offset past selection and group controls',
-    ).toBe('5rem');
+      'Grouped alert names should be offset past the group control',
+    ).toBe('3rem');
     expect(
       screen.getByRole('columnheader', { name: /^Severity/ }).getAttribute('aria-sort'),
       'Sorting by severity should mark the severity header as ascending',
@@ -531,8 +501,8 @@ it.each([AlertGroupBy.Severity, AlertGroupBy.Scope, AlertGroupBy.Component])(
     ).toBe('');
     expect(
       row.cells,
-      'The individual alert row should contain all five visible columns',
-    ).toHaveLength(5);
+      'The individual alert row should contain all four visible columns',
+    ).toHaveLength(4);
     expect(
       within(row).queryByRole('button', { name: 'Details' }),
       'Individual alerts should not have aggregate detail buttons',

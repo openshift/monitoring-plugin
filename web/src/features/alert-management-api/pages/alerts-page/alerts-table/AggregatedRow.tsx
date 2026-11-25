@@ -12,8 +12,6 @@ import {
   AlertName,
   AlertRow,
 } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertRow';
-import { AlertSelectionCheckbox } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
-import type { AlertSelection } from '@/features/alert-management-api/pages/alerts-page/alerts-table/AlertSelectionCheckbox';
 import type { StartColumnsConfiguration } from '@/features/alert-management-api/pages/alerts-page/alerts-table/row-types';
 import type { AlertColumn } from '@/features/alert-management-api/pages/alerts-page/utils/alert-columns';
 import type { AggregatedAlert } from '@/features/alert-management-api/types/types';
@@ -30,7 +28,6 @@ type AggregatedRowProps = {
   onToggle: () => void;
   startColumns: StartColumnsConfiguration;
   columns: AlertColumn[];
-  selection: AlertSelection;
 };
 
 export function AggregatedRow({
@@ -40,7 +37,6 @@ export function AggregatedRow({
   onToggle,
   startColumns,
   columns,
-  selection,
 }: AggregatedRowProps) {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const firingSince = getFiringSinceTimestamp(aggregatedAlert.alerts);
@@ -136,14 +132,6 @@ export function AggregatedRow({
           }}
           {...startColumns.expandColumn}
         />
-        <Td modifier="fitContent" {...startColumns.selectionColumn}>
-          <AlertSelectionCheckbox
-            alerts={aggregatedAlert.alerts}
-            label={t('Select {{name}} alerts', { name: aggregatedAlert.name })}
-            id={`${DataTestIDs.AlertManagementAPI.SelectionCheckboxPrefix}-group-${rowIndex}`}
-            {...selection}
-          />
-        </Td>
         <SortedColumnCells columns={columns} cells={cells} />
         <Td />
       </Tr>
@@ -152,13 +140,10 @@ export function AggregatedRow({
           <AlertRow
             key={`${alert.rule.id}-${alert.activeAt}-${index}`}
             alert={alert}
-            rowIndex={rowIndex}
-            alertIndex={index}
             hasExpandColumn
             isAggregateChild
             startColumns={startColumns}
             columns={columns}
-            selection={selection}
           />
         ))}
     </>

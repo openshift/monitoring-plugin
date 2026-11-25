@@ -29,8 +29,6 @@ export const DataTestIDs = {
     SearchInput: 'alert-management-search',
     AggregateIdenticalAlertsSwitch: 'aggregate-identical-alerts',
     RefreshIntervalSelect: 'alert-management-refresh-interval',
-    SelectionCheckboxPrefix: 'alert-management-selection',
-    SelectAllAlertsCheckbox: 'alert-management-selection-all',
     ExpandRowPrefix: 'alert-management-expand',
     QueryOutput: 'alert-management-query-output',
     SortOutput: 'alert-management-sort-output',

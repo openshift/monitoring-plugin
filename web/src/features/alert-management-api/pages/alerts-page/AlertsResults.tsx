@@ -10,7 +10,6 @@ import {
   PanelMainBody,
   Switch,
 } from '@patternfly/react-core';
-import { BellSlashIcon } from '@patternfly/react-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
@@ -35,7 +34,7 @@ import {
   paginateAlertGroups,
 } from '@/features/alert-management-api/pages/alerts-page/utils/group-alerts';
 import { AlertFilters, ManagedAlert } from '@/features/alert-management-api/types/types';
-import { filterAlerts, getAlertStableKey } from '@/features/alert-management-api/utils/alerts';
+import { filterAlerts } from '@/features/alert-management-api/utils/alerts';
 import { defaultAlertSort, sortColumns } from '@/features/alert-management-api/utils/sort-alerts';
 import { parseTableColumns } from '@/features/alert-management-api/utils/table-columns';
 import { useTablePagination } from '@/shared/components/table/hooks/useTablePagination';
@@ -49,8 +48,6 @@ type AlertsResultsProps = {
 };
 
 export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
-  const { t } = useTranslation(process.env.I18N_NAMESPACE);
-
   const [searchParams, setSearchParams] = useSearchParams();
   const [groupBy] = useQueryParam(QueryParams.GroupBy, AlertGroupByParam);
   const previousGroupBy = useRef(groupBy);
@@ -65,8 +62,6 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
     [columnsParam],
   );
   const [isManageColumnsOpen, setManageColumnsOpen] = useState(false);
-
-  const [selectedAlertKeys, setSelectedAlertKeys] = useState<Set<string>>(() => new Set());
 
   const { sort, setSort } = useAlertManagementSort(sortColumns, defaultAlertSort);
   const { column, direction } = sort;
@@ -84,10 +79,6 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
   const aggregatedAlerts = groups.flatMap((group) => group.rows);
   const pageGroups = paginateAlertGroups(groups, page, perPage);
   const pageAlerts = pageGroups.flatMap((group) => group.rows);
-
-  const selectedAlerts = filteredAlerts.filter((alert) =>
-    selectedAlertKeys.has(getAlertStableKey(alert)),
-  );
 
   useEffect(() => {
     if (previousFilters.current !== filterKey || previousGroupBy.current !== groupBy) {
@@ -161,38 +152,14 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
             />
           }
           rightActions={
-            <Flex alignItems={{ default: 'alignItemsCenter' }}>
-              {selectedAlerts.length > 0 && (
-                <FlexItem>
-                  <Button
-                    variant="secondary"
-                    icon={<BellSlashIcon />}
-                    onClick={() =>
-                      // eslint-disable-next-line no-console
-                      console.debug(
-                        `silencing ${selectedAlerts.length} alerts: ${selectedAlerts
-                          .map((alert) => alert.labels.alertname ?? alert.rule.name)
-                          .join(', ')}`,
-                      )
-                    }
-                  >
-                    {t('Silence ({{selectedCount}})', {
-                      selectedCount: selectedAlerts.length,
-                    })}
-                  </Button>
-                </FlexItem>
-              )}
-              <FlexItem>
-                <ActionList isIconList>
-                  <ActionListItem>
-                    <ManageColumnsButton onClick={() => setManageColumnsOpen(true)} />
-                  </ActionListItem>
-                  <ActionListItem>
-                    <ExportAlertsButton alerts={aggregatedAlerts} />
-                  </ActionListItem>
-                </ActionList>
-              </FlexItem>
-            </Flex>
+            <ActionList isIconList>
+              <ActionListItem>
+                <ManageColumnsButton onClick={() => setManageColumnsOpen(true)} />
+              </ActionListItem>
+              <ActionListItem>
+                <ExportAlertsButton alerts={aggregatedAlerts} />
+              </ActionListItem>
+            </ActionList>
           }
         />
         <Divider style={{ marginBlockStart: 'var(--pf-t--global--spacer--sm)' }} />
@@ -204,8 +171,6 @@ export function AlertsResults({ alerts, filters }: AlertsResultsProps) {
           isAggregated={isAggregated}
           columns={visibleColumns}
           sort={sort}
-          selectedAlertKeys={selectedAlertKeys}
-          onSelectionChange={setSelectedAlertKeys}
           onSort={setSort}
         />
         {aggregatedAlerts.length > 0 && (
