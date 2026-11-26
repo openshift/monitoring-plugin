@@ -7,8 +7,6 @@ import (
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/relabel"
 	"k8s.io/apimachinery/pkg/types"
 
 	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
@@ -37,12 +35,11 @@ func (c *client) EnrichAlerts(ctx context.Context, req k8s.GetAlertsRequest) ([]
 		// Only apply relabel configs for platform alerts. User workload alerts
 		// already come from their own stack and should not be relabeled here.
 		if alert.Labels[k8s.AlertSourceLabel] != k8s.AlertSourceUser {
-			lb := labels.NewBuilder(labels.FromMap(alert.Labels))
-			keep := relabel.ProcessBuilder(lb, configs...)
+			enriched, keep := alert.ApplyRelabelConfigs(configs...)
 			if !keep {
 				continue
 			}
-			alert.Labels = lb.Labels().Map()
+			alert = *enriched
 		}
 
 		// Add calculated rule ID and source when not present (labels enrichment)
