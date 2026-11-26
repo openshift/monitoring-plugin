@@ -43,7 +43,7 @@ import { MonitoringState } from '@/shared/store/store';
 import type { Variable } from '@/shared/types/types';
 import { isDataSource } from '@/shared/utils/data-source';
 import { buildPrometheusUrl, getPrometheusBasePath } from '@/shared/utils/utils';
-import { getTimeRanges, isTimeoutError, QUERY_CHUNK_SIZE } from '@/shared/utils/utils';
+import { getTimeRanges, isTimeoutError } from '@/shared/utils/utils';
 
 export { evaluateVariableTemplate } from '@/features/legacy-dashboards/utils/variable-utils';
 
@@ -174,7 +174,7 @@ const LegacyDashboardsVariableDropdown: FC<VariableDropdownProps> = ({
                 // eslint-disable-next-line no-console
                 console.error(
                   `Timed Out Retrieving Labels from ${new Date(
-                    timeRange.endTime - QUERY_CHUNK_SIZE,
+                    timeRange.endTime - timeRange.duration,
                   ).toISOString()} - ${new Date(timeRange.endTime).toISOString()} for ${query}`,
                 );
               } else if (err.name === 'AbortError') {
