@@ -1,4 +1,4 @@
-import type { Rule } from '@openshift-console/dynamic-plugin-sdk';
+import type { PrometheusLabels, Rule } from '@openshift-console/dynamic-plugin-sdk';
 
 import type { ManagedAlert } from '@/features/alert-management-api/types/types';
 import { QueryParams } from '@/shared/constants/query-params';
@@ -17,10 +17,16 @@ export function getAlertRuleDetailsSearch(search: string, rule: Pick<Rule, 'id'>
   return `?${params}`;
 }
 
-// To be updated when new silence page is implemented
-export function getNewSilenceAlertUrl(alert: Pick<ManagedAlert, 'labels'>) {
-  return `/monitoring/v2/management/silences/~new?${labelsToParams(alert.labels)}`;
-}
+export const silencesPath = '/monitoring/v2/management/silences';
+
+export const getSilencesPageUrl = (silenceID: string): string => {
+  return `${silencesPath}?${new URLSearchParams({ silenceID })}`;
+};
+
+export const getCreateSilenceUrl = (labels?: PrometheusLabels): string => {
+  const search = labels ? labelsToParams(labels) : '';
+  return `${silencesPath}/~new${search ? `?${search}` : ''}`;
+};
 
 export function getAlertDetailsSearch(search: string, alert: ManagedAlert) {
   const params = new URLSearchParams(search);

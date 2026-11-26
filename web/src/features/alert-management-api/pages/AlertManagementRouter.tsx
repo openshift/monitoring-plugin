@@ -1,18 +1,22 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { matchPath, Navigate, useLocation } from 'react-router';
 
 import { AlertManagementLayout } from '@/features/alert-management-api/components/layout/AlertManagementLayout';
 import { AlertManagementAlertsPage } from '@/features/alert-management-api/pages/alerts-page/AlertsPage';
 import { SilencesManagementPage } from '@/features/alert-management-api/pages/PlaceholderPages';
 import { AlertRulesManagementPage } from '@/features/alert-management-api/pages/rules-page/RulesPage';
+import {
+  SilenceManagementCreatePage,
+  SilenceManagementEditPage,
+} from '@/features/alert-management-api/pages/silence-modify/SilenceModifyPages';
+import { silencesPath } from '@/features/alert-management-api/utils/urls';
 import { McpCmoAlertingPage } from '@/features/incidents/pages/IncidentsPage';
 import { MonitoringProvider } from '@/shared/contexts/MonitoringContext';
 import type { MonitoringPlugins, Prometheus } from '@/shared/utils/utils';
 
 const alertsPath = '/monitoring/v2/alerts';
 const alertRulesPath = '/monitoring/v2/management/alertrules';
-const silencesPath = '/monitoring/v2/management/silences';
 const incidentsPath = '/monitoring/v2/incidents';
 
 const queryClient = new QueryClient({
@@ -35,8 +39,15 @@ export function AlertManagementProvider({
   );
 }
 
-function AlertManagementRouter() {
+export function AlertManagementRouter() {
   const { pathname } = useLocation();
+  if (matchPath(`${silencesPath}/~new`, pathname)) {
+    return <SilenceManagementCreatePage />;
+  }
+  const editMatch = matchPath(`${silencesPath}/:id/edit`, pathname);
+  if (editMatch) {
+    return <SilenceManagementEditPage id={editMatch.params.id} />;
+  }
 
   let children: ReactNode;
   switch (pathname) {

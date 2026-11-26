@@ -52,6 +52,7 @@ vi.mock('@openshift-console/dynamic-plugin-sdk', async () => ({
   Timestamp: () => null,
   ActionServiceProvider: ({ children }) => children({ actions: [], loaded: true }),
   useAccessReview: () => [true, false],
+  useActiveNamespace: () => ['#ALL_NS#', vi.fn()],
 }));
 
 vi.mock('@/shared/hooks/useMonitoring', () => ({

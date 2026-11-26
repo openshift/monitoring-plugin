@@ -36,20 +36,16 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, ComponentType, FC, FormEventHandler, MouseEvent, Ref } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
 
-import withFallback from '@/shared/console/console-shared/error/fallbacks/WithFallback';
 import {
   formatPrometheusDuration,
   parsePrometheusDuration,
 } from '@/shared/console/console-shared/src/datetime/prometheus';
 import { ExternalLink } from '@/shared/console/utils/Link';
 import { DataTestIDs } from '@/shared/constants/data-test';
-import { useAlerts } from '@/shared/hooks/useAlerts';
 import { useBoolean } from '@/shared/hooks/useBoolean';
 import { useMonitoring } from '@/shared/hooks/useMonitoring';
 import { useMonitoringNamespace } from '@/shared/hooks/useMonitoringNamespace';
-import { getSilenceAlertUrl, usePerspective } from '@/shared/hooks/usePerspective';
 import { formatSilenceDate } from '@/shared/utils/date';
 import { ALL_NAMESPACES_KEY, getAlertmanagerSilencesUrl } from '@/shared/utils/utils';
 
@@ -57,17 +53,27 @@ const durationOff = '-';
 
 type Matcher = {
   isRegex: boolean;
-  isEqual: boolean;
+  isEqual?: boolean;
   name: string;
   value: string;
 };
 
-type SilenceFormProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaults: any;
+export type SilenceFormDefaults = {
+  comment?: string;
+  createdBy?: string;
+  endsAt?: string;
+  id?: string;
+  matchers?: Matcher[];
+  startsAt?: string;
+};
+
+export type SilenceFormProps = {
+  defaults: SilenceFormDefaults;
   Info?: ComponentType;
   title: string;
   isNamespaced: boolean;
+  onSuccess: (silenceID: string) => void;
+  onCancel: () => void;
 };
 
 // TODO: These will be available in future versions of the plugin SDK
@@ -123,11 +129,17 @@ const NegativeMatcherHelp = () => {
   );
 };
 
-const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespaced }) => {
+export const SilenceFormContent: FC<SilenceFormProps> = ({
+  defaults,
+  Info,
+  title,
+  isNamespaced,
+  onSuccess,
+  onCancel,
+}) => {
   const { t } = useTranslation(process.env.I18N_NAMESPACE);
   const { namespace } = useMonitoringNamespace();
   const { prometheus } = useMonitoring();
-  const navigate = useNavigate();
   const isPageNamespaceLocked = isNamespaced && namespace !== ALL_NAMESPACES_KEY;
 
   const durations = useMemo(() => {
@@ -163,8 +175,6 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     }
   }
 
-  const { perspective } = usePerspective();
-
   const [isOpen, setIsOpen, , setClosed] = useBoolean(false);
 
   const [comment, setComment] = useState(defaults.comment ?? '');
@@ -181,13 +191,12 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
   // made in, we remove the namespace value here and re-add it before sending the request
   const [matchers, setMatchers] = useState<Array<Matcher>>(
     (isPageNamespaceLocked
-      ? (defaults.matchers as Matcher[])?.filter((matcher) => matcher.name !== 'namespace')
+      ? defaults.matchers?.filter((matcher) => matcher.name !== 'namespace')
       : defaults.matchers) ?? [{ isRegex: false, isEqual: true, name: '', value: '' }],
   );
 
   const [startsAt, setStartsAt] = useState(defaults.startsAt ?? formatSilenceDate(now));
   const user = useSelector(getUser);
-  const { trigger: refetchSilencesAndAlerts } = useAlerts();
 
   useEffect(() => {
     if (!createdBy && user) {
@@ -279,8 +288,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
       )
       .then(({ silenceID }) => {
         setError(undefined);
-        refetchSilencesAndAlerts();
-        navigate(getSilenceAlertUrl(perspective, silenceID, namespace));
+        onSuccess(silenceID);
       })
       .catch((err) => {
         let errorMessage =
@@ -627,7 +635,7 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
               {t('Silence')}
             </Button>
             <Button
-              onClick={() => navigate(-1)}
+              onClick={onCancel}
               variant="secondary"
               isDisabled={inProgress}
               data-test={DataTestIDs.CancelButton}
@@ -640,5 +648,3 @@ const SilenceForm_: FC<SilenceFormProps> = ({ defaults, Info, title, isNamespace
     </>
   );
 };
-
-export const SilenceForm = withFallback(SilenceForm_);
