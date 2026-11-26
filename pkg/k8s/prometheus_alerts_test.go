@@ -188,6 +188,53 @@ func TestBuildRouteURL(t *testing.T) {
 	}
 }
 
+// Service-direct requests bypass the route, which supplies the /api path
+// prefix for route-based requests, so the Prometheus path constants must be
+// absolute for service-direct requests to reach the API.
+func TestBuildServiceURL(t *testing.T) {
+	cases := []struct {
+		name        string
+		namespace   string
+		serviceName string
+		port        int32
+		path        string
+		want        string
+	}{
+		{
+			name:        "prometheus alerts",
+			namespace:   UserWorkloadMonitoringNamespace,
+			serviceName: UserWorkloadPrometheusServiceName,
+			port:        UserWorkloadPrometheusPort,
+			path:        PrometheusAlertsPath,
+			want:        "https://prometheus-user-workload-web.openshift-user-workload-monitoring.svc:9090/api/v1/alerts",
+		},
+		{
+			name:        "prometheus rules",
+			namespace:   ClusterMonitoringNamespace,
+			serviceName: PlatformRouteName,
+			port:        9090,
+			path:        PrometheusRulesPath,
+			want:        "https://prometheus-k8s.openshift-monitoring.svc:9090/api/v1/rules",
+		},
+		{
+			name:        "path is appended unchanged",
+			namespace:   "other-ns",
+			serviceName: "other-svc",
+			port:        8443,
+			path:        "/healthz",
+			want:        "https://other-svc.other-ns.svc:8443/healthz",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := buildServiceURL(tc.namespace, tc.serviceName, tc.port, tc.path)
+			if got != tc.want {
+				t.Errorf("buildServiceURL(%q, %q, %d, %q) = %q, want %q", tc.namespace, tc.serviceName, tc.port, tc.path, got, tc.want)
+			}
+		})
+	}
+}
+
 // --- namespaceFromLabels ---
 
 func TestNamespaceFromLabels(t *testing.T) {

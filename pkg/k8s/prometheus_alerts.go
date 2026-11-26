@@ -466,9 +466,12 @@ func (pa *prometheusAlerts) serviceReachable(ctx context.Context, namespace stri
 	return err == nil
 }
 
+func buildServiceURL(namespace string, serviceName string, port int32, path string) string {
+	return fmt.Sprintf("https://%s.%s.svc:%d%s", serviceName, namespace, port, path)
+}
+
 func (pa *prometheusAlerts) getServiceResponse(ctx context.Context, namespace string, serviceName string, port int32, path string) ([]byte, error) {
-	baseURL := fmt.Sprintf("https://%s.%s.svc:%d", serviceName, namespace, port)
-	requestURL := fmt.Sprintf("%s%s", baseURL, path)
+	requestURL := buildServiceURL(namespace, serviceName, port, path)
 
 	client, err := pa.createHTTPClient()
 	if err != nil {
