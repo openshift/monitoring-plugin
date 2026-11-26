@@ -23,6 +23,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apiserver/pkg/server/dynamiccertificates"
+
+	"github.com/openshift/monitoring-plugin/pkg/management"
 )
 
 type httpClientConfig struct {
@@ -73,7 +75,7 @@ func TestCreateHTTPServer(t *testing.T) {
 		},
 	} {
 		t.Run("", func(t *testing.T) {
-			_, err := createHTTPServer(context.Background(), tc.cfg)
+			_, _, err := createHTTPServer(context.Background(), tc.cfg)
 			if tc.err {
 				require.Error(t, err)
 				return
@@ -630,4 +632,12 @@ func TestCertLoadLoggerDoesNotLeakPath(t *testing.T) {
 	_, err = dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", certFile, keyFile)
 	require.ErrorContains(t, err, dir)
 	require.NotContains(t, fmt.Sprint(certLoadLogger(err).Data), dir)
+}
+
+func TestMetricsRegistrationFailureFailsStartup(t *testing.T) {
+	ctx := context.Background()
+	managementClient := management.New(ctx, nil)
+	_, _, _, err := setupRoutes(ctx, &Config{}, managementClient, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to register alert management metrics")
 }

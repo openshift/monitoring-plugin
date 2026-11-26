@@ -3,15 +3,25 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"flag"
+	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
 	server "github.com/openshift/monitoring-plugin/pkg/server"
 )
+
+// shutdownGracePeriod bounds the HTTP server shutdown after SIGTERM. The
+// deployment's termination grace period is 30 seconds by default, and the
+// remaining budget goes to releasing the metrics leader lease.
+const shutdownGracePeriod = 10 * time.Second
 
 var (
 	portArg             = flag.Int("port", 9443, "server port to listen on\nports 9444 and 9445 reserved for other use")
@@ -89,7 +99,12 @@ func main() {
 		log.Infof("TLS curves: %q", tlsCurvePrefs)
 	}
 
-	srv, err := server.CreateServer(context.Background(), &server.Config{
+	// Cancel the server context on SIGINT/SIGTERM so that leader election
+	// can release its lease before the process exits.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	srv, err := server.CreateServer(ctx, &server.Config{
 		Port:                port,
 		CertFile:            cert,
 		PrivateKeyFile:      key,
@@ -110,9 +125,24 @@ func main() {
 		panic(err)
 	}
 
-	if err = srv.StartHTTPServer(); err != nil {
+	go func() {
+		<-ctx.Done()
+		// Shutdown makes ListenAndServe return so that main can wait for
+		// the leader election to stop before exiting. NotifyContext above
+		// no longer lets the signal terminate the process directly.
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownGracePeriod)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.WithError(err).Warn("HTTP server shutdown failed")
+		}
+	}()
+
+	if err = srv.StartHTTPServer(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
+
+	// Give up the alert metrics leadership (and its lease) before exiting.
+	srv.WaitForLeaderElection()
 }
 
 func mergeEnvValue(key string, arg string) string {

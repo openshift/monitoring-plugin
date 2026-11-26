@@ -88,7 +88,7 @@ func TestLoggingConfig(t *testing.T) {
 			response := httptest.NewRecorder()
 			handler(response, httptest.NewRequest("GET", "/config", nil))
 			require.JSONEq(t, tc.expected, response.Body.String())
-			server, err := createHTTPServer(context.Background(), cfg)
+			server, _, err := createHTTPServer(context.Background(), cfg)
 			require.NoError(t, err) // logging alone must not require in-cluster ACM credentials.
 			require.Equal(t, tc.timeout, server.ReadTimeout)
 			require.Equal(t, tc.timeout, server.WriteTimeout)

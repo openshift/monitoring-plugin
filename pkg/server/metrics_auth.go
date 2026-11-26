@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 	"net/http"
 
@@ -23,31 +22,17 @@ func metricsClientCA(ctx context.Context, filename string) (dynamiccertificates.
 	return ca, nil
 }
 
-// authorizeMetrics verifies that the client connection uses a TLS certificate
-// signed by the expected CA and identifying the in-cluster Prometheus service
-// account.
-func authorizeMetrics(ca dynamiccertificates.CAContentProvider, next http.Handler) http.Handler {
+// authorizeMetrics authorizes /metrics scrapes. The connection must have
+// presented a client certificate that was verified at TLS handshake time
+// against the operator-managed CA bundle (see createHTTPServer), and the
+// certificate must identify the in-cluster Prometheus service account.
+func authorizeMetrics(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.TLS == nil || len(r.TLS.PeerCertificates) == 0 {
+		if r.TLS == nil || len(r.TLS.VerifiedChains) == 0 {
 			http.Error(w, "client certificate required", http.StatusUnauthorized)
 			return
 		}
-		opts, available := ca.VerifyOptions()
-		if !available {
-			http.Error(w, "metrics client CA unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		opts.KeyUsages = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
-		opts.Intermediates = x509.NewCertPool()
-		for _, intermediate := range r.TLS.PeerCertificates[1:] {
-			opts.Intermediates.AddCert(intermediate)
-		}
-		cert := r.TLS.PeerCertificates[0]
-		if _, err := cert.Verify(opts); err != nil {
-			http.Error(w, "invalid client certificate", http.StatusUnauthorized)
-			return
-		}
-		if cert.Subject.CommonName != metricsScraperIdentity {
+		if r.TLS.PeerCertificates[0].Subject.CommonName != metricsScraperIdentity {
 			http.Error(w, "metrics access denied", http.StatusForbidden)
 			return
 		}
