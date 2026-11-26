@@ -82,6 +82,7 @@ import { StringParam, useQueryParam } from 'use-query-params';
 import { DropDownPollInterval } from '@/shared/components/DropdownPollInterval';
 import KebabDropdown from '@/shared/components/KebabDropdown';
 import { colors, Error, QueryBrowser } from '@/shared/components/query-browser/QueryBrowser';
+import { makeLabelColumnSorter, makeValueColumnSorter } from '@/shared/components/table/sort-utils';
 import { TablePagination } from '@/shared/components/table/TablePagination';
 import { ToggleGraph } from '@/shared/components/ToggleGraph';
 import { TypeaheadSelect } from '@/shared/components/TypeaheadSelect';
@@ -768,16 +769,12 @@ const QueryTable: FC<QueryTableProps> = ({ index, namespace, customDatasource, u
 
       rows = _.map(result, rowMapper);
       if (sortBy) {
-        // Sort Values column numerically and sort all the other columns alphabetically
         const valuesColIndex = allLabelKeys.length + 1;
-        const sort =
-          sortBy.index === valuesColIndex
-            ? (cells) => {
-                const v = Number(cells[valuesColIndex]);
-                return Number.isNaN(v) ? 0 : v;
-              }
-            : `${sortBy.index}`;
-        rows = _.orderBy(rows, [sort], [sortBy.direction]);
+        if (sortBy.index === valuesColIndex) {
+          rows = rows.sort(makeValueColumnSorter(valuesColIndex, sortBy.direction));
+        } else {
+          rows = rows.sort(makeLabelColumnSorter(sortBy.index, sortBy.direction));
+        }
       }
     }
 
