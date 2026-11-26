@@ -45,18 +45,23 @@ Location: `pkg/alertcomponent/matcher.go`
 
 1) The code adapts `cluster-health-analyzer` matchers:
    - CVO-related alerts (update/upgrade) → component/layer based on known patterns
+   - Virtualization: alerts carrying `kubernetes_operator_part_of="kubevirt"` (VM vs operator split by `operator_health_impact`); platform alerts fired in a virtualization operator namespace (`openshift-cnv`, `kubevirt-hyperconverged`) are mapped to the same `openshift-virtualization-operator` component via the core rules
    - Compute / node-related alerts
    - Core control plane components (layer set to `cluster`)
    - Workload/namespace-level alerts (layer set to `namespace`)
+   - Operator-namespace fallback: an alert fired in an `openshift-*` namespace that no other matcher claims is attributed to that namespace as its component instead of `others`, so platform alerts about operators installed in unmapped namespaces still get a meaningful component; the layer is left unmatched and derived from the alert source in the fallback below (`cluster` for platform, `namespace` otherwise)
+
+   Namespace-based matching applies to the labels the classification step sees. When an alert is correlated with its alerting rule (`classifyFromRule`) and the rule does not pin an explicit `namespace` label, the alert's firing namespace (the namespace of the affected entity) takes precedence over the PrometheusRule's own namespace; the rule's namespace is used only when the alert carries no namespace itself (for example, cluster-scoped rules). This keeps general platform rules classified by what they fired for instead of where the rule is stored: `KubePodCrashLooping` (defined in `openshift-monitoring`) firing in `openshift-cnv` classifies as `openshift-virtualization-operator` / `cluster`, whether linked to its rule or not. A rule can still pin its scope with an explicit `namespace` label, and can opt in to classification from the alert's own labels with the dynamic `_from` labels described below: for example, `openshift_io_alert_rule_component_from: namespace` makes the firing alert's `namespace` label value the component.
 
 2) Fallback:
-   - If the computed component is empty or "Others", we set:
-     - `component = "Others"`
-     - `layer` derived from source:
-       - `openshift_io_alert_source=platform` → `cluster`
-       - `openshift_io_prometheus_rule_namespace=openshift-monitoring` → `cluster`
-       - `prometheus` label starting with `openshift-monitoring/` → `cluster`
-       - otherwise → `namespace`
+   - Unmatched components are reported as `others`.
+   - If no valid override or matcher supplies a layer, it is derived:
+       - an alert about an entity in a namespace that is not part of the platform (not `openshift-*`, not `kube-system`) → `namespace`, even when a platform stack evaluated the rule (for example `TargetDown` firing for a managed-cluster or user namespace)
+       - otherwise from source:
+           - `openshift_io_alert_source=platform` → `cluster`
+           - `openshift_io_prometheus_rule_namespace=openshift-monitoring` → `cluster`
+           - `prometheus` label starting with `openshift-monitoring/` → `cluster`
+           - otherwise → `namespace`
 
 3) Result:
    - Each alerting rule is assigned a `(component, layer)` tuple following the above logic.
@@ -72,6 +77,19 @@ Both are validated the same way as API overrides:
 - `layer`: `cluster` or `namespace`
 
 When these labels are present and valid, they override matcher-derived values.
+`DetermineComponent` applies these overrides independently: a component override
+does not require a layer override, and vice versa. They take precedence over
+`kubernetes_operator_component` and `operator_health_impact`. Missing or invalid
+values fall back to the matchers; an unmatched layer falls back to the alert source
+in the management API.
+
+This precedence holds within the matcher step. In the alerts API enrichment
+(`pkg/management/get_alerts.go`), two later steps can still replace these values:
+- `ClusterOperatorDown` and `ClusterOperatorDegraded` alerts are re-classified by
+  `classifyCvoAlert` (component taken from the alert's `name` label, or `version`;
+  layer `cluster`), overwriting any static classification labels.
+- Dynamic `_from` labels (see below) are resolved last and take precedence over
+  both the static labels and the CVO classification.
 
 ## Classification Override Storage
 
