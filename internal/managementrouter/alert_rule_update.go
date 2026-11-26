@@ -35,6 +35,33 @@ func validateAlertRuleUpdateFields(f alertRuleUpdateFields) string {
 	return ""
 }
 
+func classificationPatchToRequest(ruleID string, cl *AlertRuleClassificationPatch) *management.UpdateRuleClassificationRequest {
+	if cl == nil {
+		return nil
+	}
+	update := management.UpdateRuleClassificationRequest{RuleId: ruleID}
+	if cl.ComponentSet {
+		update.Component = cl.Component
+		update.ComponentSet = true
+	}
+	if cl.LayerSet {
+		update.Layer = cl.Layer
+		update.LayerSet = true
+	}
+	if cl.ComponentFromSet {
+		update.ComponentFrom = cl.ComponentFrom
+		update.ComponentFromSet = true
+	}
+	if cl.LayerFromSet {
+		update.LayerFrom = cl.LayerFrom
+		update.LayerFromSet = true
+	}
+	if !update.ComponentSet && !update.LayerSet && !update.ComponentFromSet && !update.LayerFromSet {
+		return nil
+	}
+	return &update
+}
+
 // applyAlertRuleUpdate applies one update mutation. On success it returns the
 // effective rule ID (which may change when labels are updated).
 // Classification is applied before labels when both are set; those steps are
@@ -49,30 +76,9 @@ func (hr *httpRouter) applyAlertRuleUpdate(ctx context.Context, id string, f ale
 
 	resultID := id
 
-	if f.Classification != nil {
-		cl := f.Classification
-		update := management.UpdateRuleClassificationRequest{RuleId: id}
-		if cl.ComponentSet {
-			update.Component = cl.Component
-			update.ComponentSet = true
-		}
-		if cl.LayerSet {
-			update.Layer = cl.Layer
-			update.LayerSet = true
-		}
-		if cl.ComponentFromSet {
-			update.ComponentFrom = cl.ComponentFrom
-			update.ComponentFromSet = true
-		}
-		if cl.LayerFromSet {
-			update.LayerFrom = cl.LayerFrom
-			update.LayerFromSet = true
-		}
-
-		if update.ComponentSet || update.LayerSet || update.ComponentFromSet || update.LayerFromSet {
-			if err := hr.managementClient.UpdateAlertRuleClassification(ctx, update); err != nil {
-				return id, err
-			}
+	if req := classificationPatchToRequest(id, f.Classification); req != nil {
+		if err := hr.managementClient.UpdateAlertRuleClassification(ctx, *req); err != nil {
+			return id, err
 		}
 	}
 
