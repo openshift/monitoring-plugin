@@ -110,8 +110,13 @@ type AlertingRuleInterface interface {
 
 // RelabeledRulesInterface defines operations for managing relabeled rules
 type RelabeledRulesInterface interface {
-	// List retrieves the relabeled rules for a given PrometheusRule
+	// List retrieves the relabeled rules retained by the alert relabel
+	// configs; dropped rules are excluded.
 	List(ctx context.Context) []monitoringv1.Rule
+
+	// ListIncludingDropped retrieves all relabeled rules, including rules
+	// dropped by the alert relabel configs.
+	ListIncludingDropped(ctx context.Context) []monitoringv1.Rule
 
 	// Get retrieves the relabeled rule for a given id
 	Get(ctx context.Context, id string) (monitoringv1.Rule, bool)

@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	alertrule "github.com/openshift/monitoring-plugin/pkg/alert_rule"
 	"github.com/openshift/monitoring-plugin/pkg/k8s"
 	"github.com/openshift/monitoring-plugin/test/e2e/framework"
 )
@@ -228,6 +229,244 @@ func TestRelabelAlert(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("Timeout waiting for relabeling to take effect: %v", err)
+	}
+}
+
+// TestGetRules_AlertingRuleEnabled verifies that GET /rules reports
+// alertingRuleEnabled=false while a platform rule is dropped and true again
+// after it is restored. The rule must stay listed while dropped.
+func TestGetRules_AlertingRuleEnabled(t *testing.T) {
+	f, err := framework.New()
+	if err != nil {
+		t.Fatalf("Failed to create framework: %v", err)
+	}
+
+	ctx := context.Background()
+
+	testNamespace, cleanup, err := f.CreatePlatformNamespace(ctx, "test-rules-enabled")
+	if err != nil {
+		t.Fatalf("Failed to create test namespace: %v", err)
+	}
+	defer func() {
+		if err := cleanup(); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	}()
+
+	testAlertName := "TestGetRulesAlertingRuleEnabled"
+	forDuration := monitoringv1.Duration("5m")
+	testRule := monitoringv1.Rule{
+		Alert: testAlertName,
+		// The expression never matches a series, so the rule stays inactive
+		// and the test proves the flag is served even without active alerts.
+		Expr: intstr.FromString(`nonexistent{e2e_test="alerting_rule_enabled"}`),
+		For:  &forDuration,
+		Labels: map[string]string{
+			"severity": "warning",
+		},
+	}
+
+	_, err = createPrometheusRule(ctx, f, testNamespace, testRule)
+	if err != nil {
+		t.Fatalf("Failed to create PrometheusRule: %v", err)
+	}
+
+	ruleID := alertrule.GetAlertingRuleId(&testRule)
+
+	defer cleanupARCsForRule(t, f, ctx, k8s.ClusterMonitoringNamespace, ruleID)
+
+	// Wait until GET /rules serves the rule with its cache-enriched alert
+	// rule ID. The ID label is applied from the relabeled-rules cache, so its
+	// presence proves the cache has synced the rule, which the drop request
+	// requires to resolve it.
+	err = framework.Poll(2*time.Second, 2*time.Minute, func() error {
+		rules, err := listAlertingRules(ctx, f)
+		if err != nil {
+			return err
+		}
+		for _, rule := range rules {
+			if rule.Name == testAlertName {
+				if got := rule.Labels[k8s.AlertRuleLabelId]; got != ruleID {
+					return fmt.Errorf("alert rule ID label = %q, want %q", got, ruleID)
+				}
+				if !rule.AlertingRuleEnabled {
+					return fmt.Errorf("alertingRuleEnabled=false, want true")
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("alert rule %s not found in GET /rules response", testAlertName)
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for enabled rule %s: %v", testAlertName, err)
+	}
+
+	patchDrop(t, f, ctx, ruleID, false)
+	droppedRuleID := waitForAlertingRuleEnabled(ctx, t, f, testAlertName, false)
+
+	// Restore using the rule ID served by GET /rules rather than the locally
+	// computed one, so the restore path exercises the API-sourced identity.
+	patchDrop(t, f, ctx, droppedRuleID, true)
+	waitForAlertingRuleEnabled(ctx, t, f, testAlertName, true)
+}
+
+// waitForAlertingRuleEnabled polls GET /rules until the named rule is listed
+// with the wanted alertingRuleEnabled value, returning the rule ID served
+// with the rule. Dropped rules stay listed, so absence from the response is
+// an error, not a pass.
+func waitForAlertingRuleEnabled(ctx context.Context, t *testing.T, f *framework.Framework, alertName string, wantEnabled bool) string {
+	t.Helper()
+
+	var servedRuleID string
+	err := framework.Poll(2*time.Second, 2*time.Minute, func() error {
+		rules, err := listAlertingRules(ctx, f)
+		if err != nil {
+			return err
+		}
+		for _, rule := range rules {
+			if rule.Name == alertName {
+				if rule.AlertingRuleEnabled != wantEnabled {
+					return fmt.Errorf("alertingRuleEnabled=%t, want %t", rule.AlertingRuleEnabled, wantEnabled)
+				}
+				servedRuleID = rule.Labels[k8s.AlertRuleLabelId]
+				if servedRuleID == "" {
+					return fmt.Errorf("alert rule ID label is empty")
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("alert rule %s not found in GET /rules response", alertName)
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for alertingRuleEnabled=%t on rule %s: %v", wantEnabled, alertName, err)
+	}
+	return servedRuleID
+}
+
+// TestDroppedRuleSuppressesAlert verifies the alert-facing side of dropping:
+// while a platform rule is dropped, its firing alert is suppressed from
+// GET /alerts while the rule stays listed in GET /rules, and the alert
+// returns after the rule is restored.
+func TestDroppedRuleSuppressesAlert(t *testing.T) {
+	f, err := framework.New()
+	if err != nil {
+		t.Fatalf("Failed to create framework: %v", err)
+	}
+
+	ctx := context.Background()
+
+	testNamespace, cleanup, err := f.CreatePlatformNamespace(ctx, "test-drop-suppresses")
+	if err != nil {
+		t.Fatalf("Failed to create test namespace: %v", err)
+	}
+	defer func() {
+		if err := cleanup(); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	}()
+
+	testAlertName := "TestDroppedRuleSuppressesAlert"
+	forDuration := monitoringv1.Duration("1s")
+	testRule := monitoringv1.Rule{
+		Alert: testAlertName,
+		// absent() always matches one series, so the alert fires without
+		// waiting for real metric data, and the expression is unique to
+		// this test to avoid spec-equality conflicts.
+		Expr: intstr.FromString(`absent(nonexistent{e2e_test="dropped_alert_suppressed"})`),
+		For:  &forDuration,
+		Labels: map[string]string{
+			"severity": "warning",
+		},
+	}
+
+	if _, err = createPrometheusRule(ctx, f, testNamespace, testRule); err != nil {
+		t.Fatalf("Failed to create PrometheusRule: %v", err)
+	}
+
+	ruleID := alertrule.GetAlertingRuleId(&testRule)
+
+	defer cleanupARCsForRule(t, f, ctx, k8s.ClusterMonitoringNamespace, ruleID)
+
+	// Wait until GET /rules serves the rule with its cache-enriched ID;
+	// the drop request resolves the rule against the relabeled-rules cache.
+	servedRuleID := waitForAlertingRuleEnabled(ctx, t, f, testAlertName, true)
+
+	// The rule fires, so its alert must be served by GET /alerts before
+	// the drop; this makes the later absence assertion meaningful.
+	waitForAlertInGetAlerts(ctx, t, f, testAlertName, true)
+
+	patchDrop(t, f, ctx, servedRuleID, false)
+
+	// While dropped: the rule stays listed with alertingRuleEnabled=false
+	// and its alert is suppressed from GET /alerts.
+	droppedRuleID := waitForAlertingRuleEnabled(ctx, t, f, testAlertName, false)
+	waitForAlertInGetAlerts(ctx, t, f, testAlertName, false)
+
+	patchDrop(t, f, ctx, droppedRuleID, true)
+
+	waitForAlertingRuleEnabled(ctx, t, f, testAlertName, true)
+	waitForAlertInGetAlerts(ctx, t, f, testAlertName, true)
+}
+
+// waitForAlertInGetAlerts polls GET /alerts until the named alert is present
+// or absent, depending on wantPresent. When present, it accepts firing and
+// pending states, mirroring TestGetAlerts.
+func waitForAlertInGetAlerts(ctx context.Context, t *testing.T, f *framework.Framework, alertName string, wantPresent bool) {
+	t.Helper()
+
+	httpClient := f.HTTPClient()
+	err := framework.Poll(2*time.Second, 2*time.Minute, func() (err error) {
+		alertsURL := f.PluginURL + "/api/v1/alerting/alerts"
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, alertsURL, nil)
+		if err != nil {
+			return err
+		}
+		if f.BearerToken != "" {
+			req.Header.Set("Authorization", "Bearer "+f.BearerToken)
+		}
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to query alerts: %w", err)
+		}
+		defer func() {
+			if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+				err = fmt.Errorf("closing response body: %w", closeErr)
+			}
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("GET /alerts returned status %d", resp.StatusCode)
+		}
+
+		var alertsResp struct {
+			Data struct {
+				Alerts []k8s.PrometheusAlert `json:"alerts"`
+			} `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&alertsResp); err != nil {
+			return fmt.Errorf("failed to decode alerts response: %w", err)
+		}
+
+		for _, alert := range alertsResp.Data.Alerts {
+			if alert.Labels["alertname"] == alertName {
+				if !wantPresent {
+					return fmt.Errorf("alert %s still listed in GET /alerts", alertName)
+				}
+				if alert.State != "firing" && alert.State != "pending" {
+					return fmt.Errorf("found alert %s with state %q, want firing or pending", alertName, alert.State)
+				}
+				return nil
+			}
+		}
+
+		if wantPresent {
+			return fmt.Errorf("alert %s not found in GET /alerts response", alertName)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Timeout waiting for alert %s in GET /alerts (wantPresent=%t): %v", alertName, wantPresent, err)
 	}
 }
 

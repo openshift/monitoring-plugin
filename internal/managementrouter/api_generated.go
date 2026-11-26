@@ -113,7 +113,7 @@ type BulkDeleteAlertRulesResponse struct {
 
 // BulkUpdateAlertRulesRequest defines model for BulkUpdateAlertRulesRequest.
 type BulkUpdateAlertRulesRequest struct {
-	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules.
+	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action: alert instances are suppressed from this API and Alertmanager, while Prometheus keeps evaluating the rule. When true, restores a previously dropped rule. Only supported for platform alert rules.
 	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
 
 	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
@@ -222,7 +222,7 @@ type Rule = k8s.Rule
 
 // UpdateAlertRuleRequest Partial update for a single alert rule. At least one of labels, alertingRuleEnabled, or classification must be set. alertingRuleEnabled cannot be combined with labels or classification in the same request.
 type UpdateAlertRuleRequest struct {
-	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action — the rule no longer appears in Prometheus query results. When true, restores a previously dropped rule. Only supported for platform alert rules.
+	// AlertingRuleEnabled When false, drops the alert rule via an AlertRelabelConfig Drop action: alert instances are suppressed from this API and Alertmanager, while Prometheus keeps evaluating the rule. When true, restores a previously dropped rule. Only supported for platform alert rules.
 	AlertingRuleEnabled *bool `json:"alertingRuleEnabled,omitempty"`
 
 	// Classification Partial update for alert rule classification labels. Each field supports three states: omitted (leave unchanged), null (clear the override), or a string value (set the override). The three-state semantics require a custom JSON decoder; the Go type AlertRuleClassificationPatch is used at runtime instead of the generated struct.
