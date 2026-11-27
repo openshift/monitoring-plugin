@@ -600,6 +600,7 @@ export const persesDashboardsPage = {
       .find('h6')
       .contains(panel)
       .siblings('div')
+      .children('div')
       .eq(1)
       .then((element1) => {
         if (
@@ -632,6 +633,7 @@ export const persesDashboardsPage = {
       .find('h6')
       .contains(panel)
       .siblings('div')
+      .children('div')
       .eq(2)
       .then((element1) => {
         if (

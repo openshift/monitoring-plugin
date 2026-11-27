@@ -5,7 +5,7 @@ import {
   persesDashboardsAddListVariableSource,
   persesDashboardSampleQueries,
   persesDashboardsDashboardDropdownCOO,
-  persesDashboardsDashboardDropdownPersesDev,
+  persesDashboardsDashboardDropdownObservTest,
   persesDashboardsEmptyDashboard,
 } from '../../fixtures/perses/constants';
 import { persesDashboardsEditVariables } from '../../views/perses-dashboards-edit-variables';
@@ -183,13 +183,13 @@ export function testCOORBACPersesTestsDevUser1(
 
     cy.log(`3.3. Filter by Name`);
     listPersesDashboardsPage.filter.byName(
-      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
+      persesDashboardsDashboardDropdownObservTest.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
     listPersesDashboardsPage.countDashboards('1');
 
     cy.log(`3.4. Click on a dashboard`);
     listPersesDashboardsPage.clickDashboard(
-      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
+      persesDashboardsDashboardDropdownObservTest.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
     persesDashboardsPage.shouldBeLoaded1();
 
@@ -379,7 +379,7 @@ export function testCOORBACPersesTestsDevUser1(
 
     cy.log(`6.3. Assert Rename/Delete row actions are disabled`);
     listPersesDashboardsPage.filter.byName(
-      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
+      persesDashboardsDashboardDropdownObservTest.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
     listPersesDashboardsPage.assertKebabRowActionsDisabled();
 
@@ -404,7 +404,7 @@ export function testCOORBACPersesTestsDevUser1(
     cy.changeNamespace('observ-test');
     listPersesDashboardsPage.filter.byProject('observ-test');
     listPersesDashboardsPage.filter.byName(
-      persesDashboardsDashboardDropdownPersesDev.PERSES_DASHBOARD_SAMPLE[0],
+      persesDashboardsDashboardDropdownObservTest.K8S_COMPUTE_RESOURCES_CLUSTER[0],
     );
     listPersesDashboardsPage.countDashboards('1');
     listPersesDashboardsPage.clickKebabIcon();
