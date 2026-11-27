@@ -114,6 +114,13 @@ func TestParseCipherSuites(t *testing.T) {
 			},
 		},
 		{
+			name:  "Go insecure cipher suite names required by the Old TLS profile",
+			input: "TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+			expected: []uint16{
+				tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA, tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+			},
+		},
+		{
 			name:     "names are matched case-insensitively",
 			input:    "tls_ecdhe_rsa_with_aes_128_gcm_sha256",
 			expected: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
@@ -175,9 +182,10 @@ func TestParseTLSVersion(t *testing.T) {
 		{input: "", expected: 0},
 		{input: "VersionTLS12", expected: tls.VersionTLS12},
 		{input: "VersionTLS13", expected: tls.VersionTLS13},
-		// Unsupported or unknown versions fall back to TLS 1.2.
-		{input: "VersionTLS10", expected: tls.VersionTLS12},
-		{input: "VersionTLS11", expected: tls.VersionTLS12},
+		// Required by the OpenShift "Old" TLS security profile.
+		{input: "VersionTLS10", expected: tls.VersionTLS10},
+		{input: "VersionTLS11", expected: tls.VersionTLS11},
+		// Unknown versions fall back to TLS 1.2.
 		{input: "invalid", expected: tls.VersionTLS12},
 	} {
 		t.Run(tt.input, func(t *testing.T) {
@@ -220,6 +228,29 @@ func TestNewBaseTLSConfig(t *testing.T) {
 				MaxVersion:       tls.VersionTLS13,
 				CipherSuites:     []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
 				CurvePreferences: []tls.CurveID{tls.CurveP384, tls.X25519MLKEM768},
+			},
+		},
+		{
+			name: "applies the Old TLS profile minimum version and insecure ciphers",
+			cfg: Config{
+				TLSMinVersion:   tls.VersionTLS10,
+				TLSCipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA},
+			},
+			expected: &tls.Config{
+				MinVersion:   tls.VersionTLS10,
+				CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA},
+			},
+		},
+		{
+			name: "accepts insecure cipher suites as TLS 1.2 capable when TLS 1.3 is disabled",
+			cfg: Config{
+				TLSMaxVersion:   tls.VersionTLS12,
+				TLSCipherSuites: []uint16{tls.TLS_RSA_WITH_AES_128_CBC_SHA256},
+			},
+			expected: &tls.Config{
+				MinVersion:   tls.VersionTLS12,
+				MaxVersion:   tls.VersionTLS12,
+				CipherSuites: []uint16{tls.TLS_RSA_WITH_AES_128_CBC_SHA256},
 			},
 		},
 		{
@@ -336,4 +367,31 @@ func TestNewBaseTLSConfig(t *testing.T) {
 			require.Equal(t, tt.expectWarns, warned)
 		})
 	}
+}
+
+// TestOldTLSProfile ensures the settings COO passes when the cluster APIServer
+// uses the "Old" TLS security profile are accepted (COO-2535).
+func TestOldTLSProfile(t *testing.T) {
+	oldProfileCiphers := "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256," +
+		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256," +
+		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384," +
+		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256," +
+		"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256," +
+		"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA," +
+		"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA," +
+		"TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384," +
+		"TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA," +
+		"TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+
+	ciphers, err := ParseCipherSuites(oldProfileCiphers)
+	require.NoError(t, err)
+	require.Len(t, ciphers, 21)
+
+	minVersion := ParseTLSVersion("VersionTLS10")
+	require.Equal(t, uint16(tls.VersionTLS10), minVersion)
+
+	tlsConfig, err := newBaseTLSConfig(&Config{TLSMinVersion: minVersion, TLSCipherSuites: ciphers})
+	require.NoError(t, err)
+	require.Equal(t, uint16(tls.VersionTLS10), tlsConfig.MinVersion)
+	require.Equal(t, ciphers, tlsConfig.CipherSuites)
 }

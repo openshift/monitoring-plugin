@@ -24,13 +24,17 @@ var supportedCurves = []supportedCurve{
 	{id: tls.SecP384r1MLKEM1024, tls12: false},
 }
 
+// TLS 1.0 and 1.1 are accepted because the cluster TLS security profile may
+// require them (e.g. the OpenShift "Old" profile uses VersionTLS10).
 var tlsVersions = map[string]uint16{
+	"VersionTLS10": tls.VersionTLS10,
+	"VersionTLS11": tls.VersionTLS11,
 	"VersionTLS12": tls.VersionTLS12,
 	"VersionTLS13": tls.VersionTLS13,
 }
 
 // ParseTLSVersion returns 0 for an empty version (use the default) and falls
-// back to TLS 1.2 with a warning for unknown or unsupported versions.
+// back to TLS 1.2 with a warning for unknown versions.
 func ParseTLSVersion(version string) uint16 {
 	if version == "" {
 		return 0
@@ -53,7 +57,7 @@ var curveAliases = map[string]tls.CurveID{
 
 func ParseCipherSuites(ciphers string) ([]uint16, error) {
 	known := make(map[string]uint16)
-	for _, suite := range tls.CipherSuites() {
+	for _, suite := range allCipherSuites() {
 		known[strings.ToLower(suite.Name)] = suite.ID
 	}
 	return parseTLSList(ciphers, known, "cipher suites")
@@ -108,12 +112,20 @@ func parseTLSList[T comparable](list string, known map[string]T, kind string) ([
 	return values, nil
 }
 
+// allCipherSuites returns every cipher suite implemented by crypto/tls. The
+// insecure ones are included because the cluster TLS security profile may
+// require them (e.g. the OpenShift "Old" profile includes 3DES and RSA key
+// exchange suites).
+func allCipherSuites() []*tls.CipherSuite {
+	return append(tls.CipherSuites(), tls.InsecureCipherSuites()...)
+}
+
 func isSupportedCipherSuite(id uint16) bool {
-	return slices.ContainsFunc(tls.CipherSuites(), func(s *tls.CipherSuite) bool { return s.ID == id })
+	return slices.ContainsFunc(allCipherSuites(), func(s *tls.CipherSuite) bool { return s.ID == id })
 }
 
 func isTLS12CipherSuite(id uint16) bool {
-	return slices.ContainsFunc(tls.CipherSuites(), func(s *tls.CipherSuite) bool {
+	return slices.ContainsFunc(allCipherSuites(), func(s *tls.CipherSuite) bool {
 		return s.ID == id && slices.Contains(s.SupportedVersions, tls.VersionTLS12)
 	})
 }
